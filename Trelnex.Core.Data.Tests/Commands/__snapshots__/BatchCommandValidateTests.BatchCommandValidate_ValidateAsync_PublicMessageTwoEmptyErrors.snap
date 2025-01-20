@@ -1,0 +1,36 @@
+﻿[
+  {
+    "IsValid": false,
+    "Errors": [
+      {
+        "PropertyName": "PublicMessage",
+        "ErrorMessage": "NotEmpty #1",
+        "AttemptedValue": "",
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotEmptyValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Public Message",
+          "PropertyValue": "",
+          "PropertyPath": "PublicMessage"
+        }
+      },
+      {
+        "PropertyName": "PublicMessage",
+        "ErrorMessage": "NotEmpty #2",
+        "AttemptedValue": "",
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotEmptyValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Public Message",
+          "PropertyValue": "",
+          "PropertyPath": "PublicMessage"
+        }
+      }
+    ],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  }
+]

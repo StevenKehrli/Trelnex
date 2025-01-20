@@ -1,0 +1,38 @@
+﻿[
+  {
+    "SaveAction": "CREATED",
+    "RelatedId": "569d9c11-f66f-46b9-98be-ff0cff833475",
+    "RelatedTypeName": "test-item",
+    "Changes": [
+      {
+        "PropertyName": "publicId",
+        "OldValue": {
+          "ValueKind": "Number"
+        },
+        "NewValue": {
+          "ValueKind": "Number"
+        }
+      },
+      {
+        "PropertyName": "publicMessage",
+        "OldValue": null,
+        "NewValue": {
+          "ValueKind": "String"
+        }
+      }
+    ],
+    "Context": {
+      "ObjectId": "f922e810-f328-448f-9868-52ddd30d3e31",
+      "HttpTraceIdentifier": "c2d74ea4-cdd8-476b-b21b-d65d00331df2",
+      "HttpRequestPath": "bcdcf583-7649-4244-a70c-e0e256e23719"
+    },
+    "Id": "7efadb9d-53a9-450e-945b-cde622a9392c",
+    "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
+    "TypeName": "event",
+    "CreatedDate": "2025-01-19T22:19:55.321537Z",
+    "UpdatedDate": "2025-01-19T22:19:55.321537Z",
+    "DeletedDate": null,
+    "IsDeleted": null,
+    "ETag": "161d956f-3ee7-4351-a026-ed5b95440cd8"
+  }
+]

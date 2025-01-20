@@ -1,0 +1,15 @@
+﻿[
+  {
+    "Item": {
+      "Id": "ebbcb819-a606-4d06-b433-e14f3a8e8b4a",
+      "PartitionKey": "15715eb0-637b-4c2a-8cb6-95919eb338c2",
+      "TypeName": "test-item",
+      "CreatedDate": "2025-01-19T22:31:19.34538Z",
+      "UpdatedDate": "2025-01-19T22:31:19.34538Z",
+      "DeletedDate": null,
+      "IsDeleted": null,
+      "ETag": "105394E4-BE88-44A8-8A9D-69F0FC70ADB6",
+      "Message": "Message #1"
+    }
+  }
+]

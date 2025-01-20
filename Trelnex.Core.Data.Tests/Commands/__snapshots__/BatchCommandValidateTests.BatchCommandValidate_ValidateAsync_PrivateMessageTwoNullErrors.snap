@@ -1,0 +1,36 @@
+﻿[
+  {
+    "IsValid": false,
+    "Errors": [
+      {
+        "PropertyName": "PrivateMessage",
+        "ErrorMessage": "NotNull #1",
+        "AttemptedValue": null,
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotNullValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Private Message",
+          "PropertyValue": null,
+          "PropertyPath": "PrivateMessage"
+        }
+      },
+      {
+        "PropertyName": "PrivateMessage",
+        "ErrorMessage": "NotNull #2",
+        "AttemptedValue": null,
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotNullValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Private Message",
+          "PropertyValue": null,
+          "PropertyPath": "PrivateMessage"
+        }
+      }
+    ],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  }
+]

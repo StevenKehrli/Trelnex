@@ -1,0 +1,12 @@
+﻿{
+  "HttpStatusCode": "UnprocessableEntity",
+  "Message": "The collection of 'Trelnex.Core.Data.Tests.Commands.TestItem' is not valid.",
+  "Errors": {
+    "[0].PrivateMessage": [
+      "'Private Message' must not be empty."
+    ],
+    "[0].PublicMessage": [
+      "'Public Message' must not be empty."
+    ]
+  }
+}

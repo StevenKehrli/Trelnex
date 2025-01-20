@@ -1,0 +1,21 @@
+﻿{
+  "IsValid": false,
+  "Errors": [
+    {
+      "PropertyName": "Message",
+      "ErrorMessage": "The specified condition was not met for 'Message'.",
+      "AttemptedValue": "no",
+      "CustomState": null,
+      "Severity": "Error",
+      "ErrorCode": "PredicateValidator",
+      "FormattedMessagePlaceholderValues": {
+        "PropertyName": "Message",
+        "PropertyValue": "no",
+        "PropertyPath": "Message"
+      }
+    }
+  ],
+  "RuleSetsExecuted": [
+    "default"
+  ]
+}
