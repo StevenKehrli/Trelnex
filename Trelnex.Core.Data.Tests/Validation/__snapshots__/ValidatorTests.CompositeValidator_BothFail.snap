@@ -1,0 +1,34 @@
+﻿{
+  "IsValid": false,
+  "Errors": [
+    {
+      "PropertyName": "Id",
+      "ErrorMessage": "The specified condition was not met for 'Id'.",
+      "AttemptedValue": -1,
+      "CustomState": null,
+      "Severity": "Error",
+      "ErrorCode": "PredicateValidator",
+      "FormattedMessagePlaceholderValues": {
+        "PropertyName": "Id",
+        "PropertyValue": -1,
+        "PropertyPath": "Id"
+      }
+    },
+    {
+      "PropertyName": "Message",
+      "ErrorMessage": "The specified condition was not met for 'Message'.",
+      "AttemptedValue": "no",
+      "CustomState": null,
+      "Severity": "Error",
+      "ErrorCode": "PredicateValidator",
+      "FormattedMessagePlaceholderValues": {
+        "PropertyName": "Message",
+        "PropertyValue": "no",
+        "PropertyPath": "Message"
+      }
+    }
+  ],
+  "RuleSetsExecuted": [
+    "default"
+  ]
+}

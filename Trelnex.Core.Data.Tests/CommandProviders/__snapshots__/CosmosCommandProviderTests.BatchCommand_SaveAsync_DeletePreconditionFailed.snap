@@ -1,0 +1,27 @@
+﻿{
+  "saved": [
+    {
+      "HttpStatusCode": "FailedDependency",
+      "ReadResult": null
+    },
+    {
+      "HttpStatusCode": "PreconditionFailed",
+      "ReadResult": null
+    }
+  ],
+  "read": [
+    {
+      "Item": {
+        "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
+        "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
+        "TypeName": "test-item",
+        "CreatedDate": "2025-01-19T22:29:59.343615Z",
+        "UpdatedDate": "2025-01-19T22:29:59.343615Z",
+        "DeletedDate": null,
+        "IsDeleted": null,
+        "ETag": "\"c60c249b-0000-0300-0000-678d7ce70000\"",
+        "Message": "Message #1"
+      }
+    }
+  ]
+}

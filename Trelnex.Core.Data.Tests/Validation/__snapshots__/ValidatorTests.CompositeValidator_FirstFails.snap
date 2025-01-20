@@ -1,0 +1,21 @@
+﻿{
+  "IsValid": false,
+  "Errors": [
+    {
+      "PropertyName": "Id",
+      "ErrorMessage": "The specified condition was not met for 'Id'.",
+      "AttemptedValue": -1,
+      "CustomState": null,
+      "Severity": "Error",
+      "ErrorCode": "PredicateValidator",
+      "FormattedMessagePlaceholderValues": {
+        "PropertyName": "Id",
+        "PropertyValue": -1,
+        "PropertyPath": "Id"
+      }
+    }
+  ],
+  "RuleSetsExecuted": [
+    "default"
+  ]
+}

@@ -1,0 +1,36 @@
+﻿[
+  {
+    "IsValid": false,
+    "Errors": [
+      {
+        "PropertyName": "PublicMessage",
+        "ErrorMessage": "'Public Message' must not be empty.",
+        "AttemptedValue": null,
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotEmptyValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Public Message",
+          "PropertyValue": null,
+          "PropertyPath": "PublicMessage"
+        }
+      },
+      {
+        "PropertyName": "PrivateMessage",
+        "ErrorMessage": "'Private Message' must not be empty.",
+        "AttemptedValue": null,
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotEmptyValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Private Message",
+          "PropertyValue": null,
+          "PropertyPath": "PrivateMessage"
+        }
+      }
+    ],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  }
+]

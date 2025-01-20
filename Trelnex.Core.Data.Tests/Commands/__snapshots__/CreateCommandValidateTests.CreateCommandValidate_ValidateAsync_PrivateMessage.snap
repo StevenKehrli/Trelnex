@@ -1,0 +1,21 @@
+﻿{
+  "IsValid": false,
+  "Errors": [
+    {
+      "PropertyName": "PrivateMessage",
+      "ErrorMessage": "'Private Message' must not be empty.",
+      "AttemptedValue": null,
+      "CustomState": null,
+      "Severity": "Error",
+      "ErrorCode": "NotEmptyValidator",
+      "FormattedMessagePlaceholderValues": {
+        "PropertyName": "Private Message",
+        "PropertyValue": null,
+        "PropertyPath": "PrivateMessage"
+      }
+    }
+  ],
+  "RuleSetsExecuted": [
+    "default"
+  ]
+}
