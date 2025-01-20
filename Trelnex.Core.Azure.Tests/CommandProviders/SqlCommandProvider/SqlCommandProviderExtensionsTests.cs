@@ -111,7 +111,7 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
         var bootstrapLogger = services.AddSerilog(
             configuration,
             "Trelnex.Integration.Tests");
-        
+
         services.AddAzureIdentity(configuration, bootstrapLogger);
 
         // add twice

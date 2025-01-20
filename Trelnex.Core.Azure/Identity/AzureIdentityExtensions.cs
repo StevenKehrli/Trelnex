@@ -28,7 +28,7 @@ public static class AzureIdentityExtensions
         var credentialProvider = AzureCredentialProvider.Create(
             bootstrapLogger,
             options);
-        
+
         // register the provider
         services.AddCredentialProvider(credentialProvider);
 
