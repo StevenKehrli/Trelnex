@@ -1,0 +1,30 @@
+name: Trelnex.Core Workflow
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-core.yml
+      - Trelnex.Core/**
+  push:
+    branches: [ main ]
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-core.yml
+      - Trelnex.Core/**
+  workflow_dispatch:
+
+jobs:
+
+  # ---------------------------------------------------------------------
+  # 1. Restore, Build, Tag, Pack and Push
+  # ---------------------------------------------------------------------
+  build:
+    uses: ./.github/workflows/nuget.yml
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Core'
+      tag_prefix: 'trelnex-core-'
+
+    secrets: inherit
