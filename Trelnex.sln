@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Api", "Trelnex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Api.Tests", "Trelnex.Core.Api.Tests\Trelnex.Core.Api.Tests.csproj", "{559D030F-AA70-40BE-92CF-2460127140F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Azure", "Trelnex.Core.Azure\Trelnex.Core.Azure.csproj", "{BB4E82FD-2739-473A-A77E-A37B04D7067A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Azure.Tests", "Trelnex.Core.Azure.Tests\Trelnex.Core.Azure.Tests.csproj", "{99687561-562E-4729-A74B-6BA64123B6C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{559D030F-AA70-40BE-92CF-2460127140F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{559D030F-AA70-40BE-92CF-2460127140F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{559D030F-AA70-40BE-92CF-2460127140F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB4E82FD-2739-473A-A77E-A37B04D7067A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB4E82FD-2739-473A-A77E-A37B04D7067A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB4E82FD-2739-473A-A77E-A37B04D7067A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB4E82FD-2739-473A-A77E-A37B04D7067A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99687561-562E-4729-A74B-6BA64123B6C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99687561-562E-4729-A74B-6BA64123B6C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99687561-562E-4729-A74B-6BA64123B6C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99687561-562E-4729-A74B-6BA64123B6C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
