@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Data", "Trelne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Data.Tests", "Trelnex.Core.Data.Tests\Trelnex.Core.Data.Tests.csproj", "{3CEE881D-C04E-46A3-8905-7930973F75A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Api", "Trelnex.Core.Api\Trelnex.Core.Api.csproj", "{9DD0E385-14F1-4271-927D-42CC771D7907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Api.Tests", "Trelnex.Core.Api.Tests\Trelnex.Core.Api.Tests.csproj", "{559D030F-AA70-40BE-92CF-2460127140F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{3CEE881D-C04E-46A3-8905-7930973F75A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CEE881D-C04E-46A3-8905-7930973F75A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CEE881D-C04E-46A3-8905-7930973F75A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DD0E385-14F1-4271-927D-42CC771D7907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DD0E385-14F1-4271-927D-42CC771D7907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DD0E385-14F1-4271-927D-42CC771D7907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DD0E385-14F1-4271-927D-42CC771D7907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{559D030F-AA70-40BE-92CF-2460127140F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{559D030F-AA70-40BE-92CF-2460127140F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{559D030F-AA70-40BE-92CF-2460127140F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{559D030F-AA70-40BE-92CF-2460127140F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
