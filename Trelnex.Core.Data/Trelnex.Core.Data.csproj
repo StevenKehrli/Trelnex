@@ -25,7 +25,7 @@
 
     <ItemGroup>
         <PackageReference Include="FluentValidation" Version="11.11.0" />
-        <PackageReference Include="Trelnex.Core" Version="1.0.0" />
+        <PackageReference Include="Trelnex.Core" Version="1.1.0" />
     </ItemGroup>
 
 </Project>
