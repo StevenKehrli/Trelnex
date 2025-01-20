@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Trelnex.Core.Identity.HealthChecks;
@@ -5,41 +6,52 @@ namespace Trelnex.Core.Identity.HealthChecks;
 /// <summary>
 /// Initializes a new instance of the <see cref="CredentialStatusHealthCheck"/>.
 /// </summary>
-/// <param name="credentialStatus">The <see cref="CredentialStatus"/> from which to get the array of <see cref="AccessTokenStatus"/> for this health check.</param>
+/// <param name="credentialProvider">The <see cref="ICredentialProvider"/> from which to get the array of <see cref="ICredentialStatusProvider"/> for this health check.</param>
 internal class CredentialStatusHealthCheck(
-    ICredentialStatusProvider credentialStatusProvider) : IHealthCheck
+    ICredentialProvider credentialProvider) : IHealthCheck
 {
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        var credentialStatus = credentialStatusProvider.GetStatus();
+        // get the credential status providers
+        var credentialStatusProviders = credentialProvider.GetStatusProviders();
 
-        var data = new Dictionary<string, object>()
-        {
-            ["statuses"] = credentialStatus.Statuses
-        };
+        // create the dictionary of credential status by the credential name
+        var data = credentialStatusProviders
+            .ToImmutableSortedDictionary(
+                keySelector: csp => csp.CredentialName,
+                elementSelector: csp => csp.GetStatus());
+
+        // get the health status
+        var status = GetHealthStatus(data);
 
         var healthCheckResult = new HealthCheckResult(
-            status: GetHealthStatus(credentialStatus.Statuses),
-            description: credentialStatus.CredentialName,
-            data: data);
+            status: status,
+            description: credentialProvider.GetType().Name,
+            data: data.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value as object));
 
         return Task.FromResult(healthCheckResult);
     }
 
     /// <summary>
-    /// Gets the <see cref="HealthStatus"/> from the array of <see cref="AccessTokenStatus"/>.
+    /// Gets the <see cref="HealthStatus"/> from the collection of <see cref="CredentialStatus"/>.
     /// </summary>
-    /// <param name="statuses">The array of <see cref="AccessTokenStatus"/>.</param>
+    /// <param name="data">The collection of <see cref="CredentialStatus"/>.</param>
     /// <returns>A <see cref="HealthStatus"/> that represents the reported status of the health check result.</returns>
     private static HealthStatus GetHealthStatus(
-        AccessTokenStatus[] statuses)
+        IReadOnlyDictionary<string, CredentialStatus> data)
     {
-        if (statuses.Length <= 0) return HealthStatus.Unhealthy;
+        if (data.Count <= 0) return HealthStatus.Healthy;
 
-        return (statuses.Any(ats => ats.Health == AccessTokenHealth.Expired))
-            ? HealthStatus.Unhealthy
-            : HealthStatus.Healthy;
+        // enumerate each credential status
+        var anyExpired = data.Any(kvp =>
+        {
+            // enuemrate is array of access token status
+            return kvp.Value.Statuses.Any(ats => ats.Health == AccessTokenHealth.Expired);
+        });
+
+        // if any of the access tokens are expired, return unhealthy
+        return anyExpired ? HealthStatus.Unhealthy : HealthStatus.Healthy;
     }
 }
