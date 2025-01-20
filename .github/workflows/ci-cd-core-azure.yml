@@ -1,0 +1,44 @@
+name: Trelnex.Core.Azure Workflow
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-core-azure.yml
+      - Trelnex.Core.Azure/**
+  push:
+    branches: [ main ]
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-core-azure.yml
+      - Trelnex.Core.Azure/**
+  workflow_dispatch:
+
+jobs:
+
+  # ---------------------------------------------------------------------
+  # 1. Test
+  # ---------------------------------------------------------------------
+  test:
+    name: Trelnex.Core.Azure.Tests
+    uses: ./.github/workflows/test.yml
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Core.Azure.Tests'
+
+  # ---------------------------------------------------------------------
+  # 2. Restore, Build, Tag, Pack and Push
+  # ---------------------------------------------------------------------
+  build:
+    uses: ./.github/workflows/nuget.yml
+
+    needs:
+      - test
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Core.Azure'
+      tag_prefix: 'trelnex-core-azure-'
+
+    secrets: inherit
