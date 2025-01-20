@@ -396,7 +396,7 @@ internal class NamedCredential(
                 var health = ((_accessToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
                     ? AccessTokenHealth.Expired
                     : AccessTokenHealth.Valid;
-                
+
                 var data = new Dictionary<string, object?>
                 {
                     { "tenantId", _tokenRequestContextKey.TenantId },

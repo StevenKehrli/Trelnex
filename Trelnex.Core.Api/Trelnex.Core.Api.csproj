@@ -36,7 +36,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.1" />
-        <PackageReference Include="Trelnex.Core.Data" Version="1.0.0" />
+        <PackageReference Include="Trelnex.Core.Data" Version="1.1.0" />
     </ItemGroup>
 
 </Project>
