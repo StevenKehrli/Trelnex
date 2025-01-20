@@ -9,20 +9,22 @@ public static class CredentialProviderExtensions
     /// Gets the <see cref="ICredentialProvider"/> from the <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to get the service from.</param>
+    /// <param name="credentialProviderType">The type of the credential provider to get.</param>
     /// <returns>The <see cref="AzureCredentialProvider"/>.</returns>
     public static ICredentialProvider GetCredentialProvider(
         this IServiceCollection services,
-        string credentialProviderName)
+        string credentialProviderType)
     {
-        // get the collection of all 
-        var serviceDescriptor = services.FirstOrDefault(x => x.ServiceType.Name == credentialProviderName);
-
-        if (serviceDescriptor?.ImplementationInstance is not ICredentialProvider credentialProvider)
+        var serviceDescriptor = services.FirstOrDefault(x =>
         {
-            throw new InvalidOperationException($"'{credentialProviderName}' is not registered.");
-        }
+            if (x.IsCredentialProvider() is false) return false;
 
-        return credentialProvider;
+            // where the service key equals the credential provider type
+            return string.Equals(x.ServiceKey as string, credentialProviderType);
+        });
+
+        return serviceDescriptor?.KeyedImplementationInstance as ICredentialProvider
+            ?? throw new InvalidOperationException($"'{credentialProviderType}' is not registered.");
     }
 
     /// <summary>
@@ -36,10 +38,6 @@ public static class CredentialProviderExtensions
         T credentialProvider)
         where T : class, ICredentialProvider
     {
-        // register the provider as itself
-        // for anything that needs an Azure TokenCredential
-        services.AddSingleton<T>(credentialProvider);
-
         // register the provider as an ICredentialProvider
         // for anything that needs an access token or credential status
         services.AddKeyedSingleton<ICredentialProvider>(
@@ -56,16 +54,14 @@ public static class CredentialProviderExtensions
     /// <returns>The <see cref="AzureCredentialProvider"/>.</returns>
     internal static T GetCredentialProvider<T>(
         this IServiceCollection services)
-        where T : ICredentialProvider
+        where T : class, ICredentialProvider
     {
-        var serviceDescriptor = services.FirstOrDefault(x => x.ServiceType == typeof(T));
+        var credentialProviderType = typeof(T).Name;
 
-        if (serviceDescriptor?.ImplementationInstance is not T credentialProvider)
-        {
-            throw new InvalidOperationException($"'{typeof(T)}' is not registered.");
-        }
+        var credentialProvider = services.GetCredentialProvider(credentialProviderType);
 
-        return credentialProvider;
+        return credentialProvider as T
+            ?? throw new InvalidOperationException($"'{credentialProviderType}' is not registered.");
     }
 
     /// <summary>
@@ -78,17 +74,20 @@ public static class CredentialProviderExtensions
     {
         // find any credential providers
         return services
-            .Where(x =>
-            {
-                // must be a key service of type ICredentialProvider
-                if (x.ServiceType != typeof(ICredentialProvider)) return false;
-                if (x.ServiceKey is null or not string) return false;
-                if (x.KeyedImplementationInstance is null or not ICredentialProvider) return false;
-
-                return true;
-            })
+            .Where(x => x.IsCredentialProvider())
             .ToImmutableSortedDictionary(
                 keySelector: x => (x.ServiceKey as string)!,
                 elementSelector: x => (x.KeyedImplementationInstance as ICredentialProvider)!);
+    }
+
+    private static bool IsCredentialProvider(
+        this ServiceDescriptor serviceDescriptor)
+    {
+        // must be a keyed service of type ICredentialProvider
+        if (serviceDescriptor.ServiceType != typeof(ICredentialProvider)) return false;
+        if (serviceDescriptor.KeyedImplementationInstance is null or not ICredentialProvider) return false;
+        if (serviceDescriptor.ServiceKey is null or not string) return false;
+
+        return true;
     }
 }

@@ -30,22 +30,15 @@ public static class HealthChecksExtensions
             var name = kvp.Key;
             var credentialProvider = kvp.Value;
 
-            // get the status providers for each provider
-            var credentialStatusProviders = credentialProvider.GetStatusProviders();
+            // format the health check name to include the credential provider and credential name
+            var healthCheckName = $"CredentialStatus: {name}";
 
-            // add the credential health checks
-            Array.ForEach(credentialStatusProviders, credentialStatusProvider =>
-            {
-                // format the health check name to include the credential provider and credential name
-                var healthCheckName = $"CredentialStatus: {name} {credentialStatusProvider.CredentialName}";
-
-                builder.Add(
-                    new HealthCheckRegistration(
-                        name: healthCheckName,
-                        factory: _ => new CredentialStatusHealthCheck(credentialStatusProvider),
-                        failureStatus: null,
-                        tags: null));
-            });
+            builder.Add(
+                new HealthCheckRegistration(
+                    name: healthCheckName,
+                    factory: _ => new CredentialStatusHealthCheck(credentialProvider),
+                    failureStatus: null,
+                    tags: null));
         }
 
         return services;
