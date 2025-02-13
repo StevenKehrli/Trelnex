@@ -1,30 +1,36 @@
+using System.Text.Json.Serialization;
+
 namespace Trelnex.Core.Identity;
 
-public interface IAccessToken
+public class AccessToken
 {
     /// <summary>
     /// Get the access token value.
     /// </summary>
-    string Token { get; }
+    [JsonPropertyName("token")]
+    public required string Token { get; init; }
 
     /// <summary>
     /// Identifies the type of access token.
     /// </summary>
-    string TokenType { get; }
+    [JsonPropertyName("tokenType")]
+    public required string TokenType { get; init; }
 
     /// <summary>
     /// Gets the time when the provided token expires.
     /// </summary>
-    DateTimeOffset ExpiresOn { get; }
+    [JsonPropertyName("expiresOn")]
+    public DateTimeOffset ExpiresOn { get; init; }
 
     /// <summary>
     /// Gets the time when the token should be refreshed.
     /// </summary>
-    DateTimeOffset? RefreshOn { get; }
+    [JsonPropertyName("refreshOn")]
+    public DateTimeOffset? RefreshOn { get; init; }
 
     /// <summary>
     /// Gets the authorization header for this access token.
     /// </summary>
     /// <returns>The authorization header for this access token.</returns>
-    string GetAuthorizationHeader();
+    public string GetAuthorizationHeader() => $"{TokenType} {Token}";
 }

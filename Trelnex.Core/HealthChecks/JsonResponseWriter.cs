@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
@@ -17,9 +18,10 @@ public static class JsonResponseWriter
     /// </summary>
     private static readonly JsonSerializerOptions _options = new()
     {
-        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        WriteIndented = true,
     };
 
     /// <summary>
