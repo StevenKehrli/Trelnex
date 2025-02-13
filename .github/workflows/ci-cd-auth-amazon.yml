@@ -1,0 +1,44 @@
+name: Trelnex.Auth.Amazon Workflow
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-auth-amazon.yml
+      - Trelnex.Auth.Amazon/**
+  push:
+    branches: [ main ]
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-auth-amazon.yml
+      - Trelnex.Auth.Amazon/**
+  workflow_dispatch:
+
+jobs:
+
+  # ---------------------------------------------------------------------
+  # 1. Test
+  # ---------------------------------------------------------------------
+  test:
+    name: Trelnex.Auth.Amazon.Tests
+    uses: ./.github/workflows/test.yml
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Auth.Amazon.Tests'
+
+  # ---------------------------------------------------------------------
+  # 2. Restore, Build, Tag, Pack and Push
+  # ---------------------------------------------------------------------
+  build:
+    uses: ./.github/workflows/nuget.yml
+
+    needs:
+      - test
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Auth.Amazon'
+      tag_prefix: 'trelnex-auth-amazon-'
+
+    secrets: inherit

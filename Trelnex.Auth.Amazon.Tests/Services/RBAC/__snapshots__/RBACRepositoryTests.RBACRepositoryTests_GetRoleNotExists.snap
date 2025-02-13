@@ -1,0 +1,9 @@
+﻿{
+  "roleAfter": null,
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepositoryTests_GetRoleNotExists",
+      "subjectName": "RESOURCE#"
+    }
+  ]
+}
