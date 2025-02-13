@@ -56,7 +56,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services)
     {
         // check if authentication was added
-        var added = services.Any(x => x.ServiceType == typeof(IAuthenticationService));
+        var added = services.Any(sd => sd.ServiceType == typeof(IAuthenticationService));
 
         if (added is false)
         {
@@ -68,7 +68,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services)
     {
         // check if security provider was added
-        var added = services.Any(x => x.ServiceType == typeof(ISecurityProvider));
+        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
 
         if (added is true)
         {

@@ -19,7 +19,6 @@ public static class RewriteExtensions
     {
         // get the rewrite rules, if any
         var rewriteRules = app.Configuration.GetSection("RewriteRules").Get<RewriteRule[]>();
-
         if (rewriteRules?.Length is null or <= 0) return app;
 
         var rewriteOptions = new RewriteOptions();

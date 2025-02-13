@@ -48,11 +48,10 @@ public abstract class MicrosoftIdentityPermission : IPermission
     public string GetAudience(
         IConfiguration configuration)
     {
-        var audience = configuration.GetSection(ConfigSectionName).GetValue<string>("Audience");
-        if (string.IsNullOrWhiteSpace(audience))
-        {
-            throw new ConfigurationErrorsException($"{ConfigSectionName}:Audience");
-        }
+        var audience = configuration
+            .GetSection(ConfigSectionName)
+            .GetValue<string>("Audience")
+            ?? throw new ConfigurationErrorsException($"{ConfigSectionName}:Audience");
 
         return audience;
     }
@@ -63,11 +62,10 @@ public abstract class MicrosoftIdentityPermission : IPermission
     public string GetScope(
         IConfiguration configuration)
     {
-        var scope = configuration.GetSection(ConfigSectionName).GetValue<string>("Scope");
-        if (string.IsNullOrWhiteSpace(scope))
-        {
-            throw new ConfigurationErrorsException($"{ConfigSectionName}:Scope");
-        }
+        var scope = configuration
+            .GetSection(ConfigSectionName)
+            .GetValue<string>("Scope")
+            ?? throw new ConfigurationErrorsException($"{ConfigSectionName}:Scope");
 
         return scope;
     }
