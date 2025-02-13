@@ -1,0 +1,45 @@
+name: Default Build Workflow
+
+on:
+  workflow_call:
+    inputs:
+      dotnet_version:
+        description: 'The version of the .NET SDK; e.g. 9.0.x'
+        required: true
+        type: string
+      project_name:
+        description: 'The project name; e.g. Trelnex.Auth.Amazon'
+        required: true
+        type: string
+
+jobs:
+
+  # ---------------------------------------------------------------------
+  # 1. Restore and Build
+  # ---------------------------------------------------------------------
+  build:
+
+    name: Restore, Build
+    runs-on: [ ubuntu-latest ]
+
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          # disable shallow clone
+          fetch-depth: 0
+
+      - name: dotnet nuget add source
+        run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: dotnet restore
+        run: dotnet restore ${{ inputs.project_name }}/${{ inputs.project_name }}.csproj
+
+      - name: dotnet build
+        run: dotnet build ${{ inputs.project_name }}/${{ inputs.project_name }}.csproj --no-restore

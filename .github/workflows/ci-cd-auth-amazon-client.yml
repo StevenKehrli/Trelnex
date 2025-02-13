@@ -1,0 +1,32 @@
+name: Trelnex.Auth.Amazon.Client Workflow
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-auth-amazon-client.yml
+      - Trelnex.Auth.Amazon.Client/**
+  push:
+    branches: [ main ]
+    paths:
+      - .github/workflows/nuget.yml
+      - .github/workflows/ci-cd-auth-amazon-client.yml
+      - Trelnex.Auth.Amazon.Client/**
+  workflow_dispatch:
+
+jobs:
+
+  # ---------------------------------------------------------------------
+  # 1. Restore, Build
+  # ---------------------------------------------------------------------
+  build:
+    uses: ./.github/workflows/build.yml
+
+    needs:
+      - test
+
+    with:
+      dotnet_version: '9.0.x'
+      project_name: 'Trelnex.Auth.Amazon.Client'
+
+    secrets: inherit
