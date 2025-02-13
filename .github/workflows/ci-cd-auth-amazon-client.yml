@@ -22,9 +22,6 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
 
-    needs:
-      - test
-
     with:
       dotnet_version: '9.0.x'
       project_name: 'Trelnex.Auth.Amazon.Client'
