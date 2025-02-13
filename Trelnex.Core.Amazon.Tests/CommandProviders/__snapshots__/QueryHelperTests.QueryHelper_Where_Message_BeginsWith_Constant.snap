@@ -1,0 +1,7 @@
+﻿{
+  "ExpressionStatement": "begins_with(Message, :val1)",
+  "ExpressionAttributeValues": {
+    ":val1": "ab"
+  },
+  "MethodCallExpressions": []
+}

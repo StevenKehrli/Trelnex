@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageId>Trelnex.Core.Amazon</PackageId>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/StevenKehrli/Trelnex.Core</RepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Trelnex.Core.Amazon</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="LICENSE" Pack="true" PackagePath="" />
+        <None Include="README.md" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AWSSDK.Core" Version="3.7.402" />
+        <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.405.21" />
+        <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.401.43" />
+        <PackageReference Include="Trelnex.Core.Data" Version="2.0.0" />
+    </ItemGroup>
+
+</Project>
