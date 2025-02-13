@@ -2,23 +2,23 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data;
 
-internal class PropertyChange
+public class PropertyChange
 {
     /// <summary>
     /// The property name of the change.
     /// </summary>
     [JsonPropertyName("propertyName")]
-    public required string PropertyName { get; set; }
+    public string PropertyName { get; init; } = null!;
 
     /// <summary>
     /// The old value for the property.
     /// </summary>
     [JsonPropertyName("oldValue")]
-    public dynamic? OldValue { get; set; }
+    public dynamic? OldValue { get; init; }
 
     /// <summary>
     /// The new value for the property.
     /// </summary>
     [JsonPropertyName("newValue")]
-    public dynamic? NewValue { get; set; }
+    public dynamic? NewValue { get; init; }
 }

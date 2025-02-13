@@ -13,7 +13,7 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 /// <typeparam name="TInterface">The specified interface type.</typeparam>
 /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-internal class ExpressionConverter<TInterface, TItem>
+public class ExpressionConverter<TInterface, TItem>
     where TItem : TInterface
 {
     /// <summary>
@@ -26,7 +26,7 @@ internal class ExpressionConverter<TInterface, TItem>
     /// </summary>
     private static readonly ExpressionRewriter _expressionRewriter = new ExpressionRewriter();
 
-    public Expression<Func<TItem, bool>> Convert(
+    internal Expression<Func<TItem, bool>> Convert(
         Expression<Func<TInterface, bool>> predicate)
     {
         // create a new expression body
@@ -36,7 +36,7 @@ internal class ExpressionConverter<TInterface, TItem>
         return Expression.Lambda<Func<TItem, bool>>(body, _parameterExpression);
     }
 
-    public Expression<Func<TItem, TKey>> Convert<TKey>(
+    internal Expression<Func<TItem, TKey>> Convert<TKey>(
         Expression<Func<TInterface, TKey>> predicate)
     {
         // create a new expression body

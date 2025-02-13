@@ -6,7 +6,7 @@ namespace Trelnex.Core.Data;
 /// Represents information regarding the item and the caller that invoked the save method.
 /// </summary>
 /// <typeparam name="TItem">The specified item type.</typeparam>
-internal sealed class ItemEvent<TItem>
+public sealed class ItemEvent<TItem>
     : BaseItem
     where TItem : BaseItem
 {
@@ -17,7 +17,7 @@ internal sealed class ItemEvent<TItem>
     /// <param name="saveAction">The save action that created this event.</param>
     /// <param name="changes">The changes on the <see cref="TItem"/> item that generated this event.</param>
     /// <param name="requestContext">The <see cref="IRequestContext"> that represents the caller that invoked the save method that generated this event.</param>
-    public static ItemEvent<TItem> Create(
+    internal static ItemEvent<TItem> Create(
         TItem related,
         SaveAction saveAction,
         PropertyChange[]? changes,

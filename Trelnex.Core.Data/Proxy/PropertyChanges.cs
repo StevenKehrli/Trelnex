@@ -43,7 +43,12 @@ internal class PropertyChanges
             {
                 // 1b: the new value is different from the existing property change old value
                 // 1b: update the old value in the existing property change
-                propertyChange.NewValue = newValue;
+                _propertyChanges[propertyName] = new PropertyChange
+                {
+                    PropertyName = propertyName,
+                    OldValue = oldValue,
+                    NewValue = newValue,
+                };
             }
         }
         else

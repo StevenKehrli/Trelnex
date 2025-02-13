@@ -1,6 +1,7 @@
 using System.Collections;
+using System.Linq.Expressions;
 using System.Net;
-using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
@@ -64,34 +65,6 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         {
             // unlock
             _lock.ExitReadLock();
-        }
-    }
-
-    /// <summary>
-    /// Saves a item in the backing data store as an asynchronous operation.
-    /// </summary>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was saved.</returns>
-    protected override async Task<TItem> SaveItemAsync(
-        SaveRequest<TInterface, TItem> request,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            // lock
-            _lock.EnterWriteLock();
-
-            // save the item
-            var saved = SaveItem(_store, request);
-
-            // return
-            return await Task.FromResult(saved);
-        }
-        finally
-        {
-            // unlock
-            _lock.ExitWriteLock();
         }
     }
 
@@ -175,26 +148,60 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="IQueryCommand{Interface}"/>.
+    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
     /// </summary>
-    /// <param name="expressionConverter">The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.</param>
-    /// <param name="convertToQueryResult">The method to convert a TItem to a <see cref="IQueryResult{TInterface}"/>.</param>
-    /// <returns>The <see cref="IQueryCommand{Interface}"/>.</returns>
-    protected override IQueryCommand<TInterface> CreateQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
+    /// <returns></returns>
+    protected override IQueryable<TItem> CreateQueryable()
     {
         // deferred execution, so do not need to lock
-        var queryable = _store
+        return Enumerable.Empty<TItem>()
             .AsQueryable()
             .Where(i => i.TypeName == TypeName)
             .Where(i => i.IsDeleted == null || i.IsDeleted == false);
+    }
 
-        return new InMemoryQueryCommand(
-            expressionConverter: expressionConverter,
-            queryableLock: _lock,
-            queryable: queryable,
-            convertToQueryResult: convertToQueryResult);
+    /// <summary>
+    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an async enumerable.
+    /// </summary>
+    /// <param name="queryable">The queryable.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>The <see cref="IAsyncEnumerable{TInterface}"/>.</returns>
+    protected override IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // lock
+            _lock.EnterReadLock();
+
+            // convert the queryable to use _store instead of EmptyPartition
+            var mce = (queryable.Expression as MethodCallExpression)!;
+
+            var constantValue = _store.AsQueryable();
+            var constantExpression = Expression.Constant(constantValue);
+
+            var methodCallExpression = Expression.Call(
+                mce.Method,
+                constantExpression,
+                mce.Arguments[1]!);
+
+            // create the query from the store and the method call expression
+            var queryableFromExpression = _store
+                .AsQueryable()
+                .Provider
+                .CreateQuery<TItem>(methodCallExpression);
+
+            foreach (var item in queryableFromExpression.AsEnumerable())
+            {
+                yield return item;
+            }
+        }
+        finally
+        {
+            // unlock
+            _lock.ExitReadLock();
+        }
     }
 
     internal void Clear()
@@ -260,41 +267,6 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
     };
 
-    private class InMemoryQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        ReaderWriterLockSlim queryableLock,
-        IQueryable<TItem> queryable,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
-        : QueryCommand<TInterface, TItem>(expressionConverter, queryable)
-    {
-        /// <summary>
-        /// Execute the underlying <see cref="IQueryable{TItem}"/> and return the results as an async enumerable.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-        /// <returns>The <see cref="IAsyncEnumerable{TInterface}"/>.</returns>
-        protected override async IAsyncEnumerable<IQueryResult<TInterface>> ExecuteAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                // lock
-                queryableLock.EnterReadLock();
-
-                foreach (var item in GetQueryable().AsEnumerable())
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    yield return await Task.FromResult(convertToQueryResult(item));
-                }
-            }
-            finally
-            {
-                // unlock
-                queryableLock.ExitReadLock();
-            }
-        }
-    }
-
     /// <summary>
     /// Represents an item or event that has been serialized to a json string.
     /// </summary>
@@ -307,6 +279,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         private static readonly JsonSerializerOptions _options = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
         private string _jsonString = null!;

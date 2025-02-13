@@ -1,5 +1,6 @@
 using FluentValidation;
 using Snapshooter.NUnit;
+using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data.Tests.Validation;
 

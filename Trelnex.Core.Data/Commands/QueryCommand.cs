@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace Trelnex.Core.Data;
 
@@ -44,7 +45,8 @@ public interface IQueryCommand<TInterface>
     /// </summary>
     /// <typeparam name="TInterface">The specified interface type.</typeparam>
     /// <returns>The <see cref="IAsyncEnumerable{IQueryResult{TInterface}}"/>.</returns>
-    IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable();
+    IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Filters a sequence of items based on a predicate.
@@ -60,18 +62,15 @@ public interface IQueryCommand<TInterface>
 /// </summary>
 /// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
 /// <typeparam name="TItem">The item type that inherits from the interface type.</typeparam>
-internal abstract class QueryCommand<TInterface, TItem>(
+internal class QueryCommand<TInterface, TItem>(
     ExpressionConverter<TInterface, TItem> expressionConverter,
-    IQueryable<TItem> queryable)
+    IQueryable<TItem> queryable,
+    Func<IQueryable<TItem>, CancellationToken, IEnumerable<TItem>> executeQueryable,
+    Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
     : IQueryCommand<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
-    /// <summary>
-    /// Gets the underlying <see cref="IQueryable{TItem}"/>.
-    /// </summary>
-    protected IQueryable<TItem> GetQueryable() => queryable;
-
     /// <summary>
     /// Sorts a sequence of items in ascending order.
     /// </summary>
@@ -141,9 +140,15 @@ internal abstract class QueryCommand<TInterface, TItem>(
     /// </summary>
     /// <typeparam name="TInterface">The specified interface type.</typeparam>
     /// <returns>The <see cref="IAsyncEnumerable{IQueryResult{TInterface}}"/>.</returns>
-    public IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable()
+    public async IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        return ExecuteAsync();
+        foreach (var item in executeQueryable(queryable, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            yield return await Task.FromResult(convertToQueryResult(item));
+        }
     }
 
     /// <summary>Filters a sequence of items based on a predicate.</summary>
@@ -161,13 +166,4 @@ internal abstract class QueryCommand<TInterface, TItem>(
 
         return this;
     }
-
-    /// <summary>
-    /// Executes the query and returns the results as an async enumerable.
-    /// </summary>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The <see cref="IAsyncEnumerable{IQueryResult{TItem}}"/>.</returns>
-    protected abstract IAsyncEnumerable<IQueryResult<TInterface>> ExecuteAsync(
-        CancellationToken cancellationToken = default);
 }
