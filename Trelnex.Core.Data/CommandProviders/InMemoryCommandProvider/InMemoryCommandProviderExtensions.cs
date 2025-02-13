@@ -52,7 +52,7 @@ public static class InMemoryCommandProviderExtensions
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            if (services.Any(x => x.ServiceType == typeof(ICommandProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");

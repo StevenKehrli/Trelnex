@@ -1,6 +1,6 @@
 namespace Trelnex.Core.Data;
 
-internal record SaveRequest<TInterface, TItem>(
+public record SaveRequest<TInterface, TItem>(
     TItem Item,
     ItemEvent<TItem> Event,
     SaveAction SaveAction)

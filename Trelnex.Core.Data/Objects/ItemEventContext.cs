@@ -2,14 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data;
 
-internal class ItemEventContext
+public class ItemEventContext
 {
     /// <summary>
     /// Converts the specified <see cref="IRequestContext"/> to a <see cref="ItemEventContext"/>.
     /// </summary>
     /// <param name="requestContext">The specified <see cref="IRequestContext"/>.</param>
     /// <returns></returns>
-    public static ItemEventContext Convert(
+    internal static ItemEventContext Convert(
         IRequestContext context)
     {
         return new ItemEventContext

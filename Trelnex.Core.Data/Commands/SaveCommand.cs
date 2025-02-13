@@ -1,4 +1,5 @@
 using FluentValidation.Results;
+using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data;
 

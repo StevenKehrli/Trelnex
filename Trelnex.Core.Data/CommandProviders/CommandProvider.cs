@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using FluentValidation.Results;
+using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data;
 
@@ -73,7 +74,7 @@ public interface ICommandProvider<TInterface>
     IQueryCommand<TInterface> Query();
 }
 
-internal abstract partial class CommandProvider<TInterface, TItem>
+public abstract partial class CommandProvider<TInterface, TItem>
     : ICommandProvider<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -324,16 +325,24 @@ internal abstract partial class CommandProvider<TInterface, TItem>
     /// <returns>The <see cref="IQueryCommand{TInterface}"/>.</returns>
     public IQueryCommand<TInterface> Query()
     {
+        // create the queryable
+        var queryable = CreateQueryable();
+
+        // create the convertToQueryResult delegate
+        Func<TItem, IQueryResult<TInterface>> convertToQueryResult = item => {
+            return QueryResult<TInterface, TItem>.Create(
+                item: item,
+                validateAsyncDelegate: ValidateAsync,
+                createDeleteCommand: CreateDeleteCommand,
+                createUpdateCommand: CreateUpdateCommand);
+        };
+
         // create the query command
-        return CreateQueryCommand(
+        return new QueryCommand<TInterface, TItem>(
             expressionConverter: _expressionConverter,
-            convertToQueryResult: item => {
-                return QueryResult<TInterface, TItem>.Create(
-                    item: item,
-                    validateAsyncDelegate: ValidateAsync,
-                    createDeleteCommand: CreateDeleteCommand,
-                    createUpdateCommand: CreateUpdateCommand);
-            });
+            queryable: queryable,
+            executeQueryable: ExecuteQueryable,
+            convertToQueryResult: convertToQueryResult);
     }
 
     /// <summary>
@@ -349,16 +358,6 @@ internal abstract partial class CommandProvider<TInterface, TItem>
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a item in the backing data store as an asynchronous operation.
-    /// </summary>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was saved.</returns>
-    protected abstract Task<TItem> SaveItemAsync(
-        SaveRequest<TInterface, TItem> request,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Saves a batch of items in the backing data store as an asynchronous operation.
     /// </summary>
     /// <param name="partitionKey">The partition key of the batch.</param>
@@ -371,14 +370,20 @@ internal abstract partial class CommandProvider<TInterface, TItem>
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Create an instance of the <see cref="IQueryCommand{Interface}"/>.
+    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
     /// </summary>
-    /// <param name="expressionConverter">The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.</param>
-    /// <param name="convertToQueryResult">The method to convert a TItem to a <see cref="IQueryResult{TInterface}"/>.</param>
-    /// <returns>The <see cref="IQueryCommand{Interface}"/>.</returns>
-    protected abstract IQueryCommand<TInterface> CreateQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult);
+    /// <returns></returns>
+    protected abstract IQueryable<TItem> CreateQueryable();
+
+    /// <summary>
+    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an enumerable.
+    /// </summary>
+    /// <param name="queryable">The queryable.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>The <see cref="IEnumerable{TInterface}"/>.</returns>
+    protected abstract IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Create an <see cref="ISaveCommand{TInterface}"/> to delete the item.
@@ -413,6 +418,34 @@ internal abstract partial class CommandProvider<TInterface, TItem>
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.UPDATED,
             saveAsyncDelegate: _saveAsyncDelegate);
+    }
+
+    /// <summary>
+    /// Saves a item in the backing data store as an asynchronous operation.
+    /// </summary>
+    /// <param name="request">The save request with item and event to save.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
+    /// <returns>The item that was saved.</returns>
+    private async Task<TItem> SaveItemAsync(
+        SaveRequest<TInterface, TItem> request,
+        CancellationToken cancellationToken = default)
+    {
+        // batch the item and event
+        SaveRequest<TInterface, TItem>[] requests = [ request ];
+
+        var results = await SaveBatchAsync(
+            partitionKey: request.Item.PartitionKey,
+            requests: requests,
+            cancellationToken: cancellationToken);
+
+        var result = results[0];
+
+        if (result.HttpStatusCode != HttpStatusCode.OK)
+        {
+            throw new CommandException(result.HttpStatusCode);
+        }
+
+        return result.Item!;
     }
 
     /// <summary>

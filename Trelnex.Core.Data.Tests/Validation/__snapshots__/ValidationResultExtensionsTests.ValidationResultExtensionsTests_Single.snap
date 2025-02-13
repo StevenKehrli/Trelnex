@@ -1,6 +1,6 @@
 ﻿{
   "HttpStatusCode": "UnprocessableEntity",
-  "Message": "The 'Trelnex.Core.Data.Tests.Validation.TestItem' is not valid.",
+  "Message": "The 'TestItem' is not valid.",
   "Errors": {
     "Id": [
       "The specified condition was not met for 'Id'."
