@@ -20,8 +20,10 @@ public static class PrometheusExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var metricsConfiguration =
-            configuration.GetSection("Metrics").Get<MetricsConfiguration>() ?? new MetricsConfiguration();
+        var metricsConfiguration = configuration
+            .GetSection("Metrics")
+            .Get<MetricsConfiguration>()
+            ?? new MetricsConfiguration();
 
         // add prometheus metric server
         // https://github.com/prometheus-net/prometheus-net?tab=readme-ov-file#kestrel-stand-alone-server

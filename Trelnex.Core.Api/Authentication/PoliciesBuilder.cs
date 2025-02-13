@@ -76,7 +76,7 @@ internal class PoliciesBuilder(
                 policyBuilder =>
                 {
                     policyBuilder.AuthenticationSchemes = [securityDefinition.JwtBearerScheme];
-                    policyBuilder.RequireScope(securityDefinition.Scope);
+                    policyBuilder.RequireClaim(ClaimConstants.Scope, securityDefinition.Scope);
                     Array.ForEach(
                         policyContainer.Policy.RequiredRoles,
                         r => policyBuilder.RequireRole(r));
