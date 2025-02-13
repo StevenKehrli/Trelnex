@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Security.KeyVault.Keys.Cryptography;
@@ -6,8 +7,9 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Encryption;
 using Microsoft.Azure.Cosmos.Fluent;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// A builder for creating an instance of the <see cref="CosmosCommandProvider"/>.
@@ -41,6 +43,7 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
         // build the list of ( database, container ) tuples
@@ -107,15 +110,6 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
                 foreach (var containerId in cosmosClientOptions.ContainerIds.OrderBy(containerId => containerId))
                 {
                     if (containers.Any(containerProperties => containerProperties.Id == containerId) is false)
-                    {
-                        missingContainerIds.Add(containerId);
-                    }
-
-                    try
-                    {
-                        var container = database.GetContainer(containerId);
-                    }
-                    catch
                     {
                         missingContainerIds.Add(containerId);
                     }

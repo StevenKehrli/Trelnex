@@ -1,10 +1,10 @@
 using System.Net;
-using System.Runtime.CompilerServices;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// An implementation of <see cref="ICommandProvider{TInterface}"/> that uses a CosmosDB container as a backing store.
@@ -44,44 +44,6 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         catch (CosmosException ex)
         {
             throw new CommandException(ex.StatusCode, ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Saves a item in the backing data store as an asynchronous operation.
-    /// </summary>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was saved.</returns>
-    protected override async Task<TItem> SaveItemAsync(
-        SaveRequest<TInterface, TItem> request,
-        CancellationToken cancellationToken = default)
-    {
-        var batch = container.CreateTransactionalBatch(
-            new PartitionKey(request.Item.PartitionKey));
-
-        // add the item to the batch
-        AddItem(batch, request);
-
-        try
-        {
-            // execute the batch
-            using var response = await batch.ExecuteAsync(cancellationToken);
-
-            // get the returned item and return it
-            var itemResponse = response.GetOperationResultAtIndex<TItem>(0);
-
-            // check the status code
-            if (itemResponse.IsSuccessStatusCode is false)
-            {
-                throw new CommandException(itemResponse.StatusCode);
-            }
-
-            return itemResponse.Resource;
-        }
-        catch (CosmosException ce)
-        {
-            throw new CommandException(ce.StatusCode, ce.Message);
         }
     }
 
@@ -147,26 +109,51 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="IQueryCommand{Interface}"/>.
+    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
     /// </summary>
-    /// <param name="expressionConverter">The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.</param>
-    /// <param name="convertToQueryResult">The method to convert a TItem to a <see cref="IQueryResult{TInterface}"/>.</param>
-    /// <returns>The <see cref="IQueryCommand{Interface}"/>.</returns>
-    protected override IQueryCommand<TInterface> CreateQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
+    /// <returns></returns>
+    protected override IQueryable<TItem> CreateQueryable()
     {
         // add typeName and isDeleted predicates
         // the lambda parameter i is an item of TInterface type
-        var queryable = container
+        return container
             .GetItemLinqQueryable<TItem>()
             .Where(i => i.TypeName == TypeName)
             .Where(i => i.IsDeleted.IsDefined() == false || i.IsDeleted == false);
+    }
 
-        return new CosmosQueryCommand(
-            expressionConverter: expressionConverter,
-            queryable: queryable,
-            convertToQueryResult: convertToQueryResult);
+    /// <summary>
+    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an enumerable.
+    /// </summary>
+    /// <param name="queryable">The queryable.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>The <see cref="IEnumerable{TInterface}"/>.</returns>
+    protected override IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        // get the feed iterator
+        var feedIterator = queryable.ToFeedIterator();
+
+        while (feedIterator.HasMoreResults)
+        {
+            FeedResponse<TItem>? feedResponse = null;
+
+            try
+            {
+                // this is where cosmos will throw
+                feedResponse = feedIterator.ReadNextAsync(cancellationToken).Result;
+            }
+            catch (CosmosException ex)
+            {
+                throw new CommandException(ex.StatusCode);
+            }
+
+            foreach (var item in feedResponse)
+            {
+                yield return item;
+            }
+        }
     }
 
     /// <summary>
@@ -196,43 +183,4 @@ internal class CosmosCommandProvider<TInterface, TItem>(
 
         _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
     };
-
-    private class CosmosQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        IQueryable<TItem> queryable,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
-        : QueryCommand<TInterface, TItem>(expressionConverter, queryable)
-    {
-        /// <summary>
-        /// Execute the underlying <see cref="IQueryable{TItem}"/> and return the results as an async enumerable.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-        /// <returns>The <see cref="IAsyncEnumerable{TInterface}"/>.</returns>
-        protected override async IAsyncEnumerable<IQueryResult<TInterface>> ExecuteAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            // get the feed iterator
-            var feedIterator = GetQueryable().ToFeedIterator();
-
-            while (feedIterator.HasMoreResults)
-            {
-                FeedResponse<TItem>? feedResponse = null;
-
-                try
-                {
-                    // this is where cosmos will throw
-                    feedResponse = await feedIterator.ReadNextAsync(cancellationToken);
-                }
-                catch (CosmosException ex)
-                {
-                    throw new CommandException(ex.StatusCode);
-                }
-
-                foreach (var item in feedResponse)
-                {
-                    yield return convertToQueryResult(item);
-                }
-            }
-        }
-    }
 }

@@ -1,8 +1,8 @@
 using Azure.Core;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
-public record CosmosClientOptions(
+internal record CosmosClientOptions(
     TokenCredential TokenCredential,
     string AccountEndpoint,
     string DatabaseId,

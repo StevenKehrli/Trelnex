@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
@@ -9,7 +8,7 @@ namespace Trelnex.Core.Azure.Identity;
 /// <summary>
 /// A class that provides Azure credentials and status.
 /// </summary>
-internal class AzureCredentialProvider : ICredentialProvider
+internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
 {
     /// <summary>
     /// The <see cref="ILogger"/>.
@@ -17,21 +16,16 @@ internal class AzureCredentialProvider : ICredentialProvider
     private readonly ILogger _logger;
 
     /// <summary>
-    /// The underlying <see cref="TokenCredential"/>.
+    /// The <see cref="ManagedCredential"/> over the <see cref="TokenCredential"/>.
     /// </summary>
-    private readonly TokenCredential _credential;
-
-    /// <summary>
-    /// A thread-safe collection of <see cref="string"/> to <see cref="NamedCredential"/>.
-    /// </summary>
-    private readonly ConcurrentDictionary<string, Lazy<NamedCredential>> _namedCredentialsByName = new();
+    private readonly ManagedCredential _managedCredential;
 
     private AzureCredentialProvider(
         ILogger logger,
-        TokenCredential credential)
+        TokenCredential tokenCredential)
     {
         _logger = logger;
-        _credential = credential;
+        _managedCredential = new ManagedCredential(logger, tokenCredential);
     }
 
     /// <summary>
@@ -44,7 +38,7 @@ internal class AzureCredentialProvider : ICredentialProvider
         ILogger logger,
         AzureCredentialOptions options)
     {
-        // create the credential
+        // create the token credential
         if (options?.Sources == null || options.Sources.Length == 0)
         {
             throw new ArgumentNullException(nameof(options.Sources));
@@ -60,117 +54,51 @@ internal class AzureCredentialProvider : ICredentialProvider
             })
             .ToArray();
 
-        var credential = new ChainedTokenCredential(sources);
+        var tokenCredential = new ChainedTokenCredential(sources);
 
-        return new AzureCredentialProvider(logger, credential);
+        return new AzureCredentialProvider(logger, tokenCredential);
     }
 
+#region ICredentialProvider
+
     /// <summary>
-    /// Gets the <see cref="TokenCredential"/> for the specified credential name.
+    /// Gets the name of the credential provider.
     /// </summary>
-    /// <param name="credentialName">The name of the specified credential.</param>
-    /// <returns>The <see cref="TokenCredential"/>.</returns>
-    public TokenCredential GetCredential(
-        string credentialName)
+    public string Name => "Azure";
+
+    /// <summary>
+    /// Gets the <see cref="IAccessTokenProvider"/> for the specified credential name and scope.
+    /// </summary>
+    /// <param name="scope">The scope of the token.</param>
+    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified credential name.</returns>
+    public IAccessTokenProvider<TClient> GetAccessTokenProvider<TClient>(
+        string scope)
     {
-        return GetNamedCredential(credentialName);
+        return AccessTokenProvider<TClient>.Create(_managedCredential, scope);
     }
 
     /// <summary>
     /// Gets the array of <see cref="ICredentialStatusProvider"/> for all credentials.
     /// </summary>
     /// <returns>The array of <see cref="ICredentialStatusProvider"/>.</returns>
-    public ICredentialStatusProvider[] GetStatusProviders()
+    public CredentialStatus GetStatus()
     {
-        return _namedCredentialsByName
-            .OrderBy(kvp => kvp.Key)
-            .Select(kvp =>
-            {
-                var credentialName = kvp.Key;
-
-                // get the credential
-                var lazyNamedCredential = kvp.Value;
-
-                return lazyNamedCredential.Value;
-            })
-            .ToArray();
+        return _managedCredential.GetStatus();
     }
+
+#endregion ICredentialProvider
+
+#region ICredentialProvider<TokenCredential>
 
     /// <summary>
-    /// Gets the <see cref="IAccessTokenProvider"/> for the specified credential name and scope.
+    /// Gets the <see cref="TokenCredential"/> for the specified credential name.
     /// </summary>
-    /// <param name="credentialName">The name of the credential.</param>
-    /// <param name="scope">The scope of the token.</param>
-    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified credential name.</returns>
-    public IAccessTokenProvider GetTokenProvider(
-        string credentialName,
-        string scope)
+    /// <returns>The <see cref="TokenCredential"/>.</returns>
+    public TokenCredential GetCredential()
     {
-        var namedCredential = GetNamedCredential(credentialName);
-
-        return TokenProvider.Create(credentialName, scope, namedCredential);
+        return _managedCredential;
     }
 
-    /// <summary>
-    /// Gets the <see cref="NamedCredential"/> for the specified credential name.
-    /// </summary>
-    /// <param name="credentialName">The name of the specified credential.</param>
-    /// <returns>The <see cref="NamedCredential"/>.</returns>
-    private NamedCredential GetNamedCredential(
-        string credentialName)
-    {
-        // https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
-        var lazyNamedCredential =
-            _namedCredentialsByName.GetOrAdd(
-                key: credentialName,
-                value: new Lazy<NamedCredential>(
-                    () => new NamedCredential(_logger, credentialName, _credential)));
+#endregion ICredentialProvider<TokenCredential>
 
-        return lazyNamedCredential.Value;
-    }
-
-    private class TokenProvider : IAccessTokenProvider
-    {
-        private readonly string _credentialName;
-        private readonly string _scope;
-        private readonly NamedCredential _namedCredential;
-
-        private TokenProvider(
-            string credentialName,
-            string scope,
-            NamedCredential namedCredential)
-        {
-            _credentialName = credentialName;
-            _scope = scope;
-            _namedCredential = namedCredential;
-        }
-
-        public static TokenProvider Create(
-            string credentialName,
-            string scope,
-            NamedCredential namedCredential)
-        {
-            // create the token provider
-            var tokenProvider = new TokenProvider(credentialName, scope, namedCredential);
-
-            // warm-up this token
-            tokenProvider.GetToken();
-
-            return tokenProvider;
-        }
-
-        public string CredentialName => _credentialName;
-
-        public string Scope => _scope;
-
-        public string GetAuthorizationHeader()
-        {
-            return _namedCredential.GetAuthorizationHeader(_scope);
-        }
-
-        public IAccessToken GetToken()
-        {
-            return _namedCredential.GetToken(_scope);
-        }
-    }
 }

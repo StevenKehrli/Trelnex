@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Core;
@@ -8,8 +9,9 @@ using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Data.SqlClient;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// A builder for creating an instance of the <see cref="SqlCommandProvider"/>.
@@ -19,6 +21,7 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
     private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     private readonly string _connectionString;

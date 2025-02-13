@@ -1,8 +1,8 @@
 using Azure.Core;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
-public record SqlClientOptions(
+internal record SqlClientOptions(
     TokenCredential TokenCredential,
     string Scope,
     string DataSource,

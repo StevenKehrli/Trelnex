@@ -1,5 +1,4 @@
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using FluentValidation;
@@ -7,8 +6,9 @@ using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Data.SqlClient;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// An implementation of <see cref="ICommandProvider{TInterface}"/> that uses a SQL table as a backing store.
@@ -54,48 +54,6 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
         catch (CosmosException ce)
         {
             throw new CommandException(ce.StatusCode, ce.Message);
-        }
-    }
-
-    /// <summary>
-    /// Saves a item in the backing data store as an asynchronous operation.
-    /// </summary>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was saved.</returns>
-    protected override async Task<TItem> SaveItemAsync(
-        SaveRequest<TInterface, TItem> request,
-        CancellationToken cancellationToken = default)
-    {
-        // create the transaction
-        using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-        // create the connection
-        using var dataConnection = new DataConnection(dataOptions);
-
-        try
-        {
-            // save the item
-            var saved = await SaveItemAsync(dataConnection, request, cancellationToken);
-
-            // commit the transaction
-            transactionScope.Complete();
-
-            return await Task.FromResult(saved);
-        }
-        catch (SqlException se)
-        {
-            if (PreconditionFailedRegex().IsMatch(se.Message))
-            {
-                throw new CommandException(HttpStatusCode.PreconditionFailed);
-            }
-
-            if (PrimaryKeyViolationRegex().IsMatch(se.Message))
-            {
-                throw new CommandException(HttpStatusCode.Conflict);
-            }
-
-            throw new CommandException(HttpStatusCode.InternalServerError, se.Message);
         }
     }
 
@@ -147,12 +105,19 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
                         HttpStatusCode.OK,
                         saved);
             }
-            catch (Exception ex) when (ex is CommandException || ex is InvalidOperationException || ex is SqlException)
+            catch (SqlException se)
             {
-                // set the result to the exception status code
-                var httpStatusCode = ex is CommandException ce
-                    ? ce.HttpStatusCode
-                    : HttpStatusCode.InternalServerError;
+                var httpStatusCode = HttpStatusCode.InternalServerError;
+
+                if (PreconditionFailedRegex().IsMatch(se.Message))
+                {
+                    httpStatusCode = HttpStatusCode.PreconditionFailed;
+                }
+
+                if (PrimaryKeyViolationRegex().IsMatch(se.Message))
+                {
+                    httpStatusCode = HttpStatusCode.Conflict;
+                }
 
                 saveResults[saveRequestIndex] =
                     new SaveResult<TInterface, TItem>(
@@ -188,26 +153,42 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="IQueryCommand{Interface}"/>.
+    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
     /// </summary>
-    /// <param name="expressionConverter">The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.</param>
-    /// <param name="convertToQueryResult">The method to convert a TItem to a <see cref="IQueryResult{TInterface}"/>.</param>
-    /// <returns>The <see cref="IQueryCommand{Interface}"/>.</returns>
-    protected override IQueryCommand<TInterface> CreateQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
+    /// <returns></returns>
+    protected override IQueryable<TItem> CreateQueryable()
     {
         // add typeName and isDeleted predicates
         // the lambda parameter i is an item of TInterface type
-        var queryable = Enumerable.Empty<TItem>().AsQueryable()
+        return Enumerable.Empty<TItem>()
+            .AsQueryable()
             .Where(i => i.TypeName == TypeName)
             .Where(i => i.IsDeleted == null || i.IsDeleted == false);
+    }
 
-        return new SqlQueryCommand(
-            expressionConverter: expressionConverter,
-            queryable: queryable,
-            dataOptions: dataOptions,
-            convertToQueryResult: convertToQueryResult);
+    /// <summary>
+    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an enumerable.
+    /// </summary>
+    /// <param name="queryable">The queryable.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>The <see cref="IEnumerable{TInterface}"/>.</returns>
+    protected override IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        // create the connection
+        using var dataConnection = new DataConnection(dataOptions);
+
+        // create the query from the table and the queryable expression
+        var queryableFromExpression = dataConnection
+            .GetTable<TItem>()
+            .Provider
+            .CreateQuery<TItem>(queryable.Expression);
+
+        foreach (var item in queryableFromExpression.AsEnumerable())
+        {
+            yield return item;
+        }
     }
 
     /// <summary>
@@ -245,39 +226,6 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
             .GetTable<TItem>()
             .Where(i => i.Id == request.Item.Id && i.PartitionKey == request.Item.PartitionKey)
             .First();
-    }
-
-    private class SqlQueryCommand(
-        ExpressionConverter<TInterface, TItem> expressionConverter,
-        IQueryable<TItem> queryable,
-        DataOptions dataOptions,
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
-        : QueryCommand<TInterface, TItem>(expressionConverter, queryable)
-    {
-        /// <summary>
-        /// Execute the underlying <see cref="IQueryable{TItem}"/> and return the results as an async enumerable.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-        /// <returns>The <see cref="IAsyncEnumerable{TInterface}"/>.</returns>
-        protected override async IAsyncEnumerable<IQueryResult<TInterface>> ExecuteAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            // create the connection
-            using var dataConnection = new DataConnection(dataOptions);
-
-            // create the query from the table and the queryable expression
-            var queryable = dataConnection
-                .GetTable<TItem>()
-                .Provider
-                .CreateQuery<TItem>(GetQueryable().Expression);
-
-            foreach (var item in queryable.AsEnumerable())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                yield return await Task.FromResult(convertToQueryResult(item));
-            }
-        }
     }
 
     [GeneratedRegex(@"^Violation of PRIMARY KEY constraint ")]

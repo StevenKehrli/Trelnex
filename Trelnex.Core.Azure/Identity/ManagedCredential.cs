@@ -5,6 +5,9 @@ using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Identity;
 
+using AzureToken = Azure.Core.AccessToken;
+using TrelnexToken = Trelnex.Core.Identity.AccessToken;
+
 namespace Trelnex.Core.Azure.Identity;
 
 /// <summary>
@@ -12,31 +15,24 @@ namespace Trelnex.Core.Azure.Identity;
 /// </summary>
 /// <remarks>
 /// <para>
-/// NamedCredential is an internal class. Users will get an instance of the <see cref="TokenCredential"/> abstract class.
-/// </para>
-/// <para>
-/// A NamedCredential is addressable by the credential name within <see cref="CredentialFactory"/>.
+/// ManagedCredential is an internal class. Users will get an instance of the <see cref="TokenCredential"/> class.
 /// </para>
 /// </remarks>
 /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-/// <param name="credentialName">The name of this <see cref="TokenCredential"/>.</param>
-/// <param name="tokenCredential">The underlying <see cref="ChainedTokenCredential"/> (<see cref="WorkloadIdentityCredential"/> and <see cref="AzureCliCredential"/>).</param>
-internal class NamedCredential(
+/// <param name="tokenCredential">The underlying <see cref="ChainedTokenCredential"/>.</param>
+internal class ManagedCredential(
     ILogger logger,
-    string credentialName,
     TokenCredential tokenCredential)
-    : TokenCredential, ICredentialStatusProvider
+    : TokenCredential, ICredential
 {
     /// <summary>
-    /// A thread-safe collection of <see cref="TokenRequestContext"/> to <see cref="AccessTokenItem"/>.
+    /// A thread-safe collection of <see cref="TokenRequestContext"/> to <see cref="AzureTokenItem"/>.
     /// </summary>
-    private readonly ConcurrentDictionary<TokenRequestContextKey, Lazy<AccessTokenItem>> _accessTokenItemsByTokenRequestContextKey = new();
-
-    public string CredentialName => credentialName;
+    private readonly ConcurrentDictionary<TokenRequestContextKey, Lazy<AzureTokenItem>> _azureTokenItemsByTokenRequestContextKey = new();
 
 #region TokenCredential
 
-    public override AccessToken GetToken(
+    public override AzureToken GetToken(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
@@ -44,20 +40,19 @@ internal class NamedCredential(
         var key = TokenRequestContextKey.FromTokenRequestContext(tokenRequestContext);
 
         // https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
-        var lazyAccessTokenItem =
-            _accessTokenItemsByTokenRequestContextKey.GetOrAdd(
+        var lazyAzureTokenItem =
+            _azureTokenItemsByTokenRequestContextKey.GetOrAdd(
                 key: key,
-                value: new Lazy<AccessTokenItem>(
-                    AccessTokenItem.Create(
+                value: new Lazy<AzureTokenItem>(
+                    AzureTokenItem.Create(
                         logger,
-                        credentialName,
                         tokenCredential,
                         key)));
 
-        return lazyAccessTokenItem.Value.GetToken();
+        return lazyAzureTokenItem.Value.GetAzureToken();
     }
 
-    public override ValueTask<AccessToken> GetTokenAsync(
+    public override ValueTask<AzureToken> GetTokenAsync(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
@@ -67,7 +62,38 @@ internal class NamedCredential(
 
 #endregion
 
-#region ICredentialStatusProvider
+#region ICredential
+
+    /// <summary>
+    /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.
+    /// </summary>
+    /// <param name="scope">The scope required for the token.</param>
+    /// <returns>The <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.</returns>
+    public TrelnexToken GetAccessToken(
+        string scope)
+    {
+        // format the scope into a TokenRequestContext
+        var tokenRequestContext = new TokenRequestContext(
+            scopes: [ scope ]);
+
+        try
+        {
+            // get the azure access token
+            var azureToken = GetToken(tokenRequestContext, default);
+
+            // convert to trelnex access token
+            return new TrelnexToken{
+                Token = azureToken.Token,
+                TokenType = azureToken.TokenType,
+                ExpiresOn = azureToken.ExpiresOn,
+                RefreshOn = azureToken.RefreshOn
+            };
+        }
+        catch (CredentialUnavailableException ex)
+        {
+            throw new AccessTokenUnavailableException(ex.Message, ex.InnerException);
+        }
+    }
 
     /// <summary>
     /// Gets the <see cref="CredentialStatus"/> of the credential used by this token provider.
@@ -75,101 +101,30 @@ internal class NamedCredential(
     /// <returns>The <see cref="CredentialStatus"/> of the credential used by this token provider.</returns>
     public CredentialStatus GetStatus()
     {
-        // get the access token item
-        var statuses = _accessTokenItemsByTokenRequestContextKey
+        // get the azure token item
+        var statuses = _azureTokenItemsByTokenRequestContextKey
             .Select(kvp =>
             {
                 var lazy = kvp.Value;
-                var accessTokenItem = lazy.Value;
+                var azureTokenItem = lazy.Value;
 
-                return accessTokenItem.GetStatus();
+                return azureTokenItem.GetStatus();
             })
             .OrderBy(status => string.Join(", ", status.Scopes))
             .ToArray();
 
         return new CredentialStatus(
-            CredentialName: credentialName,
             Statuses: statuses ?? []);
     }
 
 #endregion
 
     /// <summary>
-    /// Gets the authorization header for the specified scope.
-    /// </summary>
-    /// <param name="scope">The scope required for the authorization header.</param>
-    /// <returns>The authorization header for the specified scope.</returns>
-    public string GetAuthorizationHeader(
-        string scope)
-    {
-        // get the access token and return its authorization header
-        var accessToken = GetToken(scope);
-
-        return accessToken.GetAuthorizationHeader();
-    }
-
-    /// <summary>
-    /// Gets the <see cref="IAccessToken"/> for the specified scope.
-    /// </summary>
-    /// <param name="scope">The scope required for the token.</param>
-    /// <returns>The <see cref="IAccessToken"/> for the specified scope.</returns>
-    public IAccessToken GetToken(
-        string scope)
-    {
-        // format the scope into a TokenRequestContext
-        var tokenRequestContext = new TokenRequestContext(
-            scopes: [ scope ]);
-
-        // get the access token
-        var accessToken = GetToken(tokenRequestContext, default);
-
-        return new NamedCredentialAccesssToken{
-            Token = accessToken.Token,
-            TokenType = accessToken.TokenType,
-            ExpiresOn = accessToken.ExpiresOn,
-            RefreshOn = accessToken.RefreshOn
-        };
-    }
-
-    private class NamedCredentialAccesssToken : IAccessToken
-    {
-        /// <summary>
-        /// Get the access token value.
-        /// </summary>
-        public required string Token { get; init; }
-
-        /// <summary>
-        /// Identifies the type of access token.
-        /// </summary>
-        public required string TokenType { get; init; }
-
-        /// <summary>
-        /// Gets the time when the provided token expires.
-        /// </summary>
-        public required DateTimeOffset ExpiresOn { get; init; }
-
-        /// <summary>
-        /// Gets the time when the token should be refreshed.
-        /// </summary>
-        public required DateTimeOffset? RefreshOn { get; init; }
-
-        /// <summary>
-        /// Gets the authorization header for this access token.
-        /// </summary>
-        /// <returns>The authorization header for this access token.</returns>
-        public string GetAuthorizationHeader()
-        {
-            // format the authorization header
-            return $"{TokenType} {Token}";
-        }
-    }
-
-    /// <summary>
-    /// Contains the details of an authentication token request.
+    /// Contains the details of an access token request.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is used as the key to <see cref="_accessTokenItemsByTokenRequestContextKey"/>.
+    /// This is used as the key to <see cref="_azureTokenItemsByTokenRequestContextKey"/>.
     /// </para>
     /// <para>
     /// This is a class (reference type) alternative to the struct (value type) of <see cref="TokenRequestContext"/>.
@@ -179,7 +134,7 @@ internal class NamedCredential(
     /// It is not used by <see cref="GetToken"/> and <see cref="GetTokenAsync"/>.
     /// </para>
     /// <para>
-    /// This implements the <see cref="Equals"/> and <see cref="GetHashCode"/> necessary for the <see cref="_accessTokenItemsByTokenRequestContextKey"/>.
+    /// This implements the <see cref="Equals"/> and <see cref="GetHashCode"/> necessary for the <see cref="_azureTokenItemsByTokenRequestContextKey"/>.
     /// </para>
     /// </remarks>
     /// <param name="claims">Additional claims to be included in the token.</param>
@@ -277,25 +232,20 @@ internal class NamedCredential(
     }
 
     /// <summary>
-    /// Combines an <see cref="AccessToken"/> with a <see cref="System.Threading.Timer"/> to refresh the <see cref="AccessToken"/>.
+    /// Combines an <see cref="Azure.Core.AccessToken"/> with a <see cref="System.Threading.Timer"/> to refresh the <see cref="Azure.Core.AccessToken"/>.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An AccessTokenItem will refresh its access token in accordance with <see cref="AccessToken.RefreshOn"/>.
-    /// This will maintain a valid access token and enable <see cref="GetToken"/> or <see cref="GetTokenAsync"/> to return immediately.
+    /// An AzureTokenItem will refresh its token in accordance with <see cref="Azure.Core.AccessToken.RefreshOn"/>.
+    /// This will maintain a valid token and enable <see cref="GetToken"/> to return immediately.
     /// </para>
     /// </remarks>
-    private class AccessTokenItem
+    private class AzureTokenItem
     {
         /// <summary>
         /// The <see cref="ILogger"> used to perform logging.
         /// </summary>
         private readonly ILogger _logger;
-
-        /// <summary>
-        /// The name of this <see cref="TokenCredential"/>.
-        /// </summary>
-        private readonly string _credentialName;
 
         /// <summary>
         /// The underlying <see cref="TokenCredential"/>.
@@ -308,40 +258,37 @@ internal class NamedCredential(
         private readonly TokenRequestContextKey _tokenRequestContextKey;
 
         /// <summary>
-        /// The <see cref="Timer"/> to refresh the <see cref="AccessToken"/>.
+        /// The <see cref="Timer"/> to refresh the <see cref="Azure.Core.AccessToken"/>.
         /// </summary>
         private readonly Timer _timer;
 
         /// <summary>
-        /// The underlying <see cref="AccessToken"/>.
+        /// The underlying <see cref="Azure.Core.AccessToken"/>.
         /// </summary>
-        private AccessToken? _accessToken;
+        private AzureToken? _azureToken;
 
         /// <summary>
-        /// The message to throw when the access token is unavailable.
+        /// The message to throw when the token is unavailable.
         /// </summary>
         private string? _unavailableMessage;
 
         /// <summary>
-        /// The inner exception to include when the access token is unavailable.
+        /// The inner exception to include when the token is unavailable.
         /// </summary>
         private Exception? _unavailableInnerException;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AccessTokenItem"/>.
+        /// Initializes a new instance of the <see cref="AzureTokenItem"/>.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="credentialName">The name of this <see cref="TokenCredential"/>.</param>
-        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="AccessToken"/>.</param>
-        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details of an authentication token request.</param>
-        private AccessTokenItem(
+        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="Azure.Core.AccessToken"/>.</param>
+        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details for the access token request.</param>
+        private AzureTokenItem(
             ILogger logger,
-            string credentialName,
             TokenCredential tokenCredential,
             TokenRequestContextKey tokenRequestContextKey)
         {
             _logger = logger;
-            _credentialName = credentialName;
             _tokenCredential = tokenCredential;
             _tokenRequestContextKey = tokenRequestContextKey;
 
@@ -349,39 +296,36 @@ internal class NamedCredential(
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AccessTokenItem"/>.
+        /// Initializes a new instance of the <see cref="AzureTokenItem"/>.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="credentialName">The name of this <see cref="TokenCredential"/>.</param>
-        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="AccessToken"/>.</param>
-        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details of an authentication token request.</param>
-        public static AccessTokenItem Create(
+        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="Azure.Core.AccessToken"/>.</param>
+        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details for the access token request.</param>
+        public static AzureTokenItem Create(
             ILogger logger,
-            string credentialName,
             TokenCredential tokenCredential,
             TokenRequestContextKey tokenRequestContextKey)
         {
-            // create the accessTokenItem and schedule the refresh (to get its access token)
-            // this will set _accessToken
-            var accessTokenItem = new AccessTokenItem(
+            // create the azureTokenItem and schedule the refresh (to get its token)
+            // this will set _azureToken
+            var azureTokenItem = new AzureTokenItem(
                 logger,
-                credentialName,
                 tokenCredential,
                 tokenRequestContextKey);
 
-            accessTokenItem.Refresh(null);
+            azureTokenItem.Refresh(null);
 
-            return accessTokenItem;
+            return azureTokenItem;
         }
 
         /// <summary>
-        /// Gets the <see cref="AccessToken"/>.
+        /// Gets the <see cref="Azure.Core.AccessToken"/>.
         /// </summary>
-        public AccessToken GetToken()
+        public AzureToken GetAzureToken()
         {
             lock (this)
             {
-                return _accessToken ?? throw new CredentialUnavailableException(_unavailableMessage, _unavailableInnerException);
+                return _azureToken ?? throw new CredentialUnavailableException(_unavailableMessage, _unavailableInnerException);
             }
         }
 
@@ -393,7 +337,7 @@ internal class NamedCredential(
         {
             lock (this)
             {
-                var health = ((_accessToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
+                var health = ((_azureToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
                     ? AccessTokenHealth.Expired
                     : AccessTokenHealth.Valid;
 
@@ -407,8 +351,8 @@ internal class NamedCredential(
                 return new AccessTokenStatus(
                     Health: health,
                     Scopes: _tokenRequestContextKey.Scopes,
-                    Data: data,
-                    ExpiresOn: _accessToken?.ExpiresOn);
+                    ExpiresOn: _azureToken?.ExpiresOn,
+                    Data: data);
             }
         }
 
@@ -419,8 +363,7 @@ internal class NamedCredential(
         private void Refresh(object? state)
         {
             _logger.LogInformation(
-                "AccessTokenItem.Refresh: '{credentialName:l}', scopes: '{scopes:l}', tenantId: '{tenantId:l}', claims: '{claims:l}', isCaeEnabled: '{isCaeEnabled}'...",
-                _credentialName,
+                "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
                 string.Join(", ", _tokenRequestContextKey.Scopes),
                 _tokenRequestContextKey.TenantId,
                 _tokenRequestContextKey.Claims,
@@ -431,21 +374,20 @@ internal class NamedCredential(
 
             try
             {
-                // get a new access token and set
-                var accessToken = _tokenCredential.GetToken(
+                // get a new token and set
+                var azureToken = _tokenCredential.GetToken(
                     requestContext: _tokenRequestContextKey.ToTokenRequestContext(),
                     cancellationToken: default);
 
-                SetAccessToken(accessToken);
+                SetAzureToken(azureToken);
 
                 // we got a token - schedule refresh
                 // workloadIdentityCredential will have RefreshOn set - use RefreshOn
                 // azureCliCredential will not - use ExpiresOn
-                var refreshOn = accessToken.RefreshOn ?? accessToken.ExpiresOn;
+                var refreshOn = azureToken.RefreshOn ?? azureToken.ExpiresOn;
 
                 _logger.LogInformation(
-                    "AccessTokenItem.SetAccessToken: '{credentialName:l}', scopes: '{scopes:l}', tenantId: '{tenantId:l}', claims: '{claims:l}', isCaeEnabled: '{isCaeEnabled}', refreshOn: '{refreshOn:o}'.",
-                    _credentialName,
+                    "AzureTokenItem.AccessToken: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', refreshOn = '{refreshOn:o}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
@@ -459,8 +401,7 @@ internal class NamedCredential(
                 SetUnavailable(ex);
 
                 _logger.LogError(
-                    "AccessTokenItem.SetUnavailable: '{credentialName:l}', scopes: '{scopes:l}', tenantId: '{tenantId:l}', claims: '{claims:l}', isCaeEnabled: '{isCaeEnabled}', message: '{message:}'.",
-                    _credentialName,
+                    "AzureTokenItem.Unavailable: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
@@ -477,14 +418,14 @@ internal class NamedCredential(
         }
 
         /// <summary>
-        /// Sets the <see cref="AccessToken"/> for this object.
+        /// Sets the <see cref="Azure.Core.AccessToken"/> for this object.
         /// </summary>
-        private void SetAccessToken(
-            AccessToken accessToken)
+        private void SetAzureToken(
+            AzureToken azureToken)
         {
             lock (this)
             {
-                _accessToken = accessToken;
+                _azureToken = azureToken;
 
                 _unavailableMessage = null;
                 _unavailableInnerException = null;
@@ -492,9 +433,9 @@ internal class NamedCredential(
         }
 
         /// <summary>
-        /// Sets the message to throw when the access token is unavailable.
+        /// Sets the message to throw when the token is unavailable.
         /// </summary>
-        /// <param name="ex">The <see cref="CredentialUnavailableException"/> with the message to throw when the access token is unavailable.</param>
+        /// <param name="ex">The <see cref="CredentialUnavailableException"/> with the message to throw when the token is unavailable.</param>
         private void SetUnavailable(
             CredentialUnavailableException ex)
         {
