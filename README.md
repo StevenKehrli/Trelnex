@@ -117,7 +117,50 @@ The challenge is implementing [Policy based role checks](https://learn.microsoft
 
 Trelnex.Core.API exposes a friendlier approach to implementing RBAC that solves these problems.
 
-Trelnex.Core.API currently supports Microsoft Identity Web App Authentication. This is easily extensible to support any authentication / authorization provider.
+Trelnex.Core.API currently supports Microsoft Identity Web App Authentication and JWT Bearer Authentication. This is easily extensible to support any authentication / authorization provider.
+
+### Configuration
+
+#### Configuration - Microsoft Identity Web App Authentication
+
+`appsettings.json` specifies the configuration for Microsoft Identity Web App Authentication.
+  - `TenantId` - Your Azure subscription Microsoft Entra Tenant ID.
+  - `ClientId` - Your Azure App Registration Application (Client) ID.
+  - `Audience` - Your Azure App Registration Application ID URI (from Expose an API)
+  - `Scope` - The Scope defined by your Azure App Registration API (from Expose an API)
+
+```json
+  "Auth": {
+    "trelnex-api-users": {
+      "Instance": "https://login.microsoftonline.com/",
+      "TenantId": "d3ec543c-3a0b-4e07-9992-598e311c8ee5",
+      "ClientId": "9d931409-5ed7-4917-bf90-56b1b13e4830",
+      "Audience": "api://9d931409-5ed7-4917-bf90-56b1b13e4830",
+      "Scope": "users"
+    }
+  }
+```
+
+#### Configuration - JWT Bearer Authentication
+
+This example demonstrates the `Trelnex.Auth.Amazon` OAuth 2.0 Authorization Server configuration. Other providers (such as Okta) are supported.
+
+`appsettings.json` specifies the configuration for JWT Bearer Authentication.
+  - `Audience` - Your Resource Name registered with your `Trelnex.Auth.Amazon` instance.
+  - `Authority` - The URI of your `Trelnex.Auth.Amazon` instance.
+  - `MetadataAddress` - The URI of you Well-Known Configuration endpoint.
+  - `Scope` - The Scope registered with your `Trelnex.Auth.Amazon` instance.
+
+```json
+  "Auth": {
+    "trelnex-api-users": {
+      "Audience": "api://9d931409-5ed7-4917-bf90-56b1b13e4830",
+      "Authority": "https://amazon.auth.trelnex.com",
+      "MetadataAddress": "https://amazon.auth.trelnex.com/.well-known/openid-configuration",
+      "Scope": "users"
+    }
+  }
+```
 
 ### Permission and Policy Definition
 
@@ -126,7 +169,46 @@ The below code defines two policies:
 - `UsersCreatePolicy` with required role `users.create`
 - `UsersReadPolicy` with required role `users.read`
 
+The first example uses Microsoft Identity Web App Authentication and the second example uses JWT Bearer Authentication. Notice both examples are nearly identical, with the only difference the reference to `MicrosoftIdentityPermission` or `JwtBearerPermission` base class.
+
+#### Permission and Policy Definition - Microsoft Identity Web App Authentication
+
 These two policies are exposed through the `UsersPermission` which is an implementation of `MicrosoftIdentityPermission` (Microsoft Identity Web App Authentication). This permission uses the JWT Bearer scheme `Bearer.trelnex-api-users` and its necessary configuration is found in the `Auth:trelnex-api-users` section.
+
+```csharp
+using Trelnex.Core.Api.Authentication;
+
+namespace Trelnex.Users.Api.Endpoints;
+
+internal class UsersPermission : MicrosoftIdentityPermission
+{
+    protected override string ConfigSectionName => "Auth:trelnex-api-users";
+
+    public override string JwtBearerScheme => "Bearer.trelnex-api-users";
+
+    public override void AddAuthorization(
+        IPoliciesBuilder policiesBuilder)
+    {
+        policiesBuilder
+            .AddPolicy<UsersCreatePolicy>()
+            .AddPolicy<UsersReadPolicy>();
+    }
+
+    public class UsersCreatePolicy : IPermissionPolicy
+    {
+        public string[] RequiredRoles => ["users.create"];
+    }
+
+    public class UsersReadPolicy : IPermissionPolicy
+    {
+        public string[] RequiredRoles => ["users.read"];
+    }
+}
+```
+
+#### Permission and Policy Definition - JWT Bearer Authentication
+
+These two policies are exposed through the `UsersPermission` which is an implementation of `JwtBearerPermissions` (JWT Bearer Authentication). This permission uses the JWT Bearer scheme `Bearer.trelnex-api-users` and its necessary configuration is found in the `Auth:trelnex-api-users` section.
 
 ```csharp
 using Trelnex.Core.Api.Authentication;
@@ -448,159 +530,6 @@ See [Command Providers Dependency Injection](#command-providers-dependency-injec
 
 ## Command Providers
 
-### CosmosCommandProvider - CosmosDB NoSQL
-
-<details>
-
-<summary>Expand</summary>
-
-&nbsp;
-
-`CosmosCommandProvider` is an `ICommandProvider` that uses CosmosDB NoSQL as a backing store.
-
-#### CosmosCommandProvider - Configuration
-
-`appsettings.json` specifies the configuration of a `CosmosCommandProvider`.
-
-```
-  "CosmosCommandProviders": {
-    "TenantId": "FROM_ENV",
-    "EndpointUri": "FROM_ENV",
-    "DatabaseId": "trelnex-core-data-tests",
-    "Containers": [
-      {
-        "TypeName": "test-item",
-        "ContainerId": "test-items"
-      }
-    ]
-  }
-```
-
-</details>
-
-### SqlCommandProvider - SQL Server
-
-<details>
-
-<summary>Expand</summary>
-
-&nbsp;
-
-`SqlCommandProvider` is an `ICommandProvider` that uses SQL Server as a backing store.
-
-#### SqlCommandProvider - Configuration
-
-`appsettings.json` specifies the configuration of a `SqlCommandProvider`.
-
-```
-  "SqlCommandProviders": {
-    "DataSource": "FROM_ENV",
-    "InitialCatalog": "trelnex-core-data-tests",
-    "Tables": [
-      {
-        "TypeName": "test-item",
-        "TableName": "test-items"
-      }
-    ]
-  }
-```
-
-#### SqlCommandProvider - Item Schema
-
-The table for the items must follow the following schema.
-
-```
-CREATE TABLE [test-items] (
-	[id] nvarchar(255) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(255) NOT NULL,
-	[typeName] nvarchar(max) NOT NULL,
-	[createdDate] datetimeoffset NOT NULL,
-	[updatedDate] datetimeoffset NOT NULL,
-	[deletedDate] datetimeoffset NULL,
-	[isDeleted] bit NULL,
-	[_etag] nvarchar(255) NULL,
-
-	..., // TItem specific columns
-
-	PRIMARY KEY ([id], [partitionKey])
-);
-```
-
-#### SqlCommandProvider - Event Schema
-
-The table for the events must use the following schema.
-
-```
-CREATE TABLE [test-items-events] (
-	[id] nvarchar(255) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(255) NOT NULL,
-	[typeName] nvarchar(max) NOT NULL,
-	[createdDate] datetimeoffset NOT NULL,
-	[updatedDate] datetimeoffset NOT NULL,
-	[deletedDate] datetimeoffset NULL,
-	[isDeleted] bit NULL,
-	[_etag] nvarchar(255) NULL,
-	[saveAction] nvarchar(max) NOT NULL,
-	[relatedId] nvarchar(255) NOT NULL,
-	[relatedTypeName] nvarchar(max) NOT NULL,
-	[changes] json NULL,
-	[context] json NULL,
-	PRIMARY KEY ([id], [partitionKey]),
-	FOREIGN KEY ([relatedId], [partitionKey]) REFERENCES [test-items]([id], [partitionKey])
-);
-```
-
-#### SqlCommandProvider - Item Trigger
-
-The following trigger must exist to check and update the item ETag.
-
-```
-CREATE TRIGGER [tr-test-items-etag]
-ON [test-items]
-AFTER INSERT, UPDATE
-AS
-BEGIN
-	SET NOCOUNT ON;
-
-    IF EXISTS (
-        SELECT 1
-        FROM [inserted] AS [i]
-        JOIN [deleted] AS [d] ON
-            [i].[id] = [d].[id] AND
-            [i].[partitionKey] = [d].[partitionKey]
-        WHERE [i].[_etag] != [d].[_etag]
-    ) THROW 2147418524, 'Precondition Failed.', 1;
-
-	UPDATE [test-items]
-	SET [_etag] = CONVERT(nvarchar(max), NEWID())
-	FROM [inserted] AS [i]
-	WHERE
-        [test-items].[id] = [i].[id] AND
-        [test-items].[partitionKey] = [i].[partitionKey]
-END;
-```
-
-#### SqlCommandProvider - Event Trigger
-
-The following trigger must exist to update the event ETag.
-
-```
-CREATE TRIGGER [tr-test-items-events-etag]
-ON [test-items-events]
-AFTER INSERT, UPDATE
-AS
-BEGIN
-	SET NOCOUNT ON;
-
-	UPDATE [test-items-events]
-	SET [_etag] = CONVERT(nvarchar(max), NEWID())
-	FROM [inserted] AS [i]
-	WHERE [test-items-events].[id] = [i].[id] AND [test-items-events].[partitionKey] = [i].[partitionKey]
-END;
-```
-
-</details>
-
 ### InMemoryCommandProvider
 
 <details>
@@ -610,6 +539,43 @@ END;
 &nbsp;
 
 `InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistance. It is intended to assist development and testing of their business logic.
+
+#### InMemoryCommandProvider - Dependency Injection
+
+The `AddInMemoryCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate will configure any necessary [Command Providers](#icommandprovider) for the application.
+
+In this example, we configure a command provider for the `IUser` interface and its `User` DTO.
+
+```csharp
+    public static void Add(
+        IServiceCollection services,
+        IConfiguration configuration,
+        ILogger bootstrapLogger)
+    {
+        services
+            .AddAuthentication(configuration)
+            .AddPermissions(bootstrapLogger);
+
+        services
+            .AddSwaggerToServices()
+            .AddInMemoryCommandProviders(
+                configuration,
+                bootstrapLogger,
+                options => options.AddUsersCommandProviders());
+    }
+```
+
+```csharp
+    public static ICommandProviderOptions AddUsersCommandProviders(
+        this ICommandProviderOptions options)
+    {
+        return options
+            .Add<IUser, User>(
+                typeName: "user",
+                validator: User.Validator,
+                commandOperations: CommandOperations.All);
+    }
+```
 
 </details>
 
@@ -659,24 +625,6 @@ This delegate is called to inject necessary services to `IServiceCollection`. Th
                 configuration,
                 bootstrapLogger,
                 options => options.AddUsersCommandProviders());
-    }
-```
-
-#### Command Providers Dependency Injection
-
-The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate will configure any necessary [Command Providers](#icommandprovider) for the application.
-
-In this example, we configure a command provider for the `IUser` interface and its `User` DTO.
-
-```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
-    {
-        return options
-            .Add<IUser, User>(
-                typeName: "user",
-                validator: User.Validator,
-                commandOperations: CommandOperations.All);
     }
 ```
 

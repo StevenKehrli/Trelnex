@@ -1,7 +1,9 @@
+using System.Configuration;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Mime;
-using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -9,25 +11,25 @@ using System.Text.Json.Serialization;
 namespace Trelnex.Core.Client;
 
 /// <summary>
-/// Initializes a new instance of <see cref="BaseClient"/> with the specified <see cref="IHttpClientFactory"/>.
+/// Initializes a new instance of <see cref="BaseClient"/> with the specified <see cref="HttpClient"/>.
 /// </summary>
-/// <param name="httpClientFactory">The specified <see cref="IHttpClientFactory"/> to create and configure an <see cref="HttpClient"/> instance.</param>
+/// <param name="httpClient">The specified <see cref="HttpClient"/> instance.</param>
 public abstract class BaseClient(
-    IHttpClientFactory httpClientFactory)
+    HttpClient httpClient)
 {
     /// <summary>
     /// The options to be used with <see cref="JsonSerializer"/> to serialize the request content and deserialize the response content.
     /// </summary>
     private static readonly JsonSerializerOptions _options = new()
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     /// <summary>
-    /// Gets the name of this client.
+    /// Gets the base <see cref="Uri"/> to build the request <see cref="Uri"/>.
     /// </summary>
-    /// <returns>The name of this client.</returns>
-    protected abstract string GetName();
+    protected Uri BaseAddress => httpClient.BaseAddress ?? throw new ConfigurationErrorsException("BaseAddress is not set.");
 
     /// <summary>
     /// Asks the service to delete the specified resource.
@@ -163,7 +165,7 @@ public abstract class BaseClient(
         Func<JsonNode, string?>? errorHandler = null)
         where TRequest : class
     {
-        var clientName = GetName();
+        var clientName = GetType().FullName;
 
         // build our request message
         var httpRequestMessage = new HttpRequestMessage
@@ -182,14 +184,12 @@ public abstract class BaseClient(
         if (content is not null)
         {
             // serialize the content to the request body
-            httpRequestMessage.Content =
-                new StringContent(
-                    content: JsonSerializer.Serialize(content, _options),
-                    encoding: Encoding.UTF8,
-                    mediaType: MediaTypeNames.Application.Json);
+            _ = (content is HttpContent httpContent)
+                ? httpRequestMessage.Content = httpContent
+                : httpRequestMessage.Content = JsonContent.Create(
+                    inputValue: content,
+                    options: _options);
         }
-
-        using var httpClient = httpClientFactory.CreateClient(clientName);
 
         using var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
 

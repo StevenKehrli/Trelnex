@@ -14,21 +14,21 @@ internal class CredentialStatusHealthCheck(
         HealthCheckContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        // get the credential status providers
-        var credentialStatusProviders = credentialProvider.GetStatusProviders();
+        // get the credential status
+        var credentialStatus = credentialProvider.GetStatus();
 
         // create the dictionary of credential status by the credential name
-        var data = credentialStatusProviders
-            .ToImmutableSortedDictionary(
-                keySelector: csp => csp.CredentialName,
-                elementSelector: csp => csp.GetStatus());
+        var data = new Dictionary<string, AccessTokenStatus[]>
+        {
+            [ credentialProvider.Name ] = credentialStatus.Statuses
+        };
 
         // get the health status
-        var status = GetHealthStatus(data);
+        var status = GetHealthStatus(credentialStatus.Statuses);
 
         var healthCheckResult = new HealthCheckResult(
             status: status,
-            description: credentialProvider.GetType().Name,
+            description: credentialProvider.Name,
             data: data.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value as object));
 
         return Task.FromResult(healthCheckResult);
@@ -40,16 +40,12 @@ internal class CredentialStatusHealthCheck(
     /// <param name="data">The collection of <see cref="CredentialStatus"/>.</param>
     /// <returns>A <see cref="HealthStatus"/> that represents the reported status of the health check result.</returns>
     private static HealthStatus GetHealthStatus(
-        IReadOnlyDictionary<string, CredentialStatus> data)
+        AccessTokenStatus[] statuses)
     {
-        if (data.Count <= 0) return HealthStatus.Healthy;
+        if (statuses.Length <= 0) return HealthStatus.Healthy;
 
-        // enumerate each credential status
-        var anyExpired = data.Any(kvp =>
-        {
-            // enuemrate is array of access token status
-            return kvp.Value.Statuses.Any(ats => ats.Health == AccessTokenHealth.Expired);
-        });
+        // enumerate each access token status
+        var anyExpired = statuses.Any(ats => ats.Health == AccessTokenHealth.Expired);
 
         // if any of the access tokens are expired, return unhealthy
         return anyExpired ? HealthStatus.Unhealthy : HealthStatus.Healthy;
