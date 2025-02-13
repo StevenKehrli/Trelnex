@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using LinqToDB.Mapping;
 using LinqToDB.Metadata;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 internal class JsonPropertyNameAttributeReader : IMetadataReader
 {

@@ -20,8 +20,9 @@ public static class AzureIdentityExtensions
         IConfiguration configuration,
         ILogger bootstrapLogger)
     {
-        var options =
-            configuration.GetSection("AzureCredentials").Get<AzureCredentialOptions>()
+        var options = configuration
+            .GetSection("AzureCredentials")
+            .Get<AzureCredentialOptions>()
             ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not found.");
 
         // create the credential provider
@@ -33,16 +34,5 @@ public static class AzureIdentityExtensions
         services.AddCredentialProvider(credentialProvider);
 
         return services;
-    }
-
-    /// <summary>
-    /// Gets the <see cref="AzureCredentialProvider"/> from the <see cref="IServiceCollection"/>.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <returns>The <see cref="AzureCredentialProvider"/>.</returns>
-    internal static AzureCredentialProvider GetAzureCredentialProvider(
-        this IServiceCollection services)
-    {
-        return services.GetCredentialProvider<AzureCredentialProvider>();
     }
 }

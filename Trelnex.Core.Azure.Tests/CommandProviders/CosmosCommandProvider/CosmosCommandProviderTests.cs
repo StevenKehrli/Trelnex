@@ -2,6 +2,7 @@ using Azure.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
+using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;
 
@@ -47,7 +48,7 @@ public class CosmosCommandProviderTests : CommandProviderTests
             containerId: containerId);
 
         // create the command provider
-        var cosmosClientOptions = new Data.CosmosClientOptions(
+        var cosmosClientOptions = new Azure.CommandProviders.CosmosClientOptions(
             TokenCredential: tokenCredential,
             AccountEndpoint: endpointUri,
             DatabaseId: databaseId,

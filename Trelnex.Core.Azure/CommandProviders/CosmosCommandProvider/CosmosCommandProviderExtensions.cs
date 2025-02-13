@@ -1,12 +1,15 @@
 using System.Configuration;
 using Azure.Core;
+using Azure.Security.KeyVault.Keys.Cryptography;
 using FluentValidation;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Trelnex.Core.Azure.Identity;
+using Trelnex.Core.Data;
+using Trelnex.Core.Identity;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
@@ -28,10 +31,11 @@ public static class CosmosCommandProvidersExtensions
         Action<ICommandProviderOptions> configureCommandProviders)
     {
         // get the azure identity provider
-        var credentialProvider = services.GetAzureCredentialProvider();
+        var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        var providerConfiguration =
-            configuration.GetSection("CosmosCommandProviders").Get<CosmosCommandProviderConfiguration>()
+        var providerConfiguration = configuration
+            .GetSection("CosmosCommandProviders")
+            .Get<CosmosCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
 
         // parse the cosmos options
@@ -68,15 +72,15 @@ public static class CosmosCommandProvidersExtensions
     /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="CosmosClient"/> scopes.
     /// </para>
     /// </remarks>
-    /// <param name="credentialProvider">The <see cref="AzureCredentialProvider"/>.</param>
+    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
     /// <param name="providerOptions">The <see cref="CosmosCommandProviderOptions"/>.</param>
     /// <returns>A valid <see cref="CosmosClientOptions"/>.</returns>
     private static CosmosClientOptions GetCosmosClientOptions(
-        AzureCredentialProvider credentialProvider,
+        ICredentialProvider<TokenCredential> credentialProvider,
         CosmosCommandProviderOptions providerOptions)
     {
         // get the token credential and initialize
-        var tokenCredential = credentialProvider.GetCredential("CosmosClient");
+        var tokenCredential = credentialProvider.GetCredential();
 
         // format the scope
         var uri = new Uri(providerOptions.EndpointUri);
@@ -109,15 +113,15 @@ public static class CosmosCommandProvidersExtensions
     /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="KeyResolver"/> scopes.
     /// </para>
     /// </remarks>
-    /// <param name="credentialProvider">The <see cref="AzureCredentialProvider"/>.</param>
+    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
     /// <param name="providerOptions">The <see cref="CosmosCommandProviderOptions"/>.</param>
     /// <returns>A valid <see cref="KeyResolverOptions"/>.</returns>
     private static KeyResolverOptions GetKeyResolverOptions(
-        AzureCredentialProvider credentialProvider,
+        ICredentialProvider<TokenCredential> credentialProvider,
         CosmosCommandProviderOptions providerOptions)
     {
         // get the token credential and initialize
-        var tokenCredential = credentialProvider.GetCredential("KeyResolver");
+        var tokenCredential = credentialProvider.GetCredential();
 
         var tokenRequestContext = new TokenRequestContext(
             scopes: ["https://vault.azure.net/.default"],
@@ -154,7 +158,7 @@ public static class CosmosCommandProvidersExtensions
                     nameof(typeName));
             }
 
-            if (services.Any(x => x.ServiceType == typeof(ICommandProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
@@ -180,7 +184,7 @@ public static class CosmosCommandProvidersExtensions
 
             // log - the :l format parameter (l = literal) to avoid the quotes
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}> using EndpointUri '{endpointUri:l}', DatabaseId '{databaseId:l}', and ContainerId '{containerId:l}'.",
+                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: endpointUri = '{endpointUri:l}', databaseId = '{databaseId:l}', containerId = '{containerId:l}'.",
                 args: args);
 
             return this;

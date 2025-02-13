@@ -1,6 +1,6 @@
 using Azure.Core;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
-public record KeyResolverOptions(
+internal record KeyResolverOptions(
     TokenCredential TokenCredential);

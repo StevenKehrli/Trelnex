@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;
 

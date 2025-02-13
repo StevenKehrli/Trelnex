@@ -4,9 +4,10 @@ using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Trelnex.Core.Azure.Identity;
+using Trelnex.Core.Data;
+using Trelnex.Core.Identity;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
 /// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
@@ -27,11 +28,12 @@ public static class SqlCommandProvidersExtensions
         ILogger bootstrapLogger,
         Action<ICommandProviderOptions> configureCommandProviders)
     {
-        // get the azure identity provider
-        var credentialProvider = services.GetAzureCredentialProvider();
+        // get the token credential identity provider
+        var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        var providerConfiguration =
-            configuration.GetSection("SqlCommandProviders").Get<SqlCommandProviderConfiguration>()
+        var providerConfiguration = configuration
+            .GetSection("SqlCommandProviders")
+            .Get<SqlCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The SqlCommandProviders configuration is not found.");
 
         // parse the sql options
@@ -66,15 +68,15 @@ public static class SqlCommandProvidersExtensions
     /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="SqlClient"/> scopes.
     /// </para>
     /// </remarks>
-    /// <param name="credentialProvider">The <see cref="AzureCredentialProvider"/>.</param>
+    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
     /// <param name="providerOptions">The <see cref="SqlCommandProviderOptions"/>.</param>
     /// <returns>A valid <see cref="SqlClientOptions"/>.</returns>
     private static SqlClientOptions GetSqlClientOptions(
-        AzureCredentialProvider credentialProvider,
+        ICredentialProvider<TokenCredential> credentialProvider,
         SqlCommandProviderOptions providerOptions)
     {
         // get the token credential and initialize
-        var tokenCredential = credentialProvider.GetCredential("SqlClient");
+        var tokenCredential = credentialProvider.GetCredential();
 
         // format the scope
         var scope = "https://database.windows.net/.default";
@@ -118,7 +120,7 @@ public static class SqlCommandProvidersExtensions
                     nameof(typeName));
             }
 
-            if (services.Any(x => x.ServiceType == typeof(ICommandProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
@@ -144,7 +146,7 @@ public static class SqlCommandProvidersExtensions
 
             // log - the :l format parameter (l = literal) to avoid the quotes
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}> using DataSource '{dataSource:l}', InitialCatalog '{initialCatalog:l}', and TableName '{tableName:l}'.",
+                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;

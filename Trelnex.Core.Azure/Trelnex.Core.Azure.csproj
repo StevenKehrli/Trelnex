@@ -30,8 +30,8 @@
         <PackageReference Include="linq2db" Version="5.4.1" />
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.1" />
         <PackageReference Include="Microsoft.Azure.Cosmos.Encryption" Version="2.0.4" />
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.0" />
-        <PackageReference Include="Trelnex.Core.Data" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+        <PackageReference Include="Trelnex.Core.Data" Version="2.0.0" />
     </ItemGroup>
 
 </Project>
