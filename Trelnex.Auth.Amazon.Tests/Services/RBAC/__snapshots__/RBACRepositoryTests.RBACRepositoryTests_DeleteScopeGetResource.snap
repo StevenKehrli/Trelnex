@@ -1,0 +1,13 @@
+﻿{
+  "resourceAfter": {
+    "ResourceName": "testResource_RBACRepositoryTests_DeleteScopeGetResource",
+    "ScopeNames": [],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepositoryTests_DeleteScopeGetResource",
+      "subjectName": "RESOURCE#"
+    }
+  ]
+}
