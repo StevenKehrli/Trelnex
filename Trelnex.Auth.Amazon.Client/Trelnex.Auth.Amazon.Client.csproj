@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Trelnex.Core.Amazon/Trelnex.Core.Amazon.csproj" />
+    <PackageReference Include="Trelnex.Core.Amazon" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
