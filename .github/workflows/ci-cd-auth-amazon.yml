@@ -28,10 +28,10 @@ jobs:
       project_name: 'Trelnex.Auth.Amazon.Tests'
 
   # ---------------------------------------------------------------------
-  # 2. Restore, Build, Tag, Pack and Push
+  # 2. Restore, Build
   # ---------------------------------------------------------------------
   build:
-    uses: ./.github/workflows/nuget.yml
+    uses: ./.github/workflows/build.yml
 
     needs:
       - test
@@ -39,6 +39,5 @@ jobs:
     with:
       dotnet_version: '9.0.x'
       project_name: 'Trelnex.Auth.Amazon'
-      tag_prefix: 'trelnex-auth-amazon-'
 
     secrets: inherit
