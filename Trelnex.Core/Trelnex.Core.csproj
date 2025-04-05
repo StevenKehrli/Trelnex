@@ -5,6 +5,9 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/StevenKehrli/Trelnex.Core</RepositoryUrl>
+        <DebugType>embedded</DebugType>
+        <IncludeSymbols>true</IncludeSymbols>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -25,6 +28,7 @@
 
     <ItemGroup>
         <PackageReference Include="FluentValidation" Version="11.11.0" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.0" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.3" />
     </ItemGroup>

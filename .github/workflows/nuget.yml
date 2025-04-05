@@ -58,7 +58,7 @@ jobs:
 
       - name: dotnet pack
         if: (github.ref == 'refs/heads/main')
-        run: dotnet pack ${{ inputs.project_name }}/${{ inputs.project_name }}.csproj --no-restore -p:PackageVersion=${{ steps.tag_version.outputs.new_semver }}
+        run: dotnet pack ${{ inputs.project_name }}/${{ inputs.project_name }}.csproj --no-restore -p:PackageVersion=${{ steps.tag_version.outputs.new_semver }} -p:ContinuousIntegrationBuild=true
 
       - name: dotnet nuget push
         if: (github.ref == 'refs/heads/main')
