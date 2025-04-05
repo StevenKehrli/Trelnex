@@ -163,7 +163,7 @@ public static class ObservabilityExtensions
                 .WithMessage("The service name is not found");
 
             RuleFor(x => x.ServiceVersion)
-                .NotNull()
+                .NotEmpty()
                 .WithMessage("The service version is not found");
         }
     }
