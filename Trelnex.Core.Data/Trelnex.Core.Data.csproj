@@ -24,7 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Trelnex.Core" Version="2.0.0" />
+        <!-- <PackageReference Include="Trelnex.Core" Version="2.0.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core\Trelnex.Core.csproj" />
     </ItemGroup>
 
 </Project>

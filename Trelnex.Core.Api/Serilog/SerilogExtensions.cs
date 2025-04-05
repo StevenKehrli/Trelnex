@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Serilog.Enrichers.Span;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -31,16 +32,22 @@ public static class SerilogExtensions
 
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
+            .Enrich.WithSpan()
             .WriteTo.Console(formatter)
             .WriteTo.Debug(formatter)
             .CreateBootstrapLogger();
 
-        services.AddSerilog((services, lc) => lc
-            .ReadFrom.Configuration(configuration)
-            .ReadFrom.Services(services)
-            .Enrich.FromLogContext()
-            .WriteTo.Console(formatter)
-            .WriteTo.Debug(formatter));
+        services.AddSerilog((services, configureLogger) =>
+        {
+            configureLogger
+                .ReadFrom.Configuration(configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .Enrich.WithSpan()
+                .WriteTo.Console(formatter)
+                .WriteTo.Debug(formatter)
+                .WriteTo.OpenTelemetry();
+        });
 
         return new SerilogLoggerFactory(Log.Logger).CreateLogger(bootstrapCategoryName);
     }

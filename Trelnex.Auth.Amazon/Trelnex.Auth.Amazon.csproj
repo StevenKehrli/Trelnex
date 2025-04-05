@@ -9,11 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.400.94" />
+        <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.400.128" />
         <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.1" />
         <PackageReference Include="JWT" Version="11.0.0" />
-        <PackageReference Include="Trelnex.Core.Amazon" Version="1.0.0" />
-        <PackageReference Include="Trelnex.Core.Api" Version="2.0.0" />
+        <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="1.0.0" /> -->
+        <!-- <PackageReference Include="Trelnex.Core.Api" Version="2.0.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
+        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
     </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@ using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Context;
 using Trelnex.Core.Api.Exceptions;
 using Trelnex.Core.Api.HealthChecks;
-using Trelnex.Core.Api.Metrics;
+using Trelnex.Core.Api.Observability;
 using Trelnex.Core.Api.Rewrite;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Data.HealthChecks;
@@ -73,8 +73,8 @@ public static class Application
         // validate authentication was configured
         builder.Services.ThrowIfAuthenticationNotAdded();
 
-        // add prometheus metrics server and http client metrics
-        builder.Services.AddPrometheus(builder.Configuration);
+        // add prometheus metrics server and http client metrics and open telemetry
+        builder.Services.AddObservability(builder.Configuration);
 
         // add the health checks
         builder.Services.AddIdentityHealthChecks();
@@ -104,7 +104,7 @@ public static class Application
         app.MapHealthChecks();
 
         // add http metrics
-        app.UsePrometheus();
+        app.UseObservability();
 
         // configure the http request pipeline
         app.UseHttpsRedirection();
