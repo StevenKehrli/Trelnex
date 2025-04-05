@@ -105,7 +105,7 @@ public static class SqlCommandProvidersExtensions
     {
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
-            AbstractValidator<TItem>? itemValidator = null,
+            IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()

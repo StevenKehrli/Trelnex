@@ -17,7 +17,7 @@ namespace Trelnex.Core.Amazon.CommandProviders;
 internal class DynamoCommandProvider<TInterface, TItem>(
     Table table,
     string typeName,
-    AbstractValidator<TItem>? validator = null,
+    IValidator<TItem>? validator = null,
     CommandOperations? commandOperations = null)
     : CommandProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem

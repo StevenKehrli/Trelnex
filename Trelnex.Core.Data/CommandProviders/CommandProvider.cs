@@ -87,12 +87,12 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// <summary>
     /// The fluent validator for the base item.
     /// </summary>
-    private readonly AbstractValidator<TItem> _baseItemValidator;
+    private readonly IValidator<TItem> _baseItemValidator;
 
     /// <summary>
     /// The fluent validator for the item.
     /// </summary>
-    private readonly AbstractValidator<TItem>? _itemValidator;
+    private readonly IValidator<TItem>? _itemValidator;
 
     /// <summary>
     /// The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.
@@ -127,7 +127,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// <param name="commandOperations">The command operations allowed by this provider.</param>
     protected CommandProvider(
         string typeName,
-        AbstractValidator<TItem>? validator,
+        IValidator<TItem>? validator,
         CommandOperations? commandOperations = null)
     {
         // validate the type folloows the naming rules
@@ -469,11 +469,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     private static partial Regex TypeRulesRegex();
 
     /// <summary>
-    /// Create an instance of <see cref="AbstractValidator{TItem}"/> to validate the base item.
+    /// Create an instance of <see cref="IValidator{TItem}"/> to validate the base item.
     /// </summary>
     /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <returns>The <see cref="AbstractValidator{TItem}"/>.</returns>
-    private static AbstractValidator<TItem> CreateBaseItemValidator(
+    /// <returns>The <see cref="IValidator{TItem}"/>.</returns>
+    private static IValidator<TItem> CreateBaseItemValidator(
         string typeName)
     {
         var baseItemValidator = new InlineValidator<TItem>();

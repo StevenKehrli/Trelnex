@@ -22,7 +22,7 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 internal class InMemoryCommandProvider<TInterface, TItem>(
     string typeName,
-    AbstractValidator<TItem>? itemValidator = null,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null)
     : CommandProvider<TInterface, TItem>(typeName, itemValidator, commandOperations)
     where TInterface : class, IBaseItem

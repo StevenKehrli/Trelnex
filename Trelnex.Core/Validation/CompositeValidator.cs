@@ -15,8 +15,8 @@ public class CompositeValidator<T>
     /// <param name="first">The first validator to include.</param>
     /// <param name="second">The second validator to include.</param>
     public CompositeValidator(
-        AbstractValidator<T> first,
-        AbstractValidator<T>? second = null)
+        IValidator<T> first,
+        IValidator<T>? second = null)
     {
         Include(first);
         if (second is not null) Include(second);

@@ -46,7 +46,7 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
     /// <returns>The <see cref="InMemoryCommandProvider"/>.</returns>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string typeName,
-        AbstractValidator<TItem>? validator = null,
+        IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()

@@ -15,7 +15,7 @@ public interface ICommandProviderOptions
     /// <returns>The <see cref="ICommandProviderOptions"/>.</returns>
     ICommandProviderOptions Add<TInterface, TItem>(
         string typeName,
-        AbstractValidator<TItem>? validator = null,
+        IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();

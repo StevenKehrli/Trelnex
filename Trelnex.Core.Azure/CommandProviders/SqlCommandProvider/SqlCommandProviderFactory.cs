@@ -172,7 +172,7 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
-        AbstractValidator<TItem>? validator = null,
+        IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()

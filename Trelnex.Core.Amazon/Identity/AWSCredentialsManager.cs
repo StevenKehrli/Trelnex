@@ -85,7 +85,7 @@ public class AWSCredentialsManager
             options.Region);
 
         // get the access token client
-        HttpClient httpClient = new()
+        var httpClient = new HttpClient(new SocketsHttpHandler(), disposeHandler: false)
         {
             BaseAddress = options.AccessTokenClient.BaseAddress
         };

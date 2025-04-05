@@ -14,7 +14,7 @@ internal class TestItem : BaseItem, ITestItem
     [JsonPropertyName("message")]
     public string Message { get; set; } = null!;
 
-    public static AbstractValidator<TestItem> Validator { get; } = new TestItemValidator();
+    public static IValidator<TestItem> Validator { get; } = new TestItemValidator();
 
     private class TestItemValidator : AbstractValidator<TestItem>
     {
