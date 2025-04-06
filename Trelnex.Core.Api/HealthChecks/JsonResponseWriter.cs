@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Trelnex.Core.HealthChecks;
+namespace Trelnex.Core.Api.HealthChecks;
 
 /// <summary>
 /// A HealthCheckOptions.ResponseWriter to json beautify the health check response.
