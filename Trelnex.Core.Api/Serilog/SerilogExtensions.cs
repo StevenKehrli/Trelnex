@@ -45,8 +45,7 @@ public static class SerilogExtensions
                 .Enrich.FromLogContext()
                 .Enrich.WithSpan()
                 .WriteTo.Console(formatter)
-                .WriteTo.Debug(formatter)
-                .WriteTo.OpenTelemetry();
+                .WriteTo.Debug(formatter);
         });
 
         return new SerilogLoggerFactory(Log.Logger).CreateLogger(bootstrapCategoryName);
