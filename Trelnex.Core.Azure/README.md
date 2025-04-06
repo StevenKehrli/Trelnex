@@ -1,5 +1,13 @@
 # Trelnex.Core.Azure
 
+## License
+
+See [LICENSE](LICENSE) for more information.
+
+## Third-Party Libraries
+
+See [NOTICE.md](NOTICE.md) for more information.
+
 ## CommandProviders
 
 ### CosmosCommandProvider - CosmosDB NoSQL
@@ -290,11 +298,3 @@ internal class UsersClient(
 ```
 
 </details>
-
-## License
-
-See the [LICENSE](LICENSE) file for information.
-
-## Third-Party Libraries
-
-See [NOTICE.md](NOTICE.md) for more information.

@@ -1,6 +1,6 @@
 # First-Party Libraries
 
-This proejcts uses the following first-party libraries:
+This project uses the following first-party libraries:
 
 ## Trelnex.Core.Data
 - [LICENSE](../Trelnex.Core.Data/LICENSE)

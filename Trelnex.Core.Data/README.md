@@ -1,8 +1,14 @@
 # Trelnex.Core.Data
 
-## Overview
-
 `Trelnex.Core.Data` is a .NET library designed to provide essential data access operations in a simple manner while ensuring data integrity. It offers a strongly-typed API for Create, Read, Update, Delete (CRUD) operations with built-in tracking of data changes, validation support, and event logging.
+
+## License
+
+See [LICENSE](LICENSE) for more information.
+
+## Third-Party Libraries
+
+See [NOTICE.md](NOTICE.md) for more information.
 
 ## Key Features
 

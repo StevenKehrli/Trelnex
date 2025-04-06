@@ -1,5 +1,13 @@
 # Trelnex.Auth.Amazon
 
+## License
+
+See [LICENSE](LICENSE) for more information.
+
+## Third-Party Libraries
+
+See [NOTICE.md](NOTICE.md) for more information.
+
 ## OAuth 2.0 Authorization Server Using AWS IAM
 
 Trelnex.Auth.Amazon is an OAuth 2.0 authorization server implementation using AWS IAM. It leverages AWS SecurityTokenService Caller Identity to authenticate users and roles, providing secure access to AWS resources.
@@ -40,11 +48,3 @@ The authorization server uses a DynamoDB table to store the RBAC settings. The t
   - [https://fundwave.com/blogs/authenticating-aws-resources-using-sigv4-and-sts/](https://fundwave.com/blogs/authenticating-aws-resources-using-sigv4-and-sts/)
   - [https://pcg.io/insights/iam-credentials-as-verifiable-tokens/](https://pcg.io/insights/iam-credentials-as-verifiable-tokens/)
   - [https://ahermosilla.com/cloud/2020/11/17/leveraging-aws-signed-requests.html](https://ahermosilla.com/cloud/2020/11/17/leveraging-aws-signed-requests.html)
-
-## License
-
-See the [LICENSE](LICENSE) file for information.
-
-## Third-Party Libraries
-
-See [NOTICE.md](NOTICE.md) for more information.

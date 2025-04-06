@@ -1,193 +1,264 @@
 # Trelnex.Core
 
-A comprehensive .NET library providing core components for building cloud-native applications with robust validation, authentication, HTTP communication, and observability features.
+`Trelnex.Core` is a provides foundational components for HTTP clients, identity management, and observability.
 
-## Overview
+## License
 
-Trelnex.Core is the foundation library for the Trelnex ecosystem, offering:
+See [LICENSE](LICENSE) for more information.
 
-- **Validation**: Extended FluentValidation capabilities
-- **HTTP Status Code Handling**: Standardized HTTP status code exceptions and utilities
-- **Identity Management**: Flexible credential system for cloud authentication
-- **Client Communication**: Base HTTP client components for service-to-service communication
-- **Observability**: Tracing and monitoring through OpenTelemetry integration
+## Third-Party Libraries
 
-## Components
+See [NOTICE.md](NOTICE.md) for more information.
 
-### Validation
+## Client
 
-Components built on top of FluentValidation to enable robust validation capabilities throughout Trelnex applications.
+<details>
 
-#### Key Features
+<summary>Expand</summary>
 
-- **CompositeValidator\<T>**: Combines multiple validators into a single validation pipeline
-  ```csharp
-  var compositeValidator = new CompositeValidator<YourModel>(
-      new DomainValidator(), 
-      new BusinessRulesValidator());
-  ```
+&nbsp;
 
-- **ValidationException**: Specialized exception for validation failures with HTTP status code 422
-  ```csharp
-  throw new ValidationException(
-      message: "The user data is not valid.",
-      errors: new Dictionary<string, string[]> {
-          { "email", new[] { "Invalid email format" } }
-      });
-  ```
+The `Trelnex.Core.Client` namespace simplifies HTTP client operations with a focus on:
 
-- **ValidatorExtensions**: Custom validation methods like `NotDefault<T>()` for date and GUID types
-  ```csharp
-  RuleFor(x => x.CreatedDate).NotDefault();
-  RuleFor(x => x.Id).NotDefault();
-  ```
+- Type-safe HTTP requests and responses
+- Standardized error handling
+- HTTP header management
+- URI manipulation
 
-- **ValidationResultExtensions**: Handle validation results with methods like `ValidateOrThrow`
-  ```csharp
-  result.ValidateOrThrow<UserModel>();  // Throws if validation failed
-  ```
+### Components
 
-### HTTP Status Code Handling
+#### BaseClient
 
-Utilities for standardized HTTP status code handling across applications.
+`BaseClient` is an abstract base class for building HTTP clients:
 
-#### Key Features
+- Type-safe HTTP method implementations (GET, POST, PUT, PATCH, DELETE)
+- JSON serialization and deserialization
+- Standardized error handling and status code processing
+- Header management
+- Streamlined request and response pipeline
 
-- **HttpStatusCodeExtensions**: Convert status codes to human-readable reason phrases
-  ```csharp
-  HttpStatusCode.NotFound.ToReason(); // Returns "Not Found"
-  ```
-
-- **HttpStatusCodeException**: Encapsulates HTTP status code information for API error handling
-  ```csharp
-  throw new HttpStatusCodeException(
-      HttpStatusCode.BadRequest,
-      "Validation failed",
-      errors);
-  ```
-
-### Identity
-
-A flexible credential management system for handling various authentication providers and access tokens across different cloud platforms and services.
-
-#### Key Features
-
-- **Credential System**:
-  - `ICredential`: Base interface for credential objects that can provide access tokens for specified scopes
-  - `ICredentialProvider`: Interface to obtain credentials and access token providers for different cloud platforms
-  - `AccessToken`: Represents an authentication token with metadata such as expiration time and token type
-  - `AccessTokenProvider`: Manages retrieval of access tokens for specific client types and scopes
-
-- **Status Monitoring**:
-  - `AccessTokenHealth`: Enum to track token validity status (Valid, Expired)
-  - `AccessTokenStatus`: Contains detailed token status information including health, scopes, and expiration
-  - `CredentialStatus`: Aggregates status of all access tokens for a credential
-
-- **Health Checks Integration**:
-  - `CredentialStatusHealthCheck`: ASP.NET Core health check that monitors credential validity
-  - `HealthChecksExtensions`: Register credential health checks with the application
-
-- **Dependency Injection Support**:
-  - `CredentialProviderExtensions`: Provides DI extensions for registering and retrieving credential providers
-
-- **Example Usage**:
-  ```csharp
-  // Register a credential provider
-  services.AddCredentialProvider(myCredentialProvider);
-
-  // Get an access token
-  var tokenProvider = credentialProvider.GetAccessTokenProvider<MyApiClient>("my-api-scope");
-  AccessToken token = tokenProvider.GetAccessToken();
-  ```
-
-- **Features**:
-  - Cloud-Agnostic Design: The architecture supports credentials for multiple cloud providers through a unified interface
-  - Token Lifecycle Management: Automatic tracking of token expiration and health status
-  - Health Monitoring: Built-in health checks to monitor credential validity at runtime
-  - Strongly-Typed Clients: Generic support for client-specific token providers
-  - Service Registration: DI extensions for simplified setup in ASP.NET Core applications
-
-### Client
-
-Core components for building HTTP clients for service-to-service communication.
-
-#### Key Features
-
-- **BaseClient**: Foundation for all HTTP clients with standardized methods
-  ```csharp
-  public class MyApiClient : BaseClient
-  {
-      public MyApiClient(HttpClient httpClient) 
-          : base(httpClient)
-      {
-      }
-      
-      public async Task<MyResponse> GetResourceAsync(string id)
-      {
-          var uri = BaseAddress.AppendPath($"resources/{id}");
-          return await Get<MyResponse>(uri);
-      }
-  }
-  ```
-
-- **UriExtensions**: Methods for manipulating URIs
-  - `AppendPath`: Adds a path segment to an existing URI
-  - `AddQueryString`: Adds a query parameter to an existing URI
-
-- **HeadersExtensions**: Methods for HTTP headers
-  - `AddAuthorizationHeader`: Adds an authorization header to a request
-
-- **ClientConfiguration**: Record that defines the configuration parameters for HTTP clients
-  - `CredentialProviderName`: The name of the credential provider to use
-  - `Scope`: The OAuth scope required for access
-  - `BaseAddress`: The base URL for the service
-
-- **ClientExtensions**: Register HTTP clients with DI
-  - `AddClient<IClient, TClient>`: Registers a client interface and implementation
-
-- **Configuration**:
-  ```json
-  {
-    "Clients": {
-      "MyClient": {
-        "BaseAddress": "https://api.example.com/",
-        "CredentialProviderName": "DefaultCredentialProvider",
-        "Scope": "api://example/access"
-      }
+Usage example:
+```csharp
+public class MyApiClient : BaseClient
+{
+    public MyApiClient(HttpClient httpClient) : base(httpClient)
+    {
     }
-  }
-  ```
 
-- **Setup and Registration**:
-  ```csharp
-  // In your startup/program class
-  services.AddClient<IMyClient, MyClient>(configuration);
-  ```
+    public async Task<ResponseModel> GetResourceAsync(string id)
+    {
+        var uri = BaseAddress.AppendPath($"resources/{id}");
+        return await Get<ResponseModel>(uri);
+    }
+}
+```
 
-- **Error Handling**: The `BaseClient` provides standardized error handling using `HttpStatusCodeException`. Custom error handlers can be provided to each request method to parse service-specific error responses.
+#### Error Handling
 
-- **Authentication**: Authentication is handled through credential providers, which supply access tokens. The client automatically uses the configured credential provider to obtain the necessary tokens for each request.
+The `BaseClient` provides standardized error handling through:
 
-### Observability
+- HTTP status code processing
+- Custom error handler support via delegates
+- Exception throwing with `HttpStatusCodeException` for non-success status codes
 
-Components for monitoring and tracing application behavior using OpenTelemetry.
+#### HeadersExtensions
 
-#### Key Features
+Extension methods for HTTP headers:
 
-- **TraceAttribute**: PostSharp aspect for automatically tracing method execution
-  ```csharp
-  [Trace]
-  public void MyMethod([TraceInclude] string parameter1, string parameter2)
-  {
-      // Method execution is traced with parameter1 included in trace tags
-  }
-  ```
+- `AddAuthorizationHeader(string authorizationHeader)`: Adds an authorization header to an HTTP request
 
-- **TraceIncludeAttribute**: Mark method parameters to include in traces
+#### UriExtensions
 
-- **Features**:
-  - Automatic Method Tracing: Add the `[Trace]` attribute to methods of interest
-  - Parameter Capture: Choose which parameters to include in traces with `[TraceInclude]`
-  - Performance Insights: Identify slow methods and performance bottlenecks
-  - Distributed Tracing: Track requests across service boundaries
-  - Error Correlation: See which methods failed and why in your traces
+Extension methods for the `Uri` class that simplify URL manipulation:
+
+- `AppendPath(string path)`: Safely appends a path segment to a URI
+- `AddQueryString(string key, string value)`: Adds or appends a query string parameter to a URI
+
+### Best Practices
+
+When using these components:
+
+1. Derive from `BaseClient` to build service-specific clients
+2. Leverage the type-safe HTTP methods for request and response handling
+3. Implement custom error handlers for service-specific error responses
+4. Use the extension methods to add headers and manipulate URIs
+
+</details>
+
+## Identity
+
+<details>
+
+<summary>Expand</summary>
+
+&nbsp;
+
+The `Trelnex.Core.Identity` namespace offers a flexible and provider-agnostic approach to handling authentication credentials, access tokens, and token health monitoring. This design allows applications to work with different authentication providers (like AWS, Azure, or custom providers) through a unified interface.
+
+### Components
+
+#### AccessToken
+
+The `AccessToken` class represents an authentication token that can be used to access secured resources:
+
+- `Token`: The actual token string value
+- `TokenType`: Identifies the token type (e.g., "Bearer")
+- `ExpiresOn`: Timestamp when the token expires
+- `RefreshOn`: Optional timestamp indicating when the token should be refreshed
+- `GetAuthorizationHeader()`: Utility method that formats the token for use in HTTP headers
+
+#### ICredential
+
+The `ICredential` interface defines the contract for obtaining access tokens:
+
+- `GetAccessToken(string scope)`: Retrieves an access token for the specified scope
+
+#### ICredentialProvider
+
+The `ICredentialProvider` interface is the primary entry point for obtaining credentials:
+
+- `Name`: Gets the name of the credential provider
+- `GetAccessTokenProvider<TClient>(string scope)`: Returns an access token provider for the specified client type and scope
+- `GetStatus()`: Retrieves the current status of the credential
+
+The generic variant `ICredentialProvider<TCredential>` extends this interface with:
+
+- `GetCredential()`: Returns the specific credential type (e.g., AWS credentials, Azure credentials)
+
+#### AccessTokenProvider
+
+The `AccessTokenProvider<TClient>` implements `IAccessTokenProvider<TClient>` to provide:
+
+- `Scope`: The scope of the access token
+- `GetAccessToken()`: Returns the access token for the configured scope
+- `Create()`: Factory method to create and warm up an access token provider
+
+#### Health & Status Monitoring
+
+The Identity system includes components for monitoring credential health:
+
+- `AccessTokenHealth`: An enum indicating if a token is `Valid` or `Expired`
+- `AccessTokenStatus`: Records the health, scopes, expiration, and additional metadata for a token
+- `CredentialStatus`: Collects the status of multiple access tokens for a credential
+
+#### Exception Handling
+
+- `AccessTokenUnavailableException`: Thrown when an access token cannot be obtained
+
+### Integration with Cloud Providers
+
+The Identity system serves as the foundation for provider-specific implementations:
+
+- `Trelnex.Core.Amazon/Identity`: AWS-specific credential providers
+- `Trelnex.Core.Azure/Identity`: Azure-specific credential providers
+
+### Usage Example
+
+```csharp
+// Get a credential provider (implementation varies by cloud provider)
+var credentialProvider = serviceProvider.GetRequiredService<ICredentialProvider>();
+
+// Get an access token provider for a specific client type and scope
+var tokenProvider = credentialProvider.GetAccessTokenProvider<MyApiClient>("https://api.example.com/.default");
+
+// Use the token provider to get an access token
+var token = tokenProvider.GetAccessToken();
+
+// Use the token in an HTTP request
+httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token.TokenType, token.Token);
+```
+
+### Health Monitoring
+
+The Identity system supports health checks to monitor the status of credentials:
+
+```csharp
+// Get the status of a credential
+var status = credentialProvider.GetStatus();
+
+// Check if all tokens are valid
+bool allValid = status.Statuses.All(s => s.Health == AccessTokenHealth.Valid);
+```
+
+This enables applications to proactively detect and respond to authentication issues before they cause failures.
+
+</details>
+
+## Observability
+
+<details>
+
+<summary>Expand</summary>
+
+&nbsp;
+
+The `Trelnex.Core.Observability` namespace provides attributes and functionality for implementing distributed tracing in applications.
+
+### Components
+
+#### TraceMethodAttribute
+
+`TraceMethodAttribute` is an attribute that enables automatic method-level tracing. When applied to a method, it creates and manages an [Activity](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.activity) that tracks the method's execution in the context of distributed tracing.
+
+Features:
+
+- Creates Activities that integrate with OpenTelemetry
+- Supports customizing the ActivitySource name
+- Automatically names Activities based on class and method name
+- Handles exceptions by marking Activities with error status
+- Thread-safe Activity source management
+
+Example Usage:
+```csharp
+[TraceMethod]
+public void ProcessOrder(int orderId)
+{
+    // Method will be automatically traced
+    // ...
+}
+
+[TraceMethod(sourceName: "CustomSource")]
+public void ImportantOperation()
+{
+    // Method will be traced with a custom source name
+    // ...
+}
+```
+
+#### TraceParameterAttribute
+
+`TraceParameterAttribute` allows marking specific method parameters to be included in the trace. When used in conjunction with `TraceMethodAttribute`, this attribute identifies which parameters should be captured as tags in the Activity.
+
+Example Usage:
+```csharp
+[TraceMethod]
+public void ProcessPayment(
+    [TraceParameter] string transactionId,
+    [TraceParameter] decimal amount,
+    CreditCardInfo cardInfo) // Not traced for security reasons
+{
+    // Only transactionId and amount will be added to the trace
+    // cardInfo is not traced as it may contain sensitive information
+    // ...
+}
+```
+
+### Integration with Trelnex.Core.Api
+
+The Observability components are designed to work seamlessly with the OpenTelemetry configuration in Trelnex.Core.Api. The Core.Api project provides:
+
+- Configuration for Prometheus metrics
+- OpenTelemetry service setup
+- Activity source registration
+- Integration with Serilog for logging
+
+### PostSharp Integration
+
+The tracing implementation uses [PostSharp](https://www.postsharp.net/) to apply method boundary aspects, which enables the automatic tracing without manual instrumentation in each method.
+
+### Best Practices
+
+1. Use `TraceMethodAttribute` for important methods that provide business value when traced
+2. Use `TraceParameterAttribute` only on non-sensitive parameters to avoid exposing secrets
+3. Consider performance impact when tracing high-frequency methods
+4. Configure appropriate sampling in production environments

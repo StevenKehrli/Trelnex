@@ -2,6 +2,14 @@
 
 Trelnex.Core is a REST API framework that demonstrates the following concepts:
 
+## License
+
+See [LICENSE](LICENSE) for more information.
+
+## Third-Party Libraries
+
+See [NOTICE.md](NOTICE.md) for more information.
+
 ## Vertical Slice Architecture
 
 <details>
@@ -666,7 +674,3 @@ The [Vertical Slice Architecture](#vertical-slice-architecture) simplifies this 
 See [Trelnex.Samples](https://github.com/StevenKehrli/Trelnex.Samples?tab=readme-ov-file#trelnexintegrationtests) for more information.
 
 </details>
-
-## Third-Party Libraries
-
-See [NOTICE.md](NOTICE.md) for more information.
