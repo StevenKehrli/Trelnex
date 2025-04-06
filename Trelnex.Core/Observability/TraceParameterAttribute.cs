@@ -4,6 +4,6 @@ namespace Trelnex.Core.Observability;
 /// Attribute to mark a parameter to be included in the trace.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
-public class TraceIncludeAttribute : Attribute
+public class TraceParameterAttribute : Attribute
 {
 }

@@ -1,7 +1,8 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Api.CommandProviders;
 
 public static class CommandProviderFactoryExtensions
 {

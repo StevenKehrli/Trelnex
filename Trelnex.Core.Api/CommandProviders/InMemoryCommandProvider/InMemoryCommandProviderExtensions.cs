@@ -2,8 +2,9 @@ using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Api.CommandProviders;
 
 /// <summary>
 /// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
@@ -27,13 +28,12 @@ public static class InMemoryCommandProviderExtensions
         // create our factory
         var factory = InMemoryCommandProviderFactory.Create().Result;
 
-        // get the container, create the command provider, and inject
+        // inject any needed command providers
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             factory: factory);
 
-        // inject any needed command providers
         configureCommandProviders(commandProviderOptions);
 
         return services;

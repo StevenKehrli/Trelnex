@@ -35,7 +35,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
-        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
         <ProjectReference Include="..\Trelnex.Core.Data.Tests\Trelnex.Core.Data.Tests.csproj" />
     </ItemGroup>
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Trelnex.Core.Data.HealthChecks;
+namespace Trelnex.Core.Api.Identity;
 
 /// <summary>
 /// Extension methods to add the health checks to the <see cref="IServiceCollection"/> and the <see cref="WebApplication"/>.
@@ -14,29 +14,24 @@ public static class HealthChecksExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
-    public static IServiceCollection AddCommandProviderHealthChecks(
+    public static IServiceCollection AddIdentityHealthChecks(
         this IServiceCollection services)
     {
-        // find any command provider factories
-        var commandProviderFactories = services.GetCommandProviderFactories();
-        if (commandProviderFactories is null) return services;
+        // find any credential providers
+        var credentialProviders = services.GetCredentialProviders();
 
         // add health checks
         var builder = services.AddHealthChecks();
 
-        // enumerate each command provider factory
-        foreach (var kvp in commandProviderFactories)
+        // enumerate each credential provider
+        foreach (var credentialProvider in credentialProviders)
         {
-            var name = kvp.Key;
-            var commandProviderFactory = kvp.Value;
-
-            // format the health check name to include the cosmos command provider factory name
-            var healthCheckName = $"CommandProvider: {name}";
+            var healthCheckName = $"CredentialStatus: {credentialProvider.Name}";
 
             builder.Add(
                 new HealthCheckRegistration(
                     name: healthCheckName,
-                    factory: _ => new CommandProviderHealthCheck(commandProviderFactory),
+                    factory: _ => new CredentialStatusHealthCheck(credentialProvider),
                     failureStatus: null,
                     tags: null));
         }

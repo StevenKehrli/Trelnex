@@ -5,6 +5,7 @@ using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Amazon.CommandProviders;
+using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;

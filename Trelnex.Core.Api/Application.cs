@@ -5,15 +5,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Trelnex.Core.Api.Authentication;
+using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Context;
 using Trelnex.Core.Api.Exceptions;
 using Trelnex.Core.Api.HealthChecks;
+using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Api.Observability;
 using Trelnex.Core.Api.Rewrite;
 using Trelnex.Core.Api.Serilog;
-using Trelnex.Core.Data.HealthChecks;
-using Trelnex.Core.Identity.HealthChecks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Trelnex.Core.Api;

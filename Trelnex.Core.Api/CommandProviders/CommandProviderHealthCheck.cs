@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data.HealthChecks;
+namespace Trelnex.Core.Api.CommandProviders;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CommandProviderHealthCheck"/>.

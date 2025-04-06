@@ -6,6 +6,8 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Identity;
 

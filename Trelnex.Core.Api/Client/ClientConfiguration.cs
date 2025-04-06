@@ -1,4 +1,4 @@
-namespace Trelnex.Core.Client;
+namespace Trelnex.Core.Api.Client;
 
 /// <summary>
 /// Represents the configuration properties for a client.

@@ -1,7 +1,8 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Trelnex.Core.Identity;
 
-namespace Trelnex.Core.Identity.HealthChecks;
+namespace Trelnex.Core.Api.Identity;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CredentialStatusHealthCheck"/>.

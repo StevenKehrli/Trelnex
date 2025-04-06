@@ -12,7 +12,7 @@ namespace Trelnex.Core.Observability;
 /// <param name="sourceName">The name of the activity source.</param>
 [AttributeUsage(AttributeTargets.Method)]
 [PSerializable]
-public class TraceAttribute(
+public class TraceMethodAttribute(
     string? sourceName = null) : OnMethodBoundaryAspect
 {
     /// <summary>
@@ -51,8 +51,8 @@ public class TraceAttribute(
                 // skip the parameter if it is not valid
                 if (parameter.Name is null) continue;
 
-                // skip the parameter if it is not marked with the TraceIncludeAttribute
-                if (parameter.GetCustomAttribute<TraceIncludeAttribute>() is null) continue;
+                // skip the parameter if it is not marked with the TraceParameterAttribute
+                if (parameter.GetCustomAttribute<TraceParameterAttribute>() is null) continue;
 
                 activity.SetTag(parameter.Name, args.Arguments[index]);
             }

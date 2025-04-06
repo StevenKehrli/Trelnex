@@ -1,7 +1,7 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Trelnex.Core.Identity;
 
-namespace Trelnex.Core.Identity;
+namespace Trelnex.Core.Api.Identity;
 
 public static class CredentialProviderExtensions
 {
@@ -72,16 +72,16 @@ public static class CredentialProviderExtensions
     /// Gets the collection of <see cref="ICredentialProvider"/> from the <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to get the services from.</param>
-    /// <returns>The collection of <see cref="ICredentialProvider"/> where the key is the name of the credential provider.</returns>
-    internal static IReadOnlyDictionary<string, ICredentialProvider>? GetCredentialProviders(
+    /// <returns>The collection of <see cref="ICredentialProvider"/>.</returns>
+    internal static IEnumerable<ICredentialProvider> GetCredentialProviders(
         this IServiceCollection services)
     {
         // find any credential providers
         return services
             .Where(sd => sd.IsCredentialProvider())
-            .ToImmutableSortedDictionary(
-                keySelector: sd => (sd.ServiceKey as string)!,
-                elementSelector: sd => (sd.KeyedImplementationInstance as ICredentialProvider)!);
+            .Select(sd => sd.KeyedImplementationInstance)
+            .Cast<ICredentialProvider>()
+            .OrderBy(cp => cp.Name);
     }
 
     private static bool IsCredentialProvider(

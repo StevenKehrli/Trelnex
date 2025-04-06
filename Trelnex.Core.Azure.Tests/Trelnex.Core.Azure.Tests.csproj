@@ -26,10 +26,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Using Include="NUnit.Framework" />
     </ItemGroup>
 
@@ -39,7 +35,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
         <ProjectReference Include="..\Trelnex.Core.Azure\Trelnex.Core.Azure.csproj" />
         <ProjectReference Include="..\Trelnex.Core.Data.Tests\Trelnex.Core.Data.Tests.csproj" />
     </ItemGroup>

@@ -1,9 +1,10 @@
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Identity;
+using Trelnex.Core.Client;
 
-namespace Trelnex.Core.Client;
+namespace Trelnex.Core.Api.Client;
 
 /// <summary>
 /// Extension methods to add the <see cref="IClient"/> to the <see cref="IServiceCollection"/>.

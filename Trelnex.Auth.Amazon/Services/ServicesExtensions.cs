@@ -3,7 +3,7 @@ using Trelnex.Auth.Amazon.Services.CallerIdentity;
 using Trelnex.Auth.Amazon.Services.JWT;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Auth.Amazon.Services.Validators;
-using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Identity;
 
 namespace Trelnex.Auth.Amazon.Services;
 

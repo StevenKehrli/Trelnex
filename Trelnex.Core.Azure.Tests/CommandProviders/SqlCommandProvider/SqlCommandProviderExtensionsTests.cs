@@ -55,7 +55,6 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         _connectionString = scsBuilder.ConnectionString;
 
-        // create the command provider
         _tokenCredential = new DefaultAzureCredential();
 
         var bootstrapLogger = services.AddSerilog(

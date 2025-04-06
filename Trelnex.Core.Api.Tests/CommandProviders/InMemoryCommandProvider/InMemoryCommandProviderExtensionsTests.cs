@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;

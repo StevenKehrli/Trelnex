@@ -2,7 +2,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Identity;
 
 namespace Trelnex.Core.Amazon.Identity;
 
