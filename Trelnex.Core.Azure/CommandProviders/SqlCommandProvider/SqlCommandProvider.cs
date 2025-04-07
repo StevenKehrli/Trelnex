@@ -4,7 +4,6 @@ using System.Transactions;
 using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Data.SqlClient;
 using Trelnex.Core.Data;
 
@@ -47,13 +46,11 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
 
             return await Task.FromResult(item);
         }
-        catch (CosmosException ce) when (ce.StatusCode == HttpStatusCode.NotFound)
+        catch (SqlException se)
         {
-            return default;
-        }
-        catch (CosmosException ce)
-        {
-            throw new CommandException(ce.StatusCode, ce.Message);
+            var httpStatusCode = HttpStatusCode.InternalServerError;
+
+            throw new CommandException(httpStatusCode, se.Message);
         }
     }
 
