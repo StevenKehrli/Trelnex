@@ -10,7 +10,7 @@ namespace Trelnex.Core.Api.Observability;
 /// <summary>
 /// Extension methods to add Prometheus and OpenTelemetry to the <see cref="IServiceCollection"/> and the <see cref="WebApplication"/>.
 /// </summary>
-public static class ObservabilityExtensions
+internal static class ObservabilityExtensions
 {
     /// <summary>
     /// Add Prometheus and OpenTelemetry to the <see cref="IServiceCollection"/>.

@@ -70,7 +70,7 @@ public static class ClientExtensions
     /// Represents the authentication configuration properties for a client.
     /// </summary>
     /// <param name="CredentialProviderName">The name of the credential provider.</param>
-    /// <param name="Scope">The scope of the access token.</param>    
+    /// <param name="Scope">The scope of the access token.</param>
     private record AuthenticationConfiguration(
         string CredentialProviderName,
         string Scope);

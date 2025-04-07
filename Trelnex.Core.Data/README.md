@@ -232,7 +232,7 @@ services.AddSingleton<ICommandProvider<IUser, User>>(
 To implement your own data store, create a custom command provider:
 
 ```csharp
-public class CustomCommandProvider<TInterface, TItem> 
+public class CustomCommandProvider<TInterface, TItem>
     : CommandProviderBase<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
