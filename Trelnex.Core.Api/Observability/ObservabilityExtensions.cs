@@ -1,5 +1,3 @@
-using System.Configuration;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,16 +46,6 @@ public static class ObservabilityExtensions
         // add open telemetry
         if (observabilityConfiguration.OpenTelemetry is not null && observabilityConfiguration.OpenTelemetry.Enabled is true)
         {
-            var validator = new OpenTelemetryConfigurationValidator();
-            var validationResult = validator.Validate(observabilityConfiguration.OpenTelemetry);
-            if (validationResult.IsValid is false)
-            {
-                // format the validation errors as a comma-delimited string
-                var errors = string.Join(", ", validationResult.Errors);
-
-                throw new ConfigurationErrorsException($"The OpenTelemetry configuration is not valid: {errors}");
-            }
-
             services
                 .AddOpenTelemetry()
                 .ConfigureResource(configure =>
@@ -152,19 +140,5 @@ public static class ObservabilityExtensions
         /// The array of activity source names to be used in the telemetry.
         /// </summary>
         public string[] Sources { get; init; } = [];
-    }
-
-    private class OpenTelemetryConfigurationValidator : AbstractValidator<OpenTelemetryConfiguration>
-    {
-        public OpenTelemetryConfigurationValidator()
-        {
-            RuleFor(x => x.ServiceName)
-                .NotEmpty()
-                .WithMessage("The service name is not found");
-
-            RuleFor(x => x.ServiceVersion)
-                .NotEmpty()
-                .WithMessage("The service version is not found");
-        }
     }
 }

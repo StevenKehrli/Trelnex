@@ -130,7 +130,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         public string Name => "Amazon";
 
-        public IAccessTokenProvider<TClient> GetAccessTokenProvider<TClient>(
+        public IAccessTokenProvider GetAccessTokenProvider(
             string scope)
         {
             throw new NotImplementedException();

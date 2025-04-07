@@ -67,14 +67,14 @@ internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
     public string Name => "Azure";
 
     /// <summary>
-    /// Gets the <see cref="IAccessTokenProvider"/> for the specified credential name and scope.
+    /// Gets the <see cref="IAccessTokenProvider"/> for the specified scope.
     /// </summary>
     /// <param name="scope">The scope of the token.</param>
-    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified credential name.</returns>
-    public IAccessTokenProvider<TClient> GetAccessTokenProvider<TClient>(
+    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified scope.</returns>
+    public IAccessTokenProvider GetAccessTokenProvider(
         string scope)
     {
-        return AccessTokenProvider<TClient>.Create(_managedCredential, scope);
+        return AccessTokenProvider.Create(_managedCredential, scope);
     }
 
     /// <summary>

@@ -17,65 +17,61 @@ public static class ClientExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
-    public static IServiceCollection AddClient<IClient, TClient>(
+    public static IServiceCollection AddClient<IClient>(
         this IServiceCollection services,
-        IConfiguration configuration)
-        where TClient : BaseClient, IClient
+        IConfiguration configuration,
+        IClientFactory<IClient> clientFactory)
         where IClient : class
     {
-        var clientName = typeof(TClient).Name;
+        var clientName = clientFactory.Name;
 
         // get the client configuration
         var clientConfiguration = configuration
             .GetSection("Clients")
             .GetSection(clientName)
             .Get<ClientConfiguration>()
-            .ValidateOrThrow(clientName);
+            ?? throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
 
-        // get the credential provider
-        var credentialProvider = services.GetCredentialProvider(clientConfiguration.CredentialProviderName);
+        // get the access token provider
+        var getAccessTokenProvider = () =>
+        {
+            if (clientConfiguration.Authentication is null) return null;
 
-        // get the access token provider for the client
-        var accessTokenProvider = credentialProvider.GetAccessTokenProvider<TClient>(
-            scope: clientConfiguration.Scope);
+            // get the credential provider
+            var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
 
-        // add the access token provider to the services
-        services.AddSingleton(accessTokenProvider);
+            // get the access token provider for the client
+            return credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
+        };
+
+        var accessTokenProvider = getAccessTokenProvider();
 
         // add the client to the services
-        services.AddHttpClient<IClient, TClient>(httpClient => httpClient.BaseAddress = clientConfiguration.BaseAddress);
+        services.AddHttpClient<IClient, IClient>(httpClient =>
+        {
+            httpClient.BaseAddress = clientConfiguration.BaseAddress;
+
+            return clientFactory.Create(httpClient, accessTokenProvider);
+        });
 
         return services;
     }
 
     /// <summary>
-    /// Validates the client configuration; throw if not valid.
+    /// Represents the configuration properties for a client.
     /// </summary>
-    /// <param name="clientConfiguration">The <see cref="ClientConfiguration"/>.</param>
-    /// <param name="clientName">The name of the client.</param>
-    /// <returns>The valid <see cref="ClientConfiguration"/>.</returns>
-    /// <exception cref="ConfigurationErrorsException">The exception that is thrown when a configuration error has occurred.</exception>
-    private static ClientConfiguration ValidateOrThrow(
-        this ClientConfiguration? clientConfiguration,
-        string clientName)
-    {
-        return Validate(clientConfiguration)
-            ? clientConfiguration!
-            : throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
-    }
+    /// <param name="BaseAddress">The base address <see cref="Uri"/> to build the request <see cref="Uri"/>.</param>
+    /// <param name="Authentication">The authentication configuration.</param>
+    private record ClientConfiguration(
+        Uri BaseAddress,
+        AuthenticationConfiguration? Authentication = null);
 
     /// <summary>
-    /// Validates the client configuration.
+    /// Represents the authentication configuration properties for a client.
     /// </summary>
-    /// <param name="clientConfiguration">The <see cref="ClientConfiguration"/>.</param>
-    /// <returns>true if the <see cref="ClientConfiguration"/> is valid; otherwise, false.</returns>
-    private static bool Validate(
-        ClientConfiguration? clientConfiguration)
-    {
-        if (clientConfiguration?.BaseAddress is null) return false;
-        if (string.IsNullOrWhiteSpace(clientConfiguration?.CredentialProviderName)) return false;
-        if (string.IsNullOrWhiteSpace(clientConfiguration?.Scope)) return false;
-
-        return true;
-    }
+    /// <param name="CredentialProviderName">The name of the credential provider.</param>
+    /// <param name="Scope">The scope of the access token.</param>    
+    private record AuthenticationConfiguration(
+        string CredentialProviderName,
+        string Scope);
 }

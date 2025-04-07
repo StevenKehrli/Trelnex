@@ -1,6 +1,6 @@
 namespace Trelnex.Core.Identity;
 
-public interface IAccessTokenProvider<TClient>
+public interface IAccessTokenProvider
 {
     /// <summary>
     /// Gets the scope of the access token
@@ -14,7 +14,7 @@ public interface IAccessTokenProvider<TClient>
     AccessToken GetAccessToken();
 }
 
-public class AccessTokenProvider<TClient> : IAccessTokenProvider<TClient>
+public class AccessTokenProvider : IAccessTokenProvider
 {
     private readonly ICredential _credential;
 
@@ -28,12 +28,12 @@ public class AccessTokenProvider<TClient> : IAccessTokenProvider<TClient>
         _scope = scope;
     }
 
-    public static AccessTokenProvider<TClient> Create(
+    public static AccessTokenProvider Create(
         ICredential credential,
         string scope)
     {
         // create the provider
-        var accessTokenProvider = new AccessTokenProvider<TClient>(credential, scope);
+        var accessTokenProvider = new AccessTokenProvider(credential, scope);
 
         // warm-up this token
         accessTokenProvider.GetAccessToken();

@@ -8,11 +8,11 @@ public interface ICredentialProvider
     string Name { get; }
 
     /// <summary>
-    /// Gets the <see cref="IAccessTokenProvider"/> for the specified credential name and scope.
+    /// Gets the <see cref="IAccessTokenProvider"/> for the specified scope.
     /// </summary>
     /// <param name="scope">The scope of the token.</param>
-    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified credential name.</returns>
-    IAccessTokenProvider<TClient> GetAccessTokenProvider<TClient>(
+    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified scope.</returns>
+    IAccessTokenProvider GetAccessTokenProvider(
         string scope);
 
     /// <summary>

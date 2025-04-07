@@ -7,6 +7,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Client;
 
@@ -15,7 +16,8 @@ namespace Trelnex.Core.Client;
 /// </summary>
 /// <param name="httpClient">The specified <see cref="HttpClient"/> instance.</param>
 public abstract class BaseClient(
-    HttpClient httpClient)
+    HttpClient httpClient,
+    IAccessTokenProvider? accessTokenProvider = null)
 {
     /// <summary>
     /// The options to be used with <see cref="JsonSerializer"/> to serialize the request content and deserialize the response content.
@@ -180,6 +182,21 @@ public abstract class BaseClient(
 
         // add any additional headers
         addHeaders?.Invoke(httpRequestMessage.Headers);
+
+        // add the authorization header if we have a token provider
+        if (accessTokenProvider is not null)
+        {
+            var authorizationHeader = accessTokenProvider.GetAccessToken().GetAuthorizationHeader();
+
+            // add the authorization header to the request
+            // if the header is null, we don't have a token
+            if (string.IsNullOrWhiteSpace(authorizationHeader))
+            {
+                throw new InvalidOperationException("The authorization header is null or empty.");
+            }
+
+            httpRequestMessage.Headers.AddAuthorizationHeader(authorizationHeader);
+        }
 
         if (content is not null)
         {

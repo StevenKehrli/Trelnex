@@ -118,7 +118,7 @@ The `ICredential` interface defines the contract for obtaining access tokens:
 The `ICredentialProvider` interface is the primary entry point for obtaining credentials:
 
 - `Name`: Gets the name of the credential provider
-- `GetAccessTokenProvider<TClient>(string scope)`: Returns an access token provider for the specified client type and scope
+- `GetAccessTokenProvider(string scope)`: Returns an access token provider for the specified scope
 - `GetStatus()`: Retrieves the current status of the credential
 
 The generic variant `ICredentialProvider<TCredential>` extends this interface with:
@@ -158,8 +158,8 @@ The Identity system serves as the foundation for provider-specific implementatio
 // Get a credential provider (implementation varies by cloud provider)
 var credentialProvider = serviceProvider.GetRequiredService<ICredentialProvider>();
 
-// Get an access token provider for a specific client type and scope
-var tokenProvider = credentialProvider.GetAccessTokenProvider<MyApiClient>("https://api.example.com/.default");
+// Get an access token provider for the specified scope
+var tokenProvider = credentialProvider.GetAccessTokenProvider("https://api.example.com/.default");
 
 // Use the token provider to get an access token
 var token = tokenProvider.GetAccessToken();
