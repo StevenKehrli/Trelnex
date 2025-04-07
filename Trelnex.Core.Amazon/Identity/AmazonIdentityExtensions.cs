@@ -2,6 +2,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Amazon.Observability;
 using Trelnex.Core.Api.Identity;
 
 namespace Trelnex.Core.Amazon.Identity;
@@ -20,6 +21,8 @@ public static class AmazonIdentityExtensions
         IConfiguration configuration,
         ILogger bootstrapLogger)
     {
+        services.AddAWSInstrumentation();
+
         var options = configuration
             .GetSection("AmazonCredentials")
             .Get<AmazonCredentialOptions>()

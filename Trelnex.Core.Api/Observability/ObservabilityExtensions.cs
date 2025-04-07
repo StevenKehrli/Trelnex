@@ -61,6 +61,7 @@ internal static class ObservabilityExtensions
                     configure
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
+                        .AddSource("Trelnex.*")
                         .AddSource(observabilityConfiguration.OpenTelemetry.Sources)
                         .AddOtlpExporter();
                 });
