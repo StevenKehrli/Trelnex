@@ -24,11 +24,11 @@
 
     <ItemGroup>
         <PackageReference Include="FluentValidation" Version="11.11.0" />
-        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.3" />
-        <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.4" />
+        <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.4" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="PostSharp" Version="2025.0.6" PrivateAssets="All" />
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.3" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.4" />
     </ItemGroup>
 
 </Project>
