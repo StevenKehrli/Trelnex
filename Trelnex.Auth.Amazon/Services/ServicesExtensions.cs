@@ -41,14 +41,14 @@ internal static class ServicesExtensions
 
 
 
-        // create the jwt provider
-        var jwtProvider = JwtProvider.Create(
+        // create the jwt provider registry
+        var jwtProviderRegistry = JwtProviderRegistry.Create(
             configuration,
             bootstrapLogger,
             credentialProvider);
 
-        // inject the jwt factory
-        services.AddSingleton<IJwtProvider>(jwtProvider);
+        // inject the jwt provider registry
+        services.AddSingleton(jwtProviderRegistry);
 
 
 

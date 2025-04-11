@@ -16,8 +16,8 @@ internal static class GetOpenIdConfigurationEndpoint
     }
 
     internal static OpenIdConfiguration HandleRequest(
-        [FromServices] IJwtProvider jwtProvider)
+        [FromServices] IJwtProviderRegistry jwtProviderRegistry)
     {
-        return jwtProvider.GetOpenIdConfiguration();
+        return jwtProviderRegistry.OpenIdConfiguration;
     }
 }

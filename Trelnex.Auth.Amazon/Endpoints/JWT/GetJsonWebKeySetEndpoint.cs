@@ -17,13 +17,13 @@ internal static class GetJsonWebKeySetEndpoint
     }
 
     internal static async Task<JsonWebKeySet> HandleRequest(
-        [FromServices] IJwtProvider jwtProvider)
+        [FromServices] IJwtProviderRegistry jwtProviderRegistry)
     {
         // get the json web key set
         // convert for serialization
         var jwks = new JsonWebKeySet
         {
-            Keys = jwtProvider.JWKS.Keys
+            Keys = jwtProviderRegistry.JWKS.Keys
                 .Select(key => new JsonWebKey
                 {
                     Crv = key.Crv,

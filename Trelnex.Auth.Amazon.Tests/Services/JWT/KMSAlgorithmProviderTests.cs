@@ -6,22 +6,19 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Tests.Services.JWT;
 
-public class KMSAlgorithmProviderTests
+public class KMSAlgorithmCollectionTests
 {
     private static readonly ICredentialProvider<AWSCredentials> _credentialProvider = new CredentialProvider();
 
     [Test]
-    public void KMSAlgorithmProvider_DuplicateRegional()
+    public void KMSAlgorithmCollection_DuplicateRegional()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            RegionalKeys = [
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/7bb77ef2-8421-4c14-bdba-4ecea906e145",
                 "arn:aws:kms:us-east-1:571096773025:key/dcdf7318-d283-442a-b1fb-b6e538b3ccfe"
-            ]
-        };
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -33,7 +30,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                regionalKeys: regionalKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -42,17 +43,14 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_DuplicateSecondary()
+    public void KMSAlgorithmCollection_DuplicateSecondary()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            SecondaryKeys = [
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var secondaryKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c",
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c"
-            ]
-        };
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -64,7 +62,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                secondaryKeys: secondaryKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -73,13 +75,10 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_InvalidDefault()
+    public void KMSAlgorithmCollection_InvalidDefault()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "Invalid"
-        };
+        var defaultKey = "Invalid";
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -91,7 +90,10 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -100,14 +102,13 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_InvalidRegional()
+    public void KMSAlgorithmCollection_InvalidRegional()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            RegionalKeys = ["Invalid"]
-        };
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var regionalKeys = new[] {
+                "Invalid"
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -119,7 +120,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                regionalKeys: regionalKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -128,14 +133,13 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_InvalidSecondary()
+    public void KMSAlgorithmCollection_InvalidSecondary()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            SecondaryKeys = ["Invalid"]
-        };
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var secondaryKeys = new[] {
+                "Invalid"
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -147,7 +151,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                secondaryKeys: secondaryKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -156,16 +164,13 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_RegionalSpecifiedAsDefault()
+    public void KMSAlgorithmCollection_RegionalSpecifiedAsDefault()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            RegionalKeys = [
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4"
-            ]
-        };
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -177,7 +182,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                regionalKeys: regionalKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -186,16 +195,13 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_SecondarySpecifiedAsDefault()
+    public void KMSAlgorithmCollection_SecondarySpecifiedAsDefault()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            SecondaryKeys = [
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var secondaryKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4"
-            ]
-        };
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -207,7 +213,11 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                secondaryKeys: secondaryKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
@@ -216,19 +226,16 @@ public class KMSAlgorithmProviderTests
     }
 
     [Test]
-    public void KMSAlgorithmProvider_SecondarySpecifiedAsRegional()
+    public void KMSAlgorithmCollection_SecondarySpecifiedAsRegional()
     {
         // create the test configuration
-        var algorithmConfiguration = new KMSAlgorithmConfiguration
-        {
-            DefaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4",
-            RegionalKeys = [
+        var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
+        var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c"
-            ],
-            SecondaryKeys = [
+            };
+        var secondaryKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c"
-            ]
-        };
+            };
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
@@ -240,7 +247,12 @@ public class KMSAlgorithmProviderTests
 
         var ex = Assert.Throws<AggregateException>(() =>
         {
-            KMSAlgorithmProvider.Create(bootstrapLogger, _credentialProvider, algorithmConfiguration);
+            KMSAlgorithmCollection.Create(
+                bootstrapLogger,
+                _credentialProvider,
+                defaultKey: defaultKey,
+                regionalKeys: regionalKeys,
+                secondaryKeys: secondaryKeys);
         });
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();

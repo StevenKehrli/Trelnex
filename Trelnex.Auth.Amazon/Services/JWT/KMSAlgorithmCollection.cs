@@ -1,111 +1,46 @@
 using System.Configuration;
 using Amazon;
 using Amazon.Runtime;
-using Microsoft.IdentityModel.Tokens;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Services.JWT;
 
-internal class KMSAlgorithmProvider
+internal class KMSAlgorithmCollection
 {
-    private readonly IKMSAlgorithm _defaultAlgorithm;
+    private readonly KMSAlgorithm _defaultAlgorithm;
 
-    private readonly Dictionary<RegionEndpoint, IKMSAlgorithm> _regionalAlgorithms;
+    private readonly KMSAlgorithm[]? _regionalAlgorithms;
 
-    private readonly JsonWebKeySet _jwks;
+    private readonly KMSAlgorithm[]? _secondaryAlgorithms;
 
-    private KMSAlgorithmProvider(
+    private KMSAlgorithmCollection(
         KMSAlgorithm defaultAlgorithm,
         KMSAlgorithm[]? regionalAlgorithms,
-        JsonWebKeySet jwks)
+        KMSAlgorithm[]? secondaryAlgorithms)
     {
-        // set the default algorithm
         _defaultAlgorithm = defaultAlgorithm;
-
-        // set the regional algorithms
-        _regionalAlgorithms = regionalAlgorithms?
-            .ToDictionary(
-                algorithm => algorithm.Region,
-                algorithm => algorithm as IKMSAlgorithm) ?? [];
-
-        _jwks = jwks;
+        _regionalAlgorithms = regionalAlgorithms;
+        _secondaryAlgorithms = secondaryAlgorithms;
     }
 
-    /// <summary>
-    /// Get the json web key set
-    /// </summary>
-    public JsonWebKeySet JWKS => _jwks;
-
-    /// <summary>
-    /// Creates a new instance of the <see cref="KMSAlgorithmProvider"/>.
-    /// </summary>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the KMSAlgorithmProvider bootstrap logs.</param>
-    /// <param name="credentialProvider">The credential provider to get the AWS credentials.</param>
-    /// <param name="algorithmConfiguration">The <see cref="KMSAlgorithmConfiguration"/> for the KMS algorithms.</param>
-    /// <returns>The <see cref="KMSAlgorithmProvider"/>.</returns>
-    public static KMSAlgorithmProvider Create(
+    public static KMSAlgorithmCollection Create(
         ILogger bootstrapLogger,
         ICredentialProvider<AWSCredentials> credentialProvider,
-        KMSAlgorithmConfiguration algorithmConfiguration)
+        string defaultKey,
+        string[]? regionalKeys = null,
+        string[]? secondaryKeys = null)
     {
+        // any exceptions
+        var exs = new List<ConfigurationErrorsException>();
+
         // get the aws credentials
         var credentials = credentialProvider.GetCredential();
 
         // parse the configuration into the resources
-        var algorithmResources = KMSAlgorithmResources.Parse(algorithmConfiguration);
-
-        // create the collection of kms algorithms
-        var algorithmCollection = CreateAlgorithmCollection(
-            bootstrapLogger,
-            credentials,
-            algorithmResources);
-
-        // create the json web key set
-        var jwks = new JsonWebKeySet();
-
-        // add the default jwk to the set
-        jwks.Keys.Add(algorithmCollection.DefaultAlgorithm.JWK);
-
-        // add the regional jwks to the set
-        Array.ForEach(algorithmCollection.RegionalAlgorithms ?? [], algorithm =>
-        {
-            jwks.Keys.Add(algorithm.JWK);
-        });
-
-        // add the secondary jwks to the set
-        Array.ForEach(algorithmCollection.SecondaryAlgorithms ?? [], algorithm =>
-        {
-            jwks.Keys.Add(algorithm.JWK);
-        });
-
-        // create the algorithm provider
-        return new KMSAlgorithmProvider(
-            algorithmCollection.DefaultAlgorithm,
-            algorithmCollection.RegionalAlgorithms,
-            jwks);
-    }
-
-    /// <summary>
-    /// Get the algorithm for the region.
-    /// </summary>
-    /// <param name="region">The region.</param>
-    /// <returns>The algorithm.</returns>
-    public IKMSAlgorithm GetAlgorithm(
-        RegionEndpoint region)
-    {
-        // get the algorithm
-        return _regionalAlgorithms.TryGetValue(region, out var algorithm)
-            ? algorithm
-            : _defaultAlgorithm;
-    }
-
-    private static KMSAlgorithmCollection CreateAlgorithmCollection(
-        ILogger bootstrapLogger,
-        AWSCredentials credentials,
-        KMSAlgorithmResources algorithmResources)
-    {
-        // any exceptions
-        var exs = new List<ConfigurationErrorsException>();
+        var algorithmResources = KMSAlgorithmResources.GetResources(
+            defaultKey,
+            regionalKeys,
+            secondaryKeys);
 
         // get the default algorithm
         var defaultAlgorithmTask = (
@@ -201,7 +136,7 @@ internal class KMSAlgorithmProvider
 
         // log - the :l format parameter (l = literal) to avoid the quotes
         bootstrapLogger.LogInformation(
-            message: "Added Default KMSAlgorithm: kid = '{kid:l}', arn = '{keyArn:l}'.",
+            message: "Added Default KMSAlgorithm: kid = '{kid:l}', keyArn = '{keyArn:l}'.",
             args: [
                 defaultAlgorithm.JWK.KeyId,
                 defaultAlgorithm.KeyArn ]);
@@ -209,7 +144,7 @@ internal class KMSAlgorithmProvider
         Array.ForEach(regionalAlgorithms ?? [], regionalAlgorithm =>
         {
             bootstrapLogger.LogInformation(
-                message: "Added Regional KMSAlgorithm: region = '{region:l}', kid '{kid:l}', arn = '{keyArn:l}'.",
+                message: "Added Regional KMSAlgorithm: region = '{region:l}', kid '{kid:l}', keyArn = '{keyArn:l}'.",
                 args: [
                     regionalAlgorithm.Region.SystemName,
                     regionalAlgorithm.JWK.KeyId,
@@ -219,7 +154,7 @@ internal class KMSAlgorithmProvider
         Array.ForEach(secondaryAlgorithms ?? [], secondaryAlgorithm =>
         {
             bootstrapLogger.LogInformation(
-                message: "Added Secondary KMSAlgorithm: region = '{region:l}', kid = '{kid:l}', arn = '{keyArn:l}'.",
+                message: "Added Secondary KMSAlgorithm: region = '{region:l}', kid = '{kid:l}', keyArn = '{keyArn:l}'.",
                 args: [
                     secondaryAlgorithm.Region.SystemName,
                     secondaryAlgorithm.JWK.KeyId,
@@ -227,22 +162,17 @@ internal class KMSAlgorithmProvider
         });
 
         // create the collection
-        return new KMSAlgorithmCollection
-        {
-            DefaultAlgorithm = defaultAlgorithm,
-            RegionalAlgorithms = regionalAlgorithms,
-            SecondaryAlgorithms = secondaryAlgorithms
-        };
+        return new KMSAlgorithmCollection(
+            defaultAlgorithm,
+            regionalAlgorithms,
+            secondaryAlgorithms);
     }
 
-    private record KMSAlgorithmCollection
-    {
-        public required KMSAlgorithm DefaultAlgorithm { get; init; }
+    public KMSAlgorithm DefaultAlgorithm => _defaultAlgorithm;
 
-        public KMSAlgorithm[]? RegionalAlgorithms { get; init; }
+    public KMSAlgorithm[]? RegionalAlgorithms => _regionalAlgorithms;
 
-        public KMSAlgorithm[]? SecondaryAlgorithms { get; init; }
-    }
+    public KMSAlgorithm[]? SecondaryAlgorithms => _secondaryAlgorithms;
 
     private class KMSAlgorithmResources
     {
@@ -263,47 +193,50 @@ internal class KMSAlgorithmProvider
         }
 
         /// <summary>
-        /// Parse the <see cref="KMSAlgorithmConfiguration"/> into a <see cref="KMSAlgorithmResources"/>.
+        /// Get the KMS algorithm resources from the KMS keys.
         /// </summary>
-        /// <param name="algorithmConfiguration">The <see cref="KMSAlgorithmConfiguration"/> to parse.</param>
+        /// <param name="defaultKey">The default key to use for the signing algorithm.</param>
+        /// <param name="regionalKeys">The regional keys to use for the signing algorithm.</param>
+        /// <param name="secondaryKeys">The secondary keys to use for the signing algorithm.</param>
         /// <returns></returns>
         /// <exception cref="AggregateException">An aggregate exception of all errors that occurred during validation.</exception>
-        public static KMSAlgorithmResources Parse(
-            KMSAlgorithmConfiguration algorithmConfiguration)
+        public static KMSAlgorithmResources GetResources(
+            string defaultKey,
+            string[]? regionalKeys,
+            string[]? secondaryKeys)
         {
             // any exceptions
             var exs = new List<ConfigurationErrorsException>();
 
             // parse the default key
-            var defaultKey = (
-                region: KeyArnUtilities.GetRegion(algorithmConfiguration.DefaultKey),
-                keyArn: algorithmConfiguration.DefaultKey);
+            var defaultKeyTuple = (
+                region: KeyArnUtilities.GetRegion(defaultKey),
+                keyArn: defaultKey);
 
-            if (defaultKey.region is null)
+            if (defaultKeyTuple.region is null)
             {
-                exs.Add(new ConfigurationErrorsException($"The DefaultKey '{defaultKey.keyArn}' is invalid."));
+                exs.Add(new ConfigurationErrorsException($"The DefaultKey '{defaultKeyTuple.keyArn}' is invalid."));
             }
 
             // parse the regional keys
-            var regionalKeys = algorithmConfiguration
-                .RegionalKeys?
-                .Select(keyArn => (
-                    region: KeyArnUtilities.GetRegion(keyArn),
-                    keyArn: keyArn))
+            var regionalKeyTuples = regionalKeys?
+                .Select(key => (
+                    region: KeyArnUtilities.GetRegion(key),
+                    keyArn: key))
                 .ToArray();
 
-            Array.ForEach(regionalKeys ?? [], regionalKey =>
+            Array.ForEach(regionalKeyTuples ?? [], regionalKeyTuple =>
             {
-                if (regionalKey.region is null)
+                if (regionalKeyTuple.region is null)
                 {
-                    exs.Add(new ConfigurationErrorsException($"The RegionalKey '{regionalKey.keyArn}' is invalid."));
+                    exs.Add(new ConfigurationErrorsException($"The RegionalKey '{regionalKeyTuple.keyArn}' is invalid."));
                 }
             });
 
             // group the regional keys by region - only one key per region
-            var regionalKeyGroups = regionalKeys?
-                .Where(regionalKey => regionalKey.region is not null)
-                .GroupBy(regionalKey => regionalKey.region)
+            var regionalKeyGroups = regionalKeyTuples?
+                .Where(regionalKeyTuple => regionalKeyTuple.region is not null)
+                .GroupBy(regionalKeyTuple => regionalKeyTuple.region)
                 .ToArray();
 
             // enumerate each group - should be one
@@ -315,35 +248,34 @@ internal class KMSAlgorithmProvider
             });
 
             // enumerate each regional key - should not be the default
-            Array.ForEach(regionalKeys ?? [], regionalKey =>
+            Array.ForEach(regionalKeyTuples ?? [], regionalKeyTuple =>
             {
-                if (defaultKey.keyArn == regionalKey.keyArn)
+                if (defaultKeyTuple.keyArn == regionalKeyTuple.keyArn)
                 {
-                    exs.Add(new ConfigurationErrorsException($"The RegionalKey '{regionalKey.keyArn}' is previously configured as the DefaultKey."));
+                    exs.Add(new ConfigurationErrorsException($"The RegionalKey '{regionalKeyTuple.keyArn}' is previously configured as the DefaultKey."));
                 }
             });
 
             // parse the secondary keys
-            var secondaryKeys = algorithmConfiguration
-                .SecondaryKeys?
-                .Select(keyArn => (
-                    region: KeyArnUtilities.GetRegion(keyArn),
-                    keyArn: keyArn))
+            var secondaryKeyTuples = secondaryKeys?
+                .Select(key => (
+                    region: KeyArnUtilities.GetRegion(key),
+                    keyArn: key))
                 .ToArray();
 
             // validate the secondary keys
-            Array.ForEach(secondaryKeys ?? [], secondaryKey =>
+            Array.ForEach(secondaryKeyTuples ?? [], secondaryKeyTuple =>
             {
-                if (secondaryKey.region is null)
+                if (secondaryKeyTuple.region is null)
                 {
-                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKey.keyArn}' is invalid."));
+                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKeyTuple.keyArn}' is invalid."));
                 }
             });
 
-            // group the secondary keys by arn - each key should be unique
-            var secondaryKeyGroups = secondaryKeys?
-                .Where(secondaryKey => secondaryKey.region is not null)
-                .GroupBy(secondaryKey => secondaryKey.keyArn)
+            // group the secondary keys by keyArn - each key should be unique
+            var secondaryKeyGroups = secondaryKeyTuples?
+                .Where(secondaryKeyTuple => secondaryKeyTuple.region is not null)
+                .GroupBy(secondaryKeyTuple => secondaryKeyTuple.keyArn)
                 .ToArray();
 
             // enumerate each group - should be one
@@ -355,16 +287,16 @@ internal class KMSAlgorithmProvider
             });
 
             // enumerate each secondary key - should not be the default or in the regional keys
-            Array.ForEach(secondaryKeys ?? [], secondaryKey =>
+            Array.ForEach(secondaryKeyTuples ?? [], secondaryKeyTuple =>
             {
-                if (defaultKey.keyArn == secondaryKey.keyArn)
+                if (defaultKeyTuple.keyArn == secondaryKeyTuple.keyArn)
                 {
-                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKey.keyArn}' is previously configured as the DefaultKey."));
+                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKeyTuple.keyArn}' is previously configured as the DefaultKey."));
                 }
 
-                if (regionalKeys?.Any(regionalKey => regionalKey == secondaryKey) is true)
+                if (regionalKeyTuples?.Any(regionalKeyTuple => regionalKeyTuple == secondaryKeyTuple) is true)
                 {
-                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKey.keyArn}' is previously configured as a RegionalKey."));
+                    exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKeyTuple.keyArn}' is previously configured as a RegionalKey."));
                 }
             });
 
@@ -375,16 +307,16 @@ internal class KMSAlgorithmProvider
             }
 
             return new KMSAlgorithmResources(
-                defaultKey: (region: defaultKey.region!, keyArn: defaultKey.keyArn),
-                regionalKeys: regionalKeys?
-                    .Select(regionalKey => (
-                        region: regionalKey.region!,
-                        keyArn: regionalKey.keyArn))
+                defaultKey: (defaultKeyTuple.region!, defaultKeyTuple.keyArn!),
+                regionalKeys: regionalKeyTuples?
+                    .Select(regionalKeyTuple => (
+                        regionalKeyTuple.region!,
+                        regionalKeyTuple.keyArn!))
                     .ToArray(),
-                secondaryKeys: secondaryKeys?
-                    .Select(secondaryKey => (
-                        region: secondaryKey.region!,
-                        keyArn: secondaryKey.keyArn))
+                secondaryKeys: secondaryKeyTuples?
+                    .Select(secondaryKeyTuple => (
+                        secondaryKeyTuple.region!,
+                        secondaryKeyTuple.keyArn!))
                     .ToArray());
         }
     }

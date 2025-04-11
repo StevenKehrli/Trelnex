@@ -1,128 +1,104 @@
-using System.Configuration;
-using Amazon;
-using Amazon.Runtime;
+using JWT.Algorithms;
 using JWT.Builder;
-using Microsoft.IdentityModel.Tokens;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Services.JWT;
 
-internal interface IJwtProvider
+public interface IJwtProvider
 {
-    /// <summary>
-    /// Get the json web key set
-    /// </summary>
-    JsonWebKeySet JWKS { get; }
-
     /// <summary>
     /// Encodes a JWT token for the specified caller identity.
     /// </summary>
-    /// <param name="region">The region of the caller identity.</param>
     /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="audience">The audience of the token.</param>
     /// <param name="scopes">The scopes of the token.</param>
     /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
     /// <returns>The JWT token.</returns>
-    AccessToken CreateToken(
-        string region,
+    AccessToken Encode(
         string principalId,
         string audience,
         string[] scopes,
         string[] roles);
-
-    /// <summary>
-    /// Get the open id configuration
-    /// </summary>
-    /// <returns>The open id configuration</returns>
-    OpenIdConfiguration GetOpenIdConfiguration();
 }
 
 internal class JwtProvider : IJwtProvider
 {
-    private readonly KMSAlgorithmProvider _algorithmProvider;
-    private readonly JwtConfiguration _jwtConfiguration;
+    private readonly IJwtAlgorithm _jwtAlgorithm;
+
+    private readonly string _keyId;
+
+    private readonly string _issuer;
+
+    private readonly int _expirationInMinutes;
+
+    private readonly int _refreshInMinutes;
 
     private JwtProvider(
-        KMSAlgorithmProvider algorithmProvider,
-        JwtConfiguration jwtConfiguration)
+        IJwtAlgorithm jwtAlgorithm,
+        string keyId,
+        string issuer,
+        int expirationInMinutes)
     {
-        _algorithmProvider = algorithmProvider;
-        _jwtConfiguration = jwtConfiguration;
+        _jwtAlgorithm = jwtAlgorithm;
+        _keyId = keyId;
+        _issuer = issuer;
+
+        // expiration is a minimum of 15 minutes
+        // refresh is 5 minutes before expiration
+        _expirationInMinutes = Math.Max(15, expirationInMinutes);
+        _refreshInMinutes = _expirationInMinutes - 5;
     }
 
     /// <summary>
     /// Creates a new instance of the <see cref="JwtProvider"/>.
     /// </summary>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the bootstrap logs.</param>
-    /// <param name="credentialProvider">The credential provider to get the AWS credentials.</param>
+    /// <param name="jwtAlgorithm">The jwt algorithm to use for signing the token.</param>
+    /// <param name="keyId">The key id to use for signing the token.</param>
+    /// <param name="issuer">The issuer of the token.</param>
+    /// <param name="expirationInMinutes">The expiration time of the jwt token in minutes.</param>
     /// <returns>The <see cref="JwtProvider"/>.</returns>
-    public static JwtProvider Create(
-        IConfiguration configuration,
-        ILogger bootstrapLogger,
-        ICredentialProvider<AWSCredentials> credentialProvider)
+    public static IJwtProvider Create(
+        IJwtAlgorithm jwtAlgorithm,
+        string keyId,
+        string issuer,
+        int expirationInMinutes)
     {
-        var jwtConfiguration = configuration
-            .GetSection("JWT")
-            .Get<JwtConfiguration>()
-            ?? throw new ConfigurationErrorsException("The JWT configuration is not found.");
-
-        // create the kms algorithm provider
-        var algorithmProvider = KMSAlgorithmProvider.Create(
-            bootstrapLogger,
-            credentialProvider,
-            jwtConfiguration.KMSAlgorithms);
-
-        // create the jwt factory
+        // create the jwt provider
         return new JwtProvider(
-            algorithmProvider,
-            jwtConfiguration);
+            jwtAlgorithm,
+            keyId,
+            issuer,
+            expirationInMinutes);
     }
 
     /// <summary>
-    /// Get the json web key set
+    /// Encodes a jwt token for the specified caller identity.
     /// </summary>
-    public JsonWebKeySet JWKS => _algorithmProvider.JWKS;
-
-    /// <summary>
-    /// Encodes a JWT token for the specified caller identity.
-    /// </summary>
-    /// <param name="region">The region of the caller identity.</param>
     /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="audience">The audience of the token.</param>
     /// <param name="scopes">The scopes of the token.</param>
     /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
-    /// <returns>The JWT token.</returns>
-    public AccessToken CreateToken(
-        string region,
+    /// <returns>The jwt token.</returns>
+    public AccessToken Encode(
         string principalId,
         string audience,
         string[] scopes,
         string[] roles)
     {
-        // get the algorithm
-        var regionEndpoint = RegionEndpoint.GetBySystemName(region);
-        var algorithm = _algorithmProvider.GetAlgorithm(regionEndpoint);
-
-        // create the jwt builder with the specified algorithm
+        // create the jwt builder
         var jwtBuilder = JwtBuilder
             .Create()
-            .WithAlgorithm(algorithm)
-            .AddHeader(HeaderName.KeyId, algorithm.JWK.KeyId);
+            .WithAlgorithm(_jwtAlgorithm)
+            .AddHeader(HeaderName.KeyId, _keyId);
 
         // set the issuer
         jwtBuilder
-            .Issuer(_jwtConfiguration.OpenIdConfiguration.Issuer);
-
-        // expiration is a minimum of 15 minutes
-        // refresh is 5 minutes before expiration
-        var expirationInMinutes = Math.Max(15, _jwtConfiguration.ExpirationInMinutes);
-        var refreshInMinutes = expirationInMinutes - 5;
+            .Issuer(_issuer);
 
         // get the current date time
         var dateTime = DateTime.UtcNow;
-        var expiresOn = dateTime.AddMinutes(expirationInMinutes);
-        var refreshOn = dateTime.AddMinutes(refreshInMinutes);
+        var expiresOn = dateTime.AddMinutes(_expirationInMinutes);
+        var refreshOn = dateTime.AddMinutes(_refreshInMinutes);
 
         // set the issued at, not bofore, and expiration time
         jwtBuilder
@@ -155,14 +131,5 @@ internal class JwtProvider : IJwtProvider
             RefreshOn = refreshOn,
             TokenType = "Bearer"
         };
-    }
-
-    /// <summary>
-    /// Get the open id configuration
-    /// </summary>
-    /// <returns>The open id configuration</returns>
-    public OpenIdConfiguration GetOpenIdConfiguration()
-    {
-        return _jwtConfiguration.OpenIdConfiguration;
     }
 }

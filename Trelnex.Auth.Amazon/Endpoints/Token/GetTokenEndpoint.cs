@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mime;
+using Amazon;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.CallerIdentity;
 using Trelnex.Auth.Amazon.Services.JWT;
@@ -37,7 +38,7 @@ internal static class GetTokenEndpoint
         [FromServices] IScopeValidator scopeValidator,
         [FromServices] ICallerIdentityProvider callerIdentityProvider,
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IJwtProvider jwtProvider,
+        [FromServices] IJwtProviderRegistry jwtProviderRegistry,
         [AsParameters] GetTokenForm form)
     {
         // validate the form
@@ -67,9 +68,12 @@ internal static class GetTokenEndpoint
             scopeName: scopeName,
             cancellationToken: default);
 
-        // create the jwt token
-        var accessToken = jwtProvider.CreateToken(
-            region: signature.Region,
+        // get the jwt provider
+        var region = RegionEndpoint.GetBySystemName(signature.Region);
+        var jwtProvider = jwtProviderRegistry.GetProvider(region);
+
+        // encode the jwt token
+        var accessToken = jwtProvider.Encode(
             principalId: principalId,
             audience: resourceName,
             scopes: principalMembership.ScopeNames,

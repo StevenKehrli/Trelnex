@@ -12,18 +12,10 @@ using Trelnex.Core;
 
 namespace Trelnex.Auth.Amazon.Services.JWT;
 
-public interface IKMSAlgorithm : IAsymmetricAlgorithm
-{
-    /// <summary>
-    /// get the json web key id
-    /// </summary>
-    JsonWebKey JWK { get; }
-}
-
 /// <summary>
 /// Represents an algorithm to generate a JWT signature using Amazon Key Management Service.
 /// </summary>
-internal class KMSAlgorithm : IKMSAlgorithm
+internal class KMSAlgorithm : IAsymmetricAlgorithm
 {
     /// <summary>
     /// The Amazon Key Management Service client
