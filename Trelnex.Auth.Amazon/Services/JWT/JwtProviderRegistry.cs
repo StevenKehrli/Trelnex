@@ -19,6 +19,12 @@ public interface IJwtProviderRegistry
     JsonWebKeySet JWKS { get; }
 
     /// <summary>
+    /// Get the default JWT provider.
+    /// </summary>
+    /// <returns>The JWT provider.</returns>
+    IJwtProvider GetProvider();
+
+    /// <summary>
     /// Get the JWT provider with the specified attribute.
     /// </summary>
     /// <param name="attribute">The specified attribute on the provider.</param>
@@ -133,6 +139,15 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
             jwks,
             defaultJwtProvider,
             regionalJwtProviders);
+    }
+
+    /// <summary>
+    /// Get the default JWT provider.
+    /// </summary>
+    /// <returns>The JWT provider.</returns>
+    public IJwtProvider GetProvider()
+    {
+        return _defaultJwtProvider;
     }
 
     /// <summary>
