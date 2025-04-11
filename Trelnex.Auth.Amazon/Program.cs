@@ -60,7 +60,7 @@ internal static class AuthApplication
         GrantPrincipalMembershipEndpoint.Map(erb);
         RevokePrincipalMembershipEndpoint.Map(erb);
 
-        // // rbac - principals
+        // rbac - principals
         DeletePrincipalEndpoint.Map(erb);
 
         // rbac - resources
