@@ -60,7 +60,9 @@ public static class SwaggerExtensions
     public static WebApplication AddSwaggerToWebApplication(
         this WebApplication app)
     {
-        var swaggerOptions = app.Configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
+        var swaggerOptions = app.Configuration
+            .GetSection("Swagger")
+            .Get<SwaggerConfiguration>();
 
         app.Use((context, next) =>
         {

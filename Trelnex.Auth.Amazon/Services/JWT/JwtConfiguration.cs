@@ -1,31 +1,9 @@
-using System.Text.Json.Serialization;
-
 namespace Trelnex.Auth.Amazon.Services.JWT;
 
 /// <summary>
 /// Represents the configuration for the JWT factory.
 /// </summary>
 internal record JwtConfiguration
-{
-    /// <summary>
-    /// The OpenId configuration (connect discovery document).
-    /// </summary>
-    [ConfigurationKeyName("openid-configuration")]
-    [JsonPropertyName("openid-configuration")]
-    public required OpenIdConfiguration OpenIdConfiguration { get; set; }
-
-    /// <summary>
-    /// The KMS algorithms configuration.
-    /// </summary>
-    public required KMSAlgorithmConfiguration KMSAlgorithms { get; set; }
-
-    /// <summary>
-    /// The expiration time of the JWT token in minutes.
-    /// </summary>
-    public int ExpirationInMinutes { get; set; }
-}
-
-internal record KMSAlgorithmConfiguration
 {
     /// <summary>
     /// The default key to use for the signing algorithm.
@@ -41,4 +19,9 @@ internal record KMSAlgorithmConfiguration
     /// The secondary keys to use for the signing algorithm.
     /// </summary>
     public string[]? SecondaryKeys { get; init; }
+
+    /// <summary>
+    /// The expiration time of the JWT token in minutes.
+    /// </summary>
+    public int ExpirationInMinutes { get; set; }
 }

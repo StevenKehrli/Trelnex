@@ -89,13 +89,18 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
             .Get<JwtConfiguration>()
             ?? throw new ConfigurationErrorsException("The JWT configuration is not found.");
 
+        var openIdConfiguration = configuration
+            .GetSection("JWT:openid-configuration")
+            .Get<OpenIdConfiguration>()
+            ?? throw new ConfigurationErrorsException("The openid-configuration configuration is not found.");
+
         // create the collection of kms algorithms
         var algorithmCollection = KMSAlgorithmCollection.Create(
             bootstrapLogger,
             credentialProvider,
-            jwtConfiguration.KMSAlgorithms.DefaultKey,
-            jwtConfiguration.KMSAlgorithms.RegionalKeys,
-            jwtConfiguration.KMSAlgorithms.SecondaryKeys);
+            jwtConfiguration.DefaultKey,
+            jwtConfiguration.RegionalKeys,
+            jwtConfiguration.SecondaryKeys);
 
         // create the json web key set
         var jwks = new JsonWebKeySet();
@@ -119,7 +124,7 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         var defaultJwtProvider = JwtProvider.Create(
             algorithmCollection.DefaultAlgorithm,
             algorithmCollection.DefaultAlgorithm.JWK.KeyId,
-            jwtConfiguration.OpenIdConfiguration.Issuer,
+            openIdConfiguration.Issuer,
             jwtConfiguration.ExpirationInMinutes);
 
         // get the regional providers
@@ -129,13 +134,13 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
                 jwtProvider: JwtProvider.Create(
                     algorithm,
                     algorithm.JWK.KeyId,
-                    jwtConfiguration.OpenIdConfiguration.Issuer,
+                    openIdConfiguration.Issuer,
                     jwtConfiguration.ExpirationInMinutes)))
             .ToArray();
 
         // create the algorithm provider
         return new JwtProviderRegistry(
-            jwtConfiguration.OpenIdConfiguration,
+            openIdConfiguration,
             jwks,
             defaultJwtProvider,
             regionalJwtProviders);

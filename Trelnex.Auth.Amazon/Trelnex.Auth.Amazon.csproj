@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.400.132" />
+        <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.400.136" />
         <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.1" />
         <PackageReference Include="JWT" Version="11.0.0" />
         <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="1.0.0" /> -->
