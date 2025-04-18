@@ -1,17 +1,20 @@
 using System.Net;
 using System.Net.Http.Headers;
-using JWT.Algorithms;
-using JWT.Builder;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Trelnex.Auth.Amazon.Services.JWT;
+using Trelnex.Core.Api;
 using Trelnex.Core.Api.Authentication;
-using Trelnex.Core.Api.Serilog;
+using Trelnex.Core.Identity;
 
-namespace Trelnex.Core.Api.Tests.Authentication;
+namespace Trelnex.Auth.Amazon.Tests.Authentication;
 
 public class AuthenticationTests
-{
+{    private IJwtProvider _jwtProvider;
+
     private WebApplication _webApplication;
 
     private HttpClient _httpClient;
@@ -19,32 +22,35 @@ public class AuthenticationTests
     [OneTimeSetUp]
     public async Task TestFixtureSetup()
     {
-        var builder = WebApplication.CreateBuilder();
+        _jwtProvider = JwtProvider.Create(
+            jwtAlgorithm: new TestAlgorithm(),
+            keyId: "KeyId.trelnex-auth-amazon-tests-authentication",
+            issuer: "Issuer.trelnex-auth-amazon-tests-authentication",
+            expirationInMinutes: 15);
 
-        // configure test server
-        builder.WebHost.UseTestServer();
+        _webApplication = Application.CreateWebApplication(
+            args: [],
+            addApplication: (services, configuration, logger) =>
+            {
+                // add the test server
+                services.AddSingleton<IHostLifetime, NoopHostLifetime>();
+                services.AddSingleton<IServer, TestServer>();
 
-        // add serilog
-        var bootstrapLogger = builder.Services.AddSerilog(
-            builder.Configuration,
-            nameof(Application));
-
-        builder.Services
-            .AddAuthentication(builder.Configuration)
-            .AddPermissions<TestPermission>(bootstrapLogger);
-
-        _webApplication = builder.Build();
-
-        _webApplication.UseAuthentication();
-        _webApplication.UseAuthorization();
-
-        _webApplication.MapGet("/testRolePolicy", () => "testRolePolicy")
-            .RequirePermission<TestPermission.TestRolePolicy>();
+                services
+                    .AddAuthentication(configuration)
+                    .AddPermissions<TestPermission>(logger);
+            },
+            useApplication: app =>
+            {
+                app
+                    .MapGet("/testRolePolicy", () => "testRolePolicy")
+                    .RequirePermission<TestPermission.TestRolePolicy>();
+            });
 
         await _webApplication.StartAsync();
 
         // create the http client to our web application
-        _httpClient = _webApplication.GetTestServer().CreateClient();
+        _httpClient = _webApplication.GetTestClient();
     }
 
     [OneTimeTearDown]
@@ -76,10 +82,12 @@ public class AuthenticationTests
     public void RequirePermission_Forbidden_MissingRole()
     {
         // create a JWT token with a missing role
+        var accessToken = CreateAccessToken(
+            scope: "Scope.trelnex-auth-amazon-tests-authentication");
+
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
-            CreateJwtToken(
-                scope: "Scope.trelnex-core-api-tests-authentication"));
+            accessToken.Token);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy");
 
@@ -97,10 +105,12 @@ public class AuthenticationTests
     public void RequirePermission_Forbidden_MissingScope()
     {
         // create a JWT token with a wrong scope
+        var accessToken = CreateAccessToken(
+            role: "wrong.role");
+
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
-            CreateJwtToken(
-                role: "wrong.role"));
+            accessToken.Token);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy");
 
@@ -118,11 +128,13 @@ public class AuthenticationTests
     public void RequirePermission_Forbidden_WrongRole()
     {
         // create a JWT token with a wrong role
+        var accessToken = CreateAccessToken(
+            scope: "Scope.trelnex-auth-amazon-tests-authentication",
+            role: "wrong.role");
+
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
-            CreateJwtToken(
-                role: "wrong.role",
-                scope: "Scope.trelnex-core-api-tests-authentication"));
+            accessToken.Token);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy");
 
@@ -140,11 +152,13 @@ public class AuthenticationTests
     public void RequirePermission_Forbidden_WrongScope()
     {
         // create a JWT token with a wrong scope
+        var accessToken = CreateAccessToken(
+            scope: "wrong.scope",
+            role: "test.role");
+
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
-            CreateJwtToken(
-                role: "test.role",
-                scope: "wrong.scope"));
+            accessToken.Token);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy");
 
@@ -161,11 +175,13 @@ public class AuthenticationTests
     [Test]
     public void RequirePermission_Response()
     {
+        var accessToken = CreateAccessToken(
+            scope: "Scope.trelnex-auth-amazon-tests-authentication",
+            role: "test.role");
+
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
-            CreateJwtToken(
-                role: "test.role",
-                scope: "Scope.trelnex-core-api-tests-authentication"));
+            accessToken.Token);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy");
 
@@ -179,30 +195,29 @@ public class AuthenticationTests
             Is.EqualTo("testRolePolicy"));
     }
 
-    private static string CreateJwtToken(
-        string? role = null,
-        string? scope = null)
+    private AccessToken CreateAccessToken(
+        string? scope = null,
+        string? role = null)
     {
-        // create the jwt builder with the specified algorithm
-        var jwtBuilder = JwtBuilder
-            .Create()
-            .WithAlgorithm(new HMACSHA256Algorithm())
-            .WithSecret(nameof(TestPermission));
+        return _jwtProvider.Encode(
+            principalId: "principalId",
+            audience: "Audience.trelnex-auth-amazon-tests-authentication",
+            scopes: scope is null ? [] : [ scope ],
+            roles: role is null ? [] : [ role ]);
+    }
 
-        // add the roles claim
-        if (role is not null)
+    private sealed class NoopHostLifetime : IHostLifetime
+    {
+        public Task StopAsync(
+            CancellationToken cancellationToken)
         {
-            jwtBuilder
-                .AddClaim("roles", new[] { role });
+            return Task.CompletedTask;
         }
 
-        // add the scope claim
-        if (scope is not null)
+        public Task WaitForStartAsync(
+            CancellationToken cancellationToken)
         {
-            jwtBuilder
-                .AddClaim("scp", scope );
+            return Task.CompletedTask;
         }
-
-        return jwtBuilder.Encode();
     }
 }

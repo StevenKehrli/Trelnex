@@ -33,6 +33,28 @@ public static class Application
         Action<WebApplication> useApplication,
         Action<IHealthChecksBuilder, IConfiguration>? addHealthChecks = null)
     {
+        var app = CreateWebApplication(
+            args,
+            addApplication,
+            useApplication,
+            addHealthChecks);
+
+        app.Run();
+    }
+
+    /// <summary>
+    /// Configures and run the HTTP pipeline and routes.
+    /// </summary>
+    /// <param name="args">The command line arguments</param>
+    /// <param name="addApplication">The delegate to add the calling application to the <see cref="IServiceCollection"/>.</param>
+    /// <param name="useApplication">The delegate to use the calling application into the <param name="IEndpointRouteBuilder">.</param></param>
+    /// <param name="addHealthChecks">An optional delegate to add additional health checks to the <see cref="IServiceCollection"/>.</param>
+    internal static WebApplication CreateWebApplication(
+        string[] args,
+        Action<IServiceCollection, IConfiguration, ILogger> addApplication,
+        Action<WebApplication> useApplication,
+        Action<IHealthChecksBuilder, IConfiguration>? addHealthChecks = null)
+    {
         var builder = WebApplication.CreateBuilder(args);
 
         // add serilog
@@ -114,6 +136,6 @@ public static class Application
         // use the calling application
         useApplication(app);
 
-        app.Run();
+        return app;
     }
 }

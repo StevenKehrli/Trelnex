@@ -92,8 +92,7 @@ internal class JwtProvider : IJwtProvider
             .AddHeader(HeaderName.KeyId, _keyId);
 
         // set the issuer
-        jwtBuilder
-            .Issuer(_issuer);
+        jwtBuilder.Issuer(_issuer);
 
         // get the current date time
         var dateTime = DateTime.UtcNow;
@@ -106,15 +105,21 @@ internal class JwtProvider : IJwtProvider
             .NotBefore(dateTime)
             .ExpirationTime(expiresOn);
 
-        // set the audience and scope claims
-        var scp = string.Join(" ", scopes);
-        jwtBuilder
-            .Audience(audience)
-            .AddClaim("scp", scp);
+        // set the audience
+        jwtBuilder.Audience(audience);
 
-        // add the roles claims
-        jwtBuilder
-            .AddClaim("roles", roles);
+        // add any scopes
+        if (scopes.Length > 0)
+        {
+            var scp = string.Join(" ", scopes);
+            jwtBuilder.AddClaim("scp", scp);
+        }
+
+        // add any roles
+        if (roles.Length > 0)
+        {
+            jwtBuilder.AddClaim("roles", roles);
+        }
 
         // add the principalId as the oid and sub claims
         jwtBuilder

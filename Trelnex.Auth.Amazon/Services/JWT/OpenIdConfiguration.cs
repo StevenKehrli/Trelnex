@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Auth.Amazon.Services.JWT;
 
-public class OpenIdConfiguration
+public record OpenIdConfiguration
 {
     [ConfigurationKeyName("issuer")]
     [JsonPropertyName("issuer")]

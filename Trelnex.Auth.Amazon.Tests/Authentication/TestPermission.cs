@@ -1,17 +1,17 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Trelnex.Core.Api.Authentication;
 
-namespace Trelnex.Core.Api.Tests.Authentication;
+namespace Trelnex.Auth.Amazon.Tests.Authentication;
 
 internal class TestPermission : IPermission
 {
     /// <summary>
     /// Gets the JWT bearer token scheme.
     /// </summary>
-    public string JwtBearerScheme => "Bearer.trelnex-core-api-tests-authentication";
+    public string JwtBearerScheme => "Bearer.trelnex-auth-amazon-tests-authentication";
 
     /// <summary>
     /// Add Authentication to the <see cref="IServiceCollection"/>.
@@ -22,6 +22,8 @@ internal class TestPermission : IPermission
         IServiceCollection services,
         IConfiguration configuration)
     {
+        IdentityModelEventSource.ShowPII = true;
+
         services
             .AddAuthentication()
             .AddJwtBearer(
@@ -30,15 +32,20 @@ internal class TestPermission : IPermission
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false,
-                        ValidateIssuer = false,
-                        ValidateIssuerSigningKey = false,
-                        ValidateLifetime = false,
-                        SignatureValidator = (token, parameters) =>
-                        {
-                            // bypass signature validation
-                            return new JsonWebToken(token);
-                        },
+                        RequireAudience = true,
+                        RequireExpirationTime = true,
+                        RequireSignedTokens = true,
+
+                        ValidateIssuerSigningKey = true,
+                        ValidateLifetime = true,
+
+                        ValidateAudience = true,
+                        ValidAudience = GetAudience(configuration),
+
+                        ValidateIssuer = true,
+                        ValidIssuer =  "Issuer.trelnex-auth-amazon-tests-authentication",
+
+                        IssuerSigningKey = TestAlgorithm.SecurityKey,
                     };
                 });
     }
@@ -60,7 +67,7 @@ internal class TestPermission : IPermission
     public string GetAudience(
         IConfiguration configuration)
     {
-        return "Audience.trelnex-core-api-tests-authentication";
+        return "Audience.trelnex-auth-amazon-tests-authentication";
     }
 
     /// <summary>
@@ -69,7 +76,7 @@ internal class TestPermission : IPermission
     public string GetScope(
         IConfiguration configuration)
     {
-        return "Scope.trelnex-core-api-tests-authentication";
+        return "Scope.trelnex-auth-amazon-tests-authentication";
     }
 
     public class TestRolePolicy : IPermissionPolicy
