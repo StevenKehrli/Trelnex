@@ -47,10 +47,7 @@ public class AuthenticationTests
 
                 services
                     .AddAuthentication(configuration)
-                    .AddPermissions<TestPermission1>(logger);
-
-                services
-                    .AddAuthentication(configuration)
+                    .AddPermissions<TestPermission1>(logger)
                     .AddPermissions<TestPermission2>(logger);
             },
             useApplication: app =>

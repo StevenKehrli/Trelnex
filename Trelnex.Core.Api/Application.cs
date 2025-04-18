@@ -86,14 +86,14 @@ public static class Application
             options.KnownProxies.Clear();
         });
 
-        // add the request context as a transient object
-        builder.Services.AddRequestContext();
-
         // add the calling application
         addApplication(builder.Services, builder.Configuration, bootstrapLogger);
 
         // validate authentication was configured
         builder.Services.ThrowIfAuthenticationNotAdded();
+
+        // add the request context as a transient object
+        builder.Services.AddRequestContext();
 
         // add prometheus metrics server and http client metrics and open telemetry
         builder.Services.AddObservability(builder.Configuration);

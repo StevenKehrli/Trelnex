@@ -19,8 +19,14 @@ public static class AuthenticationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // get our security provider
-        var securityProvider = GetSecurityProvider(services);
+        services.ThrowIfSecurityProviderAdded();
+
+        services.AddHttpContextAccessor();
+        services.AddInMemoryTokenCaches();
+
+        // inject our security provider
+        var securityProvider = new SecurityProvider();
+        services.AddSingleton<ISecurityProvider>(securityProvider);
 
         // add the permissions to the security provider
         return new PermissionsBuilder(services, configuration, securityProvider);
@@ -34,10 +40,16 @@ public static class AuthenticationExtensions
     public static void NoAuthentication(
         this IServiceCollection services)
     {
-        // get our security provider
-        _ = GetSecurityProvider(services);
+        services.ThrowIfSecurityProviderAdded();
 
+        services.AddHttpContextAccessor();
+
+        services.AddAuthentication();
         services.AddAuthorization();
+
+        // inject an empty security provider
+        var securityProvider = new SecurityProvider();
+        services.AddSingleton<ISecurityProvider>(securityProvider);
     }
 
     public static void ThrowIfAuthenticationNotAdded(
@@ -52,25 +64,15 @@ public static class AuthenticationExtensions
         }
     }
 
-    private static SecurityProvider GetSecurityProvider(
-        IServiceCollection services)
+    private static void ThrowIfSecurityProviderAdded(
+        this IServiceCollection services)
     {
-        // get the security provider
-        var serviceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(ISecurityProvider));
+        // check if security provider was added
+        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
 
-        if (serviceDescriptor is not null)
+        if (added is true)
         {
-            return (serviceDescriptor.ImplementationInstance as SecurityProvider)!;
+            throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(NoAuthentication)} has already been configured.");
         }
-
-        services.AddHttpContextAccessor();
-        services.AddAuthentication();
-        services.AddInMemoryTokenCaches();
-
-        // inject our security provider
-        var securityProvider = new SecurityProvider();
-        services.AddSingleton<ISecurityProvider>(securityProvider);
-
-        return securityProvider;
     }
 }
