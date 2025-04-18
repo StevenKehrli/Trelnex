@@ -1,17 +1,16 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Trelnex.Core.Api.Authentication;
 
 namespace Trelnex.Auth.Amazon.Tests.Authentication;
 
-internal class TestPermission : IPermission
+internal class TestPermission2: IPermission
 {
     /// <summary>
     /// Gets the JWT bearer token scheme.
     /// </summary>
-    public string JwtBearerScheme => "Bearer.trelnex-auth-amazon-tests-authentication";
+    public string JwtBearerScheme => "Bearer.trelnex-auth-amazon-tests-authentication-2";
 
     /// <summary>
     /// Add Authentication to the <see cref="IServiceCollection"/>.
@@ -22,8 +21,6 @@ internal class TestPermission : IPermission
         IServiceCollection services,
         IConfiguration configuration)
     {
-        IdentityModelEventSource.ShowPII = true;
-
         services
             .AddAuthentication()
             .AddJwtBearer(
@@ -43,7 +40,7 @@ internal class TestPermission : IPermission
                         ValidAudience = GetAudience(configuration),
 
                         ValidateIssuer = true,
-                        ValidIssuer =  "Issuer.trelnex-auth-amazon-tests-authentication",
+                        ValidIssuer =  "Issuer.trelnex-auth-amazon-tests-authentication-2",
 
                         IssuerSigningKey = TestAlgorithm.SecurityKey,
                     };
@@ -67,7 +64,7 @@ internal class TestPermission : IPermission
     public string GetAudience(
         IConfiguration configuration)
     {
-        return "Audience.trelnex-auth-amazon-tests-authentication";
+        return "Audience.trelnex-auth-amazon-tests-authentication-2";
     }
 
     /// <summary>
@@ -76,11 +73,11 @@ internal class TestPermission : IPermission
     public string GetScope(
         IConfiguration configuration)
     {
-        return "Scope.trelnex-auth-amazon-tests-authentication";
+        return "Scope.trelnex-auth-amazon-tests-authentication-2";
     }
 
     public class TestRolePolicy : IPermissionPolicy
     {
-        public string[] RequiredRoles => [ "test.role" ];
+        public string[] RequiredRoles => [ "test.role.2" ];
     }
 }

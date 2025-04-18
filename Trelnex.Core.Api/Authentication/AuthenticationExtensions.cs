@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
@@ -20,13 +19,8 @@ public static class AuthenticationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.ThrowIfSecurityProviderAdded();
-
-        services.AddInMemoryTokenCaches();
-
-        // inject our security provider
-        var securityProvider = new SecurityProvider();
-        services.AddSingleton<ISecurityProvider>(securityProvider);
+        // get our security provider
+        var securityProvider = GetSecurityProvider(services);
 
         // add the permissions to the security provider
         return new PermissionsBuilder(services, configuration, securityProvider);
@@ -40,23 +34,17 @@ public static class AuthenticationExtensions
     public static void NoAuthentication(
         this IServiceCollection services)
     {
-        services.ThrowIfSecurityProviderAdded();
+        // get our security provider
+        _ = GetSecurityProvider(services);
 
-        services.AddHttpContextAccessor();
-
-        services.AddAuthentication();
         services.AddAuthorization();
-
-        // inject an empty security provider
-        var securityProvider = new SecurityProvider();
-        services.AddSingleton<ISecurityProvider>(securityProvider);
     }
 
     public static void ThrowIfAuthenticationNotAdded(
         this IServiceCollection services)
     {
-        // check if authentication was added
-        var added = services.Any(sd => sd.ServiceType == typeof(IAuthenticationService));
+        // check if security provider was added
+        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
 
         if (added is false)
         {
@@ -64,15 +52,25 @@ public static class AuthenticationExtensions
         }
     }
 
-    private static void ThrowIfSecurityProviderAdded(
-        this IServiceCollection services)
+    private static SecurityProvider GetSecurityProvider(
+        IServiceCollection services)
     {
-        // check if security provider was added
-        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
+        // get the security provider
+        var serviceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(ISecurityProvider));
 
-        if (added is true)
+        if (serviceDescriptor is not null)
         {
-            throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(NoAuthentication)} has already been configured.");
+            return (serviceDescriptor.ImplementationInstance as SecurityProvider)!;
         }
+
+        services.AddHttpContextAccessor();
+        services.AddAuthentication();
+        services.AddInMemoryTokenCaches();
+
+        // inject our security provider
+        var securityProvider = new SecurityProvider();
+        services.AddSingleton<ISecurityProvider>(securityProvider);
+
+        return securityProvider;
     }
 }

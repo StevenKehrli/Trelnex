@@ -19,7 +19,6 @@ public abstract class JwtBearerPermission : IPermission
         IConfiguration configuration)
     {
         services
-            .AddHttpContextAccessor()
             .AddAuthentication()
             .AddJwtBearer(
                 JwtBearerScheme,
