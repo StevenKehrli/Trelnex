@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using JWT.Algorithms;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Trelnex.Auth.Amazon.Tests.Authentication;
+namespace Trelnex.Core.Api.Tests;
 
 internal class TestAlgorithm : IAsymmetricAlgorithm
 {

@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Trelnex.Core.Api.Authentication;
 
-namespace Trelnex.Auth.Amazon.Tests.Authentication;
+namespace Trelnex.Core.Api.Tests;
 
-internal class TestPermission2: IPermission
+internal class TestPermission1 : IPermission
 {
     /// <summary>
     /// Gets the JWT bearer token scheme.
     /// </summary>
-    public string JwtBearerScheme => "Bearer.trelnex-auth-amazon-tests-authentication-2";
+    public string JwtBearerScheme => "Bearer.trelnex-auth-amazon-tests-authentication-1";
 
     /// <summary>
     /// Add Authentication to the <see cref="IServiceCollection"/>.
@@ -40,7 +40,7 @@ internal class TestPermission2: IPermission
                         ValidAudience = GetAudience(configuration),
 
                         ValidateIssuer = true,
-                        ValidIssuer =  "Issuer.trelnex-auth-amazon-tests-authentication-2",
+                        ValidIssuer =  "Issuer.trelnex-auth-amazon-tests-authentication-1",
 
                         IssuerSigningKey = TestAlgorithm.SecurityKey,
                     };
@@ -64,7 +64,7 @@ internal class TestPermission2: IPermission
     public string GetAudience(
         IConfiguration configuration)
     {
-        return "Audience.trelnex-auth-amazon-tests-authentication-2";
+        return "Audience.trelnex-auth-amazon-tests-authentication-1";
     }
 
     /// <summary>
@@ -73,11 +73,11 @@ internal class TestPermission2: IPermission
     public string GetScope(
         IConfiguration configuration)
     {
-        return "Scope.trelnex-auth-amazon-tests-authentication-2";
+        return "Scope.trelnex-auth-amazon-tests-authentication-1";
     }
 
     public class TestRolePolicy : IPermissionPolicy
     {
-        public string[] RequiredRoles => [ "test.role.2" ];
+        public string[] RequiredRoles => [ "test.role.1" ];
     }
 }

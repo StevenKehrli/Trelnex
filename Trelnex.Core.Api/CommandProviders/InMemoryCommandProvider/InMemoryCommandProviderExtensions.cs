@@ -26,13 +26,16 @@ public static class InMemoryCommandProviderExtensions
         Action<ICommandProviderOptions> configureCommandProviders)
     {
         // create our factory
-        var factory = InMemoryCommandProviderFactory.Create().Result;
+        var providerFactory = InMemoryCommandProviderFactory.Create().Result;
+
+        // inject the factory as the status interface
+        services.AddCommandProviderFactory(providerFactory);
 
         // inject any needed command providers
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
-            factory: factory);
+            providerFactory: providerFactory);
 
         configureCommandProviders(commandProviderOptions);
 
@@ -42,7 +45,7 @@ public static class InMemoryCommandProviderExtensions
     private class CommandProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
-        InMemoryCommandProviderFactory factory)
+        InMemoryCommandProviderFactory providerFactory)
         : ICommandProviderOptions
     {
         public ICommandProviderOptions Add<TInterface, TItem>(
@@ -59,7 +62,7 @@ public static class InMemoryCommandProviderExtensions
             }
 
             // create the command provider and inject it
-            var commandProvider = factory.Create<TInterface, TItem>(
+            var commandProvider = providerFactory.Create<TInterface, TItem>(
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations);

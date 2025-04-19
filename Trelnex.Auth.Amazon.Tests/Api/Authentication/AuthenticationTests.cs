@@ -1,82 +1,21 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Trelnex.Auth.Amazon.Services.JWT;
-using Trelnex.Core.Api;
-using Trelnex.Core.Api.Authentication;
-using Trelnex.Core.Data;
-using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Tests;
 
-namespace Trelnex.Auth.Amazon.Tests.Authentication;
+namespace Trelnex.Core.Api.Authentication.Tests;
 
-public class AuthenticationTests
+public class AuthenticationTests : BaseApiTests
 {
-    private IJwtProvider _jwtProvider1;
-    private IJwtProvider _jwtProvider2;
-
-    private WebApplication _webApplication;
-
-    private HttpClient _httpClient;
-
-    [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    [Test]
+    public void Anonymous()
     {
-        _jwtProvider1 = JwtProvider.Create(
-            jwtAlgorithm: new TestAlgorithm(),
-            keyId: "KeyId.trelnex-auth-amazon-tests-authentication",
-            issuer: "Issuer.trelnex-auth-amazon-tests-authentication-1",
-            expirationInMinutes: 15);
+        var request = new HttpRequestMessage(HttpMethod.Get, "/anonymous");
+        var response = _httpClient.SendAsync(request).Result;
 
-        _jwtProvider2 = JwtProvider.Create(
-            jwtAlgorithm: new TestAlgorithm(),
-            keyId: "KeyId.trelnex-auth-amazon-tests-authentication",
-            issuer: "Issuer.trelnex-auth-amazon-tests-authentication-2",
-            expirationInMinutes: 15);
-
-        _webApplication = Application.CreateWebApplication(
-            args: [],
-            addApplication: (services, configuration, logger) =>
-            {
-                // add the test server
-                services.AddSingleton<IHostLifetime, NoopHostLifetime>();
-                services.AddSingleton<IServer, TestServer>();
-
-                services
-                    .AddAuthentication(configuration)
-                    .AddPermissions<TestPermission1>(logger)
-                    .AddPermissions<TestPermission2>(logger);
-            },
-            useApplication: app =>
-            {
-                app
-                    .MapGet("/testRolePolicy1", (IRequestContext context) => context.ObjectId)
-                    .RequirePermission<TestPermission1.TestRolePolicy>();
-
-                app
-                    .MapGet("/testRolePolicy2", (IRequestContext context) => context.ObjectId)
-                    .RequirePermission<TestPermission2.TestRolePolicy>();
-            });
-
-        await _webApplication.StartAsync();
-
-        // create the http client to our web application
-        _httpClient = _webApplication.GetTestClient();
-    }
-
-    [OneTimeTearDown]
-    public async Task TestFixtureCleanup()
-    {
-        if (_webApplication is not null)
-        {
-            await _webApplication.StopAsync();
-            await _webApplication.DisposeAsync();
-        }
-
-        _httpClient?.Dispose();
+        // this should succeed because there is no authentication or authorization
+        Assert.That(
+            response.Content.ReadAsStringAsync().Result,
+            Is.EqualTo("anonymous"));
     }
 
     [Test]
@@ -421,34 +360,5 @@ public class AuthenticationTests
         Assert.That(
             response.Content.ReadAsStringAsync().Result,
             Is.EqualTo("PrincipalId.RequirePermission_Response_2"));
-    }
-
-    private static AccessToken CreateAccessToken(
-        IJwtProvider jwtProvider,
-        string audience,
-        string principalId,
-        string? scope = null,
-        string? role = null)
-    {
-        return jwtProvider.Encode(
-            principalId: principalId,
-            audience: audience,
-            scopes: scope is null ? [] : [ scope ],
-            roles: role is null ? [] : [ role ]);
-    }
-
-    private sealed class NoopHostLifetime : IHostLifetime
-    {
-        public Task StopAsync(
-            CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task WaitForStartAsync(
-            CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
     }
 }
