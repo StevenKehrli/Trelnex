@@ -48,11 +48,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_MissingScope_1()
     {
         // create a JWT token with a wrong scope
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_1",
-            role: "test.role.1");
+            scopes: [],
+            roles: [ "test.role.1" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -74,11 +74,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_MissingScope_2()
     {
         // create a JWT token with a wrong scope
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_2",
-            role: "test.role.2");
+            scopes: [],
+            roles: [ "test.role.2" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -100,11 +100,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_MissingRole_1()
     {
         // create a JWT token with a missing role
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingRole_1",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
+            roles: []);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -126,11 +126,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_MissingRole_2()
     {
         // create a JWT token with a missing role
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingRole_2",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-2");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
+            roles: []);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -152,12 +152,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongAudience_1()
     {
         // create a JWT token with a wrong audience
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongAudience_2",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-2",
-            role: "test.role.2");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
+            roles: [ "test.role.2" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -179,12 +178,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongAudience_2()
     {
         // create a JWT token with a wrong audience
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongAudience_1",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            role: "test.role.1");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
+            roles: [ "test.role.1" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -206,12 +204,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongScope_1()
     {
         // create a JWT token with a wrong scope
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongScope_1",
-            scope: "wrong.scope",
-            role: "test.role.1");
+            scopes: [ "wrong.scope" ],
+            roles: [ "test.role.1" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -233,12 +230,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongScope_2()
     {
         // create a JWT token with a wrong scope
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongScope_2",
-            scope: "wrong.scope",
-            role: "test.role.2");
+            scopes: [ "wrong.scope" ],
+            roles: [ "test.role.2" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -260,12 +256,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongRole_1()
     {
         // create a JWT token with a wrong role
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongRole_1",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            role: "wrong.role");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
+            roles: [ "wrong.role" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -287,12 +282,11 @@ public class AuthenticationTests : BaseApiTests
     public void RequirePermission_Forbidden_WrongRole_2()
     {
         // create a JWT token with a wrong role
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongRole_2",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-2",
-            role: "wrong.role");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
+            roles: [ "wrong.role" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -313,12 +307,11 @@ public class AuthenticationTests : BaseApiTests
     [Test]
     public void RequirePermission_Response_1()
     {
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider1,
+        var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Response_1",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            role: "test.role.1");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
+            roles: [ "test.role.1" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
@@ -339,12 +332,11 @@ public class AuthenticationTests : BaseApiTests
     [Test]
     public void RequirePermission_Response_2()
     {
-        var accessToken = CreateAccessToken(
-            jwtProvider: _jwtProvider2,
+        var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Response_2",
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-2",
-            role: "test.role.2");
+            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
+            roles: [ "test.role.2" ]);
 
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",

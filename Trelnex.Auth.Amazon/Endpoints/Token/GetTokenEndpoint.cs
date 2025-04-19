@@ -74,8 +74,8 @@ internal static class GetTokenEndpoint
 
         // encode the jwt token
         var accessToken = jwtProvider.Encode(
-            principalId: principalId,
             audience: resourceName,
+            principalId: principalId,
             scopes: principalMembership.ScopeNames,
             roles: principalMembership.RoleNames);
 

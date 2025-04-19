@@ -9,14 +9,14 @@ public interface IJwtProvider
     /// <summary>
     /// Encodes a JWT token for the specified caller identity.
     /// </summary>
-    /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="audience">The audience of the token.</param>
+    /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="scopes">The scopes of the token.</param>
     /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
     /// <returns>The JWT token.</returns>
     AccessToken Encode(
-        string principalId,
         string audience,
+        string principalId,
         string[] scopes,
         string[] roles);
 }
@@ -74,14 +74,14 @@ internal class JwtProvider : IJwtProvider
     /// <summary>
     /// Encodes a jwt token for the specified caller identity.
     /// </summary>
-    /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="audience">The audience of the token.</param>
+    /// <param name="principalId">The ARN of the caller.</param>
     /// <param name="scopes">The scopes of the token.</param>
     /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
     /// <returns>The jwt token.</returns>
     public AccessToken Encode(
-        string principalId,
         string audience,
+        string principalId,
         string[] scopes,
         string[] roles)
     {

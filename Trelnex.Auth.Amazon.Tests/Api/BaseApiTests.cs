@@ -2,15 +2,16 @@ using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trelnex.Auth.Amazon.Services.JWT;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Responses;
 using Trelnex.Core.Api.Swagger;
 using Trelnex.Core.Data;
-using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Tests;
 
@@ -61,22 +62,90 @@ public abstract class BaseApiTests
             useApplication: app =>
             {
                 app
-                    .MapGet("/anonymous", () => "anonymous");
+                    .MapGet("/anonymous", () => "anonymous")
+                    .Produces<string>();
                 
                 app
                     .MapGet("/testRolePolicy1", (IRequestContext context) => context.ObjectId)
-                    .RequirePermission<TestPermission1.TestRolePolicy>();
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<string>();
 
                 app
                     .MapGet("/testRolePolicy2", (IRequestContext context) => context.ObjectId)
-                    .RequirePermission<TestPermission2.TestRolePolicy>();
+                    .RequirePermission<TestPermission2.TestRolePolicy>()
+                    .Produces<string>();
 
                 app
                     .MapGet("/exception", () => 
                     {
                         throw new HttpStatusCodeException(HttpStatusCode.BadRequest);
                     })
-                    .Produces<HttpStatusCodeException>(StatusCodes.Status400BadRequest);
+                    .Produces<HttpStatusCodeResponse>(StatusCodes.Status400BadRequest);
+                
+                app
+                    .MapDelete("/delete1", () =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = "delete1"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<TestResponse>();
+                
+                app
+                    .MapGet("/get1", () =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = "get1"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<TestResponse>();
+                
+                app
+                    .MapPatch("/patch1", () =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = "patch1"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<TestResponse>();
+
+                app
+                    .MapPost("/post1", () =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = "post1"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<TestResponse>();
+                
+                app
+                    .MapPut("/put1", () =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = "put1"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
+                    .Produces<TestResponse>();
+                
+                app
+                    .MapGet("/queryString", ([FromQuery] string value) =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = value
+                        };
+                    })
+                    .Produces<TestResponse>();
 
                 app.AddSwaggerToWebApplication();
             });
@@ -97,20 +166,6 @@ public abstract class BaseApiTests
         }
 
         _httpClient?.Dispose();
-    }
-
-    protected static AccessToken CreateAccessToken(
-        IJwtProvider jwtProvider,
-        string audience,
-        string principalId,
-        string? scope = null,
-        string? role = null)
-    {
-        return jwtProvider.Encode(
-            principalId: principalId,
-            audience: audience,
-            scopes: scope is null ? [] : [ scope ],
-            roles: role is null ? [] : [ role ]);
     }
 
     private sealed class NoopHostLifetime : IHostLifetime
