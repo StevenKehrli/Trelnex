@@ -29,7 +29,12 @@ public class InMemoryCommandProviderTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "InMemoryCommandProviderTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "InMemoryCommandProviderTests",
+                DisplayName = "InMemoryCommandProviderTests",
+                Version = "0.0.0",
+                Description = "InMemoryCommandProviderTests",
+            });
 
         services.AddInMemoryCommandProviders(
             configuration,

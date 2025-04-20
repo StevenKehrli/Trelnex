@@ -67,6 +67,8 @@ public static class Application
             .Get<ServiceConfiguration>()
             ?? throw new ConfigurationErrorsException("The service configuration is not found.");
 
+        builder.Services.AddSingleton(serviceConfiguration);
+
         // add serilog
         var bootstrapLogger = builder.Services.AddSerilog(
             builder.Configuration,

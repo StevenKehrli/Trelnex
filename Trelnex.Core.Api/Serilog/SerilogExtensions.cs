@@ -13,7 +13,7 @@ namespace Trelnex.Core.Api.Serilog;
 /// <summary>
 /// Extension methods to add Serilog to the <see cref="WebApplicationBuilder"/>.
 /// </summary>
-internal static class SerilogExtensions
+public static class SerilogExtensions
 {
     /// <summary>
     /// Add the configuration to the <see cref="WebApplicationBuilder"/>.
@@ -41,7 +41,7 @@ internal static class SerilogExtensions
                 .ConfigureLogger(serviceConfiguration);
         });
 
-        return new SerilogLoggerFactory(Log.Logger).CreateLogger(serviceConfiguration.Name);
+        return new SerilogLoggerFactory(Log.Logger).CreateLogger(serviceConfiguration.FullName);
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ internal static class SerilogExtensions
             .WriteTo.Debug(formatter)
             .WriteTo.OpenTelemetry(options =>
             {
-                options.ResourceAttributes.Add("service.name", serviceConfiguration.Name);
+                options.ResourceAttributes.Add("service.name", serviceConfiguration.FullName);
                 options.ResourceAttributes.Add("service.version", serviceConfiguration.Version);
             });
     }

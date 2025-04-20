@@ -55,7 +55,7 @@ internal static class ObservabilityExtensions
                 {
                     configure
                         .AddService(
-                            serviceName: serviceConfiguration.Name,
+                            serviceName: serviceConfiguration.FullName,
                             serviceVersion: serviceConfiguration.Version,
                             autoGenerateServiceInstanceId: true);
                 })

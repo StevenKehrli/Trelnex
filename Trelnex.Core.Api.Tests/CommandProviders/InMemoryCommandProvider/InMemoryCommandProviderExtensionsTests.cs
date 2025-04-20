@@ -24,7 +24,12 @@ public class InMemoryCommandProviderExtensionsTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "InMemoryCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "InMemoryCommandProviderExtensionsTests",
+                DisplayName = "InMemoryCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "InMemoryCommandProviderExtensionsTests",
+            });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

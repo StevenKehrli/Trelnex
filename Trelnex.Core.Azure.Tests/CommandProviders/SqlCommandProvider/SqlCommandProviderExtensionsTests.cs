@@ -60,7 +60,12 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "SqlCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "SqlCommandProviderExtensionsTests",
+                DisplayName = "SqlCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "SqlCommandProviderExtensionsTests",
+            });
 
         services
             .AddAzureIdentity(
@@ -111,7 +116,12 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "SqlCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "SqlCommandProviderExtensionsTests",
+                DisplayName = "SqlCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "SqlCommandProviderExtensionsTests",
+            });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

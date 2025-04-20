@@ -56,7 +56,12 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "CosmosCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "CosmosCommandProviderExtensionsTests",
+                DisplayName = "CosmosCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "CosmosCommandProviderExtensionsTests",
+            });
 
         services
             .AddAzureIdentity(
@@ -112,7 +117,12 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "CosmosCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "CosmosCommandProviderExtensionsTests",
+                DisplayName = "CosmosCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "CosmosCommandProviderExtensionsTests",
+            });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

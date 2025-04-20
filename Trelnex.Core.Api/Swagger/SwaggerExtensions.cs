@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Semver;
+using Trelnex.Core.Api.Configuration;
 
 namespace Trelnex.Core.Api.Swagger;
 
@@ -17,10 +18,26 @@ public static class SwaggerExtensions
     public static IServiceCollection AddSwaggerToServices(
         this IServiceCollection services)
     {
+        var serviceDescriptor = services
+            .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
+            ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
+        
+        var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
+
+        // format the version string
+        var versionString = FormatVersionString(serviceConfiguration.SemVersion);
+
         services.AddEndpointsApiExplorer();
 
         services.AddSwaggerGen(options =>
         {
+            options.SwaggerDoc(versionString, new()
+            {
+                Title = serviceConfiguration.DisplayName,
+                Version = versionString,
+                Description = serviceConfiguration.Description,
+            });
+
             options.EnableAnnotations(
                 enableAnnotationsForInheritance: true,
                 enableAnnotationsForPolymorphism: true);
@@ -60,9 +77,10 @@ public static class SwaggerExtensions
     public static WebApplication AddSwaggerToWebApplication(
         this WebApplication app)
     {
-        var swaggerOptions = app.Configuration
-            .GetSection("Swagger")
-            .Get<SwaggerConfiguration>();
+        var serviceConfiguration = app.Services.GetRequiredService<ServiceConfiguration>();
+
+        // format the version string
+        var versionString = FormatVersionString(serviceConfiguration.SemVersion);
 
         app.Use((context, next) =>
         {
@@ -78,17 +96,16 @@ public static class SwaggerExtensions
 
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", swaggerOptions?.ServiceName);
+            options.SwaggerEndpoint($"/swagger/{versionString}/swagger.json", serviceConfiguration.DisplayName);
         });
 
         return app;
     }
 
-    /// <summary>
-    /// Represents the configuration properties for Swagger.
-    /// </summary>
-    /// <param name="ServiceName">The service name that appears in the document selector drop-down.</param>
-    private record SwaggerConfiguration(
-        string? ServiceName
-    );
+    private static string FormatVersionString(
+        SemVersion semVer)
+    {
+        // format the version string
+        return $"v{semVer.Major}";
+    }
 }

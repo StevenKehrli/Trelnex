@@ -56,7 +56,12 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "DynamoCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "DynamoCommandProviderExtensionsTests",
+                DisplayName = "DynamoCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "DynamoCommandProviderExtensionsTests"
+            });
 
         services
             .AddDynamoCommandProviders(
@@ -105,7 +110,12 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() { Name = "DynamoCommandProviderExtensionsTests", Version = "0.0.0" });
+            new ServiceConfiguration() {
+                FullName = "DynamoCommandProviderExtensionsTests",
+                DisplayName = "DynamoCommandProviderExtensionsTests",
+                Version = "0.0.0",
+                Description = "DynamoCommandProviderExtensionsTests"
+            });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>
