@@ -51,7 +51,7 @@ public abstract class BaseApiTests
                     .AddAuthentication(configuration)
                     .AddPermissions<TestPermission1>(logger)
                     .AddPermissions<TestPermission2>(logger);
-                
+
                 services
                     .AddSwaggerToServices()
                     .AddInMemoryCommandProviders(
@@ -64,7 +64,7 @@ public abstract class BaseApiTests
                 app
                     .MapGet("/anonymous", () => "anonymous")
                     .Produces<string>();
-                
+
                 app
                     .MapGet("/testRolePolicy1", (IRequestContext context) => context.ObjectId)
                     .RequirePermission<TestPermission1.TestRolePolicy>()
@@ -76,12 +76,12 @@ public abstract class BaseApiTests
                     .Produces<string>();
 
                 app
-                    .MapGet("/exception", () => 
+                    .MapGet("/exception", () =>
                     {
                         throw new HttpStatusCodeException(HttpStatusCode.BadRequest);
                     })
                     .Produces<HttpStatusCodeResponse>(StatusCodes.Status400BadRequest);
-                
+
                 app
                     .MapDelete("/delete1", () =>
                     {
@@ -92,7 +92,7 @@ public abstract class BaseApiTests
                     })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
                     .Produces<TestResponse>();
-                
+
                 app
                     .MapGet("/get1", () =>
                     {
@@ -103,7 +103,7 @@ public abstract class BaseApiTests
                     })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
                     .Produces<TestResponse>();
-                
+
                 app
                     .MapPatch("/patch1", () =>
                     {
@@ -125,7 +125,7 @@ public abstract class BaseApiTests
                     })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
                     .Produces<TestResponse>();
-                
+
                 app
                     .MapPut("/put1", () =>
                     {
@@ -136,7 +136,7 @@ public abstract class BaseApiTests
                     })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
                     .Produces<TestResponse>();
-                
+
                 app
                     .MapGet("/queryString", ([FromQuery] string value) =>
                     {

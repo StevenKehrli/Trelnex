@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Azure.Identity;
@@ -55,7 +56,7 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "CosmosCommandProviderExtensionsTests", Version = "0.0.0" });
 
         services
             .AddAzureIdentity(
@@ -111,7 +112,7 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "CosmosCommandProviderExtensionsTests", Version = "0.0.0" });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

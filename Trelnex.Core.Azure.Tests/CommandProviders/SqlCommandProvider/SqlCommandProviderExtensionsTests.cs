@@ -3,6 +3,7 @@ using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Azure.Identity;
@@ -59,7 +60,7 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "SqlCommandProviderExtensionsTests", Version = "0.0.0" });
 
         services
             .AddAzureIdentity(
@@ -110,7 +111,7 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "SqlCommandProviderExtensionsTests", Version = "0.0.0" });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

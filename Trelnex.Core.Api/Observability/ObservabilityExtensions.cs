@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;
+using Trelnex.Core.Api.Configuration;
 
 namespace Trelnex.Core.Api.Observability;
 
@@ -17,10 +18,12 @@ internal static class ObservabilityExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
+    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/>.</param>
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddObservability(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ServiceConfiguration serviceConfiguration)
     {
         var observabilityConfiguration = configuration
             .GetSection("Observability")
@@ -52,8 +55,8 @@ internal static class ObservabilityExtensions
                 {
                     configure
                         .AddService(
-                            serviceName: observabilityConfiguration.OpenTelemetry.ServiceName,
-                            serviceVersion: observabilityConfiguration.OpenTelemetry.ServiceVersion,
+                            serviceName: serviceConfiguration.Name,
+                            serviceVersion: serviceConfiguration.Version,
                             autoGenerateServiceInstanceId: true);
                 })
                 .WithTracing(configure =>
@@ -126,16 +129,6 @@ internal static class ObservabilityExtensions
         /// Indicates whether the open telemetry is enabled.
         /// </summary>
         public bool Enabled { get; init; } = false;
-
-        /// <summary>
-        /// The name of the service to be used in the telemetry.
-        /// </summary>
-        public string ServiceName { get; init; } = null!;
-
-        /// <summary>
-        /// The version of the service to be used in the telemetry.
-        /// </summary>
-        public string ServiceVersion { get; init; } = null!;
 
         /// <summary>
         /// The array of activity source names to be used in the telemetry.

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;
@@ -23,7 +24,7 @@ public class InMemoryCommandProviderExtensionsTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "InMemoryCommandProviderExtensionsTests", Version = "0.0.0" });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>

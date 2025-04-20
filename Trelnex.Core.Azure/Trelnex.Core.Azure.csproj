@@ -30,7 +30,7 @@
         <PackageReference Include="Azure.Identity" Version="1.13.2" />
         <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.7.0" />
         <PackageReference Include="linq2db" Version="5.4.1" />
-        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.48.1" />
+        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.49.0" />
         <PackageReference Include="Microsoft.Azure.Cosmos.Encryption" Version="2.0.4" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />

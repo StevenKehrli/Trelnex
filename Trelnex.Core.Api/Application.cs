@@ -1,3 +1,4 @@
+using System.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -57,13 +58,19 @@ public static class Application
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // add the configuration
+        builder.AddConfiguration();
+
+        // get the service configuration
+        var serviceConfiguration = builder.Configuration
+            .GetSection("Service")
+            .Get<ServiceConfiguration>()
+            ?? throw new ConfigurationErrorsException("The service configuration is not found.");
+
         // add serilog
         var bootstrapLogger = builder.Services.AddSerilog(
             builder.Configuration,
-            nameof(Application));
-
-        // add the configuration
-        builder.AddConfiguration();
+            serviceConfiguration);
 
         // handle our exceptions
         builder.Services.AddExceptionHandler<HttpStatusCodeExceptionHandler>();
@@ -96,7 +103,7 @@ public static class Application
         builder.Services.AddRequestContext();
 
         // add prometheus metrics server and http client metrics and open telemetry
-        builder.Services.AddObservability(builder.Configuration);
+        builder.Services.AddObservability(builder.Configuration, serviceConfiguration);
 
         // add the health checks
         builder.Services.AddIdentityHealthChecks();

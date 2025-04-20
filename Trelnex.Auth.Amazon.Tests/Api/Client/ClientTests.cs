@@ -12,7 +12,7 @@ public class ClientTests : BaseApiTests
             principalId: "PrincipalId.RequirePermission_Response_1",
             scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
             roles: [ "test.role.1" ]);
-        
+
         var accessTokenProvider = new TestAccessTokenProvider(
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
             accessToken: accessToken);
@@ -36,7 +36,7 @@ public class ClientTests : BaseApiTests
             principalId: "PrincipalId.RequirePermission_Response_1",
             scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
             roles: [ "test.role.1" ]);
-        
+
         var accessTokenProvider = new TestAccessTokenProvider(
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
             accessToken: accessToken);
@@ -60,7 +60,7 @@ public class ClientTests : BaseApiTests
             principalId: "PrincipalId.RequirePermission_Response_1",
             scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
             roles: [ "test.role.1" ]);
-        
+
         var accessTokenProvider = new TestAccessTokenProvider(
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
             accessToken: accessToken);
@@ -84,7 +84,7 @@ public class ClientTests : BaseApiTests
             principalId: "PrincipalId.RequirePermission_Response_1",
             scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
             roles: [ "test.role.1" ]);
-        
+
         var accessTokenProvider = new TestAccessTokenProvider(
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
             accessToken: accessToken);
@@ -108,7 +108,7 @@ public class ClientTests : BaseApiTests
             principalId: "PrincipalId.RequirePermission_Response_1",
             scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
             roles: [ "test.role.1" ]);
-        
+
         var accessTokenProvider = new TestAccessTokenProvider(
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
             accessToken: accessToken);

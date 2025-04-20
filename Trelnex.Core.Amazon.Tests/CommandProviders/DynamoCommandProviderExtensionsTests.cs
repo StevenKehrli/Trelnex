@@ -5,6 +5,7 @@ using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Amazon.CommandProviders;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Data;
@@ -55,7 +56,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "DynamoCommandProviderExtensionsTests", Version = "0.0.0" });
 
         services
             .AddDynamoCommandProviders(
@@ -104,7 +105,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            new ServiceConfiguration() { Name = "DynamoCommandProviderExtensionsTests", Version = "0.0.0" });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>
