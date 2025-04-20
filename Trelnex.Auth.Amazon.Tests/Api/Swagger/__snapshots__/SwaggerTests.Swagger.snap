@@ -1,8 +1,9 @@
 ﻿{
   "openapi": "3.0.4",
   "info": {
-    "title": "testhost",
-    "version": "1.0"
+    "title": "trelnex-auth-amazon-tests",
+    "description": "trelnex-auth-amazon-tests",
+    "version": "1.0.0"
   },
   "paths": {
     "/anonymous": {

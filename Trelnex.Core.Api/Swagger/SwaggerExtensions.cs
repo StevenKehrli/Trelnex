@@ -34,7 +34,7 @@ public static class SwaggerExtensions
             options.SwaggerDoc(versionString, new()
             {
                 Title = serviceConfiguration.DisplayName,
-                Version = versionString,
+                Version = serviceConfiguration.Version,
                 Description = serviceConfiguration.Description,
             });
 
