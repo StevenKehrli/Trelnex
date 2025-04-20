@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Trelnex.Auth.Amazon.Services.JWT;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Responses;
@@ -17,8 +16,8 @@ namespace Trelnex.Core.Api.Tests;
 
 public abstract class BaseApiTests
 {
-    protected IJwtProvider _jwtProvider1;
-    protected IJwtProvider _jwtProvider2;
+    internal TestJwtProvider _jwtProvider1;
+    internal TestJwtProvider _jwtProvider2;
 
     protected HttpClient _httpClient;
 
@@ -27,13 +26,13 @@ public abstract class BaseApiTests
     [OneTimeSetUp]
     public async Task TestFixtureSetup()
     {
-        _jwtProvider1 = JwtProvider.Create(
+        _jwtProvider1 = new TestJwtProvider(
             jwtAlgorithm: new TestAlgorithm(),
             keyId: "KeyId.trelnex-auth-amazon-tests-authentication",
             issuer: "Issuer.trelnex-auth-amazon-tests-authentication-1",
             expirationInMinutes: 15);
 
-        _jwtProvider2 = JwtProvider.Create(
+        _jwtProvider2 = new TestJwtProvider(
             jwtAlgorithm: new TestAlgorithm(),
             keyId: "KeyId.trelnex-auth-amazon-tests-authentication",
             issuer: "Issuer.trelnex-auth-amazon-tests-authentication-2",

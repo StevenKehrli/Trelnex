@@ -121,7 +121,7 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         });
 
         // get the default jwt provider
-        var defaultJwtProvider = JwtProvider.Create(
+        var defaultJwtProvider = new JwtProvider(
             algorithmCollection.DefaultAlgorithm,
             algorithmCollection.DefaultAlgorithm.JWK.KeyId,
             openIdConfiguration.Issuer,
@@ -131,11 +131,11 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         var regionalJwtProviders = algorithmCollection.RegionalAlgorithms?
             .Select(algorithm => (
                 region: algorithm.Region,
-                jwtProvider: JwtProvider.Create(
+                jwtProvider: new JwtProvider(
                     algorithm,
                     algorithm.JWK.KeyId,
                     openIdConfiguration.Issuer,
-                    jwtConfiguration.ExpirationInMinutes)))
+                    jwtConfiguration.ExpirationInMinutes) as IJwtProvider))
             .ToArray();
 
         // create the algorithm provider

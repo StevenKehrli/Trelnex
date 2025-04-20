@@ -2,26 +2,9 @@ using JWT.Algorithms;
 using JWT.Builder;
 using Trelnex.Core.Identity;
 
-namespace Trelnex.Auth.Amazon.Services.JWT;
+namespace Trelnex.Core.Api.Tests;
 
-public interface IJwtProvider
-{
-    /// <summary>
-    /// Encodes a JWT token for the specified caller identity.
-    /// </summary>
-    /// <param name="audience">The audience of the token.</param>
-    /// <param name="principalId">The ARN of the caller.</param>
-    /// <param name="scopes">The scopes of the token.</param>
-    /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
-    /// <returns>The JWT token.</returns>
-    AccessToken Encode(
-        string audience,
-        string principalId,
-        string[] scopes,
-        string[] roles);
-}
-
-internal class JwtProvider : IJwtProvider
+internal class TestJwtProvider
 {
     private readonly IJwtAlgorithm _jwtAlgorithm;
 
@@ -33,15 +16,7 @@ internal class JwtProvider : IJwtProvider
 
     private readonly int _refreshInMinutes;
 
-    /// <summary>
-    /// Creates a new instance of the <see cref="JwtProvider"/>.
-    /// </summary>
-    /// <param name="jwtAlgorithm">The jwt algorithm to use for signing the token.</param>
-    /// <param name="keyId">The key id to use for signing the token.</param>
-    /// <param name="issuer">The issuer of the token.</param>
-    /// <param name="expirationInMinutes">The expiration time of the jwt token in minutes.</param>
-    /// <returns>The <see cref="JwtProvider"/>.</returns>
-    public JwtProvider(
+    public TestJwtProvider(
         IJwtAlgorithm jwtAlgorithm,
         string keyId,
         string issuer,
@@ -94,12 +69,18 @@ internal class JwtProvider : IJwtProvider
         // set the audience
         jwtBuilder.Audience(audience);
 
-        // add the scopes
-        var scp = string.Join(" ", scopes);
-        jwtBuilder.AddClaim("scp", scp);
+        // add any scopes
+        if (scopes.Length > 0)
+        {
+            var scp = string.Join(" ", scopes);
+            jwtBuilder.AddClaim("scp", scp);
+        }
 
-        // add the roles
-        jwtBuilder.AddClaim("roles", roles);
+        // add any roles
+        if (roles.Length > 0)
+        {
+            jwtBuilder.AddClaim("roles", roles);
+        }
 
         // add the principalId as the oid and sub claims
         jwtBuilder

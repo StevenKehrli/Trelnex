@@ -1,4 +1,0 @@
-# Namespace does not match folder structure (IDE0130)
-# https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0130
-[*.cs]
-dotnet_diagnostic.IDE0130.severity = none
