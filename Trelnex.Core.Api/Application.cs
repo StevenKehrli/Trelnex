@@ -69,6 +69,9 @@ public static class Application
 
         builder.Services.AddSingleton(serviceConfiguration);
 
+        // add prometheus metrics server and http client metrics and open telemetry
+        builder.Services.AddObservability(builder.Configuration, serviceConfiguration);
+
         // add serilog
         var bootstrapLogger = builder.Services.AddSerilog(
             builder.Configuration,
@@ -103,9 +106,6 @@ public static class Application
 
         // add the request context as a transient object
         builder.Services.AddRequestContext();
-
-        // add prometheus metrics server and http client metrics and open telemetry
-        builder.Services.AddObservability(builder.Configuration, serviceConfiguration);
 
         // add the health checks
         builder.Services.AddIdentityHealthChecks();
