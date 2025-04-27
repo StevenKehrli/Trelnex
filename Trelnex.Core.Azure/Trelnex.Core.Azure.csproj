@@ -32,7 +32,7 @@
         <PackageReference Include="linq2db" Version="5.4.1" />
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.49.0" />
         <PackageReference Include="Microsoft.Azure.Cosmos.Encryption" Version="2.0.4" />
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <!-- <PackageReference Include="Trelnex.Core.Api" Version="2.0.0" /> -->
         <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />

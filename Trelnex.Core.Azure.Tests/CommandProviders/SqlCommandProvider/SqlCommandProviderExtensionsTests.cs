@@ -35,6 +35,12 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
             .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
             .Build();
 
+        var serviceConfiguration = configuration
+            .GetSection("ServiceConfiguration")
+            .Get<ServiceConfiguration>()!;
+
+        services.AddSingleton(serviceConfiguration);
+
         var dataSource = configuration
             .GetSection("SqlCommandProviders:DataSource")
             .Value!;
@@ -49,6 +55,7 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var scsBuilder = new SqlConnectionStringBuilder()
         {
+            ApplicationName = serviceConfiguration.FullName,
             DataSource = dataSource,
             InitialCatalog = initialCatalog,
             Encrypt = true,
@@ -60,12 +67,7 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() {
-                FullName = "SqlCommandProviderExtensionsTests",
-                DisplayName = "SqlCommandProviderExtensionsTests",
-                Version = "0.0.0",
-                Description = "SqlCommandProviderExtensionsTests",
-            });
+            serviceConfiguration);
 
         services
             .AddAzureIdentity(

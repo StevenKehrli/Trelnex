@@ -69,8 +69,8 @@ internal static class GetTokenEndpoint
             cancellationToken: default);
 
         // get the jwt provider
-        var region = RegionEndpoint.GetBySystemName(signature.Region);
-        var jwtProvider = jwtProviderRegistry.GetProvider(region);
+        var regionEndpoint = RegionEndpoint.GetBySystemName(signature.Region);
+        var jwtProvider = jwtProviderRegistry.GetProvider(regionEndpoint);
 
         // encode the jwt token
         var accessToken = jwtProvider.Encode(

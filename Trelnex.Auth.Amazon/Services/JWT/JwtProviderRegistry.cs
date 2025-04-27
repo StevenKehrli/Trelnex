@@ -47,7 +47,7 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         OpenIdConfiguration openIdConfiguration,
         JsonWebKeySet jwks,
         IJwtProvider defaultJwtProvider,
-        (RegionEndpoint region, IJwtProvider jwtProvider)[]? regionalJwtProviders)
+        (RegionEndpoint regionEndpoint, IJwtProvider jwtProvider)[]? regionalJwtProviders)
     {
         _openIdConfiguration = openIdConfiguration;
         _jwks = jwks;
@@ -58,7 +58,7 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         // set the regional providers
         _regionalJwtProviders = regionalJwtProviders?
             .ToDictionary(
-                x => x.region,
+                x => x.regionEndpoint,
                 x => x.jwtProvider) ?? [];
     }
 
@@ -130,7 +130,7 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         // get the regional providers
         var regionalJwtProviders = algorithmCollection.RegionalAlgorithms?
             .Select(algorithm => (
-                region: algorithm.Region,
+                regionEndpoint: algorithm.RegionEndpoint,
                 jwtProvider: new JwtProvider(
                     algorithm,
                     algorithm.JWK.KeyId,
@@ -164,11 +164,11 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         T attribute)
     {
         // cast the attribute to a RegionEndpoint
-        var region = attribute as RegionEndpoint
+        var regionEndpoint = attribute as RegionEndpoint
             ?? throw new ArgumentException($"The attribute '{attribute}' is not a valid '{nameof(RegionEndpoint)}'.");
 
         // get the jwt provider
-        return _regionalJwtProviders.TryGetValue(region, out var jwtProvider)
+        return _regionalJwtProviders.TryGetValue(regionEndpoint, out var jwtProvider)
             ? jwtProvider
             : _defaultJwtProvider;
     }

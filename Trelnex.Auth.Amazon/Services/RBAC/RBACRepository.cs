@@ -248,10 +248,10 @@ internal class RBACRepository : IRBACRepository
             ?? throw new ConfigurationErrorsException("The RBAC configuration is not found.");
 
         // get the region
-        var region = RegionEndpoint.GetBySystemName(rbacConfiguration.Region);
+        var regionEndpoint = RegionEndpoint.GetBySystemName(rbacConfiguration.Region);
 
         // create the dynamodb client
-        var client = new AmazonDynamoDBClient(credentials, region);
+        var client = new AmazonDynamoDBClient(credentials, regionEndpoint);
 
         // create the rbac repository
         return new RBACRepository(scopeNameValidator, client, rbacConfiguration.TableName);

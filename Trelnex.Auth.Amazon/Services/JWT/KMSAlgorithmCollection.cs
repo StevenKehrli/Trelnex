@@ -47,7 +47,7 @@ internal class KMSAlgorithmCollection
             keyArn: algorithmResources.DefaultKey.keyArn,
             algorithmTask: KMSAlgorithm.CreateAsync(
                 credentials,
-                algorithmResources.DefaultKey.region,
+                algorithmResources.DefaultKey.regionEndpoint,
                 algorithmResources.DefaultKey.keyArn));
 
         // get the regional algorithms
@@ -57,7 +57,7 @@ internal class KMSAlgorithmCollection
                 keyArn: regionalKey.keyArn,
                 algorithmTask: KMSAlgorithm.CreateAsync(
                     credentials,
-                    regionalKey.region,
+                    regionalKey.regionEndpoint,
                     regionalKey.keyArn)))
             .ToArray();
 
@@ -68,7 +68,7 @@ internal class KMSAlgorithmCollection
                 keyArn: secondaryKey.keyArn,
                 algorithmTask: KMSAlgorithm.CreateAsync(
                     credentials,
-                    secondaryKey.region,
+                    secondaryKey.regionEndpoint,
                     secondaryKey.keyArn)))
             .ToArray();
 
@@ -146,7 +146,7 @@ internal class KMSAlgorithmCollection
             bootstrapLogger.LogInformation(
                 message: "Added Regional KMSAlgorithm: region = '{region:l}', kid '{kid:l}', keyArn = '{keyArn:l}'.",
                 args: [
-                    regionalAlgorithm.Region.SystemName,
+                    regionalAlgorithm.RegionEndpoint.SystemName,
                     regionalAlgorithm.JWK.KeyId,
                     regionalAlgorithm.KeyArn ]);
         });
@@ -156,7 +156,7 @@ internal class KMSAlgorithmCollection
             bootstrapLogger.LogInformation(
                 message: "Added Secondary KMSAlgorithm: region = '{region:l}', kid = '{kid:l}', keyArn = '{keyArn:l}'.",
                 args: [
-                    secondaryAlgorithm.Region.SystemName,
+                    secondaryAlgorithm.RegionEndpoint.SystemName,
                     secondaryAlgorithm.JWK.KeyId,
                     secondaryAlgorithm.KeyArn ]);
         });
@@ -176,16 +176,16 @@ internal class KMSAlgorithmCollection
 
     private class KMSAlgorithmResources
     {
-        public (RegionEndpoint region, string keyArn) DefaultKey { get; init; }
+        public (RegionEndpoint regionEndpoint, string keyArn) DefaultKey { get; init; }
 
-        public (RegionEndpoint region, string keyArn)[]? RegionalKeys { get; init; }
+        public (RegionEndpoint regionEndpoint, string keyArn)[]? RegionalKeys { get; init; }
 
-        public (RegionEndpoint region, string keyArn)[]? SecondaryKeys { get; init; }
+        public (RegionEndpoint regionEndpoint, string keyArn)[]? SecondaryKeys { get; init; }
 
         private KMSAlgorithmResources(
-            (RegionEndpoint region, string keyArn) defaultKey,
-            (RegionEndpoint region, string keyArn)[]? regionalKeys,
-            (RegionEndpoint region, string keyArn)[]? secondaryKeys)
+            (RegionEndpoint regionEndpoint, string keyArn) defaultKey,
+            (RegionEndpoint regionEndpoint, string keyArn)[]? regionalKeys,
+            (RegionEndpoint regionEndpoint, string keyArn)[]? secondaryKeys)
         {
             DefaultKey = defaultKey;
             RegionalKeys = regionalKeys;
@@ -210,10 +210,10 @@ internal class KMSAlgorithmCollection
 
             // parse the default key
             var defaultKeyTuple = (
-                region: KeyArnUtilities.GetRegion(defaultKey),
+                regionEndpoint: KeyArnUtilities.GetRegion(defaultKey),
                 keyArn: defaultKey);
 
-            if (defaultKeyTuple.region is null)
+            if (defaultKeyTuple.regionEndpoint is null)
             {
                 exs.Add(new ConfigurationErrorsException($"The DefaultKey '{defaultKeyTuple.keyArn}' is invalid."));
             }
@@ -221,13 +221,13 @@ internal class KMSAlgorithmCollection
             // parse the regional keys
             var regionalKeyTuples = regionalKeys?
                 .Select(key => (
-                    region: KeyArnUtilities.GetRegion(key),
+                    regionEndpoint: KeyArnUtilities.GetRegion(key),
                     keyArn: key))
                 .ToArray();
 
             Array.ForEach(regionalKeyTuples ?? [], regionalKeyTuple =>
             {
-                if (regionalKeyTuple.region is null)
+                if (regionalKeyTuple.regionEndpoint is null)
                 {
                     exs.Add(new ConfigurationErrorsException($"The RegionalKey '{regionalKeyTuple.keyArn}' is invalid."));
                 }
@@ -235,8 +235,8 @@ internal class KMSAlgorithmCollection
 
             // group the regional keys by region - only one key per region
             var regionalKeyGroups = regionalKeyTuples?
-                .Where(regionalKeyTuple => regionalKeyTuple.region is not null)
-                .GroupBy(regionalKeyTuple => regionalKeyTuple.region)
+                .Where(regionalKeyTuple => regionalKeyTuple.regionEndpoint is not null)
+                .GroupBy(regionalKeyTuple => regionalKeyTuple.regionEndpoint)
                 .ToArray();
 
             // enumerate each group - should be one
@@ -259,14 +259,14 @@ internal class KMSAlgorithmCollection
             // parse the secondary keys
             var secondaryKeyTuples = secondaryKeys?
                 .Select(key => (
-                    region: KeyArnUtilities.GetRegion(key),
+                    regionEndpoint: KeyArnUtilities.GetRegion(key),
                     keyArn: key))
                 .ToArray();
 
             // validate the secondary keys
             Array.ForEach(secondaryKeyTuples ?? [], secondaryKeyTuple =>
             {
-                if (secondaryKeyTuple.region is null)
+                if (secondaryKeyTuple.regionEndpoint is null)
                 {
                     exs.Add(new ConfigurationErrorsException($"The SecondaryKey '{secondaryKeyTuple.keyArn}' is invalid."));
                 }
@@ -274,7 +274,7 @@ internal class KMSAlgorithmCollection
 
             // group the secondary keys by keyArn - each key should be unique
             var secondaryKeyGroups = secondaryKeyTuples?
-                .Where(secondaryKeyTuple => secondaryKeyTuple.region is not null)
+                .Where(secondaryKeyTuple => secondaryKeyTuple.regionEndpoint is not null)
                 .GroupBy(secondaryKeyTuple => secondaryKeyTuple.keyArn)
                 .ToArray();
 
@@ -307,15 +307,15 @@ internal class KMSAlgorithmCollection
             }
 
             return new KMSAlgorithmResources(
-                defaultKey: (defaultKeyTuple.region!, defaultKeyTuple.keyArn!),
+                defaultKey: (defaultKeyTuple.regionEndpoint!, defaultKeyTuple.keyArn!),
                 regionalKeys: regionalKeyTuples?
                     .Select(regionalKeyTuple => (
-                        regionalKeyTuple.region!,
+                        regionalKeyTuple.regionEndpoint!,
                         regionalKeyTuple.keyArn!))
                     .ToArray(),
                 secondaryKeys: secondaryKeyTuples?
                     .Select(secondaryKeyTuple => (
-                        secondaryKeyTuple.region!,
+                        secondaryKeyTuple.regionEndpoint!,
                         secondaryKeyTuple.keyArn!))
                     .ToArray());
         }

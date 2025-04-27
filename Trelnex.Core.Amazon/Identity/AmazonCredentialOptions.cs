@@ -4,6 +4,7 @@ namespace Trelnex.Core.Amazon.Identity;
 /// Represents the configuration options for creating an <see cref="AmazonCredentialProvider"/> instance.
 /// </summary>
 /// <param name="Region">The region name for the security token service.</param>
+/// <param name="AccessTokenClient">The configuration options for the access token client.</param>
 public record AmazonCredentialOptions(
     string Region,
     AccessTokenClientConfiguration AccessTokenClient);

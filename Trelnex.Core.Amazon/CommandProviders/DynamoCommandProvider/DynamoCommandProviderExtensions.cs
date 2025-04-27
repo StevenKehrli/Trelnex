@@ -82,7 +82,7 @@ public static class DynamoCommandProvidersExtensions
 
         return new DynamoClientOptions(
             AWSCredentials: awsCredentials,
-            RegionName: providerOptions.RegionName,
+            Region: providerOptions.Region,
             TableNames: providerOptions.GetTableNames());
     }
 
@@ -129,13 +129,13 @@ public static class DynamoCommandProvidersExtensions
             [
                 typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
-                providerOptions.RegionName, // regionName
+                providerOptions.Region, // region
                 tableName // tableName
             ];
 
             // log - the :l format parameter (l = literal) to avoid the quotes
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: regionName = '{regionName:l}', tableName = '{tableName:l}'.",
+                message: "Added DynamoCommandProvider<{TInterface:l}, {TItem:l}>: region = '{region:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;
@@ -164,7 +164,7 @@ public static class DynamoCommandProvidersExtensions
         /// <summary>
         /// The region for the tables.
         /// </summary>
-        public required string RegionName { get; init; }
+        public required string Region { get; init; }
 
         /// <summary>
         /// The collection of tables by item type
@@ -176,7 +176,7 @@ public static class DynamoCommandProvidersExtensions
     /// Represents the Dynamo command provider options: the collection of tables by item type.
     /// </summary>
     private class DynamoCommandProviderOptions(
-        string regionName)
+        string region)
     {
         /// <summary>
         /// The collection of tables by item type.
@@ -193,7 +193,7 @@ public static class DynamoCommandProvidersExtensions
             DynamoCommandProviderConfiguration providerConfiguration)
         {
             var options = new DynamoCommandProviderOptions(
-                regionName: providerConfiguration.RegionName);
+                region: providerConfiguration.Region);
 
             // group the tables by item type
             var groups = providerConfiguration
@@ -230,7 +230,7 @@ public static class DynamoCommandProvidersExtensions
         /// <summary>
         /// Get the region name.
         /// </summary>
-        public string RegionName => regionName;
+        public string Region => region;
 
         /// <summary>
         /// Get the table for the specified item type.

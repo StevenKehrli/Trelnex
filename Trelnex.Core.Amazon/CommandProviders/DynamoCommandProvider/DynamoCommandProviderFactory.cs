@@ -35,13 +35,13 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         // create the dynamo client
         var dynamoClient = new AmazonDynamoDBClient(
             dynamoClientOptions.AWSCredentials,
-            RegionEndpoint.GetBySystemName(dynamoClientOptions.RegionName));
+            RegionEndpoint.GetBySystemName(dynamoClientOptions.Region));
 
         CommandProviderFactoryStatus getStatus()
         {
             var data = new Dictionary<string, object>
             {
-                { "regionName", dynamoClientOptions.RegionName },
+                { "region", dynamoClientOptions.Region },
                 { "tableNames", dynamoClientOptions.TableNames },
             };
 

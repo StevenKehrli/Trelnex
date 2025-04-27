@@ -9,6 +9,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Data.SqlClient;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
 
 namespace Trelnex.Core.Azure.CommandProviders;
@@ -41,14 +42,17 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
     /// <summary>
     /// Create an instance of the <see cref="SqlCommandProviderFactory"/>.
     /// </summary>
+    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/> options.</param>
     /// <param name="sqlClientOptions">The <see cref="SqlClientOptions"/> options.</param>
     /// <returns>The <see cref="SqlCommandProviderFactory"/>.</returns>
     public static async Task<SqlCommandProviderFactory> Create(
+        ServiceConfiguration serviceConfiguration,
         SqlClientOptions sqlClientOptions)
     {
-        // build the data options
+        // build the connection string
         var scsBuilder = new SqlConnectionStringBuilder()
         {
+            ApplicationName = serviceConfiguration.FullName,
             DataSource = sqlClientOptions.DataSource,
             InitialCatalog = sqlClientOptions.InitialCatalog,
             Encrypt = true,

@@ -45,26 +45,26 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
     /// <summary>
     /// The AWS region endpoint
     /// </summary>
-    private readonly RegionEndpoint _region;
+    private readonly RegionEndpoint _regionEndpoint;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KMSAlgorithm"/> class.
     /// </summary>
     /// <param name="client">The Amazon Key Management Service client</param>
-    /// <param name="region">The region endpoint</param>
+    /// <param name="regionEndpoint">The region endpoint</param>
     /// <param name="keyArn">The key arn used to sign the data</param>
     /// <param name="name">The algorithm name</param>
     /// <param name="hashAlgorithmName">The hashing algorithm name</param>
     private KMSAlgorithm(
         AmazonKeyManagementServiceClient client,
-        RegionEndpoint region,
+        RegionEndpoint regionEndpoint,
         string keyArn,
         string name,
         HashAlgorithmName hashAlgorithmName,
         JsonWebKey jwk)
     {
         _client = client;
-        _region = region;
+        _regionEndpoint = regionEndpoint;
         _keyArn = keyArn;
         _name = name;
         _hashAlgorithmName = hashAlgorithmName;
@@ -75,16 +75,16 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
     /// Creates a new instance of the <see cref="KMSAlgorithm"/> class.
     /// </summary>
     /// <param name="credentials">AWS Credentials</param>
-    /// <param name="region">The region endpoint.</param>
+    /// <param name="regionEndpoint">The region endpoint.</param>
     /// <param name="keyArn">The key arn.</param>
     /// <returns>The <see cref="KMSAlgorithm"/> instance</returns>
     internal static async Task<KMSAlgorithm> CreateAsync(
         AWSCredentials? credentials,
-        RegionEndpoint region,
+        RegionEndpoint regionEndpoint,
         string keyArn)
     {
         // create the client
-        var client = new AmazonKeyManagementServiceClient(credentials, region);
+        var client = new AmazonKeyManagementServiceClient(credentials, regionEndpoint);
 
         // get the public key
         var request = new GetPublicKeyRequest
@@ -105,7 +105,7 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
 
         return new KMSAlgorithm(
             client,
-            region,
+            regionEndpoint,
             keyArn,
             name,
             hashAlogithmName,
@@ -135,7 +135,7 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
     /// <summary>
     /// Gets the AWS region endpoint.
     /// </summary>
-    public RegionEndpoint Region => _region;
+    public RegionEndpoint RegionEndpoint => _regionEndpoint;
 
     /// <summary>
     /// Signs provided byte array with provided key.

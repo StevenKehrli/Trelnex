@@ -46,11 +46,11 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
 
             return await Task.FromResult(item);
         }
-        catch (SqlException se)
+        catch (SqlException ex)
         {
             var httpStatusCode = HttpStatusCode.InternalServerError;
 
-            throw new CommandException(httpStatusCode, se.Message);
+            throw new CommandException(httpStatusCode, ex.Message);
         }
     }
 
@@ -102,16 +102,16 @@ internal partial class SqlCommandProvider<TInterface, TItem>(
                         HttpStatusCode.OK,
                         saved);
             }
-            catch (SqlException se)
+            catch (SqlException ex)
             {
                 var httpStatusCode = HttpStatusCode.InternalServerError;
 
-                if (PreconditionFailedRegex().IsMatch(se.Message))
+                if (PreconditionFailedRegex().IsMatch(ex.Message))
                 {
                     httpStatusCode = HttpStatusCode.PreconditionFailed;
                 }
 
-                if (PrimaryKeyViolationRegex().IsMatch(se.Message))
+                if (PrimaryKeyViolationRegex().IsMatch(ex.Message))
                 {
                     httpStatusCode = HttpStatusCode.Conflict;
                 }

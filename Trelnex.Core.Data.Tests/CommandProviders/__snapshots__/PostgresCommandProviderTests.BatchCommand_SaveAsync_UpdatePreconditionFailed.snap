@@ -1,0 +1,40 @@
+﻿{
+  "saved": [
+    {
+      "HttpStatusCode": "FailedDependency",
+      "ReadResult": null
+    },
+    {
+      "HttpStatusCode": "PreconditionFailed",
+      "ReadResult": null
+    }
+  ],
+  "read": [
+    {
+      "Item": {
+        "Id": "3107d2ff-9f33-4718-b180-f7b65223fba8",
+        "PartitionKey": "90eabddb-a71a-4ccb-aa1a-062590597fb2",
+        "TypeName": "test-item",
+        "CreatedDate": "2025-04-27T07:29:14.593496",
+        "UpdatedDate": "2025-04-27T07:29:14.593496",
+        "DeletedDate": null,
+        "IsDeleted": null,
+        "ETag": "5d03b929-b166-4e93-8a83-93011b2797ee",
+        "Message": "Message #1"
+      }
+    },
+    {
+      "Item": {
+        "Id": "5f969f1c-c115-4982-949b-4e4987197dfe",
+        "PartitionKey": "90eabddb-a71a-4ccb-aa1a-062590597fb2",
+        "TypeName": "test-item",
+        "CreatedDate": "2025-04-27T07:29:14.593578",
+        "UpdatedDate": "2025-04-27T07:29:14.723312",
+        "DeletedDate": null,
+        "IsDeleted": null,
+        "ETag": "f64d33a4-d6b4-4ffe-901f-fbfc670fc75e",
+        "Message": "Message #0"
+      }
+    }
+  ]
+}

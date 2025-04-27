@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;
@@ -27,6 +28,10 @@ public class SqlCommandProviderTests : CommandProviderTests
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
             .Build();
+
+        var serviceConfiguration = configuration
+            .GetSection("ServiceConfiguration")
+            .Get<ServiceConfiguration>()!;
 
         var dataSource = configuration
             .GetSection("SqlCommandProviders:DataSource")
@@ -61,6 +66,7 @@ public class SqlCommandProviderTests : CommandProviderTests
         );
 
         var factory = await SqlCommandProviderFactory.Create(
+            serviceConfiguration,
             sqlClientOptions);
 
         _commandProvider = factory.Create<ITestItem, TestItem>(

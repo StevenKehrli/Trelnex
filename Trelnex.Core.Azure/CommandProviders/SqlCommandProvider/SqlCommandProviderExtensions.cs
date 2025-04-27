@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Identity;
@@ -37,6 +38,13 @@ public static class SqlCommandProvidersExtensions
             .GetSection("SqlCommandProviders")
             .Get<SqlCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The SqlCommandProviders configuration is not found.");
+        
+        // get the service configuration
+        var serviceDescriptor = services
+            .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
+            ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
+        
+        var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
         // parse the sql options
         var providerOptions = SqlCommandProviderOptions.Parse(providerConfiguration);
@@ -45,6 +53,7 @@ public static class SqlCommandProvidersExtensions
         var sqlClientOptions = GetSqlClientOptions(credentialProvider, providerOptions);
 
         var providerFactory = SqlCommandProviderFactory.Create(
+            serviceConfiguration,
             sqlClientOptions).Result;
 
         // inject the factory as the status interface
@@ -148,7 +157,7 @@ public static class SqlCommandProvidersExtensions
 
             // log - the :l format parameter (l = literal) to avoid the quotes
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
+                message: "Added SqlCommandProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;

@@ -22,22 +22,23 @@ public class DynamoCommandProviderTests : CommandProviderTests
         // create the test configuration
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
             .Build();
 
-        // create a dynamo client for cleanup
-        var awsCredentials = FallbackCredentialsFactory.GetCredentials();
-
-        var regionName = configuration
-            .GetSection("DynamoCommandProviders:RegionName")
+        var region = configuration
+            .GetSection("DynamoCommandProviders:Region")
             .Value!;
 
         var tableName = configuration
             .GetSection("DynamoCommandProviders:Tables:0:TableName")
             .Value!;
 
+        // create a dynamo client for cleanup
+        var awsCredentials = FallbackCredentialsFactory.GetCredentials();
+
         var dynamoClient = new AmazonDynamoDBClient(
             awsCredentials,
-            RegionEndpoint.GetBySystemName(regionName));
+            RegionEndpoint.GetBySystemName(region));
 
         _table = Table.LoadTable(
             dynamoClient,
@@ -46,7 +47,7 @@ public class DynamoCommandProviderTests : CommandProviderTests
         // create the command provider
         var dynamoClientOptions = new DynamoClientOptions(
             AWSCredentials: awsCredentials,
-            RegionName: regionName,
+            Region: region,
             TableNames: [ tableName ]
         );
 

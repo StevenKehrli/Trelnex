@@ -66,7 +66,7 @@ In this example, we configure a command provider for the `IUser` interface and i
 
 ```json
   "DynamoCommandProviders": {
-    "RegionName": "FROM_ENV",
+    "Region": "FROM_ENV",
     "Tables": [
       {
         "TypeName": "test-item",

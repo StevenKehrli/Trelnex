@@ -1,9 +1,9 @@
 using Amazon;
-using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.RDS.Util;
 using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Trelnex.Core.Amazon.CommandProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
@@ -14,10 +14,11 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-[Ignore("Requires a DynamoDB instance.")]
-public class DynamoCommandProviderExtensionsTests : CommandProviderTests
+[Ignore("Requires a Postgres server.")]
+public class PostgresCommandProviderExtensionsTests : CommandProviderTests
 {
-    private Table _table = null!;
+    private string _connectionString = null!;
+    private string _tableName = null!;
 
     [OneTimeSetUp]
     public void TestFixtureSetup()
@@ -30,6 +31,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
         // create the test configuration
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
             .Build();
 
         // create a dynamo client for cleanup
@@ -38,33 +40,66 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
         services.AddCredentialProvider(credentialProvider);
 
-        var regionName = configuration
-            .GetSection("DynamoCommandProviders:RegionName")
+        var serviceConfiguration = configuration
+            .GetSection("ServiceConfiguration")
+            .Get<ServiceConfiguration>()!;
+
+        services.AddSingleton(serviceConfiguration);
+
+        var region = configuration
+            .GetSection("PostgresCommandProviders:Region")
+            .Value!;
+        
+        var host = configuration
+            .GetSection("PostgresCommandProviders:Host")
             .Value!;
 
-        var tableName = configuration
-            .GetSection("DynamoCommandProviders:Tables:0:TableName")
+        var port = int.Parse(
+            configuration
+                .GetSection("PostgresCommandProviders:Port")
+                .Value!);
+        
+        var database = configuration
+            .GetSection("PostgresCommandProviders:Database")
             .Value!;
 
-        var dynamoClient = new AmazonDynamoDBClient(
-            awsCredentials,
-            RegionEndpoint.GetBySystemName(regionName));
+        var dbUser = configuration
+            .GetSection("PostgresCommandProviders:DbUser")
+            .Value!;
 
-        _table = Table.LoadTable(
-            dynamoClient,
-            tableName);
+        _tableName = configuration
+            .GetSection("PostgresCommandProviders:Tables:0:TableName")
+            .Value!;
+
+        var regionEndpoint = RegionEndpoint.GetBySystemName(region);
+
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: awsCredentials,
+            region: regionEndpoint,
+            hostname: host,
+            port: port,
+            dbUser: dbUser);
+
+        // build the connection string
+        var csb = new NpgsqlConnectionStringBuilder
+        {
+            ApplicationName = "PostgresCommandProviderExtensionsTests",
+            Host = host,
+            Port = port,
+            Database = database,
+            Username = dbUser,
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        _connectionString = csb.ConnectionString;
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            new ServiceConfiguration() {
-                FullName = "DynamoCommandProviderExtensionsTests",
-                DisplayName = "DynamoCommandProviderExtensionsTests",
-                Version = "0.0.0",
-                Description = "DynamoCommandProviderExtensionsTests"
-            });
+            serviceConfiguration);
 
         services
-            .AddDynamoCommandProviders(
+            .AddPostgresCommandProviders(
                 configuration,
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
@@ -79,25 +114,21 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
     }
 
     [TearDown]
-    public async Task TestCleanup()
+    public void TestCleanup()
     {
-        // This method is called after each test case is run.
+        // This method is called after each test has run.
+        using var sqlConnection = new NpgsqlConnection(_connectionString);
 
-        var scanFilter = new ScanFilter();
-        var search = _table.Scan(scanFilter);
+        sqlConnection.Open();
 
-        do
-        {
-            var documents = await search.GetNextSetAsync();
-            foreach (var document in documents)
-            {
-                await _table.DeleteItemAsync(document);
-            }
-        } while (!search.IsDone);
+        var cmdText = $"DELETE FROM \"{_tableName}-events\"; DELETE FROM \"{_tableName}\";";
+        var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
+
+        sqlCommand.ExecuteNonQuery();
     }
 
     [Test]
-    public void DynamoCommandProvider_AlreadyRegistered()
+    public void SqlCommandProvider_AlreadyRegistered()
     {
         // create the service collection
         var services = new ServiceCollection();
@@ -111,16 +142,16 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
         var bootstrapLogger = services.AddSerilog(
             configuration,
             new ServiceConfiguration() {
-                FullName = "DynamoCommandProviderExtensionsTests",
-                DisplayName = "DynamoCommandProviderExtensionsTests",
+                FullName = "SqlCommandProviderExtensionsTests",
+                DisplayName = "SqlCommandProviderExtensionsTests",
                 Version = "0.0.0",
-                Description = "DynamoCommandProviderExtensionsTests"
+                Description = "SqlCommandProviderExtensionsTests",
             });
 
         // add twice
         Assert.Throws<InvalidOperationException>(() =>
         {
-            services.AddDynamoCommandProviders(
+            services.AddPostgresCommandProviders(
                 configuration,
                 bootstrapLogger,
                 options => options

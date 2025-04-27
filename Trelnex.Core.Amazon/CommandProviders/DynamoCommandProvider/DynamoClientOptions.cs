@@ -4,5 +4,5 @@ namespace Trelnex.Core.Amazon.CommandProviders;
 
 internal record DynamoClientOptions(
     AWSCredentials AWSCredentials,
-    string RegionName,
+    string Region,
     string[] TableNames);
