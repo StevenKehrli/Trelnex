@@ -31,7 +31,7 @@
 
     <ItemGroup>
         <None Include="appsettings.json" CopyToOutputDirectory="Always" />
-        <None Include="appsettings.User.json" CopyToOutputDirectory="Always" />
+        <None Include="appsettings.User.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.User.json')" />
     </ItemGroup>
 
     <ItemGroup>
