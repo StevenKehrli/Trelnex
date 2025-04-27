@@ -14,7 +14,7 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-[Ignore("Requires a Postgres server.")]
+// [Ignore("Requires a Postgres server.")]
 public class PostgresCommandProviderExtensionsTests : CommandProviderTests
 {
     private string _connectionString = null!;

@@ -12,7 +12,7 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 
-[Ignore("Requires a SQL server.")]
+// [Ignore("Requires a SQL server.")]
 public class SqlCommandProviderExtensionsTests : CommandProviderTests
 {
     private readonly string _scope = "https://database.windows.net/.default";

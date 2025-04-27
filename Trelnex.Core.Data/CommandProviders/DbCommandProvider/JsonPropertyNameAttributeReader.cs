@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 using LinqToDB.Mapping;
 using LinqToDB.Metadata;
 
-namespace Trelnex.Core.Azure.CommandProviders;
+namespace Trelnex.Core.Data;
 
-internal class JsonPropertyNameAttributeReader : IMetadataReader
+public class JsonPropertyNameAttributeReader : IMetadataReader
 {
     public MappingAttribute[] GetAttributes(Type type) => [];
 

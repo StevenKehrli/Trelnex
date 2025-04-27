@@ -5,7 +5,7 @@
       "ReadResult": null
     },
     {
-      "HttpStatusCode": "InternalServerError",
+      "HttpStatusCode": "PreconditionFailed",
       "ReadResult": null
     }
   ],

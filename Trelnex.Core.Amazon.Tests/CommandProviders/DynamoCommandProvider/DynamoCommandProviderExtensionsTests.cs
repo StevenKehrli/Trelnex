@@ -14,7 +14,7 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-[Ignore("Requires a DynamoDB instance.")]
+// [Ignore("Requires a DynamoDB instance.")]
 public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 {
     private Table _table = null!;
@@ -30,6 +30,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
         // create the test configuration
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
             .Build();
 
         // create a dynamo client for cleanup

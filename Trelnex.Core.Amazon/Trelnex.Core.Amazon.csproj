@@ -27,7 +27,6 @@
         <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.407.1" />
         <PackageReference Include="AWSSDK.RDS" Version="3.7.411.1" />
         <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.401.89" />
-        <PackageReference Include="linq2db" Version="5.4.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Npgsql" Version="9.0.3" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AWS" Version="1.11.2" />

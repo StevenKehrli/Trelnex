@@ -11,7 +11,7 @@ using Trelnex.Core;
 
 namespace Trelnex.Auth.Amazon.Tests.Services.RBAC;
 
-[Ignore("Requires a DynamoDB table.")]
+// [Ignore("Requires a DynamoDB table.")]
 public class RBACRepositoryTests
 {
     private AmazonDynamoDBClient _client = null!;
