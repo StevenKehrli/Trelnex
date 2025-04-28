@@ -76,7 +76,7 @@ public static class InMemoryCommandProviderExtensions
             ];
 
             // log - the :l format parameter (l = literal) to avoid the quotes
-            bootstrapLogger.LogWarning(
+            bootstrapLogger.LogInformation(
                 message: "Added InMemoryCommandProvider<{TInterface:l}, {TItem:l}>.",
                 args: args);
 

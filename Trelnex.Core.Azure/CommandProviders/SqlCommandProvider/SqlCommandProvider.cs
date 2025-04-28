@@ -30,14 +30,15 @@ internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider
     }
 
     /// <inheritdoc />
-    protected override bool IsDatabaseException(Exception ex) => ex is SqlException;
-    
+    protected override bool IsDatabaseException(Exception ex) =>
+        ex is SqlException;
+
     /// <inheritdoc />
-    protected override bool IsPreconditionFailedException(Exception ex) => 
+    protected override bool IsPreconditionFailedException(Exception ex) =>
         ex is SqlException sqlEx && PreconditionFailedRegex().IsMatch(sqlEx.Message);
-    
+
     /// <inheritdoc />
-    protected override bool IsPrimaryKeyViolationException(Exception ex) => 
+    protected override bool IsPrimaryKeyViolationException(Exception ex) =>
         ex is SqlException sqlEx && PrimaryKeyViolationRegex().IsMatch(sqlEx.Message);
 
     [GeneratedRegex(@"^Violation of PRIMARY KEY constraint ")]

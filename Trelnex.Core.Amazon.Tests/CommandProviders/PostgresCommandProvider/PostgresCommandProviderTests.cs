@@ -17,7 +17,7 @@ public class PostgresCommandProviderTests : CommandProviderTests
     private string _tableName = null!;
 
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // This method is called once prior to executing any of the tests in the fixture.
 
@@ -34,7 +34,7 @@ public class PostgresCommandProviderTests : CommandProviderTests
         var region = configuration
             .GetSection("PostgresCommandProviders:Region")
             .Value!;
-        
+
         var host = configuration
             .GetSection("PostgresCommandProviders:Host")
             .Value!;
@@ -43,7 +43,7 @@ public class PostgresCommandProviderTests : CommandProviderTests
             configuration
                 .GetSection("PostgresCommandProviders:Port")
                 .Value!);
-        
+
         var database = configuration
             .GetSection("PostgresCommandProviders:Database")
             .Value!;
@@ -93,7 +93,7 @@ public class PostgresCommandProviderTests : CommandProviderTests
             TableNames: [ _tableName ]
         );
 
-        var factory = await PostgresCommandProviderFactory.Create(
+        var factory = PostgresCommandProviderFactory.Create(
             serviceConfiguration,
             postgresClientOptions);
 

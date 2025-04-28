@@ -30,14 +30,15 @@ internal partial class PostgresCommandProvider<TInterface, TItem> : DbCommandPro
     }
 
     /// <inheritdoc />
-    protected override bool IsDatabaseException(Exception ex) => ex is NpgsqlException || ex is PostgresException;
-    
+    protected override bool IsDatabaseException(Exception ex) =>
+        ex is NpgsqlException || ex is PostgresException;
+
     /// <inheritdoc />
-    protected override bool IsPreconditionFailedException(Exception ex) => 
+    protected override bool IsPreconditionFailedException(Exception ex) =>
         ex is PostgresException pgEx && PreconditionFailedRegex().IsMatch(pgEx.Message);
-    
+
     /// <inheritdoc />
-    protected override bool IsPrimaryKeyViolationException(Exception ex) => 
+    protected override bool IsPrimaryKeyViolationException(Exception ex) =>
         ex is PostgresException pgEx && PrimaryKeyViolationRegex().IsMatch(pgEx.Message);
 
     [GeneratedRegex(@"^23505: duplicate key value violates unique constraint")]

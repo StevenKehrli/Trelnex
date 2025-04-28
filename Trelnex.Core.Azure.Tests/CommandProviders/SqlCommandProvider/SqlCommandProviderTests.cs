@@ -19,7 +19,7 @@ public class SqlCommandProviderTests : CommandProviderTests
     private string _tableName = null!;
 
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // This method is called once prior to executing any of the tests in the fixture.
 
@@ -65,7 +65,7 @@ public class SqlCommandProviderTests : CommandProviderTests
             TableNames: [ _tableName ]
         );
 
-        var factory = await SqlCommandProviderFactory.Create(
+        var factory = SqlCommandProviderFactory.Create(
             serviceConfiguration,
             sqlClientOptions);
 

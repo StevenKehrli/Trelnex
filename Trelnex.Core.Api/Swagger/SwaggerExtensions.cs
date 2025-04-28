@@ -21,7 +21,7 @@ public static class SwaggerExtensions
         var serviceDescriptor = services
             .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
-        
+
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
         // format the version string

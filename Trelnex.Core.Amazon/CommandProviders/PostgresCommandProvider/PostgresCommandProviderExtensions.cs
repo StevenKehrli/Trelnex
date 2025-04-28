@@ -43,7 +43,7 @@ public static class PostgresCommandProvidersExtensions
         var serviceDescriptor = services
             .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
-        
+
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
         // parse the postgres options
@@ -54,7 +54,7 @@ public static class PostgresCommandProvidersExtensions
 
         var providerFactory = PostgresCommandProviderFactory.Create(
             serviceConfiguration,
-            postgresClientOptions).Result;
+            postgresClientOptions);
 
         // inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);

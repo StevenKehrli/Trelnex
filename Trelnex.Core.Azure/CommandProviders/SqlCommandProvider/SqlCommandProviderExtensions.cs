@@ -38,12 +38,12 @@ public static class SqlCommandProvidersExtensions
             .GetSection("SqlCommandProviders")
             .Get<SqlCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The SqlCommandProviders configuration is not found.");
-        
+
         // get the service configuration
         var serviceDescriptor = services
             .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
-        
+
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
         // parse the sql options
@@ -54,7 +54,7 @@ public static class SqlCommandProvidersExtensions
 
         var providerFactory = SqlCommandProviderFactory.Create(
             serviceConfiguration,
-            sqlClientOptions).Result;
+            sqlClientOptions);
 
         // inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);

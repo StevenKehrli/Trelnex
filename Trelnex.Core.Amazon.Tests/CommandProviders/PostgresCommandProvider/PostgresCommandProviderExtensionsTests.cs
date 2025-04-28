@@ -49,7 +49,7 @@ public class PostgresCommandProviderExtensionsTests : CommandProviderTests
         var region = configuration
             .GetSection("PostgresCommandProviders:Region")
             .Value!;
-        
+
         var host = configuration
             .GetSection("PostgresCommandProviders:Host")
             .Value!;
@@ -58,7 +58,7 @@ public class PostgresCommandProviderExtensionsTests : CommandProviderTests
             configuration
                 .GetSection("PostgresCommandProviders:Port")
                 .Value!);
-        
+
         var database = configuration
             .GetSection("PostgresCommandProviders:Database")
             .Value!;

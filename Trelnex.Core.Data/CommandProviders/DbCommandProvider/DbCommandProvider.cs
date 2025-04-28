@@ -235,21 +235,21 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
             .Where(i => i.Id == request.Item.Id && i.PartitionKey == request.Item.PartitionKey)
             .First();
     }
-    
+
     /// <summary>
     /// Determines if the given exception is a database-specific exception.
     /// </summary>
     /// <param name="ex">The exception to check.</param>
     /// <returns>True if the exception is a database exception; otherwise, false.</returns>
     protected abstract bool IsDatabaseException(Exception ex);
-    
+
     /// <summary>
     /// Determines if the given exception indicates a precondition failure in the database.
     /// </summary>
     /// <param name="ex">The exception to check.</param>
     /// <returns>True if the exception indicates a precondition failure; otherwise, false.</returns>
     protected abstract bool IsPreconditionFailedException(Exception ex);
-    
+
     /// <summary>
     /// Determines if the given exception indicates a primary key violation in the database.
     /// </summary>
