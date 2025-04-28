@@ -50,29 +50,19 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
         SqlClientOptions sqlClientOptions)
     {
         // build the connection string
-        var scsBuilder = new SqlConnectionStringBuilder()
-        {
-            ApplicationName = serviceConfiguration.FullName,
-            DataSource = sqlClientOptions.DataSource,
-            InitialCatalog = sqlClientOptions.InitialCatalog,
-            Encrypt = true,
-        };
+        var connectionString = BuildConnectionString(
+            serviceConfiguration,
+            sqlClientOptions);
 
         // build the connection interceptor
         var connectionInterceptor = new Action<DbConnection>(dbConnection =>
         {
-            if (dbConnection is not SqlConnection sqlConnection) return;
-
-            // get the access token
-            var tokenRequestContext = new TokenRequestContext([ sqlClientOptions.Scope ]);
-            var accessToken = sqlClientOptions.TokenCredential.GetToken(tokenRequestContext, default).Token;
-
-            sqlConnection.AccessToken = accessToken;
+            BeforeConnectionOpened(sqlClientOptions, dbConnection);
         });
 
         // build the health check
         var dataOptions = new DataOptions()
-            .UseSqlServer(scsBuilder.ConnectionString)
+            .UseSqlServer(connectionString)
             .UseBeforeConnectionOpened(connectionInterceptor);
 
         CommandProviderFactoryStatus getStatus()
@@ -89,14 +79,7 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
                 using var dataConnection = new DataConnection(dataOptions);
 
                 // get the multi-line version string
-                var version = dataConnection.Query<string>("SELECT @@VERSION");
-
-                // split the version into each line
-                char[] delimiterChars = ['\r', '\n', '\t'];
-
-                var versionArray = version
-                    .FirstOrDefault()?
-                    .Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
+                var versionArray = GetVersionArray(dataConnection);
 
                 // get the database schema
                 var schemaProvider = dataConnection.DataProvider.GetSchemaProvider();
@@ -156,7 +139,7 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
 
         // build the factory
         var factory = new SqlCommandProviderFactory(
-            scsBuilder.ConnectionString,
+            connectionString,
             connectionInterceptor,
             getStatus);
 
@@ -229,4 +212,62 @@ internal class SqlCommandProviderFactory : ICommandProviderFactory
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
 
     private static string GetEventsTableName(string tableName) => $"{tableName}-events";
+
+    /// <summary>
+    /// Set the access token on the connection.
+    /// </summary>
+    /// <param name="clientOptions">The <see cref="SqlClientOptions"/>.</param>
+    /// <param name="dbConnection">The <see cref="DbConnection"/>.</param>
+    private static void BeforeConnectionOpened(
+        SqlClientOptions clientOptions,
+        DbConnection dbConnection)
+    {
+        if (dbConnection is not SqlConnection connection) return;
+
+        // get the access token
+        var tokenCredential = clientOptions.TokenCredential;
+        var tokenRequestContext = new TokenRequestContext([ clientOptions.Scope ]);
+        var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
+
+        connection.AccessToken = accessToken;
+    }
+
+    /// <summary>
+    /// Build the connection string.
+    /// </summary>
+    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/>.</param>
+    /// <param name="clientOptions">The <see cref="SqlClientOptions"/>.</param>
+    /// <returns>The connection string.</returns>
+    private static string BuildConnectionString(
+        ServiceConfiguration serviceConfiguration,
+        SqlClientOptions clientOptions)
+    {
+        var csb = new SqlConnectionStringBuilder()
+        {
+            ApplicationName = serviceConfiguration.FullName,
+            DataSource = clientOptions.DataSource,
+            InitialCatalog = clientOptions.InitialCatalog,
+            Encrypt = true,
+        };
+
+        return csb.ConnectionString;
+    }
+
+    /// <summary>
+    /// Get the version array from the database.
+    /// </summary>
+    /// <param name="dataConnection">The <see cref="DataConnection"/>.</param>
+    /// <returns>The version array.</returns>
+    private static string[]? GetVersionArray(
+        DataConnection dataConnection)
+    {
+        var version = dataConnection.Query<string>("SELECT @@VERSION");
+
+        // split the version into each line
+        char[] delimiterChars = ['\r', '\n', '\t'];
+
+        return version
+            .FirstOrDefault()?
+            .Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
+    }
 }

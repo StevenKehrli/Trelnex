@@ -51,50 +51,28 @@ internal class PostgresCommandProviderFactory : ICommandProviderFactory
         PostgresClientOptions postgresClientOptions)
     {
         // build the connection string
-        var csb = new NpgsqlConnectionStringBuilder
-        {
-            ApplicationName = serviceConfiguration.FullName,
-            Host = postgresClientOptions.Host,
-            Port = postgresClientOptions.Port,
-            Database = postgresClientOptions.Database,
-            Username = postgresClientOptions.DbUser,
-            SslMode = SslMode.Require
-        };
+        var connectionString = BuildConnectionString(serviceConfiguration, postgresClientOptions);
 
         // build the connection interceptor
         var connectionInterceptor = new Action<DbConnection>(dbConnection =>
         {
-            if (dbConnection is not NpgsqlConnection connection) return;
-
-            var regionEndpoint = RegionEndpoint.GetBySystemName(postgresClientOptions.Region);
-
-            var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
-                credentials: postgresClientOptions.AWSCredentials,
-                region: regionEndpoint,
-                hostname: postgresClientOptions.Host,
-                port: postgresClientOptions.Port,
-                dbUser: postgresClientOptions.DbUser);
-
-            var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
-            {
-                Password = pwd,
-                SslMode = SslMode.Require
-            };
-
-            connection.ConnectionString = csb.ConnectionString;
+            BeforeConnectionOpened(postgresClientOptions, dbConnection);
         });
 
         // build the health check
         var dataOptions = new DataOptions()
-            .UsePostgreSQL(csb.ConnectionString)
+            .UsePostgreSQL(connectionString)
             .UseBeforeConnectionOpened(connectionInterceptor);
 
         CommandProviderFactoryStatus getStatus()
         {
             var data = new Dictionary<string, object>
             {
+                { "region", postgresClientOptions.Region },
                 { "host", postgresClientOptions.Host },
+                { "port", postgresClientOptions.Port },
                 { "database", postgresClientOptions.Database },
+                { "dbUser", postgresClientOptions.DbUser },
                 { "tableNames", postgresClientOptions.TableNames },
             };
 
@@ -103,14 +81,7 @@ internal class PostgresCommandProviderFactory : ICommandProviderFactory
                 using var dataConnection = new DataConnection(dataOptions);
 
                 // get the multi-line version string
-                var version = dataConnection.Query<string>("SELECT version()");
-
-                // split the version into each line
-                char[] delimiterChars = ['\r', '\n', '\t'];
-
-                var versionArray = version
-                    .FirstOrDefault()?
-                    .Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
+                var versionArray = GetVersionArray(dataConnection);
 
                 // get the database schema
                 var schemaProvider = dataConnection.DataProvider.GetSchemaProvider();
@@ -170,7 +141,7 @@ internal class PostgresCommandProviderFactory : ICommandProviderFactory
 
         // build the factory
         var factory = new PostgresCommandProviderFactory(
-            csb.ConnectionString,
+            connectionString,
             connectionInterceptor,
             getStatus);
 
@@ -243,4 +214,74 @@ internal class PostgresCommandProviderFactory : ICommandProviderFactory
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
 
     private static string GetEventsTableName(string tableName) => $"{tableName}-events";
+
+    /// <summary>
+    /// Set the password for the connection string.
+    /// </summary>
+    /// <param name="clientOptions">The <see cref="PostgresClientOptions"/>.</param>
+    /// <param name="dbConnection">The <see cref="DbConnection"/>.</param>
+    private static void BeforeConnectionOpened(
+        PostgresClientOptions clientOptions,
+        DbConnection dbConnection)
+    {
+        if (dbConnection is not NpgsqlConnection connection) return;
+
+        var regionEndpoint = RegionEndpoint.GetBySystemName(clientOptions.Region);
+
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: clientOptions.AWSCredentials,
+            region: regionEndpoint,
+            hostname: clientOptions.Host,
+            port: clientOptions.Port,
+            dbUser: clientOptions.DbUser);
+
+        var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        connection.ConnectionString = csb.ConnectionString;
+    }
+
+    /// <summary>
+    /// Build the connection string.
+    /// </summary>
+    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/>.</param>
+    /// <param name="clientOptions">The <see cref="PostgresClientOptions"/>.</param>
+    /// <returns>The connection string.</returns>
+    private static string BuildConnectionString(
+        ServiceConfiguration serviceConfiguration,
+        PostgresClientOptions clientOptions)
+    {
+        var csb = new NpgsqlConnectionStringBuilder
+        {
+            ApplicationName = serviceConfiguration.FullName,
+            Host = clientOptions.Host,
+            Port = clientOptions.Port,
+            Database = clientOptions.Database,
+            Username = clientOptions.DbUser,
+            SslMode = SslMode.Require
+        };
+
+        return csb.ConnectionString;
+    }
+
+    /// <summary>
+    /// Get the version array from the database.
+    /// </summary>
+    /// <param name="dataConnection">The <see cref="DataConnection"/>.</param>
+    /// <returns>The version array.</returns>
+    private static string[]? GetVersionArray(
+        DataConnection dataConnection)
+    {
+        var version = dataConnection.Query<string>("SELECT version()");
+
+        // split the version into each line
+        char[] delimiterChars = ['\r', '\n', '\t'];
+
+        return version
+            .FirstOrDefault()?
+            .Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
+    }
 }
