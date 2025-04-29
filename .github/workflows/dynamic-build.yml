@@ -46,8 +46,8 @@ jobs:
 
           cat /tmp/filters.yml
 
-      - name: get changed files
-        id: get-changed-files
+      - name: get changed paths
+        id: get-changed-paths
         uses: dorny/paths-filter@v3
         with:
           filters: /tmp/filters.yml
@@ -56,35 +56,36 @@ jobs:
         id: set-matrix
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
-          CHANGED_PATHS='${{ toJSON(steps.get-changed-files.outputs) }}'
-          CHANGED_PROJECTS="[]"
+          CHANGED_PATHS='${{ toJSON(steps.get-changed-paths.outputs) }}'
 
-          for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
-            project_name=$(echo $project | jq -r '.name')
-            has_build=$(echo $project | jq '.workflows | contains(["build"])')
+          # filter the changed projects from the changed paths
+          CHANGED_PROJECTS=$(echo "$CHANGED_PATHS" | jq -r '
+            [. | to_entries | .[] | select(.value == "true") | .key]
+          ')
 
-            # check if any paths for this project changed
-            changed=$(echo "$CHANGED_PATHS" | jq -r --arg name "$project_name" '.[$name] // false')
+          # filter the projects to the changed projects
+          BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --argjson changed_projects "$CHANGED_PROJECTS" '
+            .projects[] | select(.name as $name | $changed_projects[] | contains($name)) |
+            {
+              name: .name,
+              dotnet_version: .dotnet_version,
+              tests: .tests
+            }
+          ')
 
-            if [[ "$changed" == "true" ]]; then
-              # include if it has the "build" workflow
-              if [[ "$has_build" == "true" ]]; then
-                CHANGED_PROJECTS=$(echo $CHANGED_PROJECTS | jq -c --argjson proj "$project" '. += [$proj]')
-              fi
-            fi
-          done
-
-          echo "matrix={\"component\":$(echo $CHANGED_PROJECTS)}" >> $GITHUB_OUTPUT
+          echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
 
   build:
     name: Build ${{ matrix.component.name }}
 
     needs: create-matrix
 
+    if: ${{ fromJson(needs.create-matrix.outputs.matrix).component != null }}
+
     runs-on: ubuntu-latest
 
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.create-matrix.outputs.matrix) }}
       fail-fast: false
 
     steps:
