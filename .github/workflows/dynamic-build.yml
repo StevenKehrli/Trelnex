@@ -20,36 +20,36 @@ jobs:
 
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: read projects
         id: read-projects
-        run: echo "projects=$(cat .github/workflows/projects.json | jq -c .)" >> $GITHUB_OUTPUT
+        run: echo "projects=$(jq -c . .github/workflows/projects.json)" >> $GITHUB_OUTPUT
 
       - name: create path filters
         id: create-path-filters
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
-          FILTERS="{}"
 
           for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
             project_name=$(echo $project | jq -r '.name')
-            filter_name=$(echo $project_name | sed 's/\./_/g')
 
             # get paths array from project config
-            paths=$(echo $project | jq -c '.paths')
+            paths=$(echo $project | jq -r '.paths[] | "  - " + .')
 
             # add filter using the provided paths
-            FILTERS=$(echo $FILTERS | jq --arg name "$filter_name" --argjson paths "$paths" '. + {($name): $paths}')
+            echo -e "${project_name}:\n${paths}\n\n" >> /tmp/filters.yml
           done
 
-          echo "filters=$FILTERS" >> $GITHUB_OUTPUT
+          cat /tmp/filters.yml
 
       - name: get changed files
         id: get-changed-files
-        uses: dorny/paths-filter@v2
+        uses: dorny/paths-filter@v3
         with:
-          list-files: json
-          filters: ${{ fromJson(steps.create-path-filters.outputs.filters) }}
+          filters: /tmp/filters.yml
+          base: main
 
       - name: set matrix
         id: set-matrix
@@ -60,15 +60,15 @@ jobs:
 
           for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
             project_name=$(echo $project | jq -r '.name')
-            filter_name=$(echo $project_name | sed 's/\./_/g')
             has_build=$(echo $project | jq '.workflows | contains(["build"])')
 
             # check if any paths for this project changed
-            if [[ "$CHANGED_PATHS" == *"\"$filter_name\":true"* ]]; then
+            changed=$(echo "$CHANGED_PATHS" | jq -r --arg name "$project_name" '.[$name] // false')
 
+            if [[ "$changed" == "true" ]]; then
               # include if it has the "build" workflow
               if [[ "$has_build" == "true" ]]; then
-                CHANGED_PROJECTS=$(echo $CHANGED_PROJECTS | jq --argjson proj "$project" '. += [$proj]')
+                CHANGED_PROJECTS=$(echo $CHANGED_PROJECTS | jq -c --argjson proj "$project" '. += [$proj]')
               fi
             fi
           done
