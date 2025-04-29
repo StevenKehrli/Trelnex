@@ -8,7 +8,7 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 
-// [Ignore("Requires a CosmosDB instance.")]
+[Ignore("Requires a CosmosDB instance.")]
 public class CosmosCommandProviderTests : CommandProviderTests
 {
     private Container _container = null!;

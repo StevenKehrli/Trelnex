@@ -101,7 +101,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     {
         // get the status data
         var data = new Dictionary<string, object>(StatusData);
-        
+
         try
         {
             using var dataConnection = new DataConnection(_dataOptions);

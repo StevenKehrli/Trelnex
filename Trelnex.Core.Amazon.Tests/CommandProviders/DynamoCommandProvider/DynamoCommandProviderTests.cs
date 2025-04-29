@@ -9,7 +9,7 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-// [Ignore("Requires a DynamoDB table.")]
+[Ignore("Requires a DynamoDB table.")]
 public class DynamoCommandProviderTests : CommandProviderTests
 {
     private Table _table = null!;

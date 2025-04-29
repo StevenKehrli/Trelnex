@@ -14,7 +14,7 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-// [Ignore("Requires a DynamoDB instance.")]
+[Ignore("Requires a DynamoDB instance.")]
 public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 {
     private Table _table = null!;

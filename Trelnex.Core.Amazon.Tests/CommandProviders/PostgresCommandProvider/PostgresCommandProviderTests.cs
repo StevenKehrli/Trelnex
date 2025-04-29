@@ -10,7 +10,7 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 
-// [Ignore("Requires a Postgres server.")]
+[Ignore("Requires a Postgres server.")]
 public class PostgresCommandProviderTests : CommandProviderTests
 {
     private string _connectionString = null!;
