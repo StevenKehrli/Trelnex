@@ -1,0 +1,124 @@
+name: Trelnex Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+
+  detect-changes:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: read projects
+        id: read-projects
+        run: echo "projects=$(jq -c . .github/workflows/projects.json)" >> $GITHUB_OUTPUT
+
+      - name: create path filters
+        id: create-path-filters
+        run: |
+          PROJECTS='${{ steps.read-projects.outputs.projects }}'
+
+          for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
+            project_name=$(echo $project | jq -r '.name')
+
+            # get paths array from project config
+            paths=$(echo $project | jq -r '.paths[] | "  - " + .')
+
+            # add filter using the provided paths
+            echo -e "${project_name}:\n${paths}\n\n" >> /tmp/filters.yml
+          done
+
+          cat /tmp/filters.yml
+
+      - name: get changed files
+        id: get-changed-files
+        uses: dorny/paths-filter@v3
+        with:
+          filters: /tmp/filters.yml
+          base: main
+
+      - name: set matrix
+        id: set-matrix
+        run: |
+          PROJECTS='${{ steps.read-projects.outputs.projects }}'
+          CHANGED_PATHS='${{ toJSON(steps.get-changed-files.outputs) }}'
+          CHANGED_PROJECTS="[]"
+
+          for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
+            project_name=$(echo $project | jq -r '.name')
+            has_build=$(echo $project | jq '.workflows | contains(["build"])')
+
+            # check if any paths for this project changed
+            changed=$(echo "$CHANGED_PATHS" | jq -r --arg name "$project_name" '.[$name] // false')
+
+            if [[ "$changed" == "true" ]]; then
+              # include if it has the "build" workflow
+              if [[ "$has_build" == "true" ]]; then
+                CHANGED_PROJECTS=$(echo $CHANGED_PROJECTS | jq -c --argjson proj "$project" '. += [$proj]')
+              fi
+            fi
+          done
+
+          echo "matrix={\"component\":$(echo $CHANGED_PROJECTS)}" >> $GITHUB_OUTPUT
+
+  build:
+
+    needs: detect-changes
+
+    if: ${{ fromJson(needs.detect-changes.outputs.matrix).component[0] }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false
+
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.component.dotnet_version }}
+
+      - name: dotnet nuget add source
+        run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: dotnet restore project
+        run: dotnet restore ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj
+
+      - name: dotnet build
+        run: dotnet build ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore --configuration Release
+
+      - name: dotnet restore test
+        if: ${{ contains(matrix.component, 'tests') }}
+        run: dotnet restore ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj
+
+      - name: dotnet test
+        if: ${{ contains(matrix.component, 'tests') }}
+        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --configuration Release --verbosity normal
+
+      - name: upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults.${{ matrix.component.tests }}
+          path: TestResults.${{ matrix.component.tests }}
+          retention-days: 14
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
