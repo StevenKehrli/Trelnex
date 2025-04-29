@@ -107,18 +107,17 @@ jobs:
         run: dotnet build ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore --configuration Release
 
       - name: dotnet restore test
-        if: ${{ contains(matrix.component, 'tests') }}
+        if: ${{ matrix.component.tests != null }}
         run: dotnet restore ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj
 
       - name: dotnet test
-        if: ${{ contains(matrix.component, 'tests') }}
+        if: ${{ matrix.component.tests != null }}
         run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --configuration Release --verbosity normal
 
       - name: upload dotnet test results
+        if: ${{ matrix.component.tests != null }}
         uses: actions/upload-artifact@v4
         with:
           name: TestResults.${{ matrix.component.tests }}
           path: TestResults.${{ matrix.component.tests }}
           retention-days: 14
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
