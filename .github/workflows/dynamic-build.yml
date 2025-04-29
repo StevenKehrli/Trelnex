@@ -50,7 +50,6 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: /tmp/filters.yml
-          base: main
 
       - name: set matrix
         id: set-matrix
