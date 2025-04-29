@@ -1,0 +1,77 @@
+{
+  "projects": [
+    {
+      "name": "Trelnex.Auth.Amazon",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build" ],
+      "tests": "Trelnex.Auth.Amazon.Tests",
+      "paths": [
+          "Trelnex.Auth.Amazon/**",
+          "Trelnex.Auth.Amazon.Tests/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Auth.Amazon.Client",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build" ],
+      "paths": [
+          "Trelnex.Auth.Amazon.Client/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Core",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build", "nuget" ],
+      "tests": "Trelnex.Core.Tests",
+      "tag_prefix": "trelnex-core-",
+      "paths": [
+          "Trelnex.Core/**",
+          "Trelnex.Core.Tests/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Core.Amazon",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build", "nuget" ],
+      "tests": "Trelnex.Core.Amazon.Tests",
+      "tag_prefix": "trelnex-core-amazon-",
+      "paths": [
+          "Trelnex.Core.Amazon/**",
+          "Trelnex.Core.Amazon.Tests/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Core.Api",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build", "nuget" ],
+      "tests": "Trelnex.Core.Api.Tests",
+      "tag_prefix": "trelnex-core-api-",
+      "paths": [
+          "Trelnex.Core.Api/**",
+          "Trelnex.Core.Api.Tests/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Core.Azure",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build", "nuget" ],
+      "tests": "Trelnex.Core.Azure.Tests",
+      "tag_prefix": "trelnex-core-azure-",
+      "paths": [
+          "Trelnex.Core.Azure/**",
+          "Trelnex.Core.Azure.Tests/**"
+      ]
+    },
+    {
+      "name": "Trelnex.Core.Data",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build", "nuget" ],
+      "tests": "Trelnex.Core.Data.Tests",
+      "tag_prefix": "trelnex-core-data-",
+      "paths": [
+          "Trelnex.Core.Data/**",
+          "Trelnex.Core.Data.Tests/**"
+      ]
+    }
+  ]
+}
