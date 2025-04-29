@@ -65,12 +65,12 @@ jobs:
 
           # filter the projects to the changed projects
           BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --argjson changed_projects "$CHANGED_PROJECTS" '
-            .projects[] | select(.name as $name | $changed_projects[] | contains($name)) |
+            [ .projects[] | select(.name as $name | $changed_projects[] | contains($name)) |
             {
               name: .name,
               dotnet_version: .dotnet_version,
               tests: .tests
-            }
+            } ]
           ')
 
           echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
