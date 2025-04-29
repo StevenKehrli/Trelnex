@@ -113,7 +113,7 @@ jobs:
 
       - name: dotnet test
         if: ${{ matrix.component.tests != null }}
-        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --configuration Release --verbosity normal
+        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --logger html --results-directory "TestResults.${{ inputs.project_name }}"
 
       - name: upload dotnet test results
         if: ${{ matrix.component.tests != null }}
