@@ -9,7 +9,8 @@ on:
 
 jobs:
 
-  detect-changes:
+  create-matrix:
+    name: Create the Build Matrix
 
     runs-on: ubuntu-latest
 
@@ -76,10 +77,9 @@ jobs:
           echo "matrix={\"component\":$(echo $CHANGED_PROJECTS)}" >> $GITHUB_OUTPUT
 
   build:
+    name: Build ${{ matrix.component.name }}
 
-    needs: detect-changes
-
-    if: ${{ fromJson(needs.detect-changes.outputs.matrix).component[0] }}
+    needs: create-matrix
 
     runs-on: ubuntu-latest
 

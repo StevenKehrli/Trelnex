@@ -22,11 +22,9 @@
       "name": "Trelnex.Core",
       "dotnet_version": "9.0.x",
       "workflows": [ "build", "nuget" ],
-      "tests": "Trelnex.Core.Tests",
       "tag_prefix": "trelnex-core-",
       "paths": [
-          "Trelnex.Core/**",
-          "Trelnex.Core.Tests/**"
+          "Trelnex.Core/**"
       ]
     },
     {
