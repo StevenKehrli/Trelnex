@@ -31,6 +31,7 @@ jobs:
         id: create-path-filters
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
+          touch /tmp/filters.yml
 
           for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
             project_name=$(echo $project | jq -r '.name')
