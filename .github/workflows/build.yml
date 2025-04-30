@@ -66,7 +66,7 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: /tmp/filters.yml
-      
+
       - name: set matrix from input
         id: set-matrix-from-input
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -76,7 +76,7 @@ jobs:
 
           # filter the projects to the input project
           BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --arg project "$PROJECT" '
-            [ .projects[] | select(.name == $project) |
+            [ .projects[] | select(.name == $project and .workflows | contains(["build"])) |
             {
               name: .name,
               dotnet_version: .dotnet_version,
@@ -84,10 +84,10 @@ jobs:
             } ]
           ')
 
-          echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
+          echo "matrix-from-input={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
 
       - name: set matrix from changes
-        id: set-matrix-changes
+        id: set-matrix-from-changes
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
@@ -100,7 +100,9 @@ jobs:
 
           # filter the projects to the changed projects
           BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --argjson changed_projects "$CHANGED_PROJECTS" '
-            [ .projects[] | select(.name as $name | $changed_projects[] | . == $name) |
+            [ .projects[] |
+              select(.name as $name | $changed_projects[] | . == $name) |
+              select(.workflows | contains(["build"])) |
             {
               name: .name,
               dotnet_version: .dotnet_version,
@@ -108,15 +110,15 @@ jobs:
             } ]
           ')
 
-          echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
+          echo "matrix-from-changes={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
 
       - name: set final matrix
         id: set-matrix
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "matrix=${{ steps.set-matrix-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
+            echo "matrix=${{ steps.set-matrix-from-input.outputs.matrix-from-input }}" >> $GITHUB_OUTPUT
           else
-            echo "matrix=${{ steps.set-matrix-from-changes.outputs.matrix }}" >> $GITHUB_OUTPUT
+            echo "matrix=${{ steps.set-matrix-from-changes.outputs.matrix-from-changes }}" >> $GITHUB_OUTPUT
           fi
 
   build:
