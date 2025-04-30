@@ -121,7 +121,7 @@ jobs:
         run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --no-restore --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
 
       - name: upload dotnet test results
-        if: ${{ matrix.component.tests != null }}
+        if: ${{ always() && matrix.component.tests != null }}
         uses: actions/upload-artifact@v4
         with:
           name: TestResults.${{ matrix.component.tests }}
