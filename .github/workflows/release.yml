@@ -1,12 +1,12 @@
-name: Build
+name: Release
 
-run-name: Build ${{ github.event.inputs.project || 'Changed Projects' }}
+run-name: Release ${{ github.event.inputs.project }} - ${{ github.event.inputs.release_type }}
+
+concurrency:
+  group: release-${{ github.event.inputs.project }}
+  cancel-in-progress: false
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       project:
@@ -21,17 +21,26 @@ on:
           - Trelnex.Core.Api
           - Trelnex.Core.Azure
           - Trelnex.Core.Data
+      release_type:
+        description: "The release type. The semver and tag will be automatically created."
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
 
   create-matrix:
     name: Create the Build Matrix
 
+    if: (github.ref == 'refs/heads/main')
+ 
     runs-on: ubuntu-latest
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
-      run_build: ${{ steps.set-matrix.outputs.run_build }}
 
     steps:
 
@@ -44,92 +53,32 @@ jobs:
         id: read-projects
         run: echo "projects=$(jq -c . .github/workflows/projects.json)" >> $GITHUB_OUTPUT
 
-      - name: create path filters
-        id: create-path-filters
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: |
-          PROJECTS='${{ steps.read-projects.outputs.projects }}'
-          touch /tmp/filters.yml
-
-          for project in $(echo "$PROJECTS" | jq -c '.projects[]'); do
-            project_name=$(echo $project | jq -r '.name')
-
-            # get paths array from project config
-            paths=$(echo $project | jq -r '.paths[] | "  - " + .')
-
-            # add filter using the provided paths
-            echo -e "${project_name}:\n${paths}\n\n" >> /tmp/filters.yml
-          done
-
-          cat /tmp/filters.yml
-
-      - name: get changed paths
-        id: get-changed-paths
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        uses: dorny/paths-filter@v3
-        with:
-          filters: /tmp/filters.yml
-
-      - name: set matrix from input
-        id: set-matrix-from-input
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: set matrix
+        id: set-matrix
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
           PROJECT='${{ github.event.inputs.project }}'
+
+          echo "projects=$PROJECTS"
+          echo "project=$PROJECT"
 
           # filter the projects to the input project
           BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --arg project "$PROJECT" '
             [ .projects[] |
               select(.name == $project) |
-              select(.workflows | contains(["build"])) |
+              select(.workflows | contains(["nuget"])) |
             {
               name: .name,
               dotnet_version: .dotnet_version,
-              tests: .tests
+              tests: .tests,
+              tag_prefix: .tag_prefix
             } ]
           ')
 
-          echo "matrix-from-input={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
-
-      - name: set matrix from changes
-        id: set-matrix-from-changes
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: |
-          PROJECTS='${{ steps.read-projects.outputs.projects }}'
-          CHANGED_PATHS='${{ toJSON(steps.get-changed-paths.outputs) }}'
-
-          # filter the changed projects from the changed paths
-          CHANGED_PROJECTS=$(echo "$CHANGED_PATHS" | jq -r '
-            [. | to_entries | .[] | select(.value == "true") | .key]
-          ')
-
-          # filter the projects to the changed projects
-          BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --argjson changed_projects "$CHANGED_PROJECTS" '
-            [ .projects[] |
-              select(.name as $name | $changed_projects[] | . == $name) |
-              select(.workflows | contains(["build"])) |
-            {
-              name: .name,
-              dotnet_version: .dotnet_version,
-              tests: .tests
-            } ]
-          ')
-
-          echo "matrix-from-changes={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
-
-      - name: set final matrix
-        id: set-matrix
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            MATRIX='${{ steps.set-matrix-from-input.outputs.matrix-from-input }}'
-          else
-            MATRIX='${{ steps.set-matrix-from-changes.outputs.matrix-from-changes }}'
-          fi
-
-          RUN_BUILD=$(echo "$MATRIX" | jq -r '.[] | length > 0')
+          RUN_BUILD=$(echo "$BUILD_PROJECTS" | jq -r 'length > 0')
           echo "run_build=$RUN_BUILD" >> $GITHUB_OUTPUT
 
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
 
   build:
     name: Build ${{ matrix.component.name }}
@@ -178,3 +127,20 @@ jobs:
           name: TestResults.${{ matrix.component.tests }}
           path: TestResults.${{ matrix.component.tests }}
           retention-days: 14
+
+      - name: bump version and push tag
+        if: success()
+        id: tag_version
+        uses: StevenKehrli/Trelnex.MonoTag@1.0.0
+        with:
+          project_path: ${{ matrix.component.name }}
+          tag_prefix: ${{ matrix.component.tag_prefix }}
+          tag_part: ${{ github.event.inputs.release_type }}
+
+      - name: dotnet pack
+        if: success() && steps.tag_version.outcome == 'success'
+        run: dotnet pack ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore -p:PackageVersion=${{ steps.tag_version.outputs.new_semver }} -p:ContinuousIntegrationBuild=true
+
+      - name: dotnet nuget push
+        if: success() && steps.tag_version.outcome == 'success'
+        run: dotnet nuget push "${{ matrix.component.name }}/bin/Release/${{ matrix.component.name }}.${{ steps.tag_version.outputs.new_semver }}.nupkg" --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
