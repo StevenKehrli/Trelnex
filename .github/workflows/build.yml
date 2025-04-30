@@ -124,7 +124,7 @@ jobs:
 
     needs: create-matrix
 
-    if: ${{ fromJson(needs.create-matrix.outputs.matrix).component != null }}
+    if: ${{ fromJson(needs.create-matrix.outputs.matrix).component[0] }}
 
     runs-on: ubuntu-latest
 
