@@ -29,6 +29,7 @@ jobs:
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      run_build: ${{ steps.set-matrix.outputs.run_build }}
 
     steps:
 
@@ -66,6 +67,7 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: /tmp/filters.yml
+          base: main
 
       - name: set matrix from input
         id: set-matrix-from-input
@@ -116,17 +118,22 @@ jobs:
         id: set-matrix
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "matrix=${{ steps.set-matrix-from-input.outputs.matrix-from-input }}" >> $GITHUB_OUTPUT
+            MATRIX='${{ steps.set-matrix-from-input.outputs.matrix-from-input }}'
           else
-            echo "matrix=${{ steps.set-matrix-from-changes.outputs.matrix-from-changes }}" >> $GITHUB_OUTPUT
+            MATRIX='${{ steps.set-matrix-from-changes.outputs.matrix-from-changes }}'
           fi
+
+          RUN_BUILD=$(echo "$MATRIX" | jq -r '.[] | length > 0')
+          echo "run_build=true" >> $GITHUB_OUTPUT
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
   build:
     name: Build ${{ matrix.component.name }}
 
     needs: create-matrix
 
-    if: ${{ fromJson(needs.create-matrix.outputs.matrix).component[0] }}
+    if: ${{ needs.create-matrix.outputs.run_build == 'true' }}
 
     runs-on: ubuntu-latest
 
