@@ -6,6 +6,19 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      project:
+        description: "The project to build"
+        required: true
+        type: choice
+        options:
+          - Trelnex.Auth.Amazon
+          - Trelnex.Auth.Amazon.Client
+          - Trelnex.Core
+          - Trelnex.Core.Amazon
+          - Trelnex.Core.Api
+          - Trelnex.Core.Azure
+          - Trelnex.Core.Data
 
 jobs:
 
@@ -30,6 +43,7 @@ jobs:
 
       - name: create path filters
         id: create-path-filters
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
           touch /tmp/filters.yml
@@ -48,12 +62,33 @@ jobs:
 
       - name: get changed paths
         id: get-changed-paths
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         uses: dorny/paths-filter@v3
         with:
           filters: /tmp/filters.yml
+      
+      - name: set matrix from input
+        id: set-matrix-from-input
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          PROJECTS='${{ steps.read-projects.outputs.projects }}'
+          PROJECT='${{ github.event.inputs.project }}'
 
-      - name: set matrix
-        id: set-matrix
+          # filter the projects to the input project
+          BUILD_PROJECTS=$(echo "$PROJECTS" | jq -r --arg project "$PROJECT" '
+            [ .projects[] | select(.name == $project) |
+            {
+              name: .name,
+              dotnet_version: .dotnet_version,
+              tests: .tests
+            } ]
+          ')
+
+          echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
+
+      - name: set matrix from changes
+        id: set-matrix-changes
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           PROJECTS='${{ steps.read-projects.outputs.projects }}'
           CHANGED_PATHS='${{ toJSON(steps.get-changed-paths.outputs) }}'
@@ -74,6 +109,15 @@ jobs:
           ')
 
           echo "matrix={\"component\":$(echo $BUILD_PROJECTS)}" >> $GITHUB_OUTPUT
+
+      - name: set final matrix
+        id: set-matrix
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "matrix=${{ steps.set-matrix-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
+          else
+            echo "matrix=${{ steps.set-matrix-from-changes.outputs.matrix }}" >> $GITHUB_OUTPUT
+          fi
 
   build:
     name: Build ${{ matrix.component.name }}
@@ -99,7 +143,7 @@ jobs:
           dotnet-version: ${{ matrix.component.dotnet_version }}
 
       - name: dotnet nuget add source
-        run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        run: dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
       - name: dotnet restore project
         run: dotnet restore ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj
@@ -113,7 +157,7 @@ jobs:
 
       - name: dotnet test
         if: ${{ matrix.component.tests != null }}
-        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
+        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --no-restore --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
 
       - name: upload dotnet test results
         if: ${{ matrix.component.tests != null }}
