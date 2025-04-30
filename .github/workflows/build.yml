@@ -1,6 +1,6 @@
 name: Build
 
-run-name: Build ${{ github.event.inputs.project || 'Changed Projects' }}
+run-name: Build ${{ github.event.inputs.project || github.event.pull_request.title || github.event.head_commit.message }}
 
 on:
   push:
