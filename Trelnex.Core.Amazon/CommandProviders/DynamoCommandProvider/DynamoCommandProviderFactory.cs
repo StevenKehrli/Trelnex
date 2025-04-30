@@ -1,7 +1,6 @@
 using System.Net;
 using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
@@ -137,9 +136,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
-        var table = Table.LoadTable(
-            _dynamoClient,
-            tableName);
+        var table = _dynamoClient.GetTable(tableName);
 
         return new DynamoCommandProvider<TInterface, TItem>(
             table,

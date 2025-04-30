@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Snapshooter.NUnit;
 using Trelnex.Auth.Amazon.Services.RBAC;
@@ -30,7 +30,7 @@ public class RBACRepositoryTests
             .Build();
 
         // create a dynamodb client for scan and cleanup
-        var credentials = FallbackCredentialsFactory.GetCredentials();
+        var credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         var region = configuration
             .GetSection("RBAC:Region")

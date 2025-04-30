@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Amazon;
 using Amazon.Runtime;
+using Amazon.Runtime.Identity;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.Runtime.Internal.Util;
@@ -102,8 +103,7 @@ internal class CallerIdentityProvider : ICallerIdentityProvider
 
                     var config = new AmazonSecurityTokenServiceConfig
                     {
-                        RegionEndpoint = regionEndpoint,
-                        StsRegionalEndpoints = StsRegionalEndpointsValue.Regional
+                        RegionEndpoint = regionEndpoint
                     };
 
                     return new AmazonSecurityTokenServiceClientOverride(_credentials, config);
@@ -122,11 +122,38 @@ internal class CallerIdentityProvider : ICallerIdentityProvider
         AmazonSecurityTokenServiceConfig config)
         : AmazonSecurityTokenServiceClient(credentials, config)
     {
-        private AbstractAWSSigner _signer = new AWS4SignerOverride();
-
-        protected override AbstractAWSSigner CreateSigner()
+        protected override void CustomizeRuntimePipeline(
+            RuntimePipeline pipeline)
         {
-            return _signer;
+            // set up the default pipeline
+            base.CustomizeRuntimePipeline(pipeline);
+
+            // replace the signer handler with our signer handler
+            var signer = new AWS4SignerOverride();
+            var signerOverride = new SignerOverride(signer);
+            pipeline.ReplaceHandler<Signer>(signerOverride);
+        }
+    }
+
+    private class SignerOverride(
+        ISigner signer) : Signer
+    {
+        public override void InvokeSync(
+            IExecutionContext executionContext)
+        {
+            // replace the signer with our signer
+            executionContext.RequestContext.Signer = signer;
+
+            base.InvokeSync(executionContext);
+        }
+
+        public override async Task<T> InvokeAsync<T>(
+            IExecutionContext executionContext)
+        {
+            // replace the signer with our signer
+            executionContext.RequestContext.Signer = signer;
+
+            return await base.InvokeAsync<T>(executionContext);
         }
     }
 
@@ -135,14 +162,11 @@ internal class CallerIdentityProvider : ICallerIdentityProvider
     /// </summary>
     private class AWS4SignerOverride : AWS4Signer
     {
-        public override ClientProtocol Protocol => base.Protocol;
-
         public override void Sign(
             IRequest request,
             IClientConfig clientConfig,
             RequestMetrics metrics,
-            string awsAccessKeyId,
-            string awsSecretAccessKey)
+            BaseIdentity identity)
         {
             var requestOverride = (request.OriginalRequest as GetCallerIdentityRequestOverride)!;
 

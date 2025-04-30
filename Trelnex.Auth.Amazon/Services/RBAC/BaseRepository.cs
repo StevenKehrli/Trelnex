@@ -275,6 +275,8 @@ internal abstract class BaseRepository<TBaseItem>(
     private static TBaseItem? FromAttributeMap(
         Dictionary<string, AttributeValue> attributeMap)
     {
+        if (attributeMap is null) return default;
+
         try
         {
             // create the item

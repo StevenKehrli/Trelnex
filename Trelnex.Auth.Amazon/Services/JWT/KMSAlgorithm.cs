@@ -198,7 +198,7 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
 
             var response = _client.VerifyAsync(request).Result;
 
-            return response.SignatureValid;
+            return response.SignatureValid ?? false;
         }
         catch (AmazonKeyManagementServiceException ex)
         {

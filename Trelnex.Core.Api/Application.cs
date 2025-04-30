@@ -63,7 +63,7 @@ public static class Application
 
         // get the service configuration
         var serviceConfiguration = builder.Configuration
-            .GetSection("Service")
+            .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()
             ?? throw new ConfigurationErrorsException("The service configuration is not found.");
 

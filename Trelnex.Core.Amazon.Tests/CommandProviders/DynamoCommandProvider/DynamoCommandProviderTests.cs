@@ -1,7 +1,7 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Amazon.CommandProviders;
 using Trelnex.Core.Data;
@@ -34,15 +34,13 @@ public class DynamoCommandProviderTests : CommandProviderTests
             .Value!;
 
         // create a dynamo client for cleanup
-        var awsCredentials = FallbackCredentialsFactory.GetCredentials();
+        var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         var dynamoClient = new AmazonDynamoDBClient(
             awsCredentials,
             RegionEndpoint.GetBySystemName(region));
 
-        _table = Table.LoadTable(
-            dynamoClient,
-            tableName);
+        _table = dynamoClient.GetTable(tableName);
 
         // create the command provider
         var dynamoClientOptions = new DynamoClientOptions(

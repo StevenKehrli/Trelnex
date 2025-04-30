@@ -2,6 +2,7 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Amazon.CommandProviders;
@@ -51,9 +52,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
             awsCredentials,
             RegionEndpoint.GetBySystemName(region));
 
-        _table = Table.LoadTable(
-            dynamoClient,
-            tableName);
+        _table = dynamoClient.GetTable(tableName);
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
@@ -138,7 +137,7 @@ public class DynamoCommandProviderExtensionsTests : CommandProviderTests
 
     private class CredentialProvider : ICredentialProvider<AWSCredentials>
     {
-        private static readonly AWSCredentials _credentials = FallbackCredentialsFactory.GetCredentials();
+        private static readonly AWSCredentials _credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         public string Name => "Amazon";
 

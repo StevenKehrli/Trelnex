@@ -1,6 +1,7 @@
 using Amazon;
 using Amazon.RDS.Util;
 using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -168,7 +169,7 @@ public class PostgresCommandProviderExtensionsTests : CommandProviderTests
 
     private class CredentialProvider : ICredentialProvider<AWSCredentials>
     {
-        private static readonly AWSCredentials _credentials = FallbackCredentialsFactory.GetCredentials();
+        private static readonly AWSCredentials _credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         public string Name => "Amazon";
 

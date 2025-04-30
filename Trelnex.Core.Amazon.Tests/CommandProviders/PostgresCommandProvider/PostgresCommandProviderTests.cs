@@ -1,6 +1,6 @@
 using Amazon;
 using Amazon.RDS.Util;
-using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Trelnex.Core.Amazon.CommandProviders;
@@ -57,7 +57,7 @@ public class PostgresCommandProviderTests : CommandProviderTests
             .Value!;
 
         // create a postgres client for cleanup
-        var awsCredentials = FallbackCredentialsFactory.GetCredentials();
+        var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         var regionEndpoint = RegionEndpoint.GetBySystemName(region);
 

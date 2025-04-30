@@ -1,4 +1,5 @@
 using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Logging;
 using Snapshooter.NUnit;
 using Trelnex.Auth.Amazon.Services.JWT;
@@ -262,7 +263,7 @@ public class KMSAlgorithmCollectionTests
 
     private class CredentialProvider : ICredentialProvider<AWSCredentials>
     {
-        private static readonly AWSCredentials _credentials = FallbackCredentialsFactory.GetCredentials();
+        private static readonly AWSCredentials _credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         public string Name => "Amazon";
 

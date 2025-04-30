@@ -1,6 +1,7 @@
 using System.Reflection;
 using Amazon;
 using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
@@ -15,15 +16,6 @@ namespace Trelnex.Core.Amazon.Identity;
 /// </summary>
 public class AWSCredentialsManager
 {
-    /// <summary>
-    /// Gets the Credentials property of the <see cref="AmazonSecurityTokenServiceClient"/>.
-    /// </summary>
-    private static readonly PropertyInfo _credentialsProperty =
-            typeof(AmazonSecurityTokenServiceClient)
-            .GetProperty(
-                "Credentials",
-                BindingFlags.NonPublic | BindingFlags.Instance)!;
-
     /// <summary>
     /// The <see cref="AccessTokenClient"/> to get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.
     /// </summary>
@@ -49,7 +41,7 @@ public class AWSCredentialsManager
         _principalId = principalId;
     }
 
-    public AWSCredentials AWSCredentials => (AWSCredentials) _credentialsProperty.GetValue(_stsClient)!;
+    public AWSCredentials AWSCredentials => _stsClient.Config.DefaultAWSCredentials;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSCredentialsManager"/> class.
@@ -70,7 +62,6 @@ public class AWSCredentialsManager
         var clientConfig = new AmazonSecurityTokenServiceConfig
         {
             RegionEndpoint = regionEndpoint,
-            StsRegionalEndpoints = StsRegionalEndpointsValue.Regional
         };
 
         var stsClient = new AmazonSecurityTokenServiceClient(credentials, clientConfig);
@@ -123,7 +114,7 @@ public class AWSCredentialsManager
             request: marshalledRequest,
             clientConfig: _stsClient.Config,
             metrics: null,
-            credentials: AWSCredentials.GetCredentials());
+            identity: AWSCredentials);
 
         // create the signature
         var signature = new CallerIdentitySignature
@@ -150,7 +141,7 @@ public class AWSCredentialsManager
         ILogger logger)
     {
         // create the AWSCredentials
-        var credentials = FallbackCredentialsFactory.GetCredentials();
+        var credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         // create the refreshing credentials if necessary
         if (credentials is RefreshingAWSCredentials refreshingAWSCredentials)
