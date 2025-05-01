@@ -1,0 +1,12 @@
+﻿{
+  "HttpStatusCode": "UnprocessableEntity",
+  "Message": "The 'TestItem' is not valid.",
+  "Errors": {
+    "Id": [
+      "The specified condition was not met for 'Id'."
+    ],
+    "Message": [
+      "The specified condition was not met for 'Message'."
+    ]
+  }
+}
