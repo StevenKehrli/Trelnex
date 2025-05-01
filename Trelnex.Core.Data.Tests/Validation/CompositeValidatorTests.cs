@@ -4,7 +4,7 @@ using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data.Tests.Validation;
 
-public class ValidatorTests
+public class CompositeValidatorTests
 {
     [Test]
     [Category("Validation")]
