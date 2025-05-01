@@ -2,11 +2,11 @@ using Snapshooter.NUnit;
 
 namespace Trelnex.Core.Data.Tests.Events;
 
+[Category("Events")]
 public class UpdateCommandEventTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
+    [Description("Tests that update commands generate proper events with correct change tracking")]
     public async Task UpdateCommandEvent()
     {
         var id = "404d6b21-f7ba-48c4-813c-7d3b5bf4f549";
@@ -14,27 +14,32 @@ public class UpdateCommandEventTests
 
         var startDateTime = DateTime.UtcNow;
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicId = 1;
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the initial state
         await createCommand.SaveAsync(
             requestContext: requestContext,
             cancellationToken: default);
 
+        // Get an update command for the same item
         var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
@@ -42,23 +47,25 @@ public class UpdateCommandEventTests
         Assert.That(updateCommand, Is.Not.Null);
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
+        // Update the test item values
         updateCommand.Item.PublicId = 2;
         updateCommand.Item.PublicMessage = "Public #2";
         updateCommand.Item.PrivateMessage = "Private #2";
 
-        // save it
+        // Save the updated state
         await updateCommand.SaveAsync(
             requestContext: requestContext,
             cancellationToken: default);
 
-        // get the events
+        // Get the events from the command provider
         var events = (commandProvider as InMemoryCommandProvider<ITestItem, TestItem>)!.GetEvents();
 
-        // snapshooter does a poor job of the serialization of dynamic
-        // so explicit check of the changes array
-
+        // Verify the changes in the events
+        // Snapshooter does a poor job of the serialization of dynamic
+        // so we do explicit checks of the changes array
         Assert.Multiple(() =>
         {
+            // Check first event changes (create event)
             Assert.That(
                 events[0].Changes!,
                 Has.Length.EqualTo(2));
@@ -79,6 +86,7 @@ public class UpdateCommandEventTests
                 events[0].Changes![1].NewValue!.GetString(),
                 Is.EqualTo("Public #1"));
 
+            // Check second event changes (update event)
             Assert.That(
                 events[1].Changes![0].OldValue!.GetInt32(),
                 Is.EqualTo(1));
@@ -96,6 +104,8 @@ public class UpdateCommandEventTests
                 Is.EqualTo("Public #2"));
         });
 
+        // Use Snapshooter to verify the event structure
+        // Ignoring the Changes field as it's verified separately above
         Snapshot.Match(
             events,
             matchOptions => matchOptions
@@ -106,6 +116,7 @@ public class UpdateCommandEventTests
                     {
                         var currentDateTime = DateTime.UtcNow;
 
+                        // Verify first event properties (create event)
                         // id
                         Assert.That(
                             fieldOption.Field<Guid>("[0].Id"),
@@ -146,6 +157,7 @@ public class UpdateCommandEventTests
                             fieldOption.Field<Guid>("[0].Context.HttpRequestPath"),
                             Is.Not.Default);
 
+                        // Verify second event properties (update event)
                         // id
                         Assert.That(
                             fieldOption.Field<Guid>("[1].Id"),
@@ -171,6 +183,7 @@ public class UpdateCommandEventTests
                             fieldOption.Field<Guid>("[1].ETag"),
                             Is.Not.Default);
 
+                        // Verify context values consistency between events
                         // context.objectId
                         Assert.That(
                             fieldOption.Field<Guid>("[1].Context.ObjectId"),
@@ -186,6 +199,7 @@ public class UpdateCommandEventTests
                             fieldOption.Field<Guid>("[1].Context.HttpRequestPath"),
                             Is.Not.Default);
 
+                        // context values should be the same between events
                         // context.objectId
                         Assert.That(
                             fieldOption.Field<Guid>("[0].Context.ObjectId"),

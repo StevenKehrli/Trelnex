@@ -4,8 +4,6 @@ namespace Trelnex.Core.Data.Tests.Commands;
 
 public class QueryCommandTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
     public async Task QueryCommand_ToAsyncEnumerable()
     {
@@ -21,7 +19,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -73,7 +71,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -120,7 +118,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 commandOperations: CommandOperations.Delete);
 
         var createCommand = commandProvider.Create(
@@ -168,7 +166,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -226,7 +224,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -281,7 +279,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id,
@@ -328,7 +326,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -386,7 +384,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -444,7 +442,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand1 = commandProvider.Create(
             id: id1,
@@ -499,7 +497,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -558,7 +556,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -602,7 +600,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -646,7 +644,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -705,7 +703,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -749,7 +747,7 @@ public class QueryCommandTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
         var createCommand = commandProvider.Create(
             id: id,

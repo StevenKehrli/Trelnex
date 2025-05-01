@@ -4,173 +4,14 @@ using ValidationException = Trelnex.Core.Validation.ValidationException;
 
 namespace Trelnex.Core.Data.Tests.Commands;
 
+[Category("Commands")]
 public class UpdateCommandValidateTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
-    public async Task UpdateCommandValidate_SaveAsync_PrivateMessage()
+    [Description("Tests validation exception with multiple empty errors for public message")]
+    public async Task UpdateCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
     {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        createCommand.Item.PublicMessage = "Public #1";
-
-        // save it - this will throw a validation exception
-        var ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
-                cancellationToken: default))!;
-
-        var o = new
-        {
-            ex.HttpStatusCode,
-            ex.Message,
-            ex.Errors
-        };
-
-        Snapshot.Match(o);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_SaveAsync_PrivateMessageTwoNullErrors()
-    {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        createCommand.Item.PublicMessage = "Public #1";
-
-        // save it - this will throw a validation exception
-        var ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
-                cancellationToken: default))!;
-
-        var o = new
-        {
-            ex.HttpStatusCode,
-            ex.Message,
-            ex.Errors
-        };
-
-        Snapshot.Match(o);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_SaveAsync_PublicAndPrivateMessage()
-    {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        // save it - this will throw a validation exception
-        var ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
-                cancellationToken: default))!;
-
-        var o = new
-        {
-            ex.HttpStatusCode,
-            ex.Message,
-            ex.Errors
-        };
-
-        Snapshot.Match(o);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_SaveAsync_PublicMessage()
-    {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        createCommand.Item.PrivateMessage = "Private #1";
-
-        // save it - this will throw a validation exception
-        var ex = Assert.ThrowsAsync<ValidationException>(
-            async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
-                cancellationToken: default))!;
-
-        var o = new
-        {
-            ex.HttpStatusCode,
-            ex.Message,
-            ex.Errors
-        };
-
-        Snapshot.Match(o);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_SaveAsync_PublicMessageTwoEmptyErrors()
-    {
+        // Setup validator with multiple rules for public message
         var validator = new InlineValidator<TestItem>();
         validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
         validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
@@ -178,23 +19,27 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type with validator
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 validator: validator);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set empty public message and valid private message
         createCommand.Item.PublicMessage = string.Empty;
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it - this will throw a validation exception
+        // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
                 requestContext: requestContext,
@@ -211,52 +56,146 @@ public class UpdateCommandValidateTests
     }
 
     [Test]
-    public async Task UpdateCommandValidate_ValidateAsync_PrivateMessage()
+    [Description("Tests validation exception when both public and private messages are empty")]
+    public async Task UpdateCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
     {
+        // Setup validator requiring both public and private messages
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create a new command to create our test item (with default empty values)
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Save it - this should throw a validation exception
+        var ex = Assert.ThrowsAsync<ValidationException>(
+            async () => await createCommand.SaveAsync(
+                requestContext: requestContext,
+                cancellationToken: default))!;
+
+        var o = new
+        {
+            ex.HttpStatusCode,
+            ex.Message,
+            ex.Errors
+        };
+
+        Snapshot.Match(o);
+    }
+
+    [Test]
+    [Description("Tests validation exception when private message is empty")]
+    public async Task UpdateCommandValidate_SaveAsync_MissingPrivateMessage()
+    {
+        // Setup validator requiring private message not empty
         var validator = new InlineValidator<TestItem>();
         validator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type with validator
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 validator: validator);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set only public message, leaving private message empty
         createCommand.Item.PublicMessage = "Public #1";
-        createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
-        await createCommand.SaveAsync(
-            requestContext: requestContext,
-            cancellationToken: default);
+        // Save it - this should throw a validation exception
+        var ex = Assert.ThrowsAsync<ValidationException>(
+            async () => await createCommand.SaveAsync(
+                requestContext: requestContext,
+                cancellationToken: default))!;
 
-        var updateCommand = await commandProvider.UpdateAsync(
-            id: id,
-            partitionKey: partitionKey);
+        var o = new
+        {
+            ex.HttpStatusCode,
+            ex.Message,
+            ex.Errors
+        };
 
-        Assert.That(updateCommand, Is.Not.Null);
-        Assert.That(updateCommand!.Item, Is.Not.Null);
-
-        updateCommand.Item.PrivateMessage = null!;
-
-        var validationResult = await updateCommand.ValidateAsync(default);
-
-        Snapshot.Match(validationResult);
+        Snapshot.Match(o);
     }
 
     [Test]
-    public async Task UpdateCommandValidate_ValidateAsync_PrivateMessageTwoNullErrors()
+    [Description("Tests validation exception when public message is empty")]
+    public async Task UpdateCommandValidate_SaveAsync_MissingPublicMessage()
     {
+        // Setup validator requiring public message not empty
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create a new command to create our test item
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set only private message, leaving public message empty
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // Save it - this should throw a validation exception
+        var ex = Assert.ThrowsAsync<ValidationException>(
+            async () => await createCommand.SaveAsync(
+                requestContext: requestContext,
+                cancellationToken: default))!;
+
+        var o = new
+        {
+            ex.HttpStatusCode,
+            ex.Message,
+            ex.Errors
+        };
+
+        Snapshot.Match(o);
+    }
+
+    [Test]
+    [Description("Tests validation exception with multiple null errors for private message")]
+    public async Task UpdateCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
+    {
+        // Setup validator with multiple rules for private message
         var validator = new InlineValidator<TestItem>();
         validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
         validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
@@ -264,134 +203,46 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type with validator
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 validator: validator);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set only public message, leaving private message null
         createCommand.Item.PublicMessage = "Public #1";
-        createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
-        await createCommand.SaveAsync(
-            requestContext: requestContext,
-            cancellationToken: default);
+        // Save it - this should throw a validation exception
+        var ex = Assert.ThrowsAsync<ValidationException>(
+            async () => await createCommand.SaveAsync(
+                requestContext: requestContext,
+                cancellationToken: default))!;
 
-        var updateCommand = await commandProvider.UpdateAsync(
-            id: id,
-            partitionKey: partitionKey);
+        var o = new
+        {
+            ex.HttpStatusCode,
+            ex.Message,
+            ex.Errors
+        };
 
-        Assert.That(updateCommand, Is.Not.Null);
-        Assert.That(updateCommand!.Item, Is.Not.Null);
-
-        updateCommand.Item.PrivateMessage = null!;
-
-        var validationResult = await updateCommand.ValidateAsync(default);
-
-        Snapshot.Match(validationResult);
+        Snapshot.Match(o);
     }
 
     [Test]
-    public async Task UpdateCommandValidate_ValidateAsync_PublicAndPrivateMessage()
+    [Description("Tests validation result with multiple empty errors for public message in update command")]
+    public async Task UpdateCommandValidate_ValidateAsync_EmptyPublicMessageWithTwoErrors()
     {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        createCommand.Item.PublicMessage = "Public #1";
-        createCommand.Item.PrivateMessage = "Private #1";
-
-        // save it
-        await createCommand.SaveAsync(
-            requestContext: requestContext,
-            cancellationToken: default);
-
-        var updateCommand = await commandProvider.UpdateAsync(
-            id: id,
-            partitionKey: partitionKey);
-
-        Assert.That(updateCommand, Is.Not.Null);
-        Assert.That(updateCommand!.Item, Is.Not.Null);
-
-        updateCommand.Item.PublicMessage = null!;
-        updateCommand.Item.PrivateMessage = null!;
-
-        var validationResult = await updateCommand.ValidateAsync(default);
-
-        Snapshot.Match(validationResult);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_ValidateAsync_PublicMessage()
-    {
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
-
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
-
-        var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                validator: validator);
-
-        var createCommand = commandProvider.Create(
-            id: id,
-            partitionKey: partitionKey);
-
-        createCommand.Item.PublicMessage = "Public #1";
-        createCommand.Item.PrivateMessage = "Private #1";
-
-        // save it
-        await createCommand.SaveAsync(
-            requestContext: requestContext,
-            cancellationToken: default);
-
-        var updateCommand = await commandProvider.UpdateAsync(
-            id: id,
-            partitionKey: partitionKey);
-
-        Assert.That(updateCommand, Is.Not.Null);
-        Assert.That(updateCommand!.Item, Is.Not.Null);
-
-        updateCommand.Item.PublicMessage = null!;
-
-        var validationResult = await updateCommand.ValidateAsync(default);
-
-        Snapshot.Match(validationResult);
-    }
-
-    [Test]
-    public async Task UpdateCommandValidate_ValidateAsync_PublicMessageTwoEmptyErrors()
-    {
+        // Setup validator with multiple rules for public message
         var validator = new InlineValidator<TestItem>();
         validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
         validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
@@ -399,15 +250,18 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type with validator
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 validator: validator);
 
+        // Create and save a valid initial item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
@@ -415,11 +269,12 @@ public class UpdateCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the initial item
         await createCommand.SaveAsync(
             requestContext: requestContext,
             cancellationToken: default);
 
+        // Create an update command for the saved item
         var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
@@ -427,8 +282,221 @@ public class UpdateCommandValidateTests
         Assert.That(updateCommand, Is.Not.Null);
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
+        // Set public message to empty to cause validation errors
         updateCommand.Item.PublicMessage = string.Empty;
 
+        // Validate the update command and capture the results
+        var validationResult = await updateCommand.ValidateAsync(default);
+
+        Snapshot.Match(validationResult);
+    }
+
+    [Test]
+    [Description("Tests validation result when both public and private messages are missing in update command")]
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicAndPrivateMessages()
+    {
+        // Setup validator requiring both public and private messages
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create and save a valid initial item
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        createCommand.Item.PublicMessage = "Public #1";
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // Save the initial item
+        await createCommand.SaveAsync(
+            requestContext: requestContext,
+            cancellationToken: default);
+
+        // Create an update command for the saved item
+        var updateCommand = await commandProvider.UpdateAsync(
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(updateCommand, Is.Not.Null);
+        Assert.That(updateCommand!.Item, Is.Not.Null);
+
+        // Set both messages to null to cause validation errors
+        updateCommand.Item.PublicMessage = null!;
+        updateCommand.Item.PrivateMessage = null!;
+
+        // Validate the update command and capture the results
+        var validationResult = await updateCommand.ValidateAsync(default);
+
+        Snapshot.Match(validationResult);
+    }
+
+    [Test]
+    [Description("Tests validation result when private message is missing in update command")]
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPrivateMessage()
+    {
+        // Setup validator requiring private message not empty
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create and save a valid initial item
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        createCommand.Item.PublicMessage = "Public #1";
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // Save the initial item
+        await createCommand.SaveAsync(
+            requestContext: requestContext,
+            cancellationToken: default);
+
+        // Create an update command for the saved item
+        var updateCommand = await commandProvider.UpdateAsync(
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(updateCommand, Is.Not.Null);
+        Assert.That(updateCommand!.Item, Is.Not.Null);
+
+        // Set private message to null to cause validation error
+        updateCommand.Item.PrivateMessage = null!;
+
+        // Validate the update command and capture the results
+        var validationResult = await updateCommand.ValidateAsync(default);
+
+        Snapshot.Match(validationResult);
+    }
+
+    [Test]
+    [Description("Tests validation result when public message is missing in update command")]
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicMessage()
+    {
+        // Setup validator requiring public message not empty
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create and save a valid initial item
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        createCommand.Item.PublicMessage = "Public #1";
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // Save the initial item
+        await createCommand.SaveAsync(
+            requestContext: requestContext,
+            cancellationToken: default);
+
+        // Create an update command for the saved item
+        var updateCommand = await commandProvider.UpdateAsync(
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(updateCommand, Is.Not.Null);
+        Assert.That(updateCommand!.Item, Is.Not.Null);
+
+        // Set public message to null to cause validation error
+        updateCommand.Item.PublicMessage = null!;
+
+        // Validate the update command and capture the results
+        var validationResult = await updateCommand.ValidateAsync(default);
+
+        Snapshot.Match(validationResult);
+    }
+
+    [Test]
+    [Description("Tests validation result with multiple null errors for private message in update command")]
+    public async Task UpdateCommandValidate_ValidateAsync_NullPrivateMessageWithTwoErrors()
+    {
+        // Setup validator with multiple rules for private message
+        var validator = new InlineValidator<TestItem>();
+        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
+        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
+
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create test request context
+        var requestContext = TestRequestContext.Create();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type with validator
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+                typeName: "test-item",
+                validator: validator);
+
+        // Create and save a valid initial item
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        createCommand.Item.PublicMessage = "Public #1";
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // Save the initial item
+        await createCommand.SaveAsync(
+            requestContext: requestContext,
+            cancellationToken: default);
+
+        // Create an update command for the saved item
+        var updateCommand = await commandProvider.UpdateAsync(
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(updateCommand, Is.Not.Null);
+        Assert.That(updateCommand!.Item, Is.Not.Null);
+
+        // Set private message to null to cause validation errors
+        updateCommand.Item.PrivateMessage = null!;
+
+        // Validate the update command and capture the results
         var validationResult = await updateCommand.ValidateAsync(default);
 
         Snapshot.Match(validationResult);

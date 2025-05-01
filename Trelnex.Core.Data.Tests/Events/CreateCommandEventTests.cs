@@ -2,11 +2,11 @@ using Snapshooter.NUnit;
 
 namespace Trelnex.Core.Data.Tests.Events;
 
+[Category("Events")]
 public class CreateCommandEventTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
+    [Description("Tests that create commands generate proper events with correct change tracking")]
     public async Task CreateCommandEvent()
     {
         var id = "569d9c11-f66f-46b9-98be-ff0cff833475";
@@ -14,35 +14,40 @@ public class CreateCommandEventTests
 
         var startDateTime = DateTime.UtcNow;
 
+        // Create test request context
         var requestContext = TestRequestContext.Create();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+                typeName: "test-item");
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicId = 1;
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the initial state
         await createCommand.SaveAsync(
             requestContext: requestContext,
             cancellationToken: default);
 
-        // get the events
+        // Get the events from the command provider
         var events = (commandProvider as InMemoryCommandProvider<ITestItem, TestItem>)!.GetEvents();
 
-        // snapshooter does a poor job of the serialization of dynamic
-        // so explicit check of the changes array
-
+        // Verify the changes in the events
+        // Snapshooter does a poor job of the serialization of dynamic
+        // so we do explicit checks of the changes array
         Assert.Multiple(() =>
         {
+            // Check event changes (create event)
             Assert.That(
                 events[0].Changes!,
                 Has.Length.EqualTo(2));
@@ -64,6 +69,8 @@ public class CreateCommandEventTests
                 Is.EqualTo("Public #1"));
         });
 
+        // Use Snapshooter to verify the event structure
+        // Ignoring the Changes field as it's verified separately above
         Snapshot.Match(
             events,
             matchOptions => matchOptions
@@ -74,6 +81,7 @@ public class CreateCommandEventTests
                     {
                         var currentDateTime = DateTime.UtcNow;
 
+                        // Verify event properties (create event)
                         // id
                         Assert.That(
                             fieldOption.Field<Guid>("[0].Id"),
@@ -99,6 +107,7 @@ public class CreateCommandEventTests
                             fieldOption.Field<Guid>("[0].ETag"),
                             Is.Not.Default);
 
+                        // Verify context values
                         // context.objectId
                         Assert.That(
                             fieldOption.Field<Guid>("[0].Context.ObjectId"),

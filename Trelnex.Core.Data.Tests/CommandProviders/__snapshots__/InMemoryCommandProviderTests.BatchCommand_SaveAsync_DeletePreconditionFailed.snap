@@ -15,11 +15,11 @@
         "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
         "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
         "TypeName": "test-item",
-        "CreatedDate": "2025-01-19T22:19:55.004878Z",
-        "UpdatedDate": "2025-01-19T22:19:55.004878Z",
+        "CreatedDate": "2025-05-01T21:35:50.036682Z",
+        "UpdatedDate": "2025-05-01T21:35:50.036682Z",
         "DeletedDate": null,
         "IsDeleted": null,
-        "ETag": "e5211558-70d5-4028-b29c-5cb530cede62",
+        "ETag": "0d6c9568-9d08-4c74-8a22-5eab309f6c62",
         "Message": "Message #1"
       }
     }
