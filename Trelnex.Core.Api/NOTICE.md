@@ -1,63 +1,59 @@
-# First-Party Libraries
-
-This project uses the following first-party libraries:
-
-## Trelnex.Core.Data
-- [LICENSE](../Trelnex.Core.Data/LICENSE)
-- [NOTICE.md](../Trelnex.Core.Data/NOTICE.md)
-
 # Third-Party Libraries
 
 This project uses the following third-party libraries:
 
+## .NET Runtime
+- [License (MIT License)](https://github.com/dotnet/runtime#MIT-1-ov-file)
+- [Source Repository](https://github.com/dotnet/runtime)
+
+## ASP.NET Core
+- [License (MIT License)](https://github.com/dotnet/aspnetcore#MIT-1-ov-file)
+- [Source Repository](https://github.com/dotnet/aspnetcore)
+
 ## Microsoft.Identity.Web
-- [NuGet](https://www.nuget.org/packages/Microsoft.Identity.Web)
-- [MIT License](https://licenses.nuget.org/MIT)
+- [License (MIT License)](https://github.com/AzureAD/microsoft-identity-web#MIT-1-ov-file)
+- [Project Website](https://github.com/AzureAD/microsoft-identity-web)
 
 ## Microsoft.SourceLink.GitHub
-- [NuGet](https://www.nuget.org/packages/Microsoft.SourceLink.GitHub)
-- [MIT License](https://licenses.nuget.org/MIT)
+- [License (MIT License)](https://github.com/dotnet/sourcelink#MIT-1-ov-file)
+- [Source Repository](https://github.com/dotnet/sourcelink)
 
-## OpenTelemetry.Exporter.OpenTelemetryProtocol
-- [NuGet](https://www.nuget.org/packages/OpenTelemetry.Exporter.OpenTelemetryProtocol)
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+## OpenTelemetry .NET
+- [License (Apache-2.0 License)](https://github.com/open-telemetry/opentelemetry-dotnet#Apache-2.0-1-ov-file)
+- [Project Website](https://github.com/open-telemetry/opentelemetry-dotnet)
 
-## OpenTelemetry.Extensions.Hosting
-- [NuGet](https://www.nuget.org/packages/OpenTelemetry.Extensions.Hosting)
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+## OpenTelemetry .NET Contrib
+- [License (Apache-2.0 License)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib#Apache-2.0-1-ov-file)
+- [Project Website](https://github.com/open-telemetry/opentelemetry-dotnet-contrib)
 
-## OpenTelemetry.Instrumentation.AspNetCore
-- [NuGet](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNetCore)
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+## Prometheus .NET
+- [License (MIT License)](https://github.com/prometheus-net/prometheus-net#MIT-1-ov-file)
+- [Project Website](https://github.com/prometheus-net/prometheus-net)
 
-## OpenTelemetry.Instrumentation.Http
-- [NuGet](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http)
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+## Semver
+- [License (MIT License)](https://github.com/WalkerCodeRanger/semver#MIT-1-ov-file)
+- [Project Website](https://github.com/WalkerCodeRanger/semver)
 
-## prometheus-net.AspNetCore
-- [NuGet](https://www.nuget.org/packages/prometheus-net.AspNetCore)]
-- [MIT License](https://licenses.nuget.org/MIT)
-
-## prometheus-net.AspNetCore.HealthChecks
-- [NuGet](https://www.nuget.org/packages/prometheus-net.AspNetCore.HealthChecks)
-- [MIT License](https://licenses.nuget.org/MIT)
-
-## Serilog.AspNetCore
-- [NuGet](https://www.nuget.org/packages/Serilog.AspNetCore)]
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+## Serilog.AspNetCode
+- [License (Apache-2.0 License)](https://github.com/serilog/serilog-aspnetcore#Apache-2.0-1-ov-file)
+- [Project Website](https://github.com/serilog/serilog-aspnetcore)
 
 ## Serilog.Enrichers.Span
-- [NuGet](https://www.nuget.org/packages/Serilog.Enrichers.Span)
-- [MIT License](https://licenses.nuget.org/MIT)
+- [License (MIT License)](https://github.com/RehanSaeed/Serilog.Enrichers.Span#MIT-1-ov-file)
+- [Project Website](https://github.com/RehanSaeed/Serilog.Enrichers.Span)
 
 ## Serilog.Expressions
-- [NuGet](https://www.nuget.org/packages/Serilog.Expressions)
-- [Apache License 2.0](https://licenses.nuget.org/Apache-2.0)
+- [License (Apache-2.0 License)](https://github.com/serilog/serilog-expressions#Apache-2.0-1-ov-file)
+- [Project Website](https://github.com/serilog/serilog-expressions)
+
+## Serilog.Sinks.OpenTelemetry
+- [License (Apache-2.0 License)](https://github.com/serilog/serilog-sinks-opentelemetry#Apache-2.0-1-ov-file)
+- [Project Website](https://github.com/serilog/serilog-sinks-opentelemetry)
 
 ## Swashbuckle.AspNetCore
-- [NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore)]
-- [MIT License](https://licenses.nuget.org/MIT)
+- [License (MIT License)](https://github.com/domaindrivendev/Swashbuckle.AspNetCore#MIT-1-ov-file)
+- [Project Website](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)
 
-## Swashbuckle.AspNetCore.Annotations
-- [NuGet](https://www.nuget.org/packages/Swashbuckle.AspNetCore.Annotations)]
-- [MIT License](https://licenses.nuget.org/MIT)
+## Trelnex.Core.Data
+- [License (AGPL-3.0 License)](https://github.com/StevenKehrli/Trelnex#AGPL-3.0-1-ov-file)
+- [Source Repository](https://github.com/StevenKehrli/Trelnex)
