@@ -3,18 +3,14 @@ using System.Net;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Represents an exception that occurs during command execution in the data access layer.
+/// Exception for command execution errors.
 /// </summary>
 /// <remarks>
-/// This exception type inherits from <see cref="HttpStatusCodeException"/> and provides
-/// a standard way to communicate exceptions from data commands with appropriate HTTP status codes.
-/// It's typically used by command handlers, repositories, and services to translate data-related
-/// errors to HTTP-compatible error representations.
+/// Provides command exceptions with HTTP status codes.
 /// </remarks>
-/// <param name="httpStatusCode">The HTTP status code associated with this exception.</param>
-/// <param name="message">The optional error message string. If not specified, it will default to the reason phrase of the specified <see cref="HttpStatusCode"/>.</param>
-/// <param name="innerException">The optional inner exception reference.</param>
-/// <seealso cref="HttpStatusCodeException"/>
+/// <param name="httpStatusCode">HTTP status code for this exception.</param>
+/// <param name="message">Optional error message.</param>
+/// <param name="innerException">Optional inner exception.</param>
 public class CommandException(
     HttpStatusCode httpStatusCode,
     string? message = null,

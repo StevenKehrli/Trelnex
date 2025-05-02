@@ -4,33 +4,25 @@ using System.Reflection;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Converts expressions based on an interface type to equivalent expressions using a concrete implementation type.
+/// Converts interface-based expressions to concrete implementation expressions.
 /// </summary>
 /// <remarks>
-/// <para>
-/// This utility allows reusing LINQ expressions defined against interfaces with concrete implementations
-/// of those interfaces. It works by rewriting the expression tree, mapping interface members to their
-/// corresponding implementation members.
-/// </para>
-/// <para>
-/// Based on the solution from Stack Overflow:
-/// https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
-/// </para>
+/// Rewrites expression trees by mapping interface members to implementation members.
 /// </remarks>
-/// <typeparam name="TInterface">The interface type used in the original expression.</typeparam>
-/// <typeparam name="TItem">The concrete type that implements <typeparamref name="TInterface"/> to target in the converted expression.</typeparam>
+/// <typeparam name="TInterface">Interface in original expression.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
 public class ExpressionConverter<TInterface, TItem>
     where TItem : TInterface
 {
     #region Static Fields
 
     /// <summary>
-    /// The parameter expression representing an instance of <typeparamref name="TItem"/> in the rewritten expressions.
+    /// Parameter for TItem in rewritten expressions.
     /// </summary>
     private static readonly ParameterExpression _parameterExpression = Expression.Parameter(typeof(TItem));
 
     /// <summary>
-    /// The expression visitor that performs the actual rewriting of expression nodes.
+    /// Visitor that rewrites expression nodes.
     /// </summary>
     private static readonly ExpressionRewriter _expressionRewriter = new ExpressionRewriter();
 
@@ -39,12 +31,12 @@ public class ExpressionConverter<TInterface, TItem>
     #region Internal Methods
 
     /// <summary>
-    /// Converts a boolean predicate expression from interface type to implementation type.
+    /// Converts a boolean predicate expression.
     /// </summary>
-    /// <param name="predicate">The expression using <typeparamref name="TInterface"/> to convert.</param>
-    /// <returns>An equivalent expression using <typeparamref name="TItem"/> instead of <typeparamref name="TInterface"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when a property in the expression doesn't have a matching property in <typeparamref name="TItem"/>.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is <see langword="null"/>.</exception>
+    /// <param name="predicate">Expression to convert.</param>
+    /// <returns>Equivalent implementation-based expression.</returns>
+    /// <exception cref="ArgumentException">When property has no match in TItem.</exception>
+    /// <exception cref="ArgumentNullException">When predicate is null.</exception>
     internal Expression<Func<TItem, bool>> Convert(
         Expression<Func<TInterface, bool>> predicate)
     {
@@ -66,13 +58,13 @@ public class ExpressionConverter<TInterface, TItem>
     }
 
     /// <summary>
-    /// Converts a projection expression from interface type to implementation type.
+    /// Converts a projection expression.
     /// </summary>
-    /// <typeparam name="TKey">The type of the result produced by the projection.</typeparam>
-    /// <param name="predicate">The projection expression using <typeparamref name="TInterface"/> to convert.</param>
-    /// <returns>An equivalent projection expression using <typeparamref name="TItem"/> instead of <typeparamref name="TInterface"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when a property in the expression doesn't have a matching property in <typeparamref name="TItem"/>.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is <see langword="null"/>.</exception>
+    /// <typeparam name="TKey">Result type of the projection.</typeparam>
+    /// <param name="predicate">Expression to convert.</param>
+    /// <returns>Equivalent implementation-based projection.</returns>
+    /// <exception cref="ArgumentException">When property has no match in TItem.</exception>
+    /// <exception cref="ArgumentNullException">When predicate is null.</exception>
     internal Expression<Func<TItem, TKey>> Convert<TKey>(
         Expression<Func<TInterface, TKey>> predicate)
     {
@@ -100,22 +92,19 @@ public class ExpressionConverter<TInterface, TItem>
     #region Nested Types
 
     /// <summary>
-    /// Expression visitor that rewrites expression nodes to use the target implementation type.
+    /// Rewrites expression nodes to use the target implementation type.
     /// </summary>
     private class ExpressionRewriter : ExpressionVisitor
     {
         #region Static Fields
 
         /// <summary>
-        /// Set of interface names that are part of the type hierarchy of <typeparamref name="TInterface"/>.
+        /// Interface names in TInterface hierarchy.
         /// </summary>
-        /// <remarks>
-        /// This includes <typeparamref name="TInterface"/> and all interfaces it inherits from.
-        /// </remarks>
         private static readonly HashSet<string> _interfaces = GetInterfaces();
 
         /// <summary>
-        /// Mapping from property names to <typeparamref name="TItem"/> property information.
+        /// Maps property names to TItem properties.
         /// </summary>
         private static readonly Dictionary<string, PropertyInfo> _itemPropertiesByName = GetItemPropertiesByName();
 
@@ -123,23 +112,15 @@ public class ExpressionConverter<TInterface, TItem>
 
         #region Protected Methods
 
-        /// <summary>
-        /// Visits a parameter expression and replaces it with the parameter for the target type.
-        /// </summary>
-        /// <param name="node">The parameter expression to visit.</param>
-        /// <returns>The <see cref="_parameterExpression"/> representing the target type parameter.</returns>
+        /// <inheritdoc/>
         protected override Expression VisitParameter(
             ParameterExpression node)
         {
             return _parameterExpression;
         }
 
-        /// <summary>
-        /// Visits a member expression and rewrites it to use the corresponding member of the target type.
-        /// </summary>
-        /// <param name="node">The member expression to visit.</param>
-        /// <returns>A rewritten member expression using the target type's member, or the original expression if no rewriting is needed.</returns>
-        /// <exception cref="ArgumentException">Thrown when a property in <typeparamref name="TInterface"/> doesn't have a matching property in <typeparamref name="TItem"/>.</exception>
+        /// <inheritdoc/>
+        /// <exception cref="ArgumentException">When property has no match in TItem.</exception>
         protected override Expression VisitMember(
             MemberExpression node)
         {
@@ -183,9 +164,9 @@ public class ExpressionConverter<TInterface, TItem>
         #region Private Methods
 
         /// <summary>
-        /// Creates a set containing the names of all interfaces in the <typeparamref name="TInterface"/> hierarchy.
+        /// Gets names of all interfaces in TInterface hierarchy.
         /// </summary>
-        /// <returns>A <see cref="HashSet{T}"/> containing interface names.</returns>
+        /// <returns>Set of interface names.</returns>
         private static HashSet<string> GetInterfaces()
         {
             // We build a set of interface names rather than types for easier lookup
@@ -223,9 +204,9 @@ public class ExpressionConverter<TInterface, TItem>
         }
 
         /// <summary>
-        /// Creates a dictionary mapping property names to PropertyInfo objects for <typeparamref name="TItem"/>.
+        /// Maps property names to PropertyInfo objects for TItem.
         /// </summary>
-        /// <returns>A dictionary mapping property names to their corresponding <see cref="PropertyInfo"/> objects.</returns>
+        /// <returns>Dictionary of property names to PropertyInfo objects.</returns>
         private static Dictionary<string, PropertyInfo> GetItemPropertiesByName()
         {
             // Create a fast lookup dictionary that maps property names to their PropertyInfo objects

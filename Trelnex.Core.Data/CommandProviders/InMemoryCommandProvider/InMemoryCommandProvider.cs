@@ -9,67 +9,13 @@ using FluentValidation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// An in-memory implementation of <see cref="CommandProvider{TInterface, TItem}"/> that stores data
-/// in memory for testing, prototyping, and lightweight application scenarios.
+/// In-memory implementation of <see cref="CommandProvider{TInterface, TItem}"/>.
 /// </summary>
-/// <typeparam name="TInterface">The interface type that defines the data contract.</typeparam>
-/// <typeparam name="TItem">The concrete class that implements <typeparamref name="TInterface"/> and inherits from <see cref="BaseItem"/>.</typeparam>
+/// <typeparam name="TInterface">Interface type.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
 /// <remarks>
-/// <para>
-/// This command provider offers a complete, in-memory simulation of a database-backed command provider,
-/// making it ideal for testing, prototyping, and scenarios where persistence beyond the application's
-/// lifetime is not required. Key features include:
-/// </para>
-/// <list type="bullet">
-///   <item>
-///     <description>
-///       <strong>Real-world simulation:</strong> Uses serialization/deserialization to validate that
-///       entities are properly JSON-attributed, simulating the behavior of persistent stores
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Optimistic concurrency:</strong> Manages ETags for proper concurrency control,
-///       detecting conflicts when multiple processes modify the same item
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Atomic transactions:</strong> Implements true atomic batch operations with proper
-///       rollback semantics on failure
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Event tracking:</strong> Maintains a complete history of all operations through
-///       <see cref="ItemEvent{TItem}"/> records
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Thread safety:</strong> Uses reader-writer locking to enable concurrent reads
-///       while ensuring exclusive writes
-///     </description>
-///   </item>
-/// </list>
-/// <para>
-/// The provider follows a dual-storage pattern with separate collections for main entities and
-/// their audit events, just like the database implementations. This maintains full consistency
-/// with how persistent providers behave while being entirely contained in memory.
-/// </para>
-/// <para>
-/// Though primarily intended for testing, this implementation is robust enough for production use
-/// in scenarios where data persistence beyond application lifetime is not required, such as:
-/// </para>
-/// <list type="bullet">
-///   <item><description>Single-user desktop applications</description></item>
-///   <item><description>Ephemeral data caches</description></item>
-///   <item><description>Short-lived processing services</description></item>
-///   <item><description>Isolated integration test environments</description></item>
-/// </list>
+/// Simulates a database-backed provider.
 /// </remarks>
-/// <seealso cref="CommandProvider{TInterface, TItem}"/>
-/// <seealso cref="InMemoryCommandProviderFactory"/>
 internal class InMemoryCommandProvider<TInterface, TItem>(
     string typeName,
     IValidator<TItem>? itemValidator = null,
@@ -81,15 +27,12 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     #region Private Fields
 
     /// <summary>
-    /// An exclusive lock to ensure that only one operation that modifies the backing store is in progress at a time.
+    /// Reader-writer lock for thread safety.
     /// </summary>
-    /// <remarks>
-    /// This lock uses a reader-writer pattern, allowing multiple simultaneous reads but exclusive writes.
-    /// </remarks>
     private readonly ReaderWriterLockSlim _lock = new();
 
     /// <summary>
-    /// The in-memory backing store containing all items and their associated events.
+    /// In-memory storage.
     /// </summary>
     private InMemoryStore _store = new();
 
@@ -97,16 +40,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
 
     #region Protected Methods
 
-    /// <summary>
-    /// Creates an <see cref="IQueryable{T}"/> for querying items in the in-memory store.
-    /// </summary>
-    /// <returns>
-    /// An <see cref="IQueryable{TItem}"/> that filters items by type name and deleted status.
-    /// </returns>
-    /// <remarks>
-    /// This method uses deferred execution, so the actual query against the store
-    /// happens when the queryable is enumerated in <see cref="ExecuteQueryable"/>.
-    /// </remarks>
+    /// <inheritdoc/>
     protected override IQueryable<TItem> CreateQueryable()
     {
         // Deferred execution, so we don't need to lock here.
@@ -118,22 +52,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             .Where(i => i.IsDeleted == null || i.IsDeleted == false);
     }
 
-    /// <summary>
-    /// Executes the specified LINQ query against the in-memory store and returns the results.
-    /// </summary>
-    /// <param name="queryable">The LINQ query to execute.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>
-    /// An enumerable of items matching the query criteria.
-    /// </returns>
-    /// <remarks>
-    /// This method acquires a read lock to ensure thread safety while the query is executing.
-    /// It transforms the original queryable (which was based on an empty collection) to operate
-    /// against the actual in-memory store data.
-    /// </remarks>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled through the cancellation token.
-    /// </exception>
+    /// <inheritdoc/>
     protected override IEnumerable<TItem> ExecuteQueryable(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
@@ -178,22 +97,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
     }
 
-    /// <summary>
-    /// Reads an item from the in-memory store by ID and partition key.
-    /// </summary>
-    /// <param name="id">The unique identifier of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>
-    /// A task representing the asynchronous operation. The task result contains the item if found,
-    /// or <see langword="null"/> if the item does not exist.
-    /// </returns>
-    /// <remarks>
-    /// This method acquires a read lock to ensure thread safety during the read operation.
-    /// </remarks>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled through the cancellation token.
-    /// </exception>
+    /// <inheritdoc/>
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -217,30 +121,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
     }
 
-    /// <summary>
-    /// Saves a batch of items in the in-memory store as an atomic transaction.
-    /// </summary>
-    /// <param name="requests">An array of save requests, each containing an item and its associated event.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>
-    /// A task representing the asynchronous operation. The task result contains an array of
-    /// <see cref="SaveResult{TInterface, TItem}"/> objects, one for each request in the batch.
-    /// </returns>
-    /// <remarks>
-    /// <para>
-    /// This method implements atomic batch processing by:
-    /// 1. Creating a copy of the current store
-    /// 2. Applying all operations to the copy
-    /// 3. If all operations succeed, replacing the original store with the copy
-    /// 4. If any operation fails, discarding the copy and marking all operations as failed
-    /// </para>
-    /// <para>
-    /// This ensures that either all operations in the batch succeed or none of them take effect.
-    /// </para>
-    /// </remarks>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled through the cancellation token.
-    /// </exception>
+    /// <inheritdoc/>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
@@ -323,10 +204,10 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     #region Internal Methods
 
     /// <summary>
-    /// Clears all data from the in-memory store.
+    /// Clears all data.
     /// </summary>
     /// <remarks>
-    /// This method is primarily used for testing purposes to reset the store to an empty state.
+    /// Used for testing.
     /// </remarks>
     internal void Clear()
     {
@@ -343,13 +224,11 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Gets all events stored in the in-memory store.
+    /// Gets all stored events.
     /// </summary>
-    /// <returns>
-    /// An array of all <see cref="ItemEvent{TItem}"/> objects in the store.
-    /// </returns>
+    /// <returns>Array of all events.</returns>
     /// <remarks>
-    /// This method is primarily used for testing and debugging purposes.
+    /// Used for testing and debugging.
     /// </remarks>
     internal ItemEvent<TItem>[] GetEvents()
     {
@@ -370,12 +249,10 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     #region Private Static Methods
 
     /// <summary>
-    /// Generates a composite key for storing and retrieving items.
+    /// Generates composite key.
     /// </summary>
-    /// <param name="item">The item to generate a key for.</param>
-    /// <returns>
-    /// A string key in the format "partitionKey:id".
-    /// </returns>
+    /// <param name="item">Item to key.</param>
+    /// <returns>Key in format "partitionKey:id".</returns>
     private static string GetItemKey(
         BaseItem item)
     {
@@ -385,13 +262,11 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Generates a composite key for storing and retrieving items.
+    /// Generates composite key from parts.
     /// </summary>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="id">The id of the item.</param>
-    /// <returns>
-    /// A string key in the format "partitionKey:id".
-    /// </returns>
+    /// <param name="partitionKey">Partition key.</param>
+    /// <param name="id">Item id.</param>
+    /// <returns>Key in format "partitionKey:id".</returns>
     private static string GetItemKey(
         string partitionKey,
         string id)
@@ -400,19 +275,13 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Saves an item to the specified backing store.
+    /// Saves item to specified store.
     /// </summary>
-    /// <param name="store">The backing store to save the item to.</param>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <returns>
-    /// The saved item after processing.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the <see cref="SaveAction"/> is not recognized.
-    /// </exception>
-    /// <exception cref="CommandException">
-    /// Thrown when a storage operation fails, with a relevant HTTP status code.
-    /// </exception>
+    /// <param name="store">Store to save to.</param>
+    /// <param name="request">Save request.</param>
+    /// <returns>Saved item.</returns>
+    /// <exception cref="InvalidOperationException">When SaveAction not recognized.</exception>
+    /// <exception cref="CommandException">When storage operation fails.</exception>
     private static TItem SaveItem(
         InMemoryStore store,
         SaveRequest<TInterface, TItem> request) => request.SaveAction switch
@@ -431,19 +300,18 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     #region Nested Types
 
     /// <summary>
-    /// Base class for serialized items and events stored in memory.
+    /// Base class for serialized items and events.
     /// </summary>
-    /// <typeparam name="T">The type of item being serialized, must derive from <see cref="BaseItem"/>.</typeparam>
+    /// <typeparam name="T">Item type being serialized.</typeparam>
     /// <remarks>
-    /// This class handles the serialization and deserialization of items and events,
-    /// ensuring they are stored in a format similar to how they would be in a real database.
+    /// Handles serialization/deserialization.
     /// </remarks>
     private abstract class BaseSerialized<T> where T : BaseItem
     {
         #region Private Static Fields
 
         /// <summary>
-        /// The JSON serializer options used for serialization and deserialization.
+        /// JSON serializer options.
         /// </summary>
         private static readonly JsonSerializerOptions _options = new()
         {
@@ -456,12 +324,12 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region Private Fields
 
         /// <summary>
-        /// The serialized JSON string representation of the item.
+        /// Serialized JSON string.
         /// </summary>
         private string _jsonString = null!;
 
         /// <summary>
-        /// The ETag value for optimistic concurrency control.
+        /// ETag for optimistic concurrency.
         /// </summary>
         private string _eTag = null!;
 
@@ -470,12 +338,8 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region Public Properties
 
         /// <summary>
-        /// Gets the deserialized resource from the stored JSON.
+        /// Gets deserialized resource.
         /// </summary>
-        /// <remarks>
-        /// This property deserializes the JSON string each time it's accessed,
-        /// ensuring any modifications to the JSON are reflected in the returned object.
-        /// </remarks>
         public T Resource
         {
             get
@@ -492,11 +356,8 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Gets the ETag value for this resource.
+        /// ETag value.
         /// </summary>
-        /// <value>
-        /// A string representing the current version of the resource.
-        /// </value>
         public string ETag => _eTag;
 
         #endregion
@@ -504,13 +365,11 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region Protected Static Methods
 
         /// <summary>
-        /// Creates a new serialized instance from the provided resource.
+        /// Creates new serialized instance.
         /// </summary>
-        /// <typeparam name="TSerialized">The specific serialized class type to create.</typeparam>
-        /// <param name="resource">The resource to serialize.</param>
-        /// <returns>
-        /// A new instance of <typeparamref name="TSerialized"/> containing the serialized resource.
-        /// </returns>
+        /// <typeparam name="TSerialized">Serialized class type to create.</typeparam>
+        /// <param name="resource">Resource to serialize.</param>
+        /// <returns>New serialized instance.</returns>
         protected static TSerialized BaseCreate<TSerialized>(
             T resource) where TSerialized : BaseSerialized<T>, new()
         {
@@ -531,19 +390,17 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Represents an item that has been serialized to a JSON string for storage.
+    /// Serialized item.
     /// </summary>
     private class SerializedItem : BaseSerialized<TItem>
     {
         #region Public Static Methods
 
         /// <summary>
-        /// Creates a new serialized item instance.
+        /// Creates serialized item instance.
         /// </summary>
-        /// <param name="item">The item to serialize.</param>
-        /// <returns>
-        /// A new <see cref="SerializedItem"/> containing the serialized item.
-        /// </returns>
+        /// <param name="item">Item to serialize.</param>
+        /// <returns>New serialized item.</returns>
         public static SerializedItem Create(
             TItem item) => BaseCreate<SerializedItem>(item);
 
@@ -551,19 +408,17 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Represents an event that has been serialized to a JSON string for storage.
+    /// Serialized event.
     /// </summary>
     private class SerializedEvent : BaseSerialized<ItemEvent<TItem>>
     {
         #region Public Static Methods
 
         /// <summary>
-        /// Creates a new serialized event instance.
+        /// Creates serialized event instance.
         /// </summary>
-        /// <param name="itemEvent">The item event to serialize.</param>
-        /// <returns>
-        /// A new <see cref="SerializedEvent"/> containing the serialized event.
-        /// </returns>
+        /// <param name="itemEvent">Event to serialize.</param>
+        /// <returns>New serialized event.</returns>
         public static SerializedEvent Create(
             ItemEvent<TItem> itemEvent) => BaseCreate<SerializedEvent>(itemEvent);
 
@@ -571,23 +426,22 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// An in-memory data store that contains items and their associated events.
+    /// In-memory data store.
     /// </summary>
     /// <remarks>
-    /// This class implements <see cref="IEnumerable{TItem}"/> to support LINQ queries
-    /// against the in-memory data.
+    /// Implements IEnumerable to support LINQ queries.
     /// </remarks>
     private class InMemoryStore : IEnumerable<TItem>
     {
         #region Private Fields
 
         /// <summary>
-        /// The backing store of serialized items, keyed by "partitionKey:id".
+        /// Items dictionary.
         /// </summary>
         private readonly Dictionary<string, SerializedItem> _items = [];
 
         /// <summary>
-        /// The backing store of serialized events in chronological order.
+        /// Events list.
         /// </summary>
         private readonly List<SerializedEvent> _events = [];
 
@@ -596,12 +450,11 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InMemoryStore"/> class.
+        /// Initializes a new store instance.
         /// </summary>
-        /// <param name="store">Optional existing store to copy data from.</param>
+        /// <param name="store">Optional existing store to copy.</param>
         /// <remarks>
-        /// If <paramref name="store"/> is provided, this constructor creates a deep copy
-        /// of its items and events for batch transaction support.
+        /// Creates deep copy when store is provided.
         /// </remarks>
         public InMemoryStore(
             InMemoryStore? store = null)
@@ -618,16 +471,12 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region Public Methods
 
         /// <summary>
-        /// Creates a new item in the backing data store.
+        /// Creates new item.
         /// </summary>
-        /// <param name="item">The item to create.</param>
-        /// <param name="itemEvent">The event that represents information about the creation operation.</param>
-        /// <returns>
-        /// The created item with its assigned ETag.
-        /// </returns>
-        /// <exception cref="CommandException">
-        /// Thrown with <see cref="HttpStatusCode.Conflict"/> if an item with the same key already exists.
-        /// </exception>
+        /// <param name="item">Item to create.</param>
+        /// <param name="itemEvent">Creation event information.</param>
+        /// <returns>Created item.</returns>
+        /// <exception cref="CommandException">When item with same key exists.</exception>
         public TItem CreateItem(
             TItem item,
             ItemEvent<TItem> itemEvent)
@@ -651,13 +500,11 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Reads an item from the backing data store.
+        /// Reads item.
         /// </summary>
-        /// <param name="id">The unique identifier of the item.</param>
-        /// <param name="partitionKey">The partition key of the item.</param>
-        /// <returns>
-        /// The requested item if found; otherwise, <see langword="null"/>.
-        /// </returns>
+        /// <param name="id">Item identifier.</param>
+        /// <param name="partitionKey">Partition key.</param>
+        /// <returns>Requested item or null if not found.</returns>
         public TItem? ReadItem(
             string id,
             string partitionKey)
@@ -679,16 +526,13 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Updates an existing item in the backing data store.
+        /// Updates existing item.
         /// </summary>
-        /// <param name="item">The item to update with new values.</param>
-        /// <param name="itemEvent">The event that represents information about the update operation.</param>
-        /// <returns>
-        /// The updated item with its new ETag.
-        /// </returns>
+        /// <param name="item">Item with new values.</param>
+        /// <param name="itemEvent">Update event information.</param>
+        /// <returns>Updated item.</returns>
         /// <exception cref="CommandException">
-        /// Thrown with <see cref="HttpStatusCode.NotFound"/> if the item does not exist,
-        /// or with <see cref="HttpStatusCode.Conflict"/> if the item's ETag does not match the current version.
+        /// NotFound if item doesn't exist or PreconditionFailed if ETag mismatch.
         /// </exception>
         public TItem UpdateItem(
             TItem item,
@@ -723,11 +567,9 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Gets all events stored in the backing store.
+        /// Gets all stored events.
         /// </summary>
-        /// <returns>
-        /// An array of all item events.
-        /// </returns>
+        /// <returns>Array of all events.</returns>
         public ItemEvent<TItem>[] GetEvents()
         {
             return _events.Select(se => se.Resource).ToArray();
@@ -738,11 +580,9 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         #region IEnumerable Implementation
 
         /// <summary>
-        /// Returns an enumerator that iterates through all items in the store.
+        /// Returns enumerator for all items.
         /// </summary>
-        /// <returns>
-        /// An enumerator for all items in the store.
-        /// </returns>
+        /// <returns>Item enumerator.</returns>
         public IEnumerator<TItem> GetEnumerator()
         {
             foreach (var serializedItem in _items.Values)
@@ -752,11 +592,9 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through all items in the store.
+        /// Returns enumerator for all items.
         /// </summary>
-        /// <returns>
-        /// An enumerator for all items in the store.
-        /// </returns>
+        /// <returns>Item enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

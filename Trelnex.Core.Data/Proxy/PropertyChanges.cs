@@ -1,18 +1,17 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Manages a collection of property changes for tracking modifications to object properties.
+/// Tracks property modifications.
 /// </summary>
 /// <remarks>
-/// This class tracks property modifications and intelligently handles cases where values
-/// revert to their original state or undergo multiple changes.
+/// Manages property changes, handling reverted values and multiple modifications.
 /// </remarks>
 internal class PropertyChanges
 {
     #region Private Fields
 
     /// <summary>
-    /// The underlying collection of property changes.
+    /// Collection of tracked property changes.
     /// </summary>
     private Dictionary<string, PropertyChange> _propertyChanges = [];
 
@@ -21,27 +20,13 @@ internal class PropertyChanges
     #region Public Methods
 
     /// <summary>
-    /// Adds or updates a property change in the collection.
+    /// Adds or updates a property change.
     /// </summary>
-    /// <param name="propertyName">The name of the property that changed.</param>
-    /// <param name="oldValue">The original value of the property.</param>
-    /// <param name="newValue">The new value of the property.</param>
+    /// <param name="propertyName">Name of changed property.</param>
+    /// <param name="oldValue">Original property value.</param>
+    /// <param name="newValue">New property value.</param>
     /// <remarks>
-    /// This method handles several scenarios:
-    /// <list type="bullet">
-    /// <item>
-    ///   <description>If the property value reverts to its original state, the change is removed.</description>
-    /// </item>
-    /// <item>
-    ///   <description>If an existing change is further modified, the record is updated.</description>
-    /// </item>
-    /// <item>
-    ///   <description>If a new change occurs, it's added to the collection.</description>
-    /// </item>
-    /// <item>
-    ///   <description>If old and new values are equal, no change is recorded.</description>
-    /// </item>
-    /// </list>
+    /// Handles reverted values, updates, and new changes.
     /// </remarks>
     public void Add(
         string propertyName,
@@ -84,11 +69,9 @@ internal class PropertyChanges
     }
 
     /// <summary>
-    /// Gets an array of all tracked property changes.
+    /// Gets all tracked property changes.
     /// </summary>
-    /// <returns>
-    /// An ordered array of <see cref="PropertyChange"/> objects, or <see langword="null"/> if no changes exist.
-    /// </returns>
+    /// <returns>Ordered array of PropertyChange objects, or null if no changes.</returns>
     public PropertyChange[]? ToArray()
     {
         // Return null if no changes exist

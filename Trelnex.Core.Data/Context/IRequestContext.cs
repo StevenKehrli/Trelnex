@@ -1,43 +1,28 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Defines the contract for accessing contextual information about an HTTP request.
+/// Contextual information about an HTTP request.
 /// </summary>
 /// <remarks>
-/// This interface provides access to key information about the current request context,
-/// including user identity and request routing details. It is used primarily for audit
-/// logging and request tracking purposes.
+/// Provides access to user identity and request details.
 /// </remarks>
-/// <seealso cref="ItemEventContext"/>
 public interface IRequestContext
 {
     #region Public Properties
 
     /// <summary>
-    /// Gets the unique object ID associated with the ClaimsPrincipal for this request.
+    /// Unique object ID of the authenticated user (can be null).
     /// </summary>
-    /// <value>
-    /// A string containing the authenticated user's identity, or <see langword="null"/> if
-    /// authentication information is not available.
-    /// </value>
     string? ObjectId { get; }
 
     /// <summary>
-    /// Gets the unique identifier to represent this request in trace logs.
+    /// Unique identifier for this request in trace logs (can be null).
     /// </summary>
-    /// <value>
-    /// A string containing a request-specific tracing identifier, or <see langword="null"/> if
-    /// not available.
-    /// </value>
     string? HttpTraceIdentifier { get; }
 
     /// <summary>
-    /// Gets the portion of the request path that identifies the requested resource.
+    /// HTTP request path (can be null).
     /// </summary>
-    /// <value>
-    /// A string containing the HTTP request path, or <see langword="null"/> if
-    /// not available.
-    /// </value>
     string? HttpRequestPath { get; }
 
     #endregion

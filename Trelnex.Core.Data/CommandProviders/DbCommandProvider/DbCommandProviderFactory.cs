@@ -11,73 +11,18 @@ using LinqToDB.Mapping;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Abstract base class for database command provider factories that provides infrastructure for
-/// creating, configuring, and managing relational database access through command providers.
+/// Base factory for database command providers.
 /// </summary>
 /// <remarks>
-/// <para>
-/// This factory serves as the foundation for database-backed command providers, handling essential
-/// infrastructure concerns like:
-/// </para>
-/// <list type="bullet">
-///   <item><description>Database connection management and configuration</description></item>
-///   <item><description>Object-relational mapping (ORM) configuration and setup</description></item>
-///   <item><description>Database schema validation and health monitoring</description></item>
-///   <item><description>Data type conversions and serialization settings</description></item>
-///   <item><description>Entity and event history table configuration</description></item>
-/// </list>
-/// <para>
-/// The factory provides a standardized approach to creating database-backed command providers, ensuring
-/// consistent configuration, connection management, and health monitoring across different database engines.
-/// It handles the configuration of entity mappings, JSON serialization for complex property types, and
-/// verification of required database tables.
-/// </para>
-/// <para>
-/// Key features include:
-/// </para>
-/// <list type="bullet">
-///   <item>
-///     <description>
-///       <strong>Dual-table design:</strong> Each entity type is mapped to two tables - a primary table for
-///       current entity state, and an events table for change history/audit trail
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Health monitoring:</strong> Built-in capabilities to verify database connectivity, validate
-///       schema completeness, and retrieve version information
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>JSON property handling:</strong> Support for mapping between C# properties with JSON attributes
-///       and database columns
-///     </description>
-///   </item>
-///   <item>
-///     <description>
-///       <strong>Database-agnostic design:</strong> Abstract methods allow database-specific implementation
-///       details to be handled by derived classes
-///     </description>
-///   </item>
-/// </list>
-/// <para>
-/// This class is abstract and requires concrete implementations to provide database-specific
-/// details such as connection configuration, schema validation, and command provider creation.
-/// </para>
+/// Provides infrastructure for database-backed command providers.
 /// </remarks>
-/// <seealso cref="ICommandProviderFactory"/>
-/// <seealso cref="DbCommandProvider{TInterface, TItem}"/>
 public abstract class DbCommandProviderFactory : ICommandProviderFactory
 {
     #region Static Fields
 
     /// <summary>
-    /// JSON serializer options used for serializing and deserializing event data.
+    /// JSON serializer options.
     /// </summary>
-    /// <remarks>
-    /// These options ensure consistent handling of null values and proper JSON encoding.
-    /// </remarks>
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -89,7 +34,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     #region Private Fields
 
     /// <summary>
-    /// Data connection options for this command provider factory.
+    /// Connection options.
     /// </summary>
     private readonly DataOptions _dataOptions;
 
@@ -100,10 +45,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// <summary>
     /// Initializes a new instance of the <see cref="DbCommandProviderFactory"/> class.
     /// </summary>
-    /// <param name="dataOptions">The database connection options to use.</param>
-    /// <remarks>
-    /// Creates a clone of the provided data options and configures connection behavior.
-    /// </remarks>
+    /// <param name="dataOptions">Database connection options.</param>
     protected DbCommandProviderFactory(
         DataOptions dataOptions)
     {
@@ -116,27 +58,18 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     #region Protected Properties
 
     /// <summary>
-    /// Gets key-value pairs describing the command provider factory.
+    /// Metadata.
     /// </summary>
-    /// <value>
-    /// A read-only dictionary containing metadata about this command provider factory.
-    /// </value>
     protected abstract IReadOnlyDictionary<string, object> StatusData { get; }
 
     /// <summary>
-    /// Gets an array of table names required for this command provider factory.
+    /// Table names.
     /// </summary>
-    /// <value>
-    /// An array of table names that must exist in the database for proper operation.
-    /// </value>
     protected abstract string[] TableNames { get; }
 
     /// <summary>
-    /// Gets the SQL query string used to retrieve the database version.
+    /// SQL query to retrieve database version.
     /// </summary>
-    /// <value>
-    /// A SQL query string that returns version information from the database.
-    /// </value>
     protected abstract string VersionQueryString { get; }
 
     #endregion
@@ -144,79 +77,17 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     #region Public Methods
 
     /// <summary>
-    /// Creates a fully configured database-backed command provider for a specific entity type with
-    /// proper ORM mappings, serialization settings, and validation rules.
+    /// Creates a database-backed command provider.
     /// </summary>
-    /// <typeparam name="TInterface">The interface type that defines the entity contract.</typeparam>
-    /// <typeparam name="TItem">The concrete implementation type that implements the interface and extends <see cref="BaseItem"/>.</typeparam>
-    /// <param name="tableName">The database table name to use as the primary storage for this entity type.</param>
-    /// <param name="typeName">The type name identifier used in the <see cref="BaseItem.TypeName"/> property and for filtering.</param>
-    /// <param name="validator">Optional FluentValidation validator for domain-specific validation rules.</param>
-    /// <param name="commandOperations">
-    /// Optional flags specifying which operations (Update/Delete) are allowed on this entity type.
-    /// By default, only Update is allowed (<see cref="CommandOperations.Update"/>).
-    /// </param>
-    /// <returns>A fully configured <see cref="ICommandProvider{TInterface}"/> for the specified entity type.</returns>
-    /// <remarks>
-    /// <para>
-    /// This method performs comprehensive configuration of the database ORM mappings and creates a
-    /// command provider instance for the specified entity type. The configuration includes:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item>
-    ///     <description>
-    ///       <strong>Dual-table configuration:</strong> Creates mappings for both the primary entity table
-    ///       and its corresponding events table (named <c>{tableName}-events</c>)
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       <strong>JSON property mapping:</strong> Configures the ORM to use JSON property names from
-    ///       <see cref="JsonPropertyNameAttribute"/> for database column mapping
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       <strong>Date handling:</strong> Sets up proper date/time conversion between .NET types
-    ///       and database representations, ensuring consistent UTC handling
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       <strong>Complex property serialization:</strong> Configures JSON serialization for complex
-    ///       properties like <c>Changes</c> and <c>Context</c> in event records
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       <strong>Primary key configuration:</strong> Sets up composite primary keys (Id + PartitionKey)
-    ///       for both the main table and events table
-    ///     </description>
-    ///   </item>
-    /// </list>
-    /// <para>
-    /// The method follows a consistent pattern for all entity types, ensuring that they are properly
-    /// configured for database storage and retrieval. It creates a separate mapping schema instance
-    /// for each entity type to ensure isolation between different entity configurations.
-    /// </para>
-    /// <para>
-    /// After configuring the ORM mappings, it delegates to the <see cref="CreateCommandProvider{TInterface, TItem}"/>
-    /// method to create the actual command provider instance, which may be database-specific.
-    /// </para>
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// // Creating a command provider for a User entity
-    /// var userProvider = dbCommandProviderFactory.Create&lt;IUser, User&gt;(
-    ///     tableName: "users",
-    ///     typeName: "user",
-    ///     validator: new UserValidator(),
-    ///     commandOperations: CommandOperations.All);
-    /// </code>
-    /// </example>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the <paramref name="typeName"/> does not follow naming conventions or is a reserved name.
-    /// </exception>
+    /// <typeparam name="TInterface">Interface type.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type.</typeparam>
+    /// <param name="tableName">Database table name.</param>
+    /// <param name="typeName">Type name identifier.</param>
+    /// <param name="validator">Optional validator.</param>
+    /// <param name="commandOperations">Optional allowed operation flags.</param>
+    /// <returns>Configured command provider.</returns>
+    /// <exception cref="ArgumentException">When typeName is invalid or reserved.</exception>
+    /// <inheritdoc/>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
@@ -272,79 +143,10 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Gets the current operational status of the database command provider factory, including
-    /// connectivity state, schema validation, and version information.
+    /// Gets current operational status.
     /// </summary>
-    /// <returns>
-    /// A <see cref="CommandProviderFactoryStatus"/> object indicating health state and detailed
-    /// metadata about the database connection and configuration.
-    /// </returns>
-    /// <remarks>
-    /// <para>
-    /// This method performs a comprehensive health check of the database connection and schema,
-    /// providing both a boolean health indicator and detailed diagnostic information. It:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item>
-    ///     <description>
-    ///       Tests database connectivity by attempting to establish a connection
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       Retrieves database version information using the database-specific query
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       Validates database schema by verifying that all required tables exist
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       Checks for both primary entity tables and their corresponding event history tables
-    ///     </description>
-    ///   </item>
-    /// </list>
-    /// <para>
-    /// The method combines status data from the <see cref="StatusData"/> property with dynamically
-    /// retrieved information about the database state. The resulting status object includes:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item>
-    ///     <description>
-    ///       <strong>IsHealthy:</strong> <see langword="true"/> if all checks pass (connection successful and
-    ///       all required tables exist); otherwise, <see langword="false"/>
-    ///     </description>
-    ///   </item>
-    ///   <item>
-    ///     <description>
-    ///       <strong>Data:</strong> A dictionary containing:
-    ///       <list type="bullet">
-    ///         <item><description>Base status information from <see cref="StatusData"/></description></item>
-    ///         <item><description>Database version information (if available)</description></item>
-    ///         <item><description>Error details (if any problems are detected)</description></item>
-    ///       </list>
-    ///     </description>
-    ///   </item>
-    /// </list>
-    /// <para>
-    /// This method catches and handles any exceptions that occur during the health check, recording
-    /// the error message in the status data and reporting an unhealthy state.
-    /// </para>
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// // Check database health during application startup
-    /// var status = dbCommandProviderFactory.GetStatus();
-    /// if (!status.IsHealthy)
-    /// {
-    ///     logger.LogError("Database connection unhealthy: {Error}",
-    ///         status.Data.TryGetValue("error", out var error) ? error : "Unknown error");
-    ///     throw new ApplicationException("Cannot start application with unhealthy database connection");
-    /// }
-    /// </code>
-    /// </example>
+    /// <returns>Status object with health information.</returns>
+    /// <inheritdoc/>
     public CommandProviderFactoryStatus GetStatus()
     {
         // Create a copy of the status data to avoid modification of the original
@@ -418,29 +220,22 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     #region Protected Methods
 
     /// <summary>
-    /// Configures the database connection before it is opened.
+    /// Configures database connection.
     /// </summary>
-    /// <param name="dbConnection">The database connection to configure.</param>
-    /// <remarks>
-    /// Implementations should use this method to set connection-specific properties
-    /// like timeouts, connection string parameters, or other provider-specific settings.
-    /// </remarks>
+    /// <param name="dbConnection">Database connection to configure.</param>
     protected abstract void BeforeConnectionOpened(
         DbConnection dbConnection);
 
     /// <summary>
-    /// Creates an instance of the appropriate <see cref="ICommandProvider{TInterface}"/> implementation.
+    /// Creates command provider implementation.
     /// </summary>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the interface.</typeparam>
-    /// <param name="dataOptions">The data connection options to use.</param>
-    /// <param name="typeName">The type name of the item.</param>
-    /// <param name="validator">Optional validator for the item type.</param>
-    /// <param name="commandOperations">Optional flags specifying allowed operations.</param>
-    /// <returns>An implementation of <see cref="ICommandProvider{TInterface}"/>.</returns>
-    /// <remarks>
-    /// Concrete factories must implement this method to return their specific command provider implementation.
-    /// </remarks>
+    /// <typeparam name="TInterface">Interface type.</typeparam>
+    /// <typeparam name="TItem">Item type implementing the interface.</typeparam>
+    /// <param name="dataOptions">Connection options to use.</param>
+    /// <param name="typeName">Type name of the item.</param>
+    /// <param name="validator">Optional validator.</param>
+    /// <param name="commandOperations">Optional allowed operation flags.</param>
+    /// <returns>Command provider implementation.</returns>
     protected abstract ICommandProvider<TInterface> CreateCommandProvider<TInterface, TItem>(
         DataOptions dataOptions,
         string typeName,
@@ -450,15 +245,11 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         where TItem : BaseItem, TInterface, new();
 
     /// <summary>
-    /// Checks if the command provider factory is healthy and throws an exception if not.
+    /// Verifies factory health or throws exception.
     /// </summary>
     /// <exception cref="CommandException">
-    /// Thrown when the command provider factory is not healthy, with the error
-    /// details and a ServiceUnavailable status code.
+    /// Thrown when factory is unhealthy.
     /// </exception>
-    /// <remarks>
-    /// This method is useful for fail-fast behavior when creating command providers.
-    /// </remarks>
     protected void IsHealthyOrThrow()
     {
         // Perform a health check
@@ -476,13 +267,10 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     #region Private Static Methods
 
     /// <summary>
-    /// Creates a new instance of the <see cref="DataOptions"/> class from the existing instance.
+    /// Clones a DataOptions object.
     /// </summary>
-    /// <param name="dataOptions">The source data options object to clone.</param>
-    /// <returns>A new instance of <see cref="DataOptions"/> with the same configuration.</returns>
-    /// <remarks>
-    /// Uses the ICloneable interface to create a deep copy of the DataOptions object.
-    /// </remarks>
+    /// <param name="dataOptions">Source options to clone.</param>
+    /// <returns>New DataOptions with same configuration.</returns>
     private static DataOptions CloneDataOptions(
         DataOptions dataOptions)
     {
@@ -490,13 +278,10 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Gets the corresponding events table name for the specified table name.
+    /// Gets events table name.
     /// </summary>
-    /// <param name="tableName">The base table name.</param>
-    /// <returns>The derived events table name.</returns>
-    /// <remarks>
-    /// Events tables follow the naming convention of "<tableName>-events".
-    /// </remarks>
+    /// <param name="tableName">Base table name.</param>
+    /// <returns>Events table name (tableName-events).</returns>
     private static string GetEventsTableName(
         string tableName)
     {

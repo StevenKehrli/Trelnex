@@ -4,24 +4,21 @@ using System.Text.Json.Serialization;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Identifies and manages properties that should be tracked for changes.
+/// Manages properties for change tracking.
 /// </summary>
-/// <typeparam name="TItem">The type to analyze for trackable properties.</typeparam>
+/// <typeparam name="TItem">Type to analyze.</typeparam>
 /// <remarks>
-/// This class analyzes a type's properties for those decorated with <see cref="TrackChangeAttribute"/>
-/// and provides mechanisms to monitor and record changes to those properties. It serves as a foundation
-/// for change tracking functionality throughout the application.
+/// Identifies properties with TrackChangeAttribute and monitors their changes.
 /// </remarks>
 internal class TrackProperties<TItem>
 {
     #region Private Fields
 
     /// <summary>
-    /// Gets the dictionary mapping property setter methods to their tracking information.
+    /// Maps property setter methods to tracking information.
     /// </summary>
     /// <remarks>
-    /// This collection enables quick lookup of property information when setter methods are invoked.
-    /// The key is the name of the property's set method, and the value is the tracking metadata.
+    /// Lookup dictionary with setter method names as keys and tracking metadata as values.
     /// </remarks>
     private readonly Dictionary<string, TrackProperty> _trackPropertiesBySetMethod = [];
 
@@ -30,14 +27,14 @@ internal class TrackProperties<TItem>
     #region Public Methods
 
     /// <summary>
-    /// Creates a new instance of the <see cref="TrackProperties{TItem}"/> class with configured tracking properties.
+    /// Creates a TrackProperties instance.
     /// </summary>
-    /// <returns>A configured <see cref="TrackProperties{TItem}"/> instance ready for tracking property changes.</returns>
+    /// <returns>Configured TrackProperties instance.</returns>
     /// <remarks>
-    /// This factory method analyzes all public instance properties of <typeparamref name="TItem"/>
-    /// and identifies those that should be tracked for changes based on the <see cref="TrackChangeAttribute"/>.
-    /// Only properties that have both getter and setter methods and are decorated with <see cref="TrackChangeAttribute"/>
-    /// and <see cref="JsonPropertyNameAttribute"/> will be tracked.
+    /// Identifies trackable properties based on:
+    /// - Getter and setter methods
+    /// - TrackChangeAttribute
+    /// - JsonPropertyNameAttribute
     /// </remarks>
     public static TrackProperties<TItem> Create()
     {
@@ -75,22 +72,18 @@ internal class TrackProperties<TItem>
     }
 
     /// <summary>
-    /// Invokes a method on the target item and captures any resulting property changes.
+    /// Invokes a method and captures property changes.
     /// </summary>
-    /// <param name="targetMethod">The method to invoke on the target instance.</param>
-    /// <param name="item">The target instance on which to invoke the method.</param>
-    /// <param name="args">The arguments to pass to the method.</param>
-    /// <returns>
-    /// An <see cref="InvokeResult"/> containing the method result and property change information.
-    /// </returns>
+    /// <param name="targetMethod">Method to invoke.</param>
+    /// <param name="item">Target instance.</param>
+    /// <param name="args">Method arguments.</param>
+    /// <returns>InvokeResult with method result and property change data.</returns>
     /// <remarks>
-    /// When the invoked method is a property setter that's configured for tracking,
-    /// this method captures both the previous and new property values for change tracking.
-    /// If the method is not a tracked property setter, it will still be invoked but
-    /// without tracking property changes.
+    /// Captures old and new values for tracked property setters.
+    /// Non-tracked methods execute normally without change tracking.
     /// </remarks>
     /// <exception cref="TargetInvocationException">
-    /// Thrown when the called method throws an exception.
+    /// When the called method throws an exception.
     /// </exception>
     public InvokeResult Invoke(
         MethodInfo? targetMethod,
@@ -134,13 +127,12 @@ internal class TrackProperties<TItem>
     #region Private Types
 
     /// <summary>
-    /// Stores information about a property that should be tracked for changes.
+    /// Metadata for a tracked property.
     /// </summary>
-    /// <param name="PropertyName">The JSON property name used for serialization.</param>
-    /// <param name="PropertyInfo">Reflection information about the property.</param>
+    /// <param name="PropertyName">JSON property name for serialization.</param>
+    /// <param name="PropertyInfo">Reflection metadata for the property.</param>
     /// <remarks>
-    /// This record combines the JSON property name (used for external representation)
-    /// with the .NET reflection metadata needed to access the property values.
+    /// Links JSON property names with .NET reflection data for property access.
     /// </remarks>
     private record TrackProperty(
         string PropertyName,
