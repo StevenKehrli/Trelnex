@@ -198,11 +198,11 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
         MethodInfo? targetMethod,
         object?[]? args)
     {
+        // ensure that only one operation that modifies the item is in progress at a time
+        _semaphore.Wait();
+
         try
         {
-            // ensure that only one operation that modifies the item is in progress at a time
-            _semaphore.Wait();
-
             // if the item is read only, throw an exception
             if (_isReadOnly && _propertyGetters.IsGetter(targetMethod) is false)
             {

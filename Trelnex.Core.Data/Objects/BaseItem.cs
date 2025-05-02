@@ -99,74 +99,42 @@ public abstract class BaseItem : IBaseItem
 {
     #region Properties
 
-    /// <summary>
-    /// Gets or sets the unique identifier that identifies the item within a container.
-    /// </summary>
-    /// <value>A string containing the unique identifier of the item.</value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("id")]
     public string Id { get; internal set; } = null!;
 
-    /// <summary>
-    /// Gets or sets the unique identifier that identifies a logical partition within a container.
-    /// </summary>
-    /// <value>A string containing the partition key for the item.</value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("partitionKey")]
     public string PartitionKey { get; internal set; } = null!;
 
-    /// <summary>
-    /// Gets or sets the type name of the item.
-    /// </summary>
-    /// <value>A string representing the item's type.</value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("typeName")]
     public string TypeName { get; internal set; } = null!;
 
-    /// <summary>
-    /// Gets or sets the date and time when this item was created.
-    /// </summary>
-    /// <value>A <see cref="DateTime"/> value representing the creation timestamp.</value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("createdDate")]
     public DateTime CreatedDate { get; internal set; }
 
-    /// <summary>
-    /// Gets or sets the date and time when this item was last updated.
-    /// </summary>
-    /// <value>A <see cref="DateTime"/> value representing the last update timestamp.</value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("updatedDate")]
     public DateTime UpdatedDate { get; internal set; }
 
-    /// <summary>
-    /// Gets or sets the date and time when this item was deleted, if applicable.
-    /// </summary>
-    /// <value>
-    /// A <see cref="DateTime"/> value representing the deletion timestamp, or <see langword="null"/>
-    /// if the item has not been deleted.
-    /// </value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("deletedDate")]
     public DateTime? DeletedDate { get; internal set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether this item has been marked as deleted.
-    /// </summary>
-    /// <value>
-    /// <see langword="true"/> if this item has been deleted; otherwise, <see langword="false"/>.
-    /// May be <see langword="null"/> if deletion state is not specified.
-    /// </value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("isDeleted")]
     public bool? IsDeleted { get; internal set; }
 
-    /// <summary>
-    /// Gets or sets the identifier for a specific version of this item.
-    /// </summary>
-    /// <value>
-    /// A string containing the ETag value, or <see langword="null"/> if versioning is not applied.
-    /// </value>
+    /// <inheritdoc/>
     [JsonInclude]
     [JsonPropertyName("_etag")]
     public string? ETag { get; internal set; }

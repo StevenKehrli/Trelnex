@@ -38,12 +38,9 @@ internal static class ReservedTypeNames
     /// <returns>
     /// <see langword="true"/> if the type name is reserved; otherwise, <see langword="false"/>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="typeName"/> is <see langword="null"/>.</exception>
     public static bool IsReserved(
         string typeName)
     {
-        ArgumentNullException.ThrowIfNull(typeName);
-
         return _reservedTypeNames.Any(rtn => string.Equals(rtn, typeName));
     }
 

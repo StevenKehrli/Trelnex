@@ -182,6 +182,7 @@ internal class BatchCommand<TInterface, TItem>(
             .Select(sc => sc.ValidateAsync(cancellationToken));
 
         var validationResults = await Task.WhenAll(validationResultTasks);
+
         // Release the exclusive lock
         _semaphore.Release();
 

@@ -40,8 +40,9 @@ internal class PropertyGetters<TItem>
         foreach (var property in properties)
         {
             // Get the property's getter method (if one exists)
+            // Skip properties without getter methods
             var getMethod = property.GetGetMethod();
-            if (getMethod is null) continue;  // Skip properties without getter methods
+            if (getMethod is null) continue;
 
             propertyGetters._propertyGetters.Add(getMethod.Name);
         }
