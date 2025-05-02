@@ -5,7 +5,7 @@ public class DeleteCommandSaveTests
 {
     [Test]
     [Description("Tests that a delete command's item becomes read-only after saving")]
-    public async Task DeleteCommand_SaveAsync_IsReadOnlyAfterSave()
+    public async Task DeleteCommandSave_SaveAsync_IsReadOnlyAfterSave()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -58,7 +58,7 @@ public class DeleteCommandSaveTests
 
     [Test]
     [Description("Tests that delete command throws when operations are not supported")]
-    public async Task DeleteCommand_SaveAsync_NotSupported()
+    public async Task DeleteCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -79,7 +79,7 @@ public class DeleteCommandSaveTests
 
     [Test]
     [Description("Tests that the result returned from saving a delete command is read-only")]
-    public async Task DeleteCommand_SaveAsync_ResultIsReadOnly()
+    public async Task DeleteCommandSave_SaveAsync_ResultIsReadOnly()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -140,7 +140,7 @@ public class DeleteCommandSaveTests
 
     [Test]
     [Description("Tests that a delete command cannot be saved more than once")]
-    public async Task DeleteCommand_SaveAsync_WhenAlreadySaved()
+    public async Task DeleteCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();

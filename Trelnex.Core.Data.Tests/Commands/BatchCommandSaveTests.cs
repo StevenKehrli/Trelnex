@@ -5,7 +5,7 @@ public class BatchCommandSaveTests
 {
     [Test]
     [Description("Tests that a batch command and its contained commands cannot be saved more than once")]
-    public async Task BatchCommand_SaveAsync_WhenAlreadySaved()
+    public async Task BatchCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();

@@ -15,9 +15,10 @@ public class ExpressionConverterTests
     [Description("Tests that ExpressionConverter can convert expressions that use method calls")]
     public void ExpressionConverter_WherePropertyMatchMethod()
     {
-        // create the converter
+        // Create the converter for translating between interface and implementation
         var converter = new ExpressionConverter<ITestItem, TestItem>();
 
+        // Set up test data with varied message values
         TestItem[] items = [
             new TestItem
             {
@@ -36,27 +37,28 @@ public class ExpressionConverterTests
             }
         ];
 
-        // create an expression using ITestItem
-        // this expression uses a method call (MessageValue) to get the comparison value
+        // Create an expression using ITestItem that utilizes a method call
+        // This tests whether the converter can handle expressions with external method invocations
         Expression<Func<ITestItem, bool>> predicate = item => item.Message == MessageValue();
 
-        // convert to an expression using TestItem
+        // Convert the expression to work with the concrete TestItem type
         var expression = converter.Convert(predicate);
 
-        // execute the converted expression against the items collection
+        // Apply the converted expression to filter the collection
         var selected = items.AsQueryable().Where(expression).ToArray();
 
-        // use Snapshooter to match the selected items with the expected output
+        // Verify that only items with Message="yes" are selected (items 1 and 3)
         Snapshot.Match(selected);
     }
 
     [Test]
-    [Description("Tests that ExpressionConverter can convert expressions that match on numeric ID property")]
+    [Description("Tests that ExpressionConverter can convert expressions that match on numeric id property")]
     public void ExpressionConverter_WherePropertyMatchOne()
     {
-        // create the converter
+        // Create the converter for translating between interface and implementation
         var converter = new ExpressionConverter<ITestItem, TestItem>();
 
+        // Set up test data with different id values
         TestItem[] items = [
             new TestItem
             {
@@ -75,27 +77,28 @@ public class ExpressionConverterTests
             }
         ];
 
-        // create an expression using ITestItem
-        // this expression checks if the Id property equals 1
+        // Create an expression using ITestItem that filters by numeric id
+        // This tests basic property equality comparison with a constant value
         Expression<Func<ITestItem, bool>> predicate = item => item.Id == 1;
 
-        // convert to an expression using TestItem
+        // Convert the expression to work with the concrete TestItem type
         var expression = converter.Convert(predicate);
 
-        // execute the converted expression against the items collection
+        // Apply the converted expression to filter the collection
         var selected = items.AsQueryable().Where(expression).ToArray();
 
-        // use Snapshooter to match the selected items with the expected output
+        // Verify that only the item with id=1 is selected
         Snapshot.Match(selected);
     }
 
     [Test]
-    [Description("Tests that ExpressionConverter can convert expressions that match on string property")]
+    [Description("Tests that ExpressionConverter can convert expressions that match on string message property")]
     public void ExpressionConverter_WherePropertyMatchTwo()
     {
-        // create the converter
+        // Create the converter for translating between interface and implementation
         var converter = new ExpressionConverter<ITestItem, TestItem>();
 
+        // Set up test data with varied message values
         TestItem[] items = [
             new TestItem
             {
@@ -114,17 +117,17 @@ public class ExpressionConverterTests
             }
         ];
 
-        // create an expression using ITestItem
-        // this expression checks if the Message property equals "yes"
+        // Create an expression using ITestItem that filters by string content
+        // This tests basic property equality comparison with a string literal
         Expression<Func<ITestItem, bool>> predicate = item => item.Message == "yes";
 
-        // convert to an expression using TestItem
+        // Convert the expression to work with the concrete TestItem type
         var expression = converter.Convert(predicate);
 
-        // execute the converted expression against the items collection
+        // Apply the converted expression to filter the collection
         var selected = items.AsQueryable().Where(expression).ToArray();
 
-        // use Snapshooter to match the selected items with the expected output
+        // Verify that only items with Message="yes" are selected (items 1 and 3)
         Snapshot.Match(selected);
     }
 }

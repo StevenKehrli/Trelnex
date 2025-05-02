@@ -5,8 +5,6 @@ namespace Trelnex.Core.Data.Tests.Events;
 [Category("Events")]
 public class DeleteCommandEventTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
     [Description("Tests that delete commands generate proper events with correct change tracking")]
     public async Task DeleteCommandEvent()
@@ -24,7 +22,7 @@ public class DeleteCommandEventTests
 
         // Get a command provider for our test item type with delete operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
+                typeName: "test-item",
                 commandOperations: CommandOperations.Delete);
 
         // Create a new command to create our test item

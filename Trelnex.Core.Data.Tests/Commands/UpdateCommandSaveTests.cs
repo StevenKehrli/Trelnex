@@ -5,7 +5,7 @@ public class UpdateCommandSaveTests
 {
     [Test]
     [Description("Tests that an update command's item becomes read-only after saving")]
-    public async Task UpdateCommand_SaveAsync_IsReadOnlyAfterSave()
+    public async Task UpdateCommandSave_SaveAsync_IsReadOnlyAfterSave()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -69,7 +69,7 @@ public class UpdateCommandSaveTests
 
     [Test]
     [Description("Tests that update command throws when operations are not supported")]
-    public async Task UpdateCommand_SaveAsync_NotSupported()
+    public async Task UpdateCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -90,7 +90,7 @@ public class UpdateCommandSaveTests
 
     [Test]
     [Description("Tests that the result returned from saving an update command is read-only")]
-    public async Task UpdateCommand_SaveAsync_ResultIsReadOnly()
+    public async Task UpdateCommandSave_SaveAsync_ResultIsReadOnly()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -155,7 +155,7 @@ public class UpdateCommandSaveTests
 
     [Test]
     [Description("Tests that an update command cannot be saved more than once")]
-    public async Task UpdateCommand_SaveAsync_WhenAlreadySaved()
+    public async Task UpdateCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();

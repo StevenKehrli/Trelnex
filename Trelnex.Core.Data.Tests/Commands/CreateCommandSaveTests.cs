@@ -5,7 +5,7 @@ public class CreateCommandSaveTests
 {
     [Test]
     [Description("Tests that a create command's item becomes read-only after saving")]
-    public async Task CreateCommand_SaveAsync_IsReadOnlyAfterSave()
+    public async Task CreateCommandSave_SaveAsync_IsReadOnlyAfterSave()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -49,7 +49,7 @@ public class CreateCommandSaveTests
 
     [Test]
     [Description("Tests that the result returned from saving a create command is read-only")]
-    public async Task CreateCommand_SaveAsync_ResultIsReadOnly()
+    public async Task CreateCommandSave_SaveAsync_ResultIsReadOnly()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -96,7 +96,7 @@ public class CreateCommandSaveTests
 
     [Test]
     [Description("Tests that a create command cannot be saved more than once")]
-    public async Task CreateCommand_SaveAsync_WhenAlreadySaved()
+    public async Task CreateCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
