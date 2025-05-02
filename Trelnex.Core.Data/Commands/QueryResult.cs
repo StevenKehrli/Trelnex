@@ -8,8 +8,8 @@ namespace Trelnex.Core.Data;
 /// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
 /// <remarks>
 /// <para>
-/// The <see cref="IQueryResult{TInterface}"/> interface extends the capabilities of 
-/// <see cref="IReadResult{TInterface}"/> by providing methods to transition a read-only query result 
+/// The <see cref="IQueryResult{TInterface}"/> interface extends the capabilities of
+/// <see cref="IReadResult{TInterface}"/> by providing methods to transition a read-only query result
 /// into mutable command objects for update or delete operations.
 /// </para>
 /// <para>
@@ -41,7 +41,7 @@ namespace Trelnex.Core.Data;
 /// {
 ///     // Access item data in read-only mode
 ///     var id = queryResult.Item.Id;
-///     
+///
 ///     // Transition to update mode if needed
 ///     var updateCommand = queryResult.Update();
 ///     updateCommand.Item.SomeProperty = "new value";
@@ -173,13 +173,13 @@ public interface IQueryResult<TInterface>
     /// <code>
     /// // Retrieve an item through a query
     /// var queryResult = (await queryCommand.ToAsyncEnumerable().ToArrayAsync())[0];
-    /// 
+    ///
     /// // Transition to update mode
     /// var updateCommand = queryResult.Update();
-    /// 
+    ///
     /// // Modify properties
     /// updateCommand.Item.SomeProperty = "new value";
-    /// 
+    ///
     /// // Save changes
     /// await updateCommand.SaveAsync(requestContext, cancellationToken);
     /// </code>
@@ -240,7 +240,7 @@ public interface IQueryResult<TInterface>
 /// <para>
 /// This class extends <see cref="ProxyManager{TInterface, TItem}"/> to provide a concrete implementation
 /// of <see cref="IQueryResult{TInterface}"/>. It manages read-only access to items retrieved from
-/// query operations and provides methods to transition from read-only query results to mutable 
+/// query operations and provides methods to transition from read-only query results to mutable
 /// save commands for updates or deletions.
 /// </para>
 /// <para>
@@ -427,11 +427,11 @@ internal class QueryResult<TInterface, TItem>
     /// <inheritdoc/>
     public ISaveCommand<TInterface> Delete()
     {
-        // Ensure that only one operation that modifies the item is in progress at a time
-        _semaphore.Wait();
-
         try
         {
+            // Ensure that only one operation that modifies the item is in progress at a time
+            _semaphore.Wait();
+
             // Check if already converted
             if (_createDeleteCommand is null)
             {
@@ -455,11 +455,11 @@ internal class QueryResult<TInterface, TItem>
     /// <inheritdoc/>
     public ISaveCommand<TInterface> Update()
     {
-        // Ensure that only one operation that modifies the item is in progress at a time
-        _semaphore.Wait();
-
         try
         {
+            // Ensure that only one operation that modifies the item is in progress at a time
+            _semaphore.Wait();
+
             // Check if already converted
             if (_createUpdateCommand is null)
             {

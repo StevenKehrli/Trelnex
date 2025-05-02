@@ -71,7 +71,7 @@ namespace Trelnex.Core.Data;
 /// var createCommand = commandProvider.Create(id, partitionKey);
 /// createCommand.Item.PropertyA = "Value A";
 /// createCommand.Item.PropertyB = 123;
-/// 
+///
 /// // Validate before saving (optional)
 /// var validationResult = await createCommand.ValidateAsync(cancellationToken);
 /// if (validationResult.IsValid)
@@ -181,12 +181,12 @@ public interface ISaveCommand<TInterface>
     /// // Create and configure a command
     /// var command = commandProvider.Create(id, partitionKey);
     /// command.Item.Name = "Example Item";
-    /// 
+    ///
     /// // Execute the command
     /// var result = await command.SaveAsync(
     ///     requestContext: new RequestContext { UserId = "user123" },
     ///     cancellationToken: CancellationToken.None);
-    /// 
+    ///
     /// // Access the saved item through the result
     /// var savedItem = result.Item;
     /// </code>
@@ -247,7 +247,7 @@ public interface ISaveCommand<TInterface>
     /// // Create and configure a command
     /// var command = commandProvider.Create(id, partitionKey);
     /// command.Item.Name = "Example Item";
-    /// 
+    ///
     /// // Validate before saving
     /// var validationResult = await command.ValidateAsync(CancellationToken.None);
     /// if (!validationResult.IsValid)
@@ -259,7 +259,7 @@ public interface ISaveCommand<TInterface>
     ///     }
     ///     return;
     /// }
-    /// 
+    ///
     /// // Proceed with saving if validation succeeds
     /// var result = await command.SaveAsync(requestContext, CancellationToken.None);
     /// </code>
@@ -538,11 +538,11 @@ internal class SaveCommand<TInterface, TItem>
         IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
-        // ensure that only one operation that modifies the item is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
-
         try
         {
+            // ensure that only one operation that modifies the item is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
+
             var request = CreateSaveRequest(requestContext);
 
             // validate the underlying item
@@ -582,11 +582,11 @@ internal class SaveCommand<TInterface, TItem>
         IRequestContext requestContext,
         CancellationToken cancellationToken = default)
     {
-        // ensure that only one operation that modifies the item is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
-
         try
         {
+            // ensure that only one operation that modifies the item is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
+
             return CreateSaveRequest(requestContext);
         }
         catch

@@ -5,8 +5,8 @@ namespace Trelnex.Core.Data;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This attribute is a cornerstone of the change tracking system, allowing the framework to automatically 
-/// monitor and record modifications to designated properties. When applied to a property, it signals 
+/// This attribute is a cornerstone of the change tracking system, allowing the framework to automatically
+/// monitor and record modifications to designated properties. When applied to a property, it signals
 /// to the proxy infrastructure that changes to this property should be detected and recorded.
 /// </para>
 /// <para>
@@ -17,8 +17,8 @@ namespace Trelnex.Core.Data;
 ///   <item><description>Be decorated with <see cref="System.Text.Json.Serialization.JsonPropertyNameAttribute"/> to define the external property name</description></item>
 /// </list>
 /// <para>
-/// When property changes are detected, they're tracked in a <see cref="PropertyChanges"/> collection and can be 
-/// transformed into <see cref="ItemEvent{TItem}"/> records for audit logging and historical tracking purposes. 
+/// When property changes are detected, they're tracked in a <see cref="PropertyChanges"/> collection and can be
+/// transformed into <see cref="ItemEvent{TItem}"/> records for audit logging and historical tracking purposes.
 /// The change tracking system intelligently handles:
 /// </para>
 /// <list type="bullet">
@@ -38,11 +38,11 @@ namespace Trelnex.Core.Data;
 ///     [TrackChange]
 ///     [JsonPropertyName("name")]
 ///     public string Name { get; set; } = string.Empty;
-///     
+///
 ///     [TrackChange]
 ///     [JsonPropertyName("email")]
 ///     public string Email { get; set; } = string.Empty;
-///     
+///
 ///     // This property will not be tracked for changes
 ///     [JsonPropertyName("internalNotes")]
 ///     public string InternalNotes { get; set; } = string.Empty;

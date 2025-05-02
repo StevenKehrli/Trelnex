@@ -19,7 +19,7 @@ namespace Trelnex.Core.Data;
 ///   <item><description>Performance metrics and operational statistics</description></item>
 /// </list>
 /// <para>
-/// The <see cref="Data"/> dictionary allows for extensible reporting of provider-specific 
+/// The <see cref="Data"/> dictionary allows for extensible reporting of provider-specific
 /// diagnostic information without changing the status contract. Common data keys might include:
 /// </para>
 /// <list type="bullet">

@@ -8,8 +8,8 @@ namespace Trelnex.Core.Data;
 /// <typeparam name="TInterface">The interface type that defines the contract for the items in the batch result. Must implement <see cref="IBaseItem"/>.</typeparam>
 /// <remarks>
 /// <para>
-/// The <see cref="IBatchResult{TInterface}"/> interface represents the outcome of a single item operation 
-/// within a batch transaction. Each batch operation returns an array of these results, with one result 
+/// The <see cref="IBatchResult{TInterface}"/> interface represents the outcome of a single item operation
+/// within a batch transaction. Each batch operation returns an array of these results, with one result
 /// for each item included in the original batch.
 /// </para>
 /// <para>
@@ -79,7 +79,7 @@ public interface IBatchResult<TInterface>
     /// </para>
     /// <para>
     /// The HTTP status code follows standard HTTP conventions to provide semantic meaning
-    /// for the outcome. For example, a <c>400 Bad Request</c> indicates an issue with the 
+    /// for the outcome. For example, a <c>400 Bad Request</c> indicates an issue with the
     /// specific item, while a <c>424 Failed Dependency</c> indicates that this item would have
     /// been valid, but the operation failed due to another item in the batch failing.
     /// </para>
@@ -90,7 +90,7 @@ public interface IBatchResult<TInterface>
     /// Gets the read-only result containing the processed item data, if the operation was successful.
     /// </summary>
     /// <value>
-    /// An <see cref="IReadResult{TInterface}"/> containing the read-only processed item if the operation 
+    /// An <see cref="IReadResult{TInterface}"/> containing the read-only processed item if the operation
     /// was successful (HTTP status code 200 OK); otherwise, <see langword="null"/>.
     /// </value>
     /// <remarks>
@@ -128,12 +128,12 @@ public interface IBatchResult<TInterface>
 /// <remarks>
 /// <para>
 /// This sealed record class provides an immutable implementation of <see cref="IBatchResult{TInterface}"/>.
-/// It captures the outcome of a single operation within a batch transaction, containing both the 
+/// It captures the outcome of a single operation within a batch transaction, containing both the
 /// HTTP status code indicating success or failure, and the read result with the processed item data
 /// for successful operations.
 /// </para>
 /// <para>
-/// The implementation is deliberately simple and immutable, with all state provided through constructor 
+/// The implementation is deliberately simple and immutable, with all state provided through constructor
 /// parameters, following the record pattern introduced in C# 9. This ensures thread safety and prevents
 /// accidental state changes after the result is created.
 /// </para>

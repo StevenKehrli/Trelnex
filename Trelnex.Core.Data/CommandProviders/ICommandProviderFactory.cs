@@ -31,9 +31,9 @@ namespace Trelnex.Core.Data;
 ///   </item>
 /// </list>
 /// <para>
-/// Implementations of this interface typically consume configuration provided through 
-/// <see cref="ICommandProviderOptions"/> and use that configuration to instantiate appropriate 
-/// command providers for each entity type. The factory maintains internal state tracking the health 
+/// Implementations of this interface typically consume configuration provided through
+/// <see cref="ICommandProviderOptions"/> and use that configuration to instantiate appropriate
+/// command providers for each entity type. The factory maintains internal state tracking the health
 /// and connectivity of the data store, which can be queried through the <see cref="GetStatus"/> method.
 /// </para>
 /// <para>
@@ -68,7 +68,7 @@ public interface ICommandProviderFactory
     /// Gets the current operational status of the command provider factory and its data store connection.
     /// </summary>
     /// <returns>
-    /// A <see cref="CommandProviderFactoryStatus"/> object indicating the operational state 
+    /// A <see cref="CommandProviderFactoryStatus"/> object indicating the operational state
     /// of the command provider factory and its underlying data store connection.
     /// </returns>
     /// <remarks>
@@ -118,7 +118,7 @@ public interface ICommandProviderFactory
     /// var status = commandProviderFactory.GetStatus();
     /// if (!status.IsHealthy)
     /// {
-    ///     logger.LogError("Data access layer is unhealthy: {Details}", 
+    ///     logger.LogError("Data access layer is unhealthy: {Details}",
     ///         status.Data.ContainsKey("errorDetails") ? status.Data["errorDetails"] : "Unknown error");
     /// }
     /// </code>

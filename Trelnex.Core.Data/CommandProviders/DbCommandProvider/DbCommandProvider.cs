@@ -7,14 +7,14 @@ using LinqToDB.Data;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Abstract base implementation of <see cref="ICommandProvider{TInterface}"/> that uses a relational database 
+/// Abstract base implementation of <see cref="ICommandProvider{TInterface}"/> that uses a relational database
 /// as a backing store for persisting and querying items.
 /// </summary>
 /// <typeparam name="TInterface">The interface type that defines the item contract.</typeparam>
 /// <typeparam name="TItem">The concrete item type that implements the interface.</typeparam>
 /// <remarks>
 /// <para>
-/// This provider implements database-specific operations for command handling, functioning as a bridge between 
+/// This provider implements database-specific operations for command handling, functioning as a bridge between
 /// the command pattern abstraction and actual database operations. It provides implementations for:
 /// </para>
 /// <list type="bullet">
@@ -25,7 +25,7 @@ namespace Trelnex.Core.Data;
 /// </list>
 /// <para>
 /// The provider uses the LINQ to DB library for database access, which provides a LINQ interface for
-/// working with various database engines (SQL Server, PostgreSQL, SQLite, etc.). The specific database 
+/// working with various database engines (SQL Server, PostgreSQL, SQLite, etc.). The specific database
 /// connection details are encapsulated in the <see cref="DataOptions"/> provided to the constructor.
 /// </para>
 /// <para>
@@ -148,7 +148,6 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
     /// <summary>
     /// Saves a batch of items in the backing data store as an atomic transaction.
     /// </summary>
-    /// <param name="partitionKey">The partition key shared by all items in the batch.</param>
     /// <param name="requests">The array of save requests, each containing an item and associated event to save.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
@@ -160,7 +159,6 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
     /// and subsequent requests are marked as failed dependencies.
     /// </remarks>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
@@ -462,8 +460,8 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
     /// // SQL Server implementation example
     /// protected override bool IsDatabaseException(Exception ex)
     /// {
-    ///     return ex is SqlException || 
-    ///            ex is SqlTypeException || 
+    ///     return ex is SqlException ||
+    ///            ex is SqlTypeException ||
     ///            (ex is InvalidOperationException && ex.Message.Contains("SQL Server"));
     /// }
     /// </code>

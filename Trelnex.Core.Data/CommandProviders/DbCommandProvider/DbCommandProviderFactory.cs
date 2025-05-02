@@ -11,12 +11,12 @@ using LinqToDB.Mapping;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Abstract base class for database command provider factories that provides infrastructure for 
+/// Abstract base class for database command provider factories that provides infrastructure for
 /// creating, configuring, and managing relational database access through command providers.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This factory serves as the foundation for database-backed command providers, handling essential 
+/// This factory serves as the foundation for database-backed command providers, handling essential
 /// infrastructure concerns like:
 /// </para>
 /// <list type="bullet">
@@ -27,7 +27,7 @@ namespace Trelnex.Core.Data;
 ///   <item><description>Entity and event history table configuration</description></item>
 /// </list>
 /// <para>
-/// The factory provides a standardized approach to creating database-backed command providers, ensuring 
+/// The factory provides a standardized approach to creating database-backed command providers, ensuring
 /// consistent configuration, connection management, and health monitoring across different database engines.
 /// It handles the configuration of entity mappings, JSON serialization for complex property types, and
 /// verification of required database tables.
@@ -38,7 +38,7 @@ namespace Trelnex.Core.Data;
 /// <list type="bullet">
 ///   <item>
 ///     <description>
-///       <strong>Dual-table design:</strong> Each entity type is mapped to two tables - a primary table for 
+///       <strong>Dual-table design:</strong> Each entity type is mapped to two tables - a primary table for
 ///       current entity state, and an events table for change history/audit trail
 ///     </description>
 ///   </item>
@@ -171,7 +171,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       <strong>JSON property mapping:</strong> Configures the ORM to use JSON property names from 
+    ///       <strong>JSON property mapping:</strong> Configures the ORM to use JSON property names from
     ///       <see cref="JsonPropertyNameAttribute"/> for database column mapping
     ///     </description>
     ///   </item>
@@ -276,7 +276,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// connectivity state, schema validation, and version information.
     /// </summary>
     /// <returns>
-    /// A <see cref="CommandProviderFactoryStatus"/> object indicating health state and detailed 
+    /// A <see cref="CommandProviderFactoryStatus"/> object indicating health state and detailed
     /// metadata about the database connection and configuration.
     /// </returns>
     /// <remarks>
@@ -339,7 +339,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// var status = dbCommandProviderFactory.GetStatus();
     /// if (!status.IsHealthy)
     /// {
-    ///     logger.LogError("Database connection unhealthy: {Error}", 
+    ///     logger.LogError("Database connection unhealthy: {Error}",
     ///         status.Data.TryGetValue("error", out var error) ? error : "Unknown error");
     ///     throw new ApplicationException("Cannot start application with unhealthy database connection");
     /// }

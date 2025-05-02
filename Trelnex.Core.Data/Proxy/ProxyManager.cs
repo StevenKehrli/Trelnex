@@ -439,7 +439,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// <code>
     /// // Read a property value (always allowed)
     /// var id = proxyManager.Item.Id;
-    /// 
+    ///
     /// // Modify a property value (allowed only if not read-only)
     /// proxyManager.Item.Name = "New Name";
     /// </code>
@@ -686,14 +686,14 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
         MethodInfo? targetMethod,
         object?[]? args)
     {
-        // Acquire a lock to ensure thread safety during method invocation
-        // This prevents concurrent modifications that could lead to race conditions
-        // The semaphore is configured with an initial and maximum count of 1,
-        // ensuring only one thread can access this critical section at a time
-        _semaphore.Wait();
-
         try
         {
+            // Acquire a lock to ensure thread safety during method invocation
+            // This prevents concurrent modifications that could lead to race conditions
+            // The semaphore is configured with an initial and maximum count of 1,
+            // ensuring only one thread can access this critical section at a time
+            _semaphore.Wait();
+
             // For read-only items, we only allow property getter methods to be called
             // This enforces immutability for items like query results or delete commands
             // Property getters are identified using the cached _propertyGetters collection
@@ -719,7 +719,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
             {
                 _propertyChanges.Add(
                     propertyName: invokeResult.PropertyName,
-                    oldValue: invokeResult.OldValue, 
+                    oldValue: invokeResult.OldValue,
                     newValue: invokeResult.NewValue);
             }
 

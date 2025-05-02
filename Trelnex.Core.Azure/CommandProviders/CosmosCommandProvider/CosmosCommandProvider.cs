@@ -50,17 +50,18 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <summary>
     /// Saves a batch of items in the backing data store as an asynchronous operation.
     /// </summary>
-    /// <param name="partitionKey">The partition key of the batch.</param>
     /// <param name="requests">The batch of save requests with item and event to save.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
     /// <returns>The results of the batch operation.</returns>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
         // allocate the results
         var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
+
+        // get the partition key from the first request
+        var partitionKey = requests.First().Item.PartitionKey;
 
         // create the batch operation
         var batch = container.CreateTransactionalBatch(

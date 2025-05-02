@@ -1,0 +1,30 @@
+﻿[
+  {
+    "IsValid": true,
+    "Errors": [],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  },
+  {
+    "IsValid": false,
+    "Errors": [
+      {
+        "PropertyName": "PartitionKey",
+        "ErrorMessage": "The partition key '59cdc22b-04b2-46de-a90f-04b1ed0b6a62' does not match the batch partition key '2950dbd7-e46b-4185-b514-af373e54abac'.",
+        "AttemptedValue": "59cdc22b-04b2-46de-a90f-04b1ed0b6a62",
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "PredicateValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Partition Key",
+          "PropertyValue": "59cdc22b-04b2-46de-a90f-04b1ed0b6a62",
+          "PropertyPath": "PartitionKey"
+        }
+      }
+    ],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  }
+]

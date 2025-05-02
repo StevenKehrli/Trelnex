@@ -8,8 +8,8 @@ namespace Trelnex.Core.Data;
 /// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
 /// <remarks>
 /// <para>
-/// The <see cref="IReadResult{TInterface}"/> interface provides a standardized way to access items 
-/// retrieved from data stores while enforcing read-only access and offering validation capabilities. 
+/// The <see cref="IReadResult{TInterface}"/> interface provides a standardized way to access items
+/// retrieved from data stores while enforcing read-only access and offering validation capabilities.
 /// It acts as a wrapper around the retrieved item, controlling access and ensuring data integrity.
 /// </para>
 /// <para>
@@ -126,7 +126,7 @@ public interface IReadResult<TInterface>
     /// // Simple validation
     /// var validationResult = await readResult.ValidateAsync(cancellationToken);
     /// bool isValid = validationResult.IsValid;
-    /// 
+    ///
     /// // Validation with error handling
     /// var validationResult = await readResult.ValidateAsync(cancellationToken);
     /// if (!validationResult.IsValid)
@@ -153,9 +153,9 @@ public interface IReadResult<TInterface>
 /// <typeparam name="TItem">The concrete implementation type of the items.</typeparam>
 /// <remarks>
 /// <para>
-/// This class provides a concrete implementation of <see cref="IReadResult{TInterface}"/> that 
-/// wraps retrieved items in a read-only proxy to prevent modification. It leverages the 
-/// <see cref="ProxyManager{TInterface, TItem}"/> base class to handle the dynamic proxy creation 
+/// This class provides a concrete implementation of <see cref="IReadResult{TInterface}"/> that
+/// wraps retrieved items in a read-only proxy to prevent modification. It leverages the
+/// <see cref="ProxyManager{TInterface, TItem}"/> base class to handle the dynamic proxy creation
 /// and method interception.
 /// </para>
 /// <para>

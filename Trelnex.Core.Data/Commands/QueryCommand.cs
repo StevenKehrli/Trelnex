@@ -57,19 +57,19 @@ namespace Trelnex.Core.Data;
 /// <code>
 /// // Create a query command
 /// var queryCommand = commandProvider.Query();
-/// 
+///
 /// // Build the query using the fluent API
 /// queryCommand = queryCommand
 ///     .Where(i => i.Category == "Electronics")
 ///     .OrderBy(i => i.Price)
 ///     .Skip(10)
 ///     .Take(5);
-/// 
+///
 /// // Execute the query and process results
 /// await foreach (var result in queryCommand.ToAsyncEnumerable())
 /// {
 ///     Console.WriteLine($"Found item: {result.Item.Name}");
-///     
+///
 ///     // Optionally transition to update or delete
 ///     var updateCommand = result.Update();
 ///     updateCommand.Item.ViewCount++;
@@ -202,7 +202,7 @@ public interface IQueryCommand<TInterface>
     /// var pageSize = 20;
     /// var pageNumber = 3; // 1-based page number
     /// var itemsToSkip = (pageNumber - 1) * pageSize;
-    /// 
+    ///
     /// queryCommand
     ///     .OrderBy(item => item.Name)
     ///     .Skip(itemsToSkip)
@@ -317,7 +317,7 @@ public interface IQueryCommand<TInterface>
     /// {
     ///     // Access the item in read-only mode
     ///     Console.WriteLine($"Found item: {result.Item.Name}");
-    ///     
+    ///
     ///     // Optionally transition to a save command
     ///     var updateCommand = result.Update();
     ///     updateCommand.Item.ViewCount++;
@@ -330,7 +330,7 @@ public interface IQueryCommand<TInterface>
     /// <code>
     /// // Get all results as an array
     /// var results = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
-    /// 
+    ///
     /// // Get the first result or null if none
     /// var firstResult = await queryCommand.ToAsyncEnumerable().FirstOrDefaultAsync();
     /// </code>
@@ -366,13 +366,13 @@ public interface IQueryCommand<TInterface>
     /// <code>
     /// // Simple equality filter
     /// queryCommand.Where(item => item.Status == "Active");
-    /// 
+    ///
     /// // Compound filter with multiple conditions
-    /// queryCommand.Where(item => 
-    ///     item.Category == "Electronics" && 
-    ///     item.Price >= 100 && 
+    /// queryCommand.Where(item =>
+    ///     item.Category == "Electronics" &&
+    ///     item.Price >= 100 &&
     ///     item.InStock);
-    /// 
+    ///
     /// // Filter with string operations
     /// queryCommand.Where(item => item.Name.Contains("Phone"));
     /// </code>

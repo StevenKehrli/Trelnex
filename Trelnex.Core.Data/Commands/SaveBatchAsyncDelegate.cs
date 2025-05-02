@@ -5,7 +5,6 @@ namespace Trelnex.Core.Data;
 /// </summary>
 /// <typeparam name="TInterface">The interface type that defines the contract for the items to be saved. Must implement <see cref="IBaseItem"/>.</typeparam>
 /// <typeparam name="TItem">The concrete item type to be saved. Must inherit from <see cref="BaseItem"/> and implement <typeparamref name="TInterface"/>.</typeparam>
-/// <param name="partitionKey">The partition key that identifies the logical partition where the items will be stored.</param>
 /// <param name="requests">An array of <see cref="SaveRequest{TInterface, TItem}"/> objects containing the items to be saved and their associated metadata.</param>
 /// <param name="cancellationToken">A token to observe for cancellation requests during the save operation.</param>
 /// <returns>
@@ -30,13 +29,13 @@ namespace Trelnex.Core.Data;
 ///   </item>
 ///   <item>
 ///     <description>
-///       <strong>Result ordering:</strong> Each save request in the batch will generate a corresponding save 
+///       <strong>Result ordering:</strong> Each save request in the batch will generate a corresponding save
 ///       result in the returned array, maintaining the same order as the input requests.
 ///     </description>
 ///   </item>
 ///   <item>
 ///     <description>
-///       <strong>Transactional integrity:</strong> Implementations should ensure that all changes are 
+///       <strong>Transactional integrity:</strong> Implementations should ensure that all changes are
 ///       applied as a single transaction where the underlying data store supports it.
 ///     </description>
 ///   </item>
@@ -49,7 +48,7 @@ namespace Trelnex.Core.Data;
 /// </list>
 /// <para>
 /// This delegate is primarily invoked by the <see cref="BatchCommand{TInterface, TItem}"/> class when
-/// its <c>ExecuteAsync</c> method is called. It represents the final step in the batch command execution 
+/// its <c>ExecuteAsync</c> method is called. It represents the final step in the batch command execution
 /// pipeline that performs the actual persistence operations.
 /// </para>
 /// </remarks>
@@ -58,7 +57,6 @@ namespace Trelnex.Core.Data;
 /// <seealso cref="SaveRequest{TInterface, TItem}"/>
 /// <seealso cref="SaveResult{TInterface, TItem}"/>
 internal delegate Task<SaveResult<TInterface, TItem>[]> SaveBatchAsyncDelegate<TInterface, TItem>(
-    string partitionKey,
     SaveRequest<TInterface, TItem>[] requests,
     CancellationToken cancellationToken)
     where TInterface : class, IBaseItem

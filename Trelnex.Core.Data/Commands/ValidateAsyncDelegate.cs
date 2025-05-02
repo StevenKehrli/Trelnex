@@ -13,12 +13,12 @@ namespace Trelnex.Core.Data;
 /// <returns>A task representing the asynchronous validation operation that resolves to a <see cref="ValidationResult"/> containing validation outcomes.</returns>
 /// <remarks>
 /// <para>
-/// This delegate is used internally by <see cref="SaveCommand{TInterface, TItem}"/> and other validation handlers 
-/// to perform asynchronous validation of domain objects. It abstracts the validation process, allowing for flexible 
+/// This delegate is used internally by <see cref="SaveCommand{TInterface, TItem}"/> and other validation handlers
+/// to perform asynchronous validation of domain objects. It abstracts the validation process, allowing for flexible
 /// implementation of validation logic that can be swapped out or customized as needed.
 /// </para>
 /// <para>
-/// The validation is typically performed using FluentValidation validators, but the delegate pattern allows for any 
+/// The validation is typically performed using FluentValidation validators, but the delegate pattern allows for any
 /// validation approach to be used, making it extensible and decoupled from specific validation frameworks.
 /// </para>
 /// <para>

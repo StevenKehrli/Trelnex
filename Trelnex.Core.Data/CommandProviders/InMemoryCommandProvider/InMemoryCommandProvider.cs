@@ -29,7 +29,7 @@ namespace Trelnex.Core.Data;
 ///   </item>
 ///   <item>
 ///     <description>
-///       <strong>Optimistic concurrency:</strong> Manages ETags for proper concurrency control, 
+///       <strong>Optimistic concurrency:</strong> Manages ETags for proper concurrency control,
 ///       detecting conflicts when multiple processes modify the same item
 ///     </description>
 ///   </item>
@@ -53,7 +53,7 @@ namespace Trelnex.Core.Data;
 ///   </item>
 /// </list>
 /// <para>
-/// The provider follows a dual-storage pattern with separate collections for main entities and 
+/// The provider follows a dual-storage pattern with separate collections for main entities and
 /// their audit events, just like the database implementations. This maintains full consistency
 /// with how persistent providers behave while being entirely contained in memory.
 /// </para>
@@ -220,7 +220,6 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     /// <summary>
     /// Saves a batch of items in the in-memory store as an atomic transaction.
     /// </summary>
-    /// <param name="partitionKey">The partition key common to all items in the batch.</param>
     /// <param name="requests">An array of save requests, each containing an item and its associated event.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
     /// <returns>
@@ -243,7 +242,6 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     /// Thrown when the operation is canceled through the cancellation token.
     /// </exception>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
     {

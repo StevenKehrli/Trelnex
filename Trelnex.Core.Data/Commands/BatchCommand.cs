@@ -1,4 +1,5 @@
 using System.Net;
+using FluentValidation;
 using FluentValidation.Results;
 using Trelnex.Core.Validation;
 
@@ -21,7 +22,8 @@ namespace Trelnex.Core.Data;
 /// </para>
 /// <para>
 /// A key constraint when using batch commands is that all items in the batch must share the same partition key,
-/// which is necessary to ensure atomicity in distributed data stores. This constraint is enforced during execution.
+/// which is necessary to ensure atomicity in distributed data stores. This constraint is enforced during both
+/// validation (<see cref="ValidateAsync"/>) and execution (<see cref="SaveAsync"/>).
 /// </para>
 /// <para>
 /// The command can optionally be validated without persisting changes using the <see cref="ValidateAsync"/> method.
@@ -60,7 +62,7 @@ public interface IBatchCommand<TInterface>
     /// </para>
     /// <para>
     /// All commands in a batch must share the same partition key to ensure atomic execution.
-    /// This constraint is validated at save time, not when adding commands to the batch.
+    /// This constraint is validated during both validation and save operations, not when adding commands to the batch.
     /// </para>
     /// </remarks>
     IBatchCommand<TInterface> Add(
@@ -150,8 +152,9 @@ public interface IBatchCommand<TInterface>
     ///   </item>
     /// </list>
     /// <para>
-    /// Unlike <see cref="SaveAsync"/>, this method does not validate partition key consistency
-    /// across items in the batch. It only validates each item individually against its validation rules.
+    /// In addition to validating each item individually against its validation rules, this method
+    /// also validates partition key consistency across all items in the batch. This ensures that
+    /// all items share the same partition key, which is required for atomic operations.
     /// </para>
     /// <para>
     /// The validation results can be inspected to determine if there are any issues that would
@@ -196,7 +199,7 @@ public interface IBatchCommand<TInterface>
 ///   </item>
 ///   <item>
 ///     <description>
-///       Partition key consistency is enforced during execution to ensure atomicity
+///       Partition key consistency is enforced during both validation and execution to ensure atomicity
 ///     </description>
 ///   </item>
 ///   <item>
@@ -267,11 +270,11 @@ internal class BatchCommand<TInterface, TItem>(
                 nameof(saveCommand));
         }
 
-        // Ensure that only one operation that modifies the batch is in progress at a time
-        _semaphore.Wait();
-
         try
         {
+            // Ensure that only one operation that modifies the batch is in progress at a time
+            _semaphore.Wait();
+
             // Check if already saved
             if (_saveCommands is null)
             {
@@ -295,11 +298,11 @@ internal class BatchCommand<TInterface, TItem>(
         IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
-        // Ensure that only one operation that modifies the batch is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
-
         try
         {
+            // Ensure that only one operation that modifies the batch is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
+
             // Check if already saved
             if (_saveCommands is null)
             {
@@ -312,11 +315,8 @@ internal class BatchCommand<TInterface, TItem>(
                 return [];
             }
 
-            // Validate all save commands in parallel
-            var validationResultTasks = _saveCommands
-                .Select(sc => sc.ValidateAsync(cancellationToken));
-
-            var validationResults = await Task.WhenAll(validationResultTasks);
+            // Validate the save commands
+            var validationResults = await ValidateAsyncInternal(cancellationToken);
             validationResults.ValidateOrThrow<TItem>();
 
             // Acquire the save requests from each save command in parallel
@@ -354,19 +354,19 @@ internal class BatchCommand<TInterface, TItem>(
     public async Task<ValidationResult[]> ValidateAsync(
         CancellationToken cancellationToken = default)
     {
-        // Ensure that only one operation that modifies the batch is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
+        try
+        {
+            // Ensure that only one operation that modifies the batch is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
 
-        // Validate the save commands in parallel
-        var validationResultTasks = _saveCommands
-            .Select(sc => sc.ValidateAsync(cancellationToken));
-
-        var validationResults = await Task.WhenAll(validationResultTasks);
-
-        // Release the exclusive lock
-        _semaphore.Release();
-
-        return validationResults;
+            // Validate the save commands
+            return await ValidateAsyncInternal(cancellationToken);
+        }
+        finally
+        {
+            // Always release the exclusive lock
+            _semaphore.Release();
+        }
     }
 
     #endregion
@@ -402,7 +402,7 @@ internal class BatchCommand<TInterface, TItem>(
     ///         </item>
     ///         <item>
     ///           <description>
-    ///             <c>424 Failed Dependency</c> for tasks that would have succeeded but are failing due to other 
+    ///             <c>424 Failed Dependency</c> for tasks that would have succeeded but are failing due to other
     ///             tasks in the batch failing, maintaining the atomic nature of the batch
     ///           </description>
     ///         </item>
@@ -465,7 +465,7 @@ internal class BatchCommand<TInterface, TItem>(
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       Invokes the <see cref="SaveBatchAsyncDelegate{TInterface, TItem}"/> to perform the actual atomic 
+    ///       Invokes the <see cref="SaveBatchAsyncDelegate{TInterface, TItem}"/> to perform the actual atomic
     ///       save operation against the backing data store
     ///     </description>
     ///   </item>
@@ -490,7 +490,7 @@ internal class BatchCommand<TInterface, TItem>(
     ///   </item>
     /// </list>
     /// <para>
-    /// The method determines overall success by checking if all individual save results have an HTTP status 
+    /// The method determines overall success by checking if all individual save results have an HTTP status
     /// code of OK (200). Only if all operations succeeded will the save commands be updated with their results.
     /// </para>
     /// </remarks>
@@ -504,12 +504,8 @@ internal class BatchCommand<TInterface, TItem>(
             .Select(at => at.Result)
             .ToArray();
 
-        // Get the partition key from the first item
-        var partitionKey = requests.First().Item.PartitionKey;
-
         // Execute the batch save operation
         var saveResults = await saveBatchAsyncDelegate(
-            partitionKey,
             requests,
             cancellationToken);
 
@@ -543,6 +539,56 @@ internal class BatchCommand<TInterface, TItem>(
         _saveCommands = null!;
 
         return batchResults;
+    }
+
+
+    /// <inheritdoc/>
+    public async Task<ValidationResult[]> ValidateAsyncInternal(
+        CancellationToken cancellationToken = default)
+    {
+        // If there are no save commands, return an empty array
+        if (_saveCommands.Count == 0)
+        {
+            return [];
+        }
+
+        // Get the partition key from the first item
+        var partitionKey = _saveCommands.First().Item.PartitionKey;
+
+        // Define a validator to check if a request has consistent partition keys.
+        // The item must use the same partition key as the batch.
+        var validator = new InlineValidator<TInterface>();
+        validator.RuleFor(item => item.PartitionKey)
+            .Must(pk => string.Equals(pk, partitionKey))
+            .WithMessage(item => $"The partition key '{item.PartitionKey}' does not match the batch partition key '{partitionKey}'.");
+
+        // Validate both partition key consistency and the individual save command rules
+        var validationResults = await Task.WhenAll(_saveCommands.Select(async sc =>
+        {
+            // Validate partition key consistency
+            var vrPartitionKey = await validator.ValidateAsync(sc.Item, cancellationToken);
+
+            // Validate the save command itself
+            var vrSaveCommand = await sc.ValidateAsync(cancellationToken);
+
+            // If the partition key is valid, return the save command validation result
+            if (vrPartitionKey.IsValid)
+            {
+                return vrSaveCommand;
+            }
+
+            // If the save command is valid, return the partition key validation result
+            if (vrSaveCommand.IsValid)
+            {
+                return vrPartitionKey;
+            }
+
+            // If both validations failed, merge the errors
+            return new ValidationResult(
+                vrPartitionKey.Errors.Concat(vrSaveCommand.Errors));
+        }));
+
+        return validationResults;
     }
 
     #endregion

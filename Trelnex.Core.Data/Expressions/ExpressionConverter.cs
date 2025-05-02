@@ -146,10 +146,10 @@ public class ExpressionConverter<TInterface, TItem>
             // We only need to rewrite property accesses from our interfaces
             // Skip method calls, fields, or any non-property member access
             if (node.Member is not PropertyInfo propertyInfo) return node;
-            
+
             // Skip if the declaring type is null (shouldn't happen in practice)
             if (propertyInfo.DeclaringType is null) return node;
-            
+
             // Only rewrite properties from interfaces in our hierarchy
             // If the property comes from a different type entirely, we leave it as-is
             // This allows expressions to include references to unrelated types without errors
@@ -213,7 +213,7 @@ public class ExpressionConverter<TInterface, TItem>
                 // Get all interfaces that this interface inherits from
                 // For example, if TInterface is IQueryResult<T>, this includes IBaseItem
                 var nextTypes = currentType.GetInterfaces();
-                
+
                 // Add each base interface to the queue for processing
                 // This ensures we discover the complete inheritance hierarchy
                 Array.ForEach(nextTypes, nextType => queue.Enqueue(nextType));
@@ -236,7 +236,7 @@ public class ExpressionConverter<TInterface, TItem>
             // We only use public properties since interface members must be public,
             // and we only need instance properties (not static ones)
             var properties = typeof(TItem).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            
+
             // Build the name-to-property mapping dictionary
             // If TItem has a property with the same name as a property in TInterface,
             // we'll use it as the corresponding implementation property

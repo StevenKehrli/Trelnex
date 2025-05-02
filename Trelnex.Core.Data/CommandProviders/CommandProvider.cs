@@ -285,22 +285,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </remarks>
     private readonly IValidator<TItem>? _itemValidator;
 
-    /// <summary>
-    /// The delegate to validate and save an item.
-    /// </summary>
-    /// <remarks>
-    /// Encapsulates the save operation and validation logic to be reused across different command types.
-    /// </remarks>
-    private readonly SaveAsyncDelegate<TInterface, TItem> _saveAsyncDelegate;
-
-    /// <summary>
-    /// The delegate to validate and save a batch of items.
-    /// </summary>
-    /// <remarks>
-    /// Encapsulates the batch save operation and validation logic to be reused.
-    /// </remarks>
-    private readonly SaveBatchAsyncDelegate<TInterface, TItem> _saveBatchAsyncDelegate;
-
     #endregion
 
     #region Protected Properties
@@ -366,64 +350,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
         // Set the allowed operations for this provider, defaulting to Update only if not specified.
         // This controls which operations (Update/Delete) are permitted on this data store.
         _commandOperations = commandOperations ?? CommandOperations.Update;
-
-        // Define the delegate for saving single items, ensuring partition key consistency.
-        // This encapsulates the validation and save logic for reuse across different commands.
-        _saveAsyncDelegate = (request, cancellationToken) =>
-        {
-            // Verify that the event and item have the same partition key for consistency.
-            // Events must be stored in the same partition as their related items to maintain
-            // atomicity and ensure they can be queried together efficiently.
-            if (string.Equals(request.Event.PartitionKey, request.Item.PartitionKey) is false)
-            {
-                throw new CommandException(
-                    httpStatusCode: HttpStatusCode.BadRequest,
-                    message: "The PartitionKey for the itemEvent does not match the one specified for the item.");
-            }
-
-            return SaveItemAsync(request, cancellationToken);
-        };
-
-        // Define the delegate for batch operations, including partition key validation.
-        // This ensures all items in a batch share the same partition key for atomic transactions.
-        _saveBatchAsyncDelegate = (partitionKey, requests, cancellationToken) =>
-        {
-            // Define a function to check if a request has consistent partition keys.
-            // Both the item and its event must use the same partition key as the batch.
-            var partitionKeyCheck = (SaveRequest<TInterface, TItem> request) =>
-                string.Equals(request.Item.PartitionKey, partitionKey) &&
-                string.Equals(request.Event.PartitionKey, request.Item.PartitionKey);
-
-            // If any request fails the partition key check, we need to fail the entire batch.
-            // This prevents partial batch execution that could leave the data in an inconsistent state.
-            if (requests.Any(request => partitionKeyCheck(request)) is false)
-            {
-                // Allocate the results array for the complete batch response.
-                var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
-
-                // Process each request in the batch to provide appropriate error codes.
-                // This provides detailed feedback about which requests were problematic.
-                for (var index = 0; index < requests.Length; index++)
-                {
-                    var request = requests[index];
-
-                    // Use appropriate HTTP status codes based on the validation failure:
-                    // - FailedDependency (424): The request partition key matches the batch but not the event.
-                    // - BadRequest (400): The request partition key doesn't match the batch.
-                    var httpStatusCode = partitionKeyCheck(request)
-                        ? HttpStatusCode.FailedDependency
-                        : HttpStatusCode.BadRequest;
-
-                    saveResults[index] = new SaveResult<TInterface, TItem>(httpStatusCode, null);
-                }
-
-                // Return early with the errors since the batch can't be processed.
-                return Task.FromResult(saveResults);
-            }
-
-            // All partition keys are consistent, proceed with the batch operation.
-            return SaveBatchAsync(partitionKey, requests, cancellationToken);
-        };
     }
 
     #endregion
@@ -433,7 +359,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// <inheritdoc />
     public IBatchCommand<TInterface> Batch()
     {
-        return new BatchCommand<TInterface, TItem>(_saveBatchAsyncDelegate);
+        return new BatchCommand<TInterface, TItem>(SaveBatchAsync);
     }
 
     /// <inheritdoc />
@@ -463,7 +389,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.CREATED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
     /// <inheritdoc />
@@ -650,7 +576,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// <summary>
     /// Saves a batch of items in the backing data store as an asynchronous operation.
     /// </summary>
-    /// <param name="partitionKey">The partition key common to all items in the batch.</param>
     /// <param name="requests">An array of save requests, each containing an item and its associated event.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
     /// <returns>
@@ -675,7 +600,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// Thrown when the operation is canceled through the cancellation token.
     /// </exception>
     protected abstract Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default);
 
@@ -718,7 +642,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
             isReadOnly: true,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.DELETED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
     /// <summary>
@@ -750,7 +674,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.UPDATED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
     /// <summary>
@@ -784,7 +708,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
         // Execute the save operation using the batch implementation.
         // This delegates to the storage-specific implementation in the derived class.
         var results = await SaveBatchAsync(
-            partitionKey: request.Item.PartitionKey,
             requests: requests,
             cancellationToken: cancellationToken);
 
