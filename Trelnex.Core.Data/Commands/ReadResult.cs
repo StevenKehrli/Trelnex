@@ -3,46 +3,68 @@ using FluentValidation.Results;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// The class to expose and validate a item read from the backing data store.
+/// Interface to expose and validate an item read from the backing data store.
 /// </summary>
 /// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <remarks>
+/// This interface provides access to the underlying item and validation capabilities,
+/// allowing consumers to work with data in a consistent manner.
+/// </remarks>
 public interface IReadResult<TInterface>
     where TInterface : class, IBaseItem
 {
     /// <summary>
-    /// The item.
+    /// Gets the item retrieved from the data store.
     /// </summary>
+    /// <value>The strongly-typed item interface.</value>
     TInterface Item { get; }
 
     /// <summary>
-    /// The action to validate the item.
+    /// Validates the item asynchronously using the configured validation rules.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The fluent <see cref="ValidationResult"/>item that was saved.</returns>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation that returns a <see cref="ValidationResult"/>
+    /// containing the outcome of the validation.
+    /// </returns>
+    /// <exception cref="System.OperationCanceledException">
+    /// Thrown when the operation is canceled through the <paramref name="cancellationToken"/>.
+    /// </exception>
     Task<ValidationResult> ValidateAsync(
         CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// The class to read the item in the backing data store.
+/// Implements the read operation logic for retrieving and validating items from the backing data store.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">The interface type representing the items in the data store.</typeparam>
+/// <typeparam name="TItem">The concrete implementation type of the items.</typeparam>
+/// <remarks>
+/// This class manages the proxy creation and validation process for items being read from storage.
+/// It enforces read-only access to ensure data integrity during read operations.
+/// </remarks>
 internal class ReadResult<TInterface, TItem>
     : ProxyManager<TInterface, TItem>, IReadResult<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
+    #region Public Methods
+
     /// <summary>
-    /// Create a proxy item over a item.
+    /// Creates a new instance of <see cref="ReadResult{TInterface, TItem}"/> that wraps the provided item.
     /// </summary>
-    /// <param name="item">The item.</param>
-    /// <param name="validateAsyncDelegate">The action to validate the item.</param>
-    /// <returns>A proxy item as TInterface.</returns>
+    /// <param name="item">The concrete item to be proxied.</param>
+    /// <param name="validateAsyncDelegate">The delegate used to validate the item.</param>
+    /// <returns>A configured <see cref="ReadResult{TInterface, TItem}"/> instance.</returns>
+    /// <remarks>
+    /// This factory method handles the creation of both the proxy manager and the proxy itself,
+    /// ensuring they are correctly linked for proper operation.
+    /// </remarks>
     public static ReadResult<TInterface, TItem> Create(
         TItem item,
         ValidateAsyncDelegate<TInterface, TItem> validateAsyncDelegate)
     {
-        // create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
+        // Create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
         var proxyManager = new ReadResult<TInterface, TItem>
         {
             _item = item,
@@ -50,13 +72,15 @@ internal class ReadResult<TInterface, TItem>
             _validateAsyncDelegate = validateAsyncDelegate,
         };
 
-        // create the proxy
+        // Create the proxy that will be exposed to consumers
         var proxy = ItemProxy<TInterface, TItem>.Create(proxyManager.OnInvoke);
 
-        // set our proxy
+        // Set our proxy reference
         proxyManager._proxy = proxy;
 
-        // return the proxy manager
+        // Return the configured proxy manager
         return proxyManager;
     }
+
+    #endregion
 }

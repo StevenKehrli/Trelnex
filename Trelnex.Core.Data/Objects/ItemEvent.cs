@@ -38,7 +38,6 @@ public sealed class ItemEvent<TItem>
     /// <param name="changes">The property changes made to the item, if any.</param>
     /// <param name="requestContext">Information about the caller that initiated the operation.</param>
     /// <returns>A new <see cref="ItemEvent{TItem}"/> instance with details about the operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="related"/> or <paramref name="requestContext"/> is null.</exception>
     /// <remarks>
     /// This method creates a timestamped record with a unique ID that captures the state
     /// of an item modification operation. It uses the current UTC time for both creation and
@@ -50,9 +49,6 @@ public sealed class ItemEvent<TItem>
         PropertyChange[]? changes,
         IRequestContext requestContext)
     {
-        ArgumentNullException.ThrowIfNull(related);
-        ArgumentNullException.ThrowIfNull(requestContext);
-
         var dateTimeUtcNow = DateTime.UtcNow;
 
         return new ItemEvent<TItem>

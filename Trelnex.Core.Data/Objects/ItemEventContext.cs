@@ -70,15 +70,13 @@ public class ItemEventContext
     /// </summary>
     /// <param name="context">The request context containing the information to preserve.</param>
     /// <returns>A new <see cref="ItemEventContext"/> instance with data copied from the request context.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <see langword="null"/>.</exception>
     /// <remarks>
     /// This factory method extracts and preserves only the necessary context information
     /// from the original request.
     /// </remarks>
-    internal static ItemEventContext Convert(IRequestContext context)
+    internal static ItemEventContext Convert(
+        IRequestContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
         return new ItemEventContext
         {
             ObjectId = context.ObjectId,
