@@ -9,15 +9,24 @@ using FluentValidation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// An implementation of <see cref="ICommandProvider{TInterface, TItem}"/>.
+/// An in-memory implementation of <see cref="CommandProvider{TInterface, TItem}"/> that stores data
+/// in memory for testing and prototyping scenarios.
 /// </summary>
+/// <typeparam name="TInterface">The interface type that defines the data contract.</typeparam>
+/// <typeparam name="TItem">The concrete class that implements <typeparamref name="TInterface"/> and inherits from <see cref="BaseItem"/>.</typeparam>
 /// <remarks>
 /// <para>
-/// This is a temporary store in memory for item storage and retrieval.
+/// This is a temporary store in memory for item storage and retrieval, primarily designed for testing
+/// and development scenarios where persistence is not required or desirable.
 /// </para>
 /// <para>
-/// This command provider will serialize the item to a string for storage and deserialize the string to a item for retrieval.
-/// This validates that the item is json attributed correctly for a persistent backing store (Cosmos).
+/// This command provider will serialize the item to a string for storage and deserialize the string
+/// to an item for retrieval. This validates that the item is JSON attributed correctly for a
+/// persistent backing store like Cosmos DB, while maintaining all data in memory.
+/// </para>
+/// <para>
+/// Thread safety is ensured through the use of a <see cref="ReaderWriterLockSlim"/> to allow
+/// concurrent reads but exclusive writes.
 /// </para>
 /// </remarks>
 internal class InMemoryCommandProvider<TInterface, TItem>(
@@ -28,23 +37,122 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Private Fields
+
     /// <summary>
-    /// An exclusive lock to ensure that only one operation that modifies the backing store is in progress at a time
+    /// An exclusive lock to ensure that only one operation that modifies the backing store is in progress at a time.
     /// </summary>
+    /// <remarks>
+    /// This lock uses a reader-writer pattern, allowing multiple simultaneous reads but exclusive writes.
+    /// </remarks>
     private readonly ReaderWriterLockSlim _lock = new();
 
     /// <summary>
-    /// The in memory backing store;
+    /// The in-memory backing store containing all items and their associated events.
     /// </summary>
     private InMemoryStore _store = new();
 
+    #endregion
+
+    #region Protected Methods
+
     /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation.
+    /// Creates an <see cref="IQueryable{T}"/> for querying items in the in-memory store.
     /// </summary>
-    /// <param name="id">The id of the item.</param>
+    /// <returns>
+    /// An <see cref="IQueryable{TItem}"/> that filters items by type name and deleted status.
+    /// </returns>
+    /// <remarks>
+    /// This method uses deferred execution, so the actual query against the store
+    /// happens when the queryable is enumerated in <see cref="ExecuteQueryable"/>.
+    /// </remarks>
+    protected override IQueryable<TItem> CreateQueryable()
+    {
+        // Deferred execution, so we don't need to lock here.
+        // The base filter ensures we only return items matching our type name
+        // and excludes soft-deleted items.
+        return Enumerable.Empty<TItem>()
+            .AsQueryable()
+            .Where(i => i.TypeName == TypeName)
+            .Where(i => i.IsDeleted == null || i.IsDeleted == false);
+    }
+
+    /// <summary>
+    /// Executes the specified LINQ query against the in-memory store and returns the results.
+    /// </summary>
+    /// <param name="queryable">The LINQ query to execute.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// An enumerable of items matching the query criteria.
+    /// </returns>
+    /// <remarks>
+    /// This method acquires a read lock to ensure thread safety while the query is executing.
+    /// It transforms the original queryable (which was based on an empty collection) to operate
+    /// against the actual in-memory store data.
+    /// </remarks>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled through the cancellation token.
+    /// </exception>
+    protected override IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Acquire a read lock to ensure thread safety
+            _lock.EnterReadLock();
+
+            // Extract the method call expression that contains the filter predicates
+            var mce = (queryable.Expression as MethodCallExpression)!;
+
+            // Replace the empty source with our actual data store
+            var constantValue = _store.AsQueryable();
+            var constantExpression = Expression.Constant(constantValue);
+
+            // Create a new method call expression with our store as the data source
+            var methodCallExpression = Expression.Call(
+                mce.Method,
+                constantExpression,
+                mce.Arguments[1]!);
+
+            // Create the query from the store and the method call expression
+            var queryableFromExpression = _store
+                .AsQueryable()
+                .Provider
+                .CreateQuery<TItem>(methodCallExpression);
+
+            // Yield each matching item
+            foreach (var item in queryableFromExpression.AsEnumerable())
+            {
+                // Check for cancellation before yielding each item
+                cancellationToken.ThrowIfCancellationRequested();
+
+                yield return item;
+            }
+        }
+        finally
+        {
+            // Always release the lock, even if an exception occurs
+            _lock.ExitReadLock();
+        }
+    }
+
+    /// <summary>
+    /// Reads an item from the in-memory store by ID and partition key.
+    /// </summary>
+    /// <param name="id">The unique identifier of the item.</param>
     /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was read.</returns>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation. The task result contains the item if found,
+    /// or <see langword="null"/> if the item does not exist.
+    /// </returns>
+    /// <remarks>
+    /// This method acquires a read lock to ensure thread safety during the read operation.
+    /// </remarks>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled through the cancellation token.
+    /// </exception>
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -52,44 +160,63 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     {
         try
         {
-            // lock
+            // Acquire a read lock to ensure thread safety
             _lock.EnterReadLock();
 
-            // read from the backing store
+            // Read from the backing store
             var read = _store.ReadItem(id, partitionKey);
 
-            // return
+            // Return the result
             return await Task.FromResult<TItem?>(read);
         }
         finally
         {
-            // unlock
+            // Always release the lock, even if an exception occurs
             _lock.ExitReadLock();
         }
     }
 
     /// <summary>
-    /// Saves a batch of items in the backing data store as an asynchronous operation.
+    /// Saves a batch of items in the in-memory store as an atomic transaction.
     /// </summary>
-    /// <param name="partitionKey">The partition key of the batch.</param>
-    /// <param name="requests">The batch of save requests with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The results of the batch operation.</returns>
+    /// <param name="partitionKey">The partition key common to all items in the batch.</param>
+    /// <param name="requests">An array of save requests, each containing an item and its associated event.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation. The task result contains an array of
+    /// <see cref="SaveResult{TInterface, TItem}"/> objects, one for each request in the batch.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// This method implements atomic batch processing by:
+    /// 1. Creating a copy of the current store
+    /// 2. Applying all operations to the copy
+    /// 3. If all operations succeed, replacing the original store with the copy
+    /// 4. If any operation fails, discarding the copy and marking all operations as failed
+    /// </para>
+    /// <para>
+    /// This ensures that either all operations in the batch succeed or none of them take effect.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled through the cancellation token.
+    /// </exception>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
-        // allocate the results
+        // Allocate the results array
         var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
 
-        // lock
+        // Acquire an exclusive write lock
         _lock.EnterWriteLock();
 
-        // create a copy of the existing backing store to use for the batch
+        // Create a copy of the existing backing store to use for the batch
+        // This allows us to roll back if any operation fails
         var batchStore = new InMemoryStore(_store);
 
-        // enumerate each item
+        // Process each item in the batch
         var saveRequestIndex = 0;
         for ( ; saveRequestIndex < requests.Length; saveRequestIndex++)
         {
@@ -97,9 +224,10 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
 
             try
             {
-                // save the item
+                // Attempt to save the item to the batch store
                 var saved = SaveItem(batchStore, saveRequest);
 
+                // Record successful result
                 saveResults[saveRequestIndex] =
                     new SaveResult<TInterface, TItem>(
                         HttpStatusCode.OK,
@@ -107,31 +235,35 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             }
             catch (Exception ex) when (ex is CommandException || ex is InvalidOperationException)
             {
-                // set the result to the exception status code
+                // Determine the appropriate status code for the failure
                 var httpStatusCode = ex is CommandException commandEx
                     ? commandEx.HttpStatusCode
                     : HttpStatusCode.InternalServerError;
 
+                // Record the failure
                 saveResults[saveRequestIndex] =
                     new SaveResult<TInterface, TItem>(
                         httpStatusCode,
                         null);
 
+                // Exit the loop on first failure
                 break;
             }
         }
 
+        // Check if the entire batch was processed successfully
         if (saveRequestIndex == requests.Length)
         {
-            // the batch completed successfully, update the backing store
+            // The batch completed successfully, update the backing store
             _store = batchStore;
         }
         else
         {
-            // a save request failed
-            // update all other results to failed dependency
+            // A save request failed - mark all other requests as dependent failures
+            // This ensures clients understand the batch transaction semantics
             for (var saveResultIndex = 0; saveResultIndex < saveResults.Length; saveResultIndex++)
             {
+                // Skip the request that actually failed (it keeps its original error code)
                 if (saveResultIndex == saveRequestIndex) continue;
 
                 saveResults[saveResultIndex] =
@@ -141,69 +273,22 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             }
         }
 
-        // unlock
+        // Always release the write lock
         _lock.ExitWriteLock();
 
         return await Task.FromResult(saveResults);
     }
 
-    /// <summary>
-    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
-    /// </summary>
-    /// <returns></returns>
-    protected override IQueryable<TItem> CreateQueryable()
-    {
-        // deferred execution, so do not need to lock
-        return Enumerable.Empty<TItem>()
-            .AsQueryable()
-            .Where(i => i.TypeName == TypeName)
-            .Where(i => i.IsDeleted == null || i.IsDeleted == false);
-    }
+    #endregion
+
+    #region Internal Methods
 
     /// <summary>
-    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an async enumerable.
+    /// Clears all data from the in-memory store.
     /// </summary>
-    /// <param name="queryable">The queryable.</param>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The <see cref="IAsyncEnumerable{TInterface}"/>.</returns>
-    protected override IEnumerable<TItem> ExecuteQueryable(
-        IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            // lock
-            _lock.EnterReadLock();
-
-            // convert the queryable to use _store instead of EmptyPartition
-            var mce = (queryable.Expression as MethodCallExpression)!;
-
-            var constantValue = _store.AsQueryable();
-            var constantExpression = Expression.Constant(constantValue);
-
-            var methodCallExpression = Expression.Call(
-                mce.Method,
-                constantExpression,
-                mce.Arguments[1]!);
-
-            // create the query from the store and the method call expression
-            var queryableFromExpression = _store
-                .AsQueryable()
-                .Provider
-                .CreateQuery<TItem>(methodCallExpression);
-
-            foreach (var item in queryableFromExpression.AsEnumerable())
-            {
-                yield return item;
-            }
-        }
-        finally
-        {
-            // unlock
-            _lock.ExitReadLock();
-        }
-    }
-
+    /// <remarks>
+    /// This method is primarily used for testing purposes to reset the store to an empty state.
+    /// </remarks>
     internal void Clear()
     {
         try
@@ -218,6 +303,15 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
     }
 
+    /// <summary>
+    /// Gets all events stored in the in-memory store.
+    /// </summary>
+    /// <returns>
+    /// An array of all <see cref="ItemEvent{TItem}"/> objects in the store.
+    /// </returns>
+    /// <remarks>
+    /// This method is primarily used for testing and debugging purposes.
+    /// </remarks>
     internal ItemEvent<TItem>[] GetEvents()
     {
         try
@@ -232,6 +326,17 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         }
     }
 
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Generates a composite key for storing and retrieving items.
+    /// </summary>
+    /// <param name="item">The item to generate a key for.</param>
+    /// <returns>
+    /// A string key in the format "partitionKey:id".
+    /// </returns>
     private static string GetItemKey(
         BaseItem item)
     {
@@ -240,6 +345,14 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             id: item.Id);
     }
 
+    /// <summary>
+    /// Generates a composite key for storing and retrieving items.
+    /// </summary>
+    /// <param name="partitionKey">The partition key of the item.</param>
+    /// <param name="id">The id of the item.</param>
+    /// <returns>
+    /// A string key in the format "partitionKey:id".
+    /// </returns>
     private static string GetItemKey(
         string partitionKey,
         string id)
@@ -248,12 +361,19 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Save the item to the backing store.
+    /// Saves an item to the specified backing store.
     /// </summary>
     /// <param name="store">The backing store to save the item to.</param>
     /// <param name="request">The save request with item and event to save.</param>
-    /// <returns>The result of the save operation.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the <see cref="SaveAction"/> is not recognized.</exception>
+    /// <returns>
+    /// The saved item after processing.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the <see cref="SaveAction"/> is not recognized.
+    /// </exception>
+    /// <exception cref="CommandException">
+    /// Thrown when a storage operation fails, with a relevant HTTP status code.
+    /// </exception>
     private static TItem SaveItem(
         InMemoryStore store,
         SaveRequest<TInterface, TItem> request) => request.SaveAction switch
@@ -267,14 +387,24 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
     };
 
+    #endregion
+
+    #region Nested Types
+
     /// <summary>
-    /// Represents an item or event that has been serialized to a json string.
+    /// Base class for serialized items and events stored in memory.
     /// </summary>
-    /// <typeparam name="T">The type of the item or event.</typeparam>
-    private class BaseSerialized<T> where T : BaseItem
+    /// <typeparam name="T">The type of item being serialized, must derive from <see cref="BaseItem"/>.</typeparam>
+    /// <remarks>
+    /// This class handles the serialization and deserialization of items and events,
+    /// ensuring they are stored in a format similar to how they would be in a real database.
+    /// </remarks>
+    private abstract class BaseSerialized<T> where T : BaseItem
     {
+        #region Private Static Fields
+
         /// <summary>
-        /// The json serializer options
+        /// The JSON serializer options used for serialization and deserialization.
         /// </summary>
         private static readonly JsonSerializerOptions _options = new()
         {
@@ -282,87 +412,158 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        private string _jsonString = null!;
-        private string _eTag = null!;
+        #endregion
+
+        #region Private Fields
 
         /// <summary>
-        /// Gets the resource.
+        /// The serialized JSON string representation of the item.
         /// </summary>
+        private string _jsonString = null!;
+
+        /// <summary>
+        /// The ETag value for optimistic concurrency control.
+        /// </summary>
+        private string _eTag = null!;
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the deserialized resource from the stored JSON.
+        /// </summary>
+        /// <remarks>
+        /// This property deserializes the JSON string each time it's accessed,
+        /// ensuring any modifications to the JSON are reflected in the returned object.
+        /// </remarks>
         public T Resource
         {
             get
             {
-                // deserialize to the resource
+                // Deserialize the JSON string to the resource type
                 var resource = JsonSerializer.Deserialize<T>(_jsonString, _options)!;
 
-                // set the etag
+                // Set the ETag from the storage metadata
                 resource.ETag = _eTag;
 
-                // return the resource
+                // Return the fully reconstructed resource
                 return resource;
             }
         }
 
         /// <summary>
-        /// Gets the ETag of the resource.
+        /// Gets the ETag value for this resource.
         /// </summary>
+        /// <value>
+        /// A string representing the current version of the resource.
+        /// </value>
         public string ETag => _eTag;
 
+        #endregion
+
+        #region Protected Static Methods
+
+        /// <summary>
+        /// Creates a new serialized instance from the provided resource.
+        /// </summary>
+        /// <typeparam name="TSerialized">The specific serialized class type to create.</typeparam>
+        /// <param name="resource">The resource to serialize.</param>
+        /// <returns>
+        /// A new instance of <typeparamref name="TSerialized"/> containing the serialized resource.
+        /// </returns>
         protected static TSerialized BaseCreate<TSerialized>(
             T resource) where TSerialized : BaseSerialized<T>, new()
         {
-            // create an instance of TSerialized
+            // Create an instance of TSerialized
             var serialized = new TSerialized()
             {
-                // serialize to a json string
+                // Serialize the resource to a JSON string
                 _jsonString = JsonSerializer.Serialize(resource, _options),
 
-                // create a new ETag
+                // Create a new ETag for optimistic concurrency
                 _eTag = Guid.NewGuid().ToString(),
             };
 
             return serialized;
         }
+
+        #endregion
     }
 
     /// <summary>
-    /// Represents an item that has been serialized to a json string.
+    /// Represents an item that has been serialized to a JSON string for storage.
     /// </summary>
-    /// <param name="jsonString">The serialized json string of the item.</param>
-    /// <param name="eTag">The ETag of the item.</param>
-    private class SerializedItem
-        : BaseSerialized<TItem>
+    private class SerializedItem : BaseSerialized<TItem>
     {
+        #region Public Static Methods
+
+        /// <summary>
+        /// Creates a new serialized item instance.
+        /// </summary>
+        /// <param name="item">The item to serialize.</param>
+        /// <returns>
+        /// A new <see cref="SerializedItem"/> containing the serialized item.
+        /// </returns>
         public static SerializedItem Create(
             TItem item) => BaseCreate<SerializedItem>(item);
+
+        #endregion
     }
 
     /// <summary>
-    /// Represents an event that has been serialized to a json string.
+    /// Represents an event that has been serialized to a JSON string for storage.
     /// </summary>
-    private class SerializedEvent
-        : BaseSerialized<ItemEvent<TItem>>
+    private class SerializedEvent : BaseSerialized<ItemEvent<TItem>>
     {
+        #region Public Static Methods
+
+        /// <summary>
+        /// Creates a new serialized event instance.
+        /// </summary>
+        /// <param name="itemEvent">The item event to serialize.</param>
+        /// <returns>
+        /// A new <see cref="SerializedEvent"/> containing the serialized event.
+        /// </returns>
         public static SerializedEvent Create(
             ItemEvent<TItem> itemEvent) => BaseCreate<SerializedEvent>(itemEvent);
+
+        #endregion
     }
 
+    /// <summary>
+    /// An in-memory data store that contains items and their associated events.
+    /// </summary>
+    /// <remarks>
+    /// This class implements <see cref="IEnumerable{TItem}"/> to support LINQ queries
+    /// against the in-memory data.
+    /// </remarks>
     private class InMemoryStore : IEnumerable<TItem>
     {
+        #region Private Fields
+
         /// <summary>
-        /// The backing store of items
+        /// The backing store of serialized items, keyed by "partitionKey:id".
         /// </summary>
         private readonly Dictionary<string, SerializedItem> _items = [];
 
         /// <summary>
-        /// The backing store of events
+        /// The backing store of serialized events in chronological order.
         /// </summary>
         private readonly List<SerializedEvent> _events = [];
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InMemoryStore"/> class.
         /// </summary>
-        /// <param name="store">The store to copy from.</param>
+        /// <param name="store">Optional existing store to copy data from.</param>
+        /// <remarks>
+        /// If <paramref name="store"/> is provided, this constructor creates a deep copy
+        /// of its items and events for batch transaction support.
+        /// </remarks>
         public InMemoryStore(
             InMemoryStore? store = null)
         {
@@ -373,102 +574,136 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             }
         }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Creates a item in the backing data store.
+        /// Creates a new item in the backing data store.
         /// </summary>
         /// <param name="item">The item to create.</param>
-        /// <param name="itemEvent">The <see cref="ItemEvent"> that represents information regarding the item and the caller that invoked the save method.</param>
-        /// <returns>The item that was created.</returns>
+        /// <param name="itemEvent">The event that represents information about the creation operation.</param>
+        /// <returns>
+        /// The created item with its assigned ETag.
+        /// </returns>
+        /// <exception cref="CommandException">
+        /// Thrown with <see cref="HttpStatusCode.Conflict"/> if an item with the same key already exists.
+        /// </exception>
         public TItem CreateItem(
             TItem item,
             ItemEvent<TItem> itemEvent)
         {
-            // get the item key
+            // Generate the composite key for this item
             var itemKey = InMemoryCommandProvider<TInterface, TItem>.GetItemKey(item);
 
-            // serialize the item and add to the backing store
+            // Serialize the item and attempt to add it to the backing store
             var serializedItem = SerializedItem.Create(item);
             if (_items.TryAdd(itemKey, serializedItem) is false)
             {
                 throw new CommandException(HttpStatusCode.Conflict);
             }
 
-            // serialize the event and add to the backing store
+            // Serialize the event and add to the event log
             var serializedEvent = SerializedEvent.Create(itemEvent);
             _events.Add(serializedEvent);
 
+            // Return the item with its assigned ETag
             return serializedItem.Resource;
         }
 
         /// <summary>
-        /// Reads a item from the backing data store.
+        /// Reads an item from the backing data store.
         /// </summary>
-        /// <param name="id">The id of the item.</param>
+        /// <param name="id">The unique identifier of the item.</param>
         /// <param name="partitionKey">The partition key of the item.</param>
-        /// <returns>The item that was read.</returns>
+        /// <returns>
+        /// The requested item if found; otherwise, <see langword="null"/>.
+        /// </returns>
         public TItem? ReadItem(
             string id,
             string partitionKey)
         {
-            // get the item key
+            // Generate the composite key for this item
             var itemKey = GetItemKey(
                 partitionKey: partitionKey,
                 id: id);
 
-            // get the item
+            // Attempt to retrieve the item from the backing store
             if (_items.TryGetValue(itemKey, out var serializedItem) is false)
             {
-                // not found
+                // Item not found
                 return null;
             }
 
-            // return
+            // Return the deserialized item
             return serializedItem.Resource;
         }
 
         /// <summary>
-        /// Updates an item in the backing data store.
+        /// Updates an existing item in the backing data store.
         /// </summary>
-        /// <param name="item">The item to update.</param>
-        /// <param name="itemEvent">The <see cref="ItemEvent"> that represents information regarding the item and the caller that invoked the save method.</param>
-        /// <returns>The item that was updated.</returns>
+        /// <param name="item">The item to update with new values.</param>
+        /// <param name="itemEvent">The event that represents information about the update operation.</param>
+        /// <returns>
+        /// The updated item with its new ETag.
+        /// </returns>
+        /// <exception cref="CommandException">
+        /// Thrown with <see cref="HttpStatusCode.NotFound"/> if the item does not exist,
+        /// or with <see cref="HttpStatusCode.Conflict"/> if the item's ETag does not match the current version.
+        /// </exception>
         public TItem UpdateItem(
             TItem item,
             ItemEvent<TItem> itemEvent)
         {
-            // get the item key
+            // Generate the composite key for this item
             var itemKey = InMemoryCommandProvider<TInterface, TItem>.GetItemKey(item);
 
-            // get the item
+            // Check if the item exists in the backing store
             if (_items.TryGetValue(itemKey, out var serializedItem) is false)
             {
                 // not found
                 throw new CommandException(HttpStatusCode.NotFound);
             }
 
-            // check the version (ETag) is unchanged
+            // Check if the ETag matches (optimistic concurrency check)
             if (string.Equals(serializedItem.ETag, item.ETag) is false)
             {
-                throw new CommandException(HttpStatusCode.Conflict);
+                throw new CommandException(HttpStatusCode.PreconditionFailed);
             }
 
-            // serialize the item and update in the backing store
+            // Serialize the updated item and replace the existing one
             serializedItem = SerializedItem.Create(item);
             _items[itemKey] = serializedItem;
 
-            // serialize the event and add to the backing store
+            // Serialize the event and add to the event log
             var serializedEvent = SerializedEvent.Create(itemEvent);
             _events.Add(serializedEvent);
 
-            // return
+            // Return the updated item with its new ETag
             return serializedItem.Resource;
         }
 
+        /// <summary>
+        /// Gets all events stored in the backing store.
+        /// </summary>
+        /// <returns>
+        /// An array of all item events.
+        /// </returns>
         public ItemEvent<TItem>[] GetEvents()
         {
             return _events.Select(se => se.Resource).ToArray();
         }
 
+        #endregion
+
+        #region IEnumerable Implementation
+
+        /// <summary>
+        /// Returns an enumerator that iterates through all items in the store.
+        /// </summary>
+        /// <returns>
+        /// An enumerator for all items in the store.
+        /// </returns>
         public IEnumerator<TItem> GetEnumerator()
         {
             foreach (var serializedItem in _items.Values)
@@ -477,9 +712,19 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             }
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through all items in the store.
+        /// </summary>
+        /// <returns>
+        /// An enumerator for all items in the store.
+        /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
+
+        #endregion
     }
+
+    #endregion
 }

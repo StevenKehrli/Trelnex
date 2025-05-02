@@ -3,22 +3,58 @@ using FluentValidation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="CosmosCommandProvider"/>.
+/// A factory for creating instances of <see cref="InMemoryCommandProvider{TInterface, TItem}"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This factory provides an in-memory implementation of the command provider pattern, useful for:
+/// - Unit testing scenarios where persistence is not needed
+/// - Prototyping without database configuration
+/// - Temporary data storage in single-instance applications
+/// </para>
+/// <para>
+/// The in-memory provider serializes items to JSON strings to validate proper JSON attribute configuration,
+/// simulating behavior of persistent stores like Cosmos DB while keeping everything in memory.
+/// </para>
+/// </remarks>
 public class InMemoryCommandProviderFactory : ICommandProviderFactory
 {
+    #region Private Fields
+
+    /// <summary>
+    /// Function that returns the current status of the factory.
+    /// </summary>
     private readonly Func<CommandProviderFactoryStatus> _getStatus;
 
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InMemoryCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="getStatus">The function that returns the current status of the factory.</param>
     private InMemoryCommandProviderFactory(
         Func<CommandProviderFactoryStatus> getStatus)
     {
         _getStatus = getStatus;
     }
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
-    /// Create an instance of the <see cref="InMemoryCommandProviderFactory"/>.
+    /// Creates a new instance of the <see cref="InMemoryCommandProviderFactory"/>.
     /// </summary>
-    /// <returns>The <see cref="InMemoryCommandProviderFactory"/>.</returns>
+    /// <returns>
+    /// A task representing the asynchronous operation. The task result contains
+    /// the new <see cref="InMemoryCommandProviderFactory"/> instance.
+    /// </returns>
+    /// <remarks>
+    /// This factory is always created in a healthy state as it doesn't depend on
+    /// external resources that could fail.
+    /// </remarks>
     public static async Task<InMemoryCommandProviderFactory> Create()
     {
         CommandProviderFactoryStatus getStatus()
@@ -34,16 +70,36 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
         return await Task.FromResult(factory);
     }
 
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
-    /// Create an instance of the <see cref="InMemoryCommandProvider"/>.
+    /// Creates an instance of the <see cref="InMemoryCommandProvider{TInterface, TItem}"/>.
     /// </summary>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The value indicating if update and delete commands are allowed. By default, update is allowed; delete is not allowed.</param>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-    /// <returns>The <see cref="InMemoryCommandProvider"/>.</returns>
+    /// <typeparam name="TInterface">The interface type that defines the contract for the item.</typeparam>
+    /// <typeparam name="TItem">The concrete item type that implements the specified interface.</typeparam>
+    /// <param name="typeName">
+    /// The type name of the item to be stored in the <see cref="BaseItem.TypeName"/> property.
+    /// Must follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.
+    /// </param>
+    /// <param name="validator">
+    /// The fluent validator for domain-specific validation of the item.
+    /// Pass <see langword="null"/> to skip domain validation.
+    /// </param>
+    /// <param name="commandOperations">
+    /// Specifies which operations (Update/Delete) are allowed.
+    /// By default, Update is allowed but Delete is not.
+    /// </param>
+    /// <returns>
+    /// An <see cref="ICommandProvider{TInterface}"/> implementation that stores data in memory.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="typeName"/> does not follow the naming rules or is a reserved type name.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="typeName"/> is <see langword="null"/> or empty.
+    /// </exception>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string typeName,
         IValidator<TItem>? validator = null,
@@ -57,5 +113,18 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
             commandOperations);
     }
 
+    /// <summary>
+    /// Gets the current operational status of the command provider factory.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="CommandProviderFactoryStatus"/> indicating if the factory is healthy
+    /// and containing additional status information.
+    /// </returns>
+    /// <remarks>
+    /// The in-memory provider is always considered healthy since it doesn't depend on
+    /// external resources that could fail.
+    /// </remarks>
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
+
+    #endregion
 }

@@ -584,11 +584,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </returns>
     /// <remarks>
     /// <para>
-    /// This abstract method must be implemented by derived classes to create a queryable instance 
+    /// This abstract method must be implemented by derived classes to create a queryable instance
     /// specific to the underlying data store technology (e.g., SQL, NoSQL, in-memory).
     /// </para>
     /// <para>
-    /// The implementation should apply basic filters like type name matching and soft-delete 
+    /// The implementation should apply basic filters like type name matching and soft-delete
     /// filtering, to ensure consistent behavior across all query operations.
     /// </para>
     /// </remarks>
@@ -604,11 +604,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </returns>
     /// <remarks>
     /// <para>
-    /// This abstract method must be implemented by derived classes to execute the provided 
+    /// This abstract method must be implemented by derived classes to execute the provided
     /// queryable expression against the specific data store technology.
     /// </para>
     /// <para>
-    /// The implementation should handle translation of LINQ expressions to the appropriate 
+    /// The implementation should handle translation of LINQ expressions to the appropriate
     /// query language, execution, and materializing results into strongly-typed objects.
     /// </para>
     /// </remarks>
@@ -631,11 +631,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </returns>
     /// <remarks>
     /// <para>
-    /// This abstract method must be implemented by derived classes to perform the actual read 
+    /// This abstract method must be implemented by derived classes to perform the actual read
     /// operation against the specific data store technology.
     /// </para>
     /// <para>
-    /// The implementation should retrieve the item based on its id and partition key without 
+    /// The implementation should retrieve the item based on its id and partition key without
     /// applying any soft-delete filtering, as that's handled by the base class.
     /// </para>
     /// </remarks>
@@ -659,11 +659,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </returns>
     /// <remarks>
     /// <para>
-    /// This abstract method must be implemented by derived classes to perform the actual batch save 
+    /// This abstract method must be implemented by derived classes to perform the actual batch save
     /// operation against the specific data store technology.
     /// </para>
     /// <para>
-    /// The implementation should ensure that all operations within the batch are executed 
+    /// The implementation should ensure that all operations within the batch are executed
     /// atomically - either all succeed or all fail together.
     /// </para>
     /// <para>

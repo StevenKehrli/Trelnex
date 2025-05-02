@@ -5,7 +5,7 @@
       "ReadResult": null
     },
     {
-      "HttpStatusCode": "Conflict",
+      "HttpStatusCode": "PreconditionFailed",
       "ReadResult": null
     }
   ],
