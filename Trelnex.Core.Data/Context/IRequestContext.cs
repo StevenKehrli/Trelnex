@@ -11,7 +11,7 @@ namespace Trelnex.Core.Data;
 /// <seealso cref="ItemEventContext"/>
 public interface IRequestContext
 {
-    #region Properties
+    #region Public Properties
 
     /// <summary>
     /// Gets the unique object ID associated with the ClaimsPrincipal for this request.

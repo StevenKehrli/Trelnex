@@ -97,7 +97,7 @@ public interface IBaseItem
 /// <seealso cref="IBaseItem"/>
 public abstract class BaseItem : IBaseItem
 {
-    #region Properties
+    #region Public Properties
 
     /// <inheritdoc/>
     [JsonInclude]

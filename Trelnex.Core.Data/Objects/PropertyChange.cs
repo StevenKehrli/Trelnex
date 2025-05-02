@@ -19,7 +19,7 @@ namespace Trelnex.Core.Data;
 /// <seealso cref="ItemEvent{TItem}"/>
 public class PropertyChange
 {
-    #region Properties
+    #region Public Properties
 
     /// <summary>
     /// Gets or sets the name of the property that was changed.

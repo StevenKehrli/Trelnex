@@ -10,25 +10,66 @@ namespace Trelnex.Core.Data;
 
 /// <summary>
 /// An in-memory implementation of <see cref="CommandProvider{TInterface, TItem}"/> that stores data
-/// in memory for testing and prototyping scenarios.
+/// in memory for testing, prototyping, and lightweight application scenarios.
 /// </summary>
 /// <typeparam name="TInterface">The interface type that defines the data contract.</typeparam>
 /// <typeparam name="TItem">The concrete class that implements <typeparamref name="TInterface"/> and inherits from <see cref="BaseItem"/>.</typeparam>
 /// <remarks>
 /// <para>
-/// This is a temporary store in memory for item storage and retrieval, primarily designed for testing
-/// and development scenarios where persistence is not required or desirable.
+/// This command provider offers a complete, in-memory simulation of a database-backed command provider,
+/// making it ideal for testing, prototyping, and scenarios where persistence beyond the application's
+/// lifetime is not required. Key features include:
+/// </para>
+/// <list type="bullet">
+///   <item>
+///     <description>
+///       <strong>Real-world simulation:</strong> Uses serialization/deserialization to validate that
+///       entities are properly JSON-attributed, simulating the behavior of persistent stores
+///     </description>
+///   </item>
+///   <item>
+///     <description>
+///       <strong>Optimistic concurrency:</strong> Manages ETags for proper concurrency control, 
+///       detecting conflicts when multiple processes modify the same item
+///     </description>
+///   </item>
+///   <item>
+///     <description>
+///       <strong>Atomic transactions:</strong> Implements true atomic batch operations with proper
+///       rollback semantics on failure
+///     </description>
+///   </item>
+///   <item>
+///     <description>
+///       <strong>Event tracking:</strong> Maintains a complete history of all operations through
+///       <see cref="ItemEvent{TItem}"/> records
+///     </description>
+///   </item>
+///   <item>
+///     <description>
+///       <strong>Thread safety:</strong> Uses reader-writer locking to enable concurrent reads
+///       while ensuring exclusive writes
+///     </description>
+///   </item>
+/// </list>
+/// <para>
+/// The provider follows a dual-storage pattern with separate collections for main entities and 
+/// their audit events, just like the database implementations. This maintains full consistency
+/// with how persistent providers behave while being entirely contained in memory.
 /// </para>
 /// <para>
-/// This command provider will serialize the item to a string for storage and deserialize the string
-/// to an item for retrieval. This validates that the item is JSON attributed correctly for a
-/// persistent backing store like Cosmos DB, while maintaining all data in memory.
+/// Though primarily intended for testing, this implementation is robust enough for production use
+/// in scenarios where data persistence beyond application lifetime is not required, such as:
 /// </para>
-/// <para>
-/// Thread safety is ensured through the use of a <see cref="ReaderWriterLockSlim"/> to allow
-/// concurrent reads but exclusive writes.
-/// </para>
+/// <list type="bullet">
+///   <item><description>Single-user desktop applications</description></item>
+///   <item><description>Ephemeral data caches</description></item>
+///   <item><description>Short-lived processing services</description></item>
+///   <item><description>Isolated integration test environments</description></item>
+/// </list>
 /// </remarks>
+/// <seealso cref="CommandProvider{TInterface, TItem}"/>
+/// <seealso cref="InMemoryCommandProviderFactory"/>
 internal class InMemoryCommandProvider<TInterface, TItem>(
     string typeName,
     IValidator<TItem>? itemValidator = null,

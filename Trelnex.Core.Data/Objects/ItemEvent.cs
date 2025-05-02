@@ -28,50 +28,7 @@ public sealed class ItemEvent<TItem>
     : BaseItem
     where TItem : BaseItem
 {
-    #region Internal Methods
-
-    /// <summary>
-    /// Creates a new <see cref="ItemEvent{TItem}"/> instance to record an operation on an item.
-    /// </summary>
-    /// <param name="related">The item that was modified and generated this event.</param>
-    /// <param name="saveAction">The type of operation performed (create, update, delete).</param>
-    /// <param name="changes">The property changes made to the item, if any.</param>
-    /// <param name="requestContext">Information about the caller that initiated the operation.</param>
-    /// <returns>A new <see cref="ItemEvent{TItem}"/> instance with details about the operation.</returns>
-    /// <remarks>
-    /// This method creates a timestamped record with a unique ID that captures the state
-    /// of an item modification operation. It uses the current UTC time for both creation and
-    /// update timestamps.
-    /// </remarks>
-    internal static ItemEvent<TItem> Create(
-        TItem related,
-        SaveAction saveAction,
-        PropertyChange[]? changes,
-        IRequestContext requestContext)
-    {
-        var dateTimeUtcNow = DateTime.UtcNow;
-
-        return new ItemEvent<TItem>
-        {
-            Id = Guid.NewGuid().ToString(),
-            PartitionKey = related.PartitionKey,
-
-            TypeName = ReservedTypeNames.Event,
-
-            CreatedDate = dateTimeUtcNow,
-            UpdatedDate = dateTimeUtcNow,
-
-            SaveAction = saveAction,
-            RelatedId = related.Id,
-            RelatedTypeName = related.TypeName,
-            Changes = changes,
-            Context = ItemEventContext.Convert(requestContext),
-        };
-    }
-
-    #endregion
-
-    #region Properties
+    #region Public Properties
 
     /// <summary>
     /// Gets the type of operation that was performed on the related item.
@@ -123,6 +80,49 @@ public sealed class ItemEvent<TItem>
     [JsonInclude]
     [JsonPropertyName("context")]
     public ItemEventContext Context { get; private init; } = null!;
+
+    #endregion
+
+    #region Internal Methods
+
+    /// <summary>
+    /// Creates a new <see cref="ItemEvent{TItem}"/> instance to record an operation on an item.
+    /// </summary>
+    /// <param name="related">The item that was modified and generated this event.</param>
+    /// <param name="saveAction">The type of operation performed (create, update, delete).</param>
+    /// <param name="changes">The property changes made to the item, if any.</param>
+    /// <param name="requestContext">Information about the caller that initiated the operation.</param>
+    /// <returns>A new <see cref="ItemEvent{TItem}"/> instance with details about the operation.</returns>
+    /// <remarks>
+    /// This method creates a timestamped record with a unique ID that captures the state
+    /// of an item modification operation. It uses the current UTC time for both creation and
+    /// update timestamps.
+    /// </remarks>
+    internal static ItemEvent<TItem> Create(
+        TItem related,
+        SaveAction saveAction,
+        PropertyChange[]? changes,
+        IRequestContext requestContext)
+    {
+        var dateTimeUtcNow = DateTime.UtcNow;
+
+        return new ItemEvent<TItem>
+        {
+            Id = Guid.NewGuid().ToString(),
+            PartitionKey = related.PartitionKey,
+
+            TypeName = ReservedTypeNames.Event,
+
+            CreatedDate = dateTimeUtcNow,
+            UpdatedDate = dateTimeUtcNow,
+
+            SaveAction = saveAction,
+            RelatedId = related.Id,
+            RelatedTypeName = related.TypeName,
+            Changes = changes,
+            Context = ItemEventContext.Convert(requestContext),
+        };
+    }
 
     #endregion
 }
