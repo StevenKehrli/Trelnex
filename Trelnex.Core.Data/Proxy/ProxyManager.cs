@@ -42,7 +42,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// <see langword="true"/> if the item is read-only; otherwise, <see langword="false"/>.
     /// </value>
     protected bool _isReadOnly;
-    
+
     /// <summary>
     /// Gets or sets the actual item instance being proxied.
     /// </summary>
@@ -50,7 +50,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// This is the concrete implementation that fulfills the operations defined by <typeparamref name="TInterface"/>.
     /// </remarks>
     protected TItem _item = null!;
-    
+
     /// <summary>
     /// Gets or sets the proxy implementation of the item.
     /// </summary>
@@ -58,7 +58,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// This is the interface wrapper that intercepts all method calls to the underlying item.
     /// </remarks>
     protected TInterface _proxy = null!;
-    
+
     /// <summary>
     /// Gets a synchronization primitive that ensures thread-safe access to the proxied item.
     /// </summary>
@@ -83,7 +83,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// Tracks whether this instance has been disposed.
     /// </summary>
     private bool _disposed = false;
-    
+
     /// <summary>
     /// Gets the collection that tracks all property changes made to the proxied item.
     /// </summary>
@@ -160,12 +160,12 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// Releases resources used by the <see cref="ProxyManager{TInterface, TItem}"/> class.
     /// </summary>
     /// <param name="disposing">
-    /// <see langword="true"/> to release both managed and unmanaged resources; 
+    /// <see langword="true"/> to release both managed and unmanaged resources;
     /// <see langword="false"/> to release only unmanaged resources.
     /// </param>
     /// <remarks>
     /// When <paramref name="disposing"/> is <see langword="true"/>, this method releases the semaphore
-    /// and any other managed resources. This method is called by both the <see cref="Dispose()"/> method 
+    /// and any other managed resources. This method is called by both the <see cref="Dispose()"/> method
     /// and the finalizer.
     /// </remarks>
     protected virtual void Dispose(

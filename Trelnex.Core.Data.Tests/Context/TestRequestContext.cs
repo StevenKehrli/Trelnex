@@ -27,7 +27,7 @@ internal static class TestRequestContext
     /// <param name="HttpTraceIdentifier">The unique identifier used for tracing and correlating log entries for this request.</param>
     /// <param name="HttpRequestPath">The relative path of the requested resource, excluding query string parameters.</param>
     /// <remarks>
-    /// This record provides a lightweight implementation of <see cref="IRequestContext"/> 
+    /// This record provides a lightweight implementation of <see cref="IRequestContext"/>
     /// that can be easily instantiated with test values.
     /// </remarks>
     private record RequestContext(

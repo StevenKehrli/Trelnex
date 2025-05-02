@@ -80,7 +80,7 @@ internal class TrackProperties<TItem>
     /// An <see cref="InvokeResult"/> containing the method result and property change information.
     /// </returns>
     /// <remarks>
-    /// When the invoked method is a property setter that's configured for tracking, 
+    /// When the invoked method is a property setter that's configured for tracking,
     /// this method captures both the previous and new property values.
     /// </remarks>
     public InvokeResult Invoke(
