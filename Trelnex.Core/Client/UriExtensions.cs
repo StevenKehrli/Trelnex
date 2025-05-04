@@ -4,24 +4,35 @@ using Microsoft.Extensions.Primitives;
 namespace Trelnex.Core.Client;
 
 /// <summary>
-/// Extension methods for <see cref="Uri"/>.
+/// Extension methods for manipulating URI objects.
 /// </summary>
+/// <remarks>
+/// Provides utility methods for common URI operations.
+/// </remarks>
 public static class UriExtensions
 {
     /// <summary>
-    /// Append the specified path to the specified <see cref="Uri"/> path.
+    /// Appends a path segment to a URI.
     /// </summary>
-    /// <param name="uri">The specified <see cref="Uri"/>.</param>
-    /// <param name="path">The specified path to append to the specified <see cref="Uri"/> path.</param>
-    /// <returns>The new <see cref="Uri"/>.</returns>
+    /// <param name="uri">The base URI to extend.</param>
+    /// <param name="path">The path segment to append.</param>
+    /// <returns>A new URI with the combined path.</returns>
+    /// <example>
+    /// <code>
+    /// var baseUri = new Uri("https://api.example.com/v1");
+    /// var resourceUri = baseUri.AppendPath("users");
+    /// // Results in: https://api.example.com/v1/users
+    /// </code>
+    /// </example>
     public static Uri AppendPath(
         this Uri uri,
         string path)
     {
-        // trim the paths
+        // Trim the paths to ensure there is exactly one slash between the original path and the appended path.
         var absolutePathTrimmed = uri.AbsolutePath.TrimEnd('/');
         var pathTrimmed = path.TrimStart('/');
 
+        // Build the new URI with the combined path.
         return new UriBuilder(
             scheme: uri.Scheme,
             host: uri.Host,
@@ -31,28 +42,34 @@ public static class UriExtensions
     }
 
     /// <summary>
-    /// Add the specified key/value to the specified <see cref="Uri"/> query string.
+    /// Adds or appends a query string parameter to a URI.
     /// </summary>
-    /// <param name="uri">The specified <see cref="Uri"/>.</param>
-    /// <param name="key">The name of the query key.</param>
-    /// <param name="value">The query value to append to the specified <see cref="Uri"/> query string.</param>
-    /// <returns>The new <see cref="Uri"/>.</returns>
+    /// <param name="uri">The base URI to extend.</param>
+    /// <param name="key">The query parameter name.</param>
+    /// <param name="value">The query parameter value.</param>
+    /// <returns>A new URI with the added query parameter.</returns>
+    /// <example>
+    /// <code>
+    /// var baseUri = new Uri("https://api.example.com/search?q=test");
+    /// var filteredUri = baseUri.AddQueryString("filter", "active");
+    /// // Results in: https://api.example.com/search?q=test&amp;filter=active
+    /// </code>
+    /// </example>
     public static Uri AddQueryString(
         this Uri uri,
         string key,
         string value)
     {
-        // parse the existing query string
+        // Parse the existing query string.
         var kvps = QueryHelpers.ParseQuery(uri.Query);
 
-        // stringValues is a struct
-        // so we need to read any existing value
-        // add the new key-value pair
-        // then set it back in the collection
+        // StringValues is a struct, so we need to read any existing value, add the new key-value pair, then set it back in the collection.
         kvps.TryGetValue(key, out var stringValues);
 
+        // Concatenate the existing values with the new value.
         kvps[key] = StringValues.Concat(stringValues, new StringValues(value));
 
+        // Build the new URI with the added query parameter.
         return new UriBuilder(
             scheme: uri.Scheme,
             host: uri.Host,

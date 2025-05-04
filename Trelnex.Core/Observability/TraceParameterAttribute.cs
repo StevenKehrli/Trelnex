@@ -1,9 +1,10 @@
 namespace Trelnex.Core.Observability;
 
 /// <summary>
-/// Attribute to mark a parameter to be included in the trace.
+/// Attribute to include a parameter's value in trace spans.
 /// </summary>
+/// <remarks>
+/// The parameter's value will be captured as a tag in the OpenTelemetry activity.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Parameter)]
-public class TraceParameterAttribute : Attribute
-{
-}
+public class TraceParameterAttribute : Attribute;

@@ -3,12 +3,14 @@ using System.Net;
 namespace Trelnex.Core.Validation;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="ValidationException"/>.
-/// with the specified <see cref="HttpStatusCode"/>, optional error message, and optional reference to the inner <see cref="Exception"/>.
+/// Exception thrown when data validation fails.
 /// </summary>
-/// <param name="message">The optional error message string. If not specified, it will default to the reason phrase of the specified <see cref="HttpStatusCode"/>.</param>
-/// <param name="errors">The optional dictionary of errors that describe the exception.</param>
-/// <param name="innerException">The optional inner exception reference.</param>
+/// <remarks>
+/// Specialized exception for validation failures with a 422 (Unprocessable Content) status code.
+/// </remarks>
+/// <param name="message">The error message describing the validation failure.</param>
+/// <param name="errors">A dictionary of validation errors.</param>
+/// <param name="innerException">The inner exception that caused this validation failure, if any.</param>
 public class ValidationException(
     string? message = null,
     IReadOnlyDictionary<string, string[]>? errors = null,

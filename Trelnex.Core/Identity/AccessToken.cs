@@ -2,35 +2,38 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Identity;
 
+/// <summary>
+/// Represents an OAuth 2.0 access token with associated metadata.
+/// </summary>
 public class AccessToken
 {
     /// <summary>
-    /// Get the access token value.
+    /// Gets the actual access token value used for authentication.
     /// </summary>
     [JsonPropertyName("token")]
     public required string Token { get; init; }
 
     /// <summary>
-    /// Identifies the type of access token.
+    /// Gets the type of access token, which indicates the authentication scheme.
     /// </summary>
     [JsonPropertyName("tokenType")]
     public required string TokenType { get; init; }
 
     /// <summary>
-    /// Gets the time when the provided token expires.
+    /// Gets the timestamp when this token will expire.
     /// </summary>
     [JsonPropertyName("expiresOn")]
     public DateTimeOffset ExpiresOn { get; init; }
 
     /// <summary>
-    /// Gets the time when the token should be refreshed.
+    /// Gets the timestamp when this token should be proactively refreshed.
     /// </summary>
     [JsonPropertyName("refreshOn")]
     public DateTimeOffset? RefreshOn { get; init; }
 
     /// <summary>
-    /// Gets the authorization header for this access token.
+    /// Creates a formatted authorization header value using this token.
     /// </summary>
-    /// <returns>The authorization header for this access token.</returns>
+    /// <returns>A string formatted as "{TokenType} {Token}" suitable for use in HTTP Authorization headers.</returns>
     public string GetAuthorizationHeader() => $"{TokenType} {Token}";
 }
