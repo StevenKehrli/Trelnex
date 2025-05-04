@@ -22,8 +22,8 @@ public class DeleteCommandEventTests
 
         // Get a command provider for our test item type with delete operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item",
-                commandOperations: CommandOperations.Delete);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

@@ -26,8 +26,9 @@ public class ReadCommandValidateTests
 
         // Get a command provider for our test item type with validator
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item",
-                validator: validator);
+            typeName: "test-item",
+            validator: validator,
+            commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

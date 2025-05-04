@@ -192,8 +192,8 @@ public abstract partial class CommandProvider<TInterface, TItem>
         // Create the expression converter for LINQ operations.
         _expressionConverter = new();
 
-        // Set the allowed operations for this provider, defaulting to Update only if not specified.
-        _commandOperations = commandOperations ?? CommandOperations.Update;
+        // Set the allowed operations for this provider, defaulting to Read only if not specified.
+        _commandOperations = commandOperations ?? CommandOperations.Read;
     }
 
     #endregion
@@ -211,6 +211,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
         string id,
         string partitionKey)
     {
+        if (_commandOperations.HasFlag(CommandOperations.Create) is false)
+        {
+            throw new NotSupportedException("The requested Create operation is not supported.");
+        }
+
         var dateTimeUtcNow = DateTime.UtcNow;
 
         var item = new TItem

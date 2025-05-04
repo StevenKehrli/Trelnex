@@ -18,7 +18,8 @@ public class UpdateCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(
@@ -79,8 +80,8 @@ public class UpdateCommandSaveTests
 
         // Get a command provider with no supported operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item",
-                commandOperations: CommandOperations.None);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Read);
 
         // Attempt to create an update command, which should throw
         Assert.ThrowsAsync<NotSupportedException>(
@@ -103,8 +104,8 @@ public class UpdateCommandSaveTests
 
         // Get a command provider for our test item type with update operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item",
-                commandOperations: CommandOperations.Update);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(
@@ -168,7 +169,8 @@ public class UpdateCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

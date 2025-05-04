@@ -36,7 +36,7 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
     /// <param name="dataOptions">The data connection options.</param>
     /// <param name="typeName">The type name used for filtering items.</param>
     /// <param name="validator">Optional domain-specific validator.</param>
-    /// <param name="commandOperations">The operations that this command provider supports (Update/Delete). Defaults to <see cref="CommandOperations.Update"/> if <see langword="null"/>.</param>
+    /// <param name="commandOperations">The operations that this command provider supports (Read/Create/Update/Delete). Defaults to <see cref="CommandOperations.Read"/> if <see langword="null"/>.</param>
     /// <exception cref="ArgumentException">
     /// Thrown when the <paramref name="typeName"/> does not follow naming conventions or is a reserved name.
     /// </exception>

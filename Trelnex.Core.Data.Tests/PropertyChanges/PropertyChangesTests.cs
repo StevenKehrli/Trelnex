@@ -16,7 +16,8 @@ public class PropertyChangesTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -47,7 +48,8 @@ public class PropertyChangesTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         var createCommand = commandProvider.Create(
             id: id,
@@ -78,7 +80,8 @@ public class PropertyChangesTests
         var factory = await InMemoryCommandProviderFactory.Create();
 
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         var createCommand = commandProvider.Create(
             id: id,

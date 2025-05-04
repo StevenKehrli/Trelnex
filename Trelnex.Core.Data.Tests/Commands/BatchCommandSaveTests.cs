@@ -18,7 +18,8 @@ public class BatchCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

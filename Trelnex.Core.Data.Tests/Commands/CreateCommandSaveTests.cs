@@ -18,7 +18,8 @@ public class CreateCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(
@@ -48,6 +49,27 @@ public class CreateCommandSaveTests
     }
 
     [Test]
+    [Description("Tests that create command throws when operations are not supported")]
+    public async Task CreateCommandSave_SaveAsync_NotSupported()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider with no supported operations
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+            typeName: "test-item",
+            commandOperations: CommandOperations.Read);
+
+        // Attempt to create an create command, which should throw
+        Assert.Throws<NotSupportedException>(
+            () => commandProvider.Create(id: id, partitionKey: partitionKey),
+            "The requested Create operation is not supported.");
+    }
+
+    [Test]
     [Description("Tests that the result returned from saving a create command is read-only")]
     public async Task CreateCommandSave_SaveAsync_ResultIsReadOnly()
     {
@@ -62,7 +84,8 @@ public class CreateCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(
@@ -109,7 +132,8 @@ public class CreateCommandSaveTests
 
         // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item");
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

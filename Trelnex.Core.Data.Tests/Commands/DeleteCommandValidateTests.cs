@@ -25,9 +25,9 @@ public class DeleteCommandValidateTests
 
         // Get a command provider for our test item type with validator and delete operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: "test-item",
-                validator: validator,
-                commandOperations: CommandOperations.Delete);
+            typeName: "test-item",
+            validator: validator,
+            commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
         // Create a new command to create our test item
         var createCommand = commandProvider.Create(

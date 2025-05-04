@@ -10,22 +10,27 @@ namespace Trelnex.Core.Data;
 public enum CommandOperations
 {
     /// <summary>
-    /// Read/create-only provider.
+    /// Read operations allowed.
     /// </summary>
-    None = 0,
+    Read = 0,
+
+    /// <summary>
+    /// Create operations allowed.
+    /// </summary>
+    Create = 1,
 
     /// <summary>
     /// Update operations allowed.
     /// </summary>
-    Update = 1,
+    Update = 2,
 
     /// <summary>
     /// Delete operations allowed.
     /// </summary>
-    Delete = 2,
+    Delete = 4,
 
     /// <summary>
     /// All operations allowed.
     /// </summary>
-    All = Update | Delete
+    All = Create | Update | Delete
 }
