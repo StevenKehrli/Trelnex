@@ -164,8 +164,8 @@ internal class BatchCommand<TInterface, TItem>(
 
             // Process results based on whether any acquire tasks faulted
             return acquireTasks.Any(at => at.IsFaulted)
-                ? AcquireTasksFaulted(acquireTasks)
-                : await AcquireTasksCompletedSuccessfully(acquireTasks, cancellationToken);
+                ? RevertBatch(acquireTasks)
+                : await SaveBatch(acquireTasks, cancellationToken);
         }
         finally
         {
@@ -202,7 +202,7 @@ internal class BatchCommand<TInterface, TItem>(
     /// </summary>
     /// <param name="acquireTasks">Array of acquire tasks.</param>
     /// <returns>Batch results with failure status codes.</returns>
-    private IBatchResult<TInterface>[] AcquireTasksFaulted(
+    private IBatchResult<TInterface>[] RevertBatch(
         Task<SaveRequest<TInterface, TItem>>[] acquireTasks)
     {
         // Allocate the array of batch results
@@ -239,7 +239,7 @@ internal class BatchCommand<TInterface, TItem>(
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Batch results with status codes.</returns>
     /// <exception cref="OperationCanceledException">Thrown when canceled.</exception>
-    private async Task<IBatchResult<TInterface>[]> AcquireTasksCompletedSuccessfully(
+    private async Task<IBatchResult<TInterface>[]> SaveBatch(
         Task<SaveRequest<TInterface, TItem>>[] acquireTasks,
         CancellationToken cancellationToken)
     {
