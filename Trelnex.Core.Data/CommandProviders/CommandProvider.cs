@@ -158,7 +158,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// </summary>
     /// <param name="typeName">The type name of the item.</param>
     /// <param name="validator">The optional validator.</param>
-    /// <param name="commandOperations">The operations allowed (default: Update only).</param>
+    /// <param name="commandOperations">The operations allowed (default: Read only).</param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="typeName"/> is invalid.
     /// </exception>
