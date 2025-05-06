@@ -11,35 +11,7 @@ namespace Trelnex.Core.Client;
 /// </remarks>
 public static class UriExtensions
 {
-    /// <summary>
-    /// Appends a path segment to a URI.
-    /// </summary>
-    /// <param name="uri">The base URI to extend.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns>A new URI with the combined path.</returns>
-    /// <example>
-    /// <code>
-    /// var baseUri = new Uri("https://api.example.com/v1");
-    /// var resourceUri = baseUri.AppendPath("users");
-    /// // Results in: https://api.example.com/v1/users
-    /// </code>
-    /// </example>
-    public static Uri AppendPath(
-        this Uri uri,
-        string path)
-    {
-        // Trim the paths to ensure there is exactly one slash between the original path and the appended path.
-        var absolutePathTrimmed = uri.AbsolutePath.TrimEnd('/');
-        var pathTrimmed = path.TrimStart('/');
-
-        // Build the new URI with the combined path.
-        return new UriBuilder(
-            scheme: uri.Scheme,
-            host: uri.Host,
-            port: uri.Port,
-            path: $"{absolutePathTrimmed}/{pathTrimmed}",
-            extraValue: uri.Query).Uri;
-    }
+    #region Public Static Methods
 
     /// <summary>
     /// Adds or appends a query string parameter to a URI.
@@ -77,4 +49,36 @@ public static class UriExtensions
             path: uri.AbsolutePath,
             extraValue: QueryHelpers.AddQueryString(string.Empty, kvps)).Uri;
     }
+
+    /// <summary>
+    /// Appends a path segment to a URI.
+    /// </summary>
+    /// <param name="uri">The base URI to extend.</param>
+    /// <param name="path">The path segment to append.</param>
+    /// <returns>A new URI with the combined path.</returns>
+    /// <example>
+    /// <code>
+    /// var baseUri = new Uri("https://api.example.com/v1");
+    /// var resourceUri = baseUri.AppendPath("users");
+    /// // Results in: https://api.example.com/v1/users
+    /// </code>
+    /// </example>
+    public static Uri AppendPath(
+        this Uri uri,
+        string path)
+    {
+        // Trim the paths to ensure there is exactly one slash between the original path and the appended path.
+        var absolutePathTrimmed = uri.AbsolutePath.TrimEnd('/');
+        var pathTrimmed = path.TrimStart('/');
+
+        // Build the new URI with the combined path.
+        return new UriBuilder(
+            scheme: uri.Scheme,
+            host: uri.Host,
+            port: uri.Port,
+            path: $"{absolutePathTrimmed}/{pathTrimmed}",
+            extraValue: uri.Query).Uri;
+    }
+
+    #endregion
 }

@@ -18,10 +18,16 @@ namespace Trelnex.Core.Observability;
 public class TraceMethodAttribute(
     string? sourceName = null) : OnMethodBoundaryAspect
 {
+    #region Private Static Fields
+
     /// <summary>
     /// A thread-safe collection of <see cref="string"/> to <see cref="ActivitySource"/>.
     /// </summary>
     private static readonly ConcurrentDictionary<string, Lazy<ActivitySource>> _activitySourcesByName = new();
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Executes when entering the method.
@@ -104,6 +110,10 @@ public class TraceMethodAttribute(
         }
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Generates an activity name from the method information.
     /// </summary>
@@ -117,26 +127,6 @@ public class TraceMethodAttribute(
 
         // Return the activity name.
         return $"{method.DeclaringType.Name}.{method.Name}";
-    }
-
-    /// <summary>
-    /// Determines the source name for the activity.
-    /// </summary>
-    /// <param name="method">The method being traced.</param>
-    /// <param name="sourceName">The optional explicit source name.</param>
-    /// <returns>The provided source name if specified, otherwise the assembly name, or null if neither is available.</returns>
-    private static string? GetSourceName(
-        MethodBase method,
-        string? sourceName)
-    {
-        // If the source name is not null or whitespace, return the source name.
-        if (string.IsNullOrWhiteSpace(sourceName) is false) return sourceName;
-
-        // If the method's declaring type is null, return null.
-        if (method.DeclaringType is null) return null;
-
-        // Return the assembly name.
-        return method.DeclaringType.Assembly.GetName().Name;
     }
 
     /// <summary>
@@ -163,4 +153,26 @@ public class TraceMethodAttribute(
         // Return the activity source.
         return lazyClient.Value;
     }
+
+    /// <summary>
+    /// Determines the source name for the activity.
+    /// </summary>
+    /// <param name="method">The method being traced.</param>
+    /// <param name="sourceName">The optional explicit source name.</param>
+    /// <returns>The provided source name if specified, otherwise the assembly name, or null if neither is available.</returns>
+    private static string? GetSourceName(
+        MethodBase method,
+        string? sourceName)
+    {
+        // If the source name is not null or whitespace, return the source name.
+        if (string.IsNullOrWhiteSpace(sourceName) is false) return sourceName;
+
+        // If the method's declaring type is null, return null.
+        if (method.DeclaringType is null) return null;
+
+        // Return the assembly name.
+        return method.DeclaringType.Assembly.GetName().Name;
+    }
+
+    #endregion
 }

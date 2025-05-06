@@ -16,6 +16,8 @@ public class HttpStatusCodeException(
     Exception? innerException = null)
     : Exception(message ?? httpStatusCode.ToReason(), innerException)
 {
+    #region Public Properties
+
     /// <summary>
     /// Gets the HTTP status code associated with this exception.
     /// </summary>
@@ -25,4 +27,6 @@ public class HttpStatusCodeException(
     /// Gets the structured validation errors associated with this exception.
     /// </summary>
     public IReadOnlyDictionary<string, string[]>? Errors { get; init; } = errors;
+
+    #endregion
 }

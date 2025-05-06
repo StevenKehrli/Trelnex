@@ -25,9 +25,14 @@ public interface IAccessTokenProvider
 /// </remarks>
 public class AccessTokenProvider : IAccessTokenProvider
 {
-    private readonly ICredential _credential;
+    #region Private Fields
 
+    private readonly ICredential _credential;
     private readonly string _scope;
+
+    #endregion
+
+    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccessTokenProvider"/> class.
@@ -41,6 +46,17 @@ public class AccessTokenProvider : IAccessTokenProvider
         _credential = credential;
         _scope = scope;
     }
+
+    #endregion
+
+    #region Public Properties
+
+    /// <inheritdoc />
+    public string Scope => _scope;
+
+    #endregion
+
+    #region Public Static Methods
 
     /// <summary>
     /// Creates a new <see cref="AccessTokenProvider"/> instance.
@@ -62,8 +78,9 @@ public class AccessTokenProvider : IAccessTokenProvider
         return accessTokenProvider;
     }
 
-    /// <inheritdoc />
-    public string Scope => _scope;
+    #endregion
+
+    #region Public Methods
 
     /// <inheritdoc />
     public AccessToken GetAccessToken()
@@ -71,4 +88,6 @@ public class AccessTokenProvider : IAccessTokenProvider
         // Retrieve the access token from the credential for the specified scope.
         return _credential.GetAccessToken(_scope);
     }
+
+    #endregion
 }

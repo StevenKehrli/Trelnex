@@ -7,6 +7,8 @@ namespace Trelnex.Core.Identity;
 /// </summary>
 public class AccessToken
 {
+    #region Public Properties
+
     /// <summary>
     /// Gets the actual access token value used for authentication.
     /// </summary>
@@ -31,9 +33,15 @@ public class AccessToken
     [JsonPropertyName("refreshOn")]
     public DateTimeOffset? RefreshOn { get; init; }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
     /// Creates a formatted authorization header value using this token.
     /// </summary>
     /// <returns>A string formatted as "{TokenType} {Token}" suitable for use in HTTP Authorization headers.</returns>
     public string GetAuthorizationHeader() => $"{TokenType} {Token}";
+
+    #endregion
 }

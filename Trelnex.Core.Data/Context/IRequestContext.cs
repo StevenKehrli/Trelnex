@@ -8,8 +8,6 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 public interface IRequestContext
 {
-    #region Public Properties
-
     /// <summary>
     /// Unique object ID of the authenticated user (can be null).
     /// </summary>
@@ -24,6 +22,4 @@ public interface IRequestContext
     /// HTTP request path (can be null).
     /// </summary>
     string? HttpRequestPath { get; }
-
-    #endregion
 }

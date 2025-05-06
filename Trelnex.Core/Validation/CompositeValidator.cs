@@ -12,6 +12,8 @@ namespace Trelnex.Core.Validation;
 public class CompositeValidator<T>
     : AbstractValidator<T>
 {
+    #region Constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CompositeValidator{T}"/> class.
     /// </summary>
@@ -27,4 +29,6 @@ public class CompositeValidator<T>
         // If a second validator is provided, include its rules as well.
         if (second is not null) Include(second);
     }
+
+    #endregion
 }

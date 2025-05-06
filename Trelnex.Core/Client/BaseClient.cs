@@ -20,6 +20,8 @@ public abstract class BaseClient(
     HttpClient httpClient,
     IAccessTokenProvider? accessTokenProvider = null)
 {
+    #region Private Static Fields
+
     /// <summary>
     /// JSON serialization options used for request and response content.
     /// </summary>
@@ -30,6 +32,10 @@ public abstract class BaseClient(
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
+    #endregion
+
+    #region Protected Properties
+
     /// <summary>
     /// Gets the base <see cref="Uri"/> for all requests made by this client.
     /// </summary>
@@ -38,6 +44,10 @@ public abstract class BaseClient(
     /// Thrown when the BaseAddress is not configured in the HttpClient.
     /// </exception>
     protected Uri BaseAddress => httpClient.BaseAddress ?? throw new ConfigurationErrorsException("BaseAddress is not set.");
+
+    #endregion
+
+    #region Protected Methods
 
     /// <summary>
     /// Sends a DELETE request to remove a resource.
@@ -173,6 +183,10 @@ public abstract class BaseClient(
             addHeaders: addHeaders,
             errorHandler: errorHandler);
     }
+
+    #endregion
+
+    #region Private Methods
 
     /// <summary>
     /// Core method that sends HTTP requests and processes responses.
@@ -311,4 +325,6 @@ public abstract class BaseClient(
                 message: responseContent);
         }
     }
+
+    #endregion
 }

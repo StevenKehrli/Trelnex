@@ -376,6 +376,50 @@ public abstract partial class CommandProvider<TInterface, TItem>
 
     #endregion
 
+    #region Private Static Methods
+
+    /// <summary>
+    /// Creates a validator for the base properties of all items.
+    /// </summary>
+    /// <param name="typeName">The expected type name.</param>
+    /// <returns>An <see cref="IValidator{TItem}"/>.</returns>
+    private static IValidator<TItem> CreateBaseItemValidator(
+        string typeName)
+    {
+        var baseItemValidator = new InlineValidator<TItem>();
+
+        baseItemValidator.RuleFor(k => k.Id)
+            .NotEmpty()
+            .WithMessage("Id is null or empty.");
+
+        baseItemValidator.RuleFor(k => k.PartitionKey)
+            .NotEmpty()
+            .WithMessage("PartitionKey is null or empty.");
+
+        baseItemValidator.RuleFor(k => k.TypeName)
+            .Must(k => k == typeName)
+            .WithMessage($"TypeName is not '{typeName}'.");
+
+        baseItemValidator.RuleFor(k => k.CreatedDate)
+            .NotDefault()
+            .WithMessage("CreatedDate is not valid.");
+
+        baseItemValidator.RuleFor(k => k.UpdatedDate)
+            .NotDefault()
+            .WithMessage("UpdatedDate is not valid.");
+
+        return baseItemValidator;
+    }
+
+    /// <summary>
+    /// Creates a regular expression that enforces the naming rules for type names.
+    /// </summary>
+    /// <returns>A <see cref="Regex"/> that matches valid type names.</returns>
+    [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
+    private static partial Regex TypeRulesRegex();
+
+    #endregion
+
     #region Private Methods
 
     /// <summary>
@@ -469,50 +513,6 @@ public abstract partial class CommandProvider<TInterface, TItem>
 
         return await compositeValidator.ValidateAsync(item, cancellationToken);
     }
-
-    #endregion
-
-    #region Private Static Methods
-
-    /// <summary>
-    /// Creates a validator for the base properties of all items.
-    /// </summary>
-    /// <param name="typeName">The expected type name.</param>
-    /// <returns>An <see cref="IValidator{TItem}"/>.</returns>
-    private static IValidator<TItem> CreateBaseItemValidator(
-        string typeName)
-    {
-        var baseItemValidator = new InlineValidator<TItem>();
-
-        baseItemValidator.RuleFor(k => k.Id)
-            .NotEmpty()
-            .WithMessage("Id is null or empty.");
-
-        baseItemValidator.RuleFor(k => k.PartitionKey)
-            .NotEmpty()
-            .WithMessage("PartitionKey is null or empty.");
-
-        baseItemValidator.RuleFor(k => k.TypeName)
-            .Must(k => k == typeName)
-            .WithMessage($"TypeName is not '{typeName}'.");
-
-        baseItemValidator.RuleFor(k => k.CreatedDate)
-            .NotDefault()
-            .WithMessage("CreatedDate is not valid.");
-
-        baseItemValidator.RuleFor(k => k.UpdatedDate)
-            .NotDefault()
-            .WithMessage("UpdatedDate is not valid.");
-
-        return baseItemValidator;
-    }
-
-    /// <summary>
-    /// Creates a regular expression that enforces the naming rules for type names.
-    /// </summary>
-    /// <returns>A <see cref="Regex"/> that matches valid type names.</returns>
-    [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
-    private static partial Regex TypeRulesRegex();
 
     #endregion
 }

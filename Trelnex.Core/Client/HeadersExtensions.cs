@@ -8,6 +8,8 @@ namespace Trelnex.Core.Client;
 /// </summary>
 public static class HeadersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds an Authorization header to the HTTP request headers.
     /// </summary>
@@ -26,4 +28,6 @@ public static class HeadersExtensions
         // Return the modified headers collection for method chaining.
         return headers;
     }
+
+    #endregion
 }

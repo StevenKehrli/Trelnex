@@ -8,6 +8,8 @@ namespace Trelnex.Core;
 /// </summary>
 public static partial class HttpStatusCodeExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Converts an HTTP status code to its human-readable reason phrase.
     /// </summary>
@@ -26,9 +28,15 @@ public static partial class HttpStatusCodeExtensions
         return HttpStatusCodeRegex().Replace(httpStatusCode.ToString(), " $1");
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Regular expression to find capital letters that follow lowercase letters.
     /// </summary>
     [GeneratedRegex(@"(?<=[a-z])([A-Z])")]
     private static partial Regex HttpStatusCodeRegex();
+
+    #endregion
 }

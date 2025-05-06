@@ -10,8 +10,6 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 public interface ICommandProviderOptions
 {
-    #region Public Methods
-
     /// <summary>
     /// Registers command provider for an entity type.
     /// </summary>
@@ -30,6 +28,4 @@ public interface ICommandProviderOptions
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();
-
-    #endregion
 }

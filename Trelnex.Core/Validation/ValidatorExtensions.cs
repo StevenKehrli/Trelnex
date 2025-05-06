@@ -12,6 +12,8 @@ namespace Trelnex.Core.Validation;
 /// </remarks>
 public static class ValidatorExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Validates that a DateTime property is not the default value.
     /// </summary>
@@ -53,4 +55,6 @@ public static class ValidatorExtensions
         // Use Must to define the validation logic.
         return validator.Must(k => k != default);
     }
+
+    #endregion
 }

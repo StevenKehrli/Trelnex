@@ -8,16 +8,12 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 public interface ICommandProviderFactory
 {
-    #region Public Methods
-
     /// <summary>
     /// Gets current operational status.
-/// </summary>
+    /// </summary>
     /// <returns>Status object with health information.</returns>
     /// <remarks>
     /// Provides snapshot of health and connectivity.
     /// </remarks>
     CommandProviderFactoryStatus GetStatus();
-
-    #endregion
 }

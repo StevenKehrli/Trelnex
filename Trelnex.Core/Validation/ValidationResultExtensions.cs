@@ -12,6 +12,8 @@ namespace Trelnex.Core.Validation;
 /// </remarks>
 public static partial class ValidationResultExtensions
 {
+    #region Public Methods
+
     /// <summary>
     /// Throws a <see cref="ValidationException"/> if the validation result contains errors.
     /// </summary>
@@ -120,6 +122,10 @@ public static partial class ValidationResultExtensions
         validationResults.ValidateOrThrow(typeof(T).Name);
     }
 
+    #endregion
+
+    #region Private Methods
+
     /// <summary>
     /// Converts a <see cref="ValidationResult"/> into a dictionary of property names and their error messages.
     /// </summary>
@@ -149,6 +155,10 @@ public static partial class ValidationResultExtensions
                     .ToArray());
     }
 
+    #endregion
+
+    #region Nested Types
+
     /// <summary>
     /// Comparer for sorting property names with array indices in validation errors.
     /// </summary>
@@ -159,6 +169,8 @@ public static partial class ValidationResultExtensions
     /// </remarks>
     private partial class IndexedPropertyNameComparer : IComparer<string>
     {
+        #region Public Methods
+
         /// <summary>
         /// Compares two indexed property names for sorting.
         /// </summary>
@@ -195,11 +207,19 @@ public static partial class ValidationResultExtensions
                 StringComparison.Ordinal);
         }
 
+        #endregion
+
+        #region Private Static Methods
+
         /// <summary>
         /// Regular expression for extracting index and property name from indexed property path.
         /// </summary>
         /// <returns>A regex pattern matching the format "[index].PropertyName".</returns>
         [GeneratedRegex(@"^\[(?<index>\d+)\]\.(?<propertyName>.+)$")]
         private static partial Regex IndexedPropertyNameRegex();
+
+        #endregion
     }
+
+    #endregion
 }
