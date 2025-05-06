@@ -41,7 +41,7 @@ Usage example:
 ```csharp
 public class MyApiClient : BaseClient
 {
-    public MyApiClient(HttpClient httpClient, IAccessTokenProvider? accessTokenProvider = null) 
+    public MyApiClient(HttpClient httpClient, IAccessTokenProvider? accessTokenProvider = null)
         : base(httpClient, accessTokenProvider)
     {
     }

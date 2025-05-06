@@ -37,7 +37,7 @@ Command providers are the main entry point for generating commands to interact w
 
 - **Read** - Default permission, allows read operations only
 - **Create** - Allows creation of new items
-- **Update** - Allows modification of existing items  
+- **Update** - Allows modification of existing items
 - **Delete** - Allows marking items as deleted
 - **All** - Combination of Create, Update, and Delete
 
