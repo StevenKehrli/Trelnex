@@ -5,16 +5,36 @@ using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Extension methods to add Authentication and Authorization to the <see cref="IServiceCollection"/>.
+/// Provides extension methods for configuring authentication and authorization services in an ASP.NET Core application.
 /// </summary>
+/// <remarks>
+/// These extension methods configure the application's authentication and authorization pipeline
+/// with standardized security providers and token validation. The methods follow a fluent builder
+/// pattern to allow for clean, readable configuration code.
+///
+/// Security can be configured either with active authentication (JWT Bearer or Microsoft Identity)
+/// or without authentication for development or testing scenarios.
+/// </remarks>
 public static class AuthenticationExtensions
 {
     /// <summary>
-    /// Add Authentication and Authorization to the <see cref="IServiceCollection"/>.
+    /// Adds authentication and authorization services to the application's service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection to add authentication services to.</param>
+    /// <param name="configuration">The application configuration containing authentication settings.</param>
+    /// <returns>A <see cref="IPermissionsBuilder"/> to further configure authentication permissions.</returns>
+    /// <remarks>
+    /// This method:
+    /// <list type="bullet">
+    ///   <item>Configures HTTP context access for authentication</item>
+    ///   <item>Adds in-memory token caching for better performance</item>
+    ///   <item>Registers the security provider for policy enforcement</item>
+    ///   <item>Returns a builder to define specific permission policies</item>
+    /// </list>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if authentication services were already configured for this application.
+    /// </exception>
     public static IPermissionsBuilder AddAuthentication(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -33,10 +53,23 @@ public static class AuthenticationExtensions
     }
 
     /// <summary>
-    /// Add Authentication and Authorization to the <see cref="IServiceCollection"/>.
+    /// Configures the application with no authentication, suitable for development or testing scenarios.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection to configure with no authentication.</param>
+    /// <remarks>
+    /// This method configures minimal authentication components without actual token validation:
+    /// <list type="bullet">
+    ///   <item>Registers HTTP context accessor for consistency with authenticated scenarios</item>
+    ///   <item>Adds empty authentication and authorization services</item>
+    ///   <item>Registers an empty security provider that won't enforce authentication</item>
+    /// </list>
+    ///
+    /// This approach maintains the same API surface for authenticated and non-authenticated scenarios
+    /// while allowing applications to bypass authentication for development or testing.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if authentication services were already configured for this application.
+    /// </exception>
     public static void NoAuthentication(
         this IServiceCollection services)
     {
@@ -52,6 +85,17 @@ public static class AuthenticationExtensions
         services.AddSingleton<ISecurityProvider>(securityProvider);
     }
 
+    /// <summary>
+    /// Verifies that authentication has been configured for the application.
+    /// </summary>
+    /// <param name="services">The service collection to check for authentication configuration.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if authentication has not been configured for this application.
+    /// </exception>
+    /// <remarks>
+    /// This method is used internally to ensure that authentication is properly configured
+    /// before attempting to use authentication-dependent features.
+    /// </remarks>
     public static void ThrowIfAuthenticationNotAdded(
         this IServiceCollection services)
     {
@@ -64,6 +108,17 @@ public static class AuthenticationExtensions
         }
     }
 
+    /// <summary>
+    /// Verifies that authentication has not been configured multiple times.
+    /// </summary>
+    /// <param name="services">The service collection to check for existing authentication configuration.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if authentication has already been configured for this application.
+    /// </exception>
+    /// <remarks>
+    /// This internal method prevents double-registration of authentication services,
+    /// which could lead to unpredictable behavior or security vulnerabilities.
+    /// </remarks>
     private static void ThrowIfSecurityProviderAdded(
         this IServiceCollection services)
     {

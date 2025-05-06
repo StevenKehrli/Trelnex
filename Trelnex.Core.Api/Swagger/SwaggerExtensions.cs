@@ -6,15 +6,38 @@ using Trelnex.Core.Api.Configuration;
 namespace Trelnex.Core.Api.Swagger;
 
 /// <summary>
-/// Extension methods to add Swagger to the <see cref="IServiceCollection"/> and the <see cref="WebApplication"/>.
+/// Provides extension methods for configuring Swagger/OpenAPI documentation in ASP.NET Core applications.
 /// </summary>
+/// <remarks>
+/// These extensions simplify the setup of Swagger documentation by automatically configuring
+/// the service with information from <see cref="ServiceConfiguration"/>, applying consistent
+/// security requirements, and ordering API endpoints in a predictable way.
+///
+/// The implementation supports:
+/// <list type="bullet">
+///   <item>Automatic version extraction from semantic versioning</item>
+///   <item>Security definition integration with authentication mechanisms</item>
+///   <item>Consistent API endpoint ordering by HTTP method and path</item>
+///   <item>Authorization requirement documentation through operation filters</item>
+/// </list>
+/// </remarks>
 public static class SwaggerExtensions
 {
     /// <summary>
-    /// Add Swagger to the <see cref="IServiceCollection"/>.
+    /// Adds Swagger generator and explorer services to the provided <see cref="IServiceCollection"/>.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the Swagger services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="ServiceConfiguration"/> is not registered in the service collection.</exception>
+    /// <remarks>
+    /// This method configures Swagger with the following features:
+    /// <list type="bullet">
+    ///   <item>Uses service information (title, version, description) from <see cref="ServiceConfiguration"/></item>
+    ///   <item>Enables annotation support for inheritance and polymorphism</item>
+    ///   <item>Orders API endpoints by path and HTTP method (GET, POST, PUT, PATCH, DELETE)</item>
+    ///   <item>Applies security requirements based on authorization attributes</item>
+    /// </list>
+    /// </remarks>
     public static IServiceCollection AddSwaggerToServices(
         this IServiceCollection services)
     {
@@ -70,10 +93,21 @@ public static class SwaggerExtensions
     }
 
     /// <summary>
-    /// Add the Swagger into the <see cref="WebApplication"/>.
+    /// Configures a <see cref="WebApplication"/> to use Swagger UI and JSON endpoints.
     /// </summary>
-    /// <param name="app">The <see cref="WebApplication"/> to add the Swagger endpoints to.</param>
-    /// <returns>The <see cref="WebApplication"/>.</returns>
+    /// <param name="app">The <see cref="WebApplication"/> to configure with Swagger.</param>
+    /// <returns>The <see cref="WebApplication"/> for method chaining.</returns>
+    /// <remarks>
+    /// This method performs the following configuration:
+    /// <list type="bullet">
+    ///   <item>Enables CORS for the Swagger UI by setting Access-Control-Allow-Origin header</item>
+    ///   <item>Registers the Swagger JSON endpoint with versioning</item>
+    ///   <item>Configures the Swagger UI with the service display name</item>
+    /// </list>
+    ///
+    /// This method should be called in the application configuration pipeline after
+    /// <see cref="AddSwaggerToServices(IServiceCollection)"/> has been called during service registration.
+    /// </remarks>
     public static WebApplication AddSwaggerToWebApplication(
         this WebApplication app)
     {
@@ -102,6 +136,15 @@ public static class SwaggerExtensions
         return app;
     }
 
+    /// <summary>
+    /// Formats a semantic version into a Swagger version string.
+    /// </summary>
+    /// <param name="semVer">The semantic version to format.</param>
+    /// <returns>A formatted version string in the format "v{Major}".</returns>
+    /// <remarks>
+    /// This method creates a simplified version string using only the major version number,
+    /// which is the recommended practice for Swagger/OpenAPI version identifiers.
+    /// </remarks>
     private static string FormatVersionString(
         SemVersion semVer)
     {

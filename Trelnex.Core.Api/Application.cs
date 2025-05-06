@@ -19,15 +19,40 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Trelnex.Core.Api;
 
+/// <summary>
+/// Provides functionality to configure and run a web application with standardized middleware and services.
+/// </summary>
+/// <remarks>
+/// This class implements a standardized approach to configuring ASP.NET Core applications
+/// with common middleware components like logging, health checks, authentication,
+/// and observability features. It reduces boilerplate in application startup code.
+/// </remarks>
 public static class Application
 {
     /// <summary>
-    /// Configures and run the HTTP pipeline and routes.
+    /// Configures and runs an ASP.NET Core web application with standardized middleware.
     /// </summary>
-    /// <param name="args">The command line arguments</param>
-    /// <param name="addApplication">The delegate to add the calling application to the <see cref="IServiceCollection"/>.</param>
-    /// <param name="useApplication">The delegate to use the calling application into the <param name="IEndpointRouteBuilder">.</param></param>
-    /// <param name="addHealthChecks">An optional delegate to add additional health checks to the <see cref="IServiceCollection"/>.</param>
+    /// <param name="args">Command line arguments passed to the application.</param>
+    /// <param name="addApplication">Delegate to register application-specific services.</param>
+    /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
+    /// <param name="addHealthChecks">Optional delegate to register additional health checks.</param>
+    /// <remarks>
+    /// This method handles the complete setup and execution of a web application, including:
+    /// - Configuration setup
+    /// - Dependency injection
+    /// - Logging with Serilog
+    /// - Health checks
+    /// - Authentication and authorization
+    /// - Observability (metrics, tracing)
+    /// - Exception handling
+    /// - Request processing pipeline configuration
+    /// </remarks>
+    /// <exception cref="ConfigurationErrorsException">
+    /// Thrown when the required ServiceConfiguration section is missing.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when authentication is not properly configured.
+    /// </exception>
     public static void Run(
         string[] args,
         Action<IServiceCollection, IConfiguration, ILogger> addApplication,
@@ -44,12 +69,32 @@ public static class Application
     }
 
     /// <summary>
-    /// Configures and run the HTTP pipeline and routes.
+    /// Creates and configures an ASP.NET Core web application with standardized middleware.
     /// </summary>
-    /// <param name="args">The command line arguments</param>
-    /// <param name="addApplication">The delegate to add the calling application to the <see cref="IServiceCollection"/>.</param>
-    /// <param name="useApplication">The delegate to use the calling application into the <param name="IEndpointRouteBuilder">.</param></param>
-    /// <param name="addHealthChecks">An optional delegate to add additional health checks to the <see cref="IServiceCollection"/>.</param>
+    /// <param name="args">Command line arguments passed to the application.</param>
+    /// <param name="addApplication">Delegate to register application-specific services.</param>
+    /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
+    /// <param name="addHealthChecks">Optional delegate to register additional health checks.</param>
+    /// <returns>A configured <see cref="WebApplication"/> instance ready to run.</returns>
+    /// <remarks>
+    /// This method handles the complete setup of a web application without running it, including:
+    /// - Configuration setup
+    /// - Dependency injection
+    /// - Logging with Serilog
+    /// - Health checks
+    /// - Authentication and authorization
+    /// - Observability (metrics, tracing)
+    /// - Exception handling
+    /// - Request processing pipeline configuration
+    ///
+    /// Primarily used for testing or advanced hosting scenarios.
+    /// </remarks>
+    /// <exception cref="ConfigurationErrorsException">
+    /// Thrown when the required ServiceConfiguration section is missing.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when authentication is not properly configured.
+    /// </exception>
     internal static WebApplication CreateWebApplication(
         string[] args,
         Action<IServiceCollection, IConfiguration, ILogger> addApplication,
@@ -58,10 +103,10 @@ public static class Application
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // add the configuration
+        // Add the configuration
         builder.AddConfiguration();
 
-        // get the service configuration
+        // Get the service configuration
         var serviceConfiguration = builder.Configuration
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()
@@ -69,17 +114,18 @@ public static class Application
 
         builder.Services.AddSingleton(serviceConfiguration);
 
-        // add prometheus metrics server and http client metrics and open telemetry
+        // Add prometheus metrics server, http client metrics and open telemetry
         builder.Services.AddObservability(builder.Configuration, serviceConfiguration);
 
-        // add serilog
+        // Add serilog for structured logging
         var bootstrapLogger = builder.Services.AddSerilog(
             builder.Configuration,
             serviceConfiguration);
 
-        // handle our exceptions
+        // Configure global exception handling
         builder.Services.AddExceptionHandler<HttpStatusCodeExceptionHandler>();
 
+        // Disable automatic 400 responses for more control over API behavior
         // https://learn.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-2.2#disable-automatic-400-response-3
         builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
@@ -89,8 +135,8 @@ public static class Application
             options.SuppressModelStateInvalidFilter = true;
         });
 
-        // we need the forwarded headers (proto = https)
-        // so any callback paths will be correct (proto = https)
+        // Configure forwarded headers to handle proxy scenarios
+        // Ensures that callback URLs use the correct protocol (https)
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -98,51 +144,52 @@ public static class Application
             options.KnownProxies.Clear();
         });
 
-        // add the calling application
+        // Register application-specific services
         addApplication(builder.Services, builder.Configuration, bootstrapLogger);
 
-        // validate authentication was configured
+        // Validate that authentication was properly configured
         builder.Services.ThrowIfAuthenticationNotAdded();
 
-        // add the request context as a transient object
+        // Add the request context as a transient object
         builder.Services.AddRequestContext();
 
-        // add the health checks
+        // Add health check services
         builder.Services.AddIdentityHealthChecks();
         builder.Services.AddCommandProviderHealthChecks();
         builder.Services.AddHealthChecks(healthChecksBuilder =>
         {
-            // the calling application health checks
+            // Add application-specific health checks
             addHealthChecks?.Invoke(healthChecksBuilder, builder.Configuration);
         });
 
         var app = builder.Build();
 
-        // https://github.com/dotnet/aspnetcore/issues/51888
+        // Add exception handler middleware
+        // See: https://github.com/dotnet/aspnetcore/issues/51888
         app.UseExceptionHandler(_ => { });
 
-        // serilog request logging
-        // https://github.com/serilog/serilog-aspnetcore?tab=readme-ov-file#request-logging
+        // Add Serilog request logging
+        // See: https://github.com/serilog/serilog-aspnetcore?tab=readme-ov-file#request-logging
         app.UseSerilogRequestLogging();
 
-        // add the rewrite rules
+        // Configure URL rewriting rules
         app.UseRewriteRules();
 
-        // use the forwarded headers (see above)
+        // Add forwarded headers middleware (enables proper handling behind proxies)
         app.UseForwardedHeaders();
 
-        // map health checks
+        // Enable health check endpoints
         app.MapHealthChecks();
 
-        // add http metrics
+        // Configure observability middleware (metrics, tracing)
         app.UseObservability();
 
-        // configure the http request pipeline
+        // Configure standard HTTP pipeline middleware
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // use the calling application
+        // Configure application-specific endpoints and middleware
         useApplication(app);
 
         return app;

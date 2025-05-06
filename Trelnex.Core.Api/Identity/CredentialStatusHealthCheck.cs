@@ -5,50 +5,99 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Api.Identity;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CredentialStatusHealthCheck"/>.
+/// Health check implementation that monitors the status of authentication credentials.
 /// </summary>
-/// <param name="credentialProvider">The <see cref="ICredentialProvider"/> from which to get the array of <see cref="ICredentialStatusProvider"/> for this health check.</param>
-internal class CredentialStatusHealthCheck(
-    ICredentialProvider credentialProvider) : IHealthCheck
+/// <remarks>
+/// This health check evaluates the health of a credential provider by examining
+/// the status of its access tokens. It reports credential expiration issues
+/// that could affect the application's ability to access protected resources.
+/// </remarks>
+internal class CredentialStatusHealthCheck : IHealthCheck
 {
+    private readonly ICredentialProvider _credentialProvider;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CredentialStatusHealthCheck"/> class.
+    /// </summary>
+    /// <param name="credentialProvider">The credential provider to monitor.</param>
+    /// <remarks>
+    /// Each health check instance monitors a single credential provider,
+    /// allowing for independent monitoring of different authentication mechanisms.
+    /// </remarks>
+    internal CredentialStatusHealthCheck(ICredentialProvider credentialProvider)
+    {
+        _credentialProvider = credentialProvider;
+    }
+
+    /// <summary>
+    /// Performs a health check on the credential provider.
+    /// </summary>
+    /// <param name="context">A context object associated with the current health check.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the health check.</param>
+    /// <returns>
+    /// A task that represents the asynchronous health check operation. The result contains
+    /// the health check status and diagnostic information about the credential provider.
+    /// </returns>
+    /// <remarks>
+    /// This method:
+    /// <list type="number">
+    ///   <item>Retrieves the credential status from the provider</item>
+    ///   <item>Creates a structured data object with token health information</item>
+    ///   <item>Determines the overall health status based on token expiration</item>
+    ///   <item>Returns a health check result with detailed status information</item>
+    /// </list>
+    ///
+    /// The health status will be Unhealthy if any access token is expired,
+    /// as this indicates potential authentication failures for protected resources.
+    /// </remarks>
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
-        CancellationToken cancellationToken = new CancellationToken())
+        CancellationToken cancellationToken = default)
     {
-        // get the credential status
-        var credentialStatus = credentialProvider.GetStatus();
+        // Get the credential status from the provider
+        var credentialStatus = _credentialProvider.GetStatus();
 
-        // create the dictionary of credential status by the credential name
+        // Create a structured data object with token information
         var data = new Dictionary<string, AccessTokenStatus[]>
         {
-            [ credentialProvider.Name ] = credentialStatus.Statuses
+            [_credentialProvider.Name] = credentialStatus.Statuses
         };
 
-        // get the health status
+        // Determine the overall health status
         var status = GetHealthStatus(credentialStatus.Statuses);
 
+        // Create a health check result with detailed status information
         var healthCheckResult = new HealthCheckResult(
             status: status,
-            description: credentialProvider.Name,
+            description: _credentialProvider.Name,
             data: data.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value as object));
 
         return Task.FromResult(healthCheckResult);
     }
 
     /// <summary>
-    /// Gets the <see cref="HealthStatus"/> from the collection of <see cref="CredentialStatus"/>.
+    /// Determines the health status based on credential token states.
     /// </summary>
-    /// <param name="data">The collection of <see cref="CredentialStatus"/>.</param>
-    /// <returns>A <see cref="HealthStatus"/> that represents the reported status of the health check result.</returns>
+    /// <param name="statuses">The collection of access token statuses to evaluate.</param>
+    /// <returns>The overall health status for this credential provider.</returns>
+    /// <remarks>
+    /// This method:
+    /// <list type="bullet">
+    ///   <item>Reports Healthy if no access tokens are being monitored</item>
+    ///   <item>Reports Unhealthy if any token has expired, which indicates authentication will fail</item>
+    ///   <item>Reports Healthy if all tokens are valid and not expired</item>
+    /// </list>
+    /// </remarks>
     private static HealthStatus GetHealthStatus(
         AccessTokenStatus[] statuses)
     {
+        // If no tokens are being monitored, report as healthy
         if (statuses.Length <= 0) return HealthStatus.Healthy;
 
-        // enumerate each access token status
+        // Check if any token has expired
         var anyExpired = statuses.Any(ats => ats.Health == AccessTokenHealth.Expired);
 
-        // if any of the access tokens are expired, return unhealthy
+        // Report unhealthy if any token has expired
         return anyExpired ? HealthStatus.Unhealthy : HealthStatus.Healthy;
     }
 }

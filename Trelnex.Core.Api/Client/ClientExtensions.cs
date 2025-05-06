@@ -7,16 +7,36 @@ using Trelnex.Core.Client;
 namespace Trelnex.Core.Api.Client;
 
 /// <summary>
-/// Extension methods to add the <see cref="IClient"/> to the <see cref="IServiceCollection"/>.
+/// Provides extension methods for configuring HTTP clients with authentication in the application.
 /// </summary>
+/// <remarks>
+/// These extensions simplify the registration of typed HTTP clients with appropriate configuration
+/// and authentication settings, supporting both authenticated and unauthenticated clients.
+/// </remarks>
 public static class ClientExtensions
 {
     /// <summary>
-    /// Add the <see cref="IClient"/> to the <see cref="IServiceCollection"/>.
+    /// Registers a typed HTTP client with the dependency injection container.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <typeparam name="IClient">The client interface type to register.</typeparam>
+    /// <param name="services">The service collection to add the client to.</param>
+    /// <param name="configuration">The application configuration containing client settings.</param>
+    /// <param name="clientFactory">The factory responsible for creating client instances.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <remarks>
+    /// This method:
+    /// <list type="bullet">
+    ///   <item>Reads client configuration from the "Clients:{clientName}" section</item>
+    ///   <item>Sets up authentication if configured, using the appropriate credential provider</item>
+    ///   <item>Configures the HttpClient with the base address from configuration</item>
+    ///   <item>Uses the provided factory to create the client implementation</item>
+    /// </list>
+    ///
+    /// The client configuration should include a BaseAddress and optional Authentication section.
+    /// </remarks>
+    /// <exception cref="ConfigurationErrorsException">
+    /// Thrown when the client configuration section is missing or invalid.
+    /// </exception>
     public static IServiceCollection AddClient<IClient>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -25,28 +45,28 @@ public static class ClientExtensions
     {
         var clientName = clientFactory.Name;
 
-        // get the client configuration
+        // Get the client configuration from the appropriate section
         var clientConfiguration = configuration
             .GetSection("Clients")
             .GetSection(clientName)
             .Get<ClientConfiguration>()
             ?? throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
 
-        // get the access token provider
+        // Set up the access token provider if authentication is configured
         var getAccessTokenProvider = () =>
         {
             if (clientConfiguration.Authentication is null) return null;
 
-            // get the credential provider
+            // Get the credential provider by name
             var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
 
-            // get the access token provider for the client
+            // Get the access token provider for the specific scope
             return credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
         };
 
         var accessTokenProvider = getAccessTokenProvider();
 
-        // add the client to the services
+        // Register the typed HTTP client with the DI container
         services.AddHttpClient<IClient, IClient>(httpClient =>
         {
             httpClient.BaseAddress = clientConfiguration.BaseAddress;
@@ -58,19 +78,27 @@ public static class ClientExtensions
     }
 
     /// <summary>
-    /// Represents the configuration properties for a client.
+    /// Configuration model for HTTP clients.
     /// </summary>
-    /// <param name="BaseAddress">The base address <see cref="Uri"/> to build the request <see cref="Uri"/>.</param>
-    /// <param name="Authentication">The authentication configuration.</param>
+    /// <param name="BaseAddress">The base URI for the client.</param>
+    /// <param name="Authentication">Optional authentication configuration.</param>
+    /// <remarks>
+    /// This record represents the structure expected in the "Clients:{clientName}" configuration section.
+    /// The BaseAddress is required, while Authentication is optional for unauthenticated clients.
+    /// </remarks>
     private record ClientConfiguration(
         Uri BaseAddress,
         AuthenticationConfiguration? Authentication = null);
 
     /// <summary>
-    /// Represents the authentication configuration properties for a client.
+    /// Configuration model for HTTP client authentication.
     /// </summary>
-    /// <param name="CredentialProviderName">The name of the credential provider.</param>
-    /// <param name="Scope">The scope of the access token.</param>
+    /// <param name="CredentialProviderName">The name of the registered credential provider to use.</param>
+    /// <param name="Scope">The OAuth scope required for API access.</param>
+    /// <remarks>
+    /// When present, this configuration enables authenticated requests by obtaining
+    /// access tokens from the specified credential provider with the given scope.
+    /// </remarks>
     private record AuthenticationConfiguration(
         string CredentialProviderName,
         string Scope);

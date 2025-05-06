@@ -4,26 +4,45 @@ using Microsoft.Identity.Web;
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a permission policies builder.
+/// Defines the contract for a permission policies builder that configures authorization policies.
 /// </summary>
 /// <remarks>
-/// A permission policies builder collects the permission policies through its <see cref="IPoliciesBuilder.AddPolicy{T}"/>.
+/// The permission policies builder implements a fluent interface pattern to collect and configure
+/// strongly-typed permission policies. Each policy represents a specific authorization requirement
+/// that can be applied to API endpoints.
+///
+/// The builder pattern allows for a clean, readable configuration syntax in application startup.
 /// </remarks>
 public interface IPoliciesBuilder
 {
     /// <summary>
-    /// Adds the specified permission policy to this builder.
+    /// Adds a specified permission policy to the builder's collection.
     /// </summary>
-    /// <typeparam name="T">The specified <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>This builder.</returns>
+    /// <typeparam name="T">The type of permission policy to add, implementing <see cref="IPermissionPolicy"/>.</typeparam>
+    /// <returns>The same builder instance for method chaining.</returns>
+    /// <remarks>
+    /// This method enables the fluent configuration of multiple permission policies:
+    ///
+    /// <code>
+    /// services.AddAuthentication(configuration)
+    ///     .AddPolicy&lt;ReadDataPermission&gt;()
+    ///     .AddPolicy&lt;WriteDataPermission&gt;()
+    ///     .AddPolicy&lt;AdminPermission&gt;();
+    /// </code>
+    /// </remarks>
     public IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy;
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="PoliciesBuilder"/>.
+/// Implements the permission policies builder for configuring authorization policies.
 /// </summary>
-/// <param name="securityProvider">The <see cref="ISecurityProvider"/> to add the security requirements of the permission policies.</param>
-/// <param name="securityDefinition">The <see cref="ISecurityDefinition"/> that own the permission policies of this builder.</param>
+/// <remarks>
+/// This class handles the registration and configuration of authorization policies based on
+/// strongly-typed permission policy definitions. It manages the association between policies,
+/// security requirements, and role-based permissions.
+/// </remarks>
+/// <param name="securityProvider">The security provider to register security requirements.</param>
+/// <param name="securityDefinition">The security definition containing authentication scheme information.</param>
 internal class PoliciesBuilder(
     SecurityProvider securityProvider,
     ISecurityDefinition securityDefinition) : IPoliciesBuilder
@@ -31,14 +50,22 @@ internal class PoliciesBuilder(
     private readonly List<PolicyContainer> _policyContainers = [];
 
     /// <summary>
-    /// Adds the specified permission policy to this builder.
+    /// Adds a permission policy to the builder and registers its security requirements.
     /// </summary>
+    /// <typeparam name="T">The type of permission policy to add.</typeparam>
+    /// <returns>The builder instance for method chaining.</returns>
     /// <remarks>
-    /// Creates an <see cref="ISecurityRequirement"/> that defines the security requirement of the permission policy
-    /// and adds it to the <see cref="ISecurityProvider"/>.
+    /// This method performs several key operations:
+    /// <list type="number">
+    ///   <item>Creates a unique policy name based on the policy type</item>
+    ///   <item>Instantiates the policy to access its required roles</item>
+    ///   <item>Creates a security requirement with appropriate audience, scope, and roles</item>
+    ///   <item>Registers the requirement with the security provider for use in Swagger documentation</item>
+    /// </list>
+    ///
+    /// The security requirements defined here will be used both for actual authorization
+    /// enforcement and for API documentation through Swagger.
     /// </remarks>
-    /// <typeparam name="T">The specified <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>This builder.</returns>
     public IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy
     {
         var policyName = PermissionPolicy.Name<T>();
@@ -63,9 +90,20 @@ internal class PoliciesBuilder(
     }
 
     /// <summary>
-    /// Adds the permission policies to the <see cref="AuthorizationOptions"/>.
+    /// Builds and registers all configured policies with the authorization options.
     /// </summary>
-    /// <param name="options">The specified <see cref="AuthorizationOptions"/> to add the permission policies to.</param>
+    /// <param name="options">The authorization options to configure with these policies.</param>
+    /// <remarks>
+    /// This method configures each policy with:
+    /// <list type="bullet">
+    ///   <item>The appropriate authentication scheme (from the security definition)</item>
+    ///   <item>The required scope claim (from the security definition)</item>
+    ///   <item>The required roles specified by each policy</item>
+    /// </list>
+    ///
+    /// These configured policies can then be applied to API endpoints using the
+    /// <see cref="PermissionsExtensions.RequirePermission{T}"/> extension method.
+    /// </remarks>
     internal void Build(
         AuthorizationOptions options)
     {
@@ -85,10 +123,14 @@ internal class PoliciesBuilder(
     }
 
     /// <summary>
-    /// Represents a permission policy by its name and <see cref="IPermissionPolicy"/>.
+    /// Represents a named permission policy container with its policy implementation.
     /// </summary>
-    /// <param name="Name">The name of the permission policy.</param>
-    /// <param name="Policy">The <see cref="IPermissionPolicy"/>.</param>
+    /// <param name="Name">The policy name used for registration and lookup.</param>
+    /// <param name="Policy">The policy implementation defining required roles.</param>
+    /// <remarks>
+    /// This record provides a convenient way to group policy names with their implementations
+    /// for use during the authorization configuration process.
+    /// </remarks>
     private record PolicyContainer(
         string Name,
         IPermissionPolicy Policy);
