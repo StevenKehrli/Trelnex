@@ -1,6 +1,6 @@
 # Trelnex.Core
 
-`Trelnex.Core` is a provides foundational components for HTTP clients, identity management, and observability.
+`Trelnex.Core` provides foundational components for HTTP clients, identity management, validation, and observability.
 
 ## License
 
@@ -41,7 +41,8 @@ Usage example:
 ```csharp
 public class MyApiClient : BaseClient
 {
-    public MyApiClient(HttpClient httpClient) : base(httpClient)
+    public MyApiClient(HttpClient httpClient, IAccessTokenProvider? accessTokenProvider = null) 
+        : base(httpClient, accessTokenProvider)
     {
     }
 
@@ -73,6 +74,13 @@ Extension methods for the `Uri` class that simplify URL manipulation:
 
 - `AppendPath(string path)`: Safely appends a path segment to a URI
 - `AddQueryString(string key, string value)`: Adds or appends a query string parameter to a URI
+
+#### IClientFactory
+
+Interface for creating API client instances:
+
+- `Create(HttpClient httpClient, IAccessTokenProvider? accessTokenProvider)`: Creates a new client instance
+- `Name`: Gets the unique identifier for this client factory
 
 ### Best Practices
 
@@ -127,7 +135,7 @@ The generic variant `ICredentialProvider<TCredential>` extends this interface wi
 
 #### AccessTokenProvider
 
-The `AccessTokenProvider<TClient>` implements `IAccessTokenProvider<TClient>` to provide:
+The `AccessTokenProvider` implements `IAccessTokenProvider` to provide:
 
 - `Scope`: The scope of the access token
 - `GetAccessToken()`: Returns the access token for the configured scope
@@ -181,6 +189,69 @@ bool allValid = status.Statuses.All(s => s.Health == AccessTokenHealth.Valid);
 ```
 
 This enables applications to proactively detect and respond to authentication issues before they cause failures.
+
+</details>
+
+## Validation
+
+<details>
+
+<summary>Expand</summary>
+
+&nbsp;
+
+The `Trelnex.Core.Validation` namespace provides utilities for implementing validation using FluentValidation.
+
+### Components
+
+#### CompositeValidator
+
+`CompositeValidator<T>` is a class that combines multiple FluentValidation validators:
+
+- Extends `AbstractValidator<T>` from FluentValidation
+- Allows combining two or more validators for a single type
+- Useful for applying both core and domain-specific validation rules
+
+#### ValidationException
+
+`ValidationException` extends `HttpStatusCodeException` for validation-specific error handling:
+
+- Uses HTTP status code 422 (Unprocessable Content)
+- Includes structured validation errors for detailed client feedback
+- Works well with API response handling
+
+#### ValidationResultExtensions
+
+Extension methods for FluentValidation's `ValidationResult`:
+
+- `ValidateOrThrow`: Throws a `ValidationException` if validation fails
+- `ValidateOrThrow<T>`: Type-safe version that includes the type name in error messages
+- Support for validating collections with proper error formatting and grouping
+
+#### ValidatorExtensions
+
+Adds additional validation rules to FluentValidation:
+
+- `NotDefault<T>` for `DateTime`: Ensures a DateTime property is not the default value
+- `NotDefault<T>` for `Guid`: Ensures a Guid property is not the default/empty value
+
+### Usage Example
+
+```csharp
+// Create a composite validator
+var validator = new CompositeValidator<User>(
+    new CoreUserValidator(),    // Basic validation rules
+    new DomainUserValidator()   // Domain-specific rules
+);
+
+// Validate and throw if invalid
+var result = validator.Validate(user);
+result.ValidateOrThrow<User>();
+
+// Validate a collection
+var results = users.Select(user => validator.Validate(user));
+results.ValidateOrThrow<User>();
+```
 
 </details>
 
@@ -243,14 +314,14 @@ public void ProcessPayment(
 }
 ```
 
-### Integration with Trelnex.Core.Api
+### Integration with OpenTelemetry
 
-The Observability components are designed to work seamlessly with the OpenTelemetry configuration in Trelnex.Core.Api. The Core.Api project provides:
+The Observability components integrate with OpenTelemetry to provide:
 
-- Configuration for Prometheus metrics
-- OpenTelemetry service setup
-- Activity source registration
-- Integration with Serilog for logging
+- Distributed tracing
+- Correlation of related operations across services
+- Performance monitoring
+- Error tracking and diagnostics
 
 ### PostSharp Integration
 
