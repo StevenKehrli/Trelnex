@@ -4,17 +4,7 @@ namespace Trelnex.Core.Api.Authentication;
 /// Defines the contract for an authorization policy that enforces role-based security.
 /// </summary>
 /// <remarks>
-/// A permission policy defines the role requirements needed to authorize a request to an API endpoint.
-/// Each policy encapsulates a set of roles that a user must possess to access protected resources.
-///
-/// Permission policies are applied to endpoints using the <c>RequirePermission&lt;T&gt;()</c> extension
-/// method, where T is an implementation of <see cref="IPermissionPolicy"/>.
-///
-/// Example usage:
-/// <code>
-/// app.MapGet("/secure-endpoint", () => "Secure content")
-///    .RequirePermission&lt;AdminOnlyPolicy&gt;();
-/// </code>
+/// Defines the role requirements needed to authorize a request.
 /// </remarks>
 public interface IPermissionPolicy
 {
@@ -24,34 +14,21 @@ public interface IPermissionPolicy
     /// <value>
     /// An array of role names that a user must have at least one of to be authorized.
     /// </value>
-    /// <remarks>
-    /// When applying authorization, the user must possess at least one of these roles
-    /// to be granted access to the protected resource. An empty array would effectively
-    /// deny access to all users.
-    /// </remarks>
-    public string[] RequiredRoles { get; }
+    string[] RequiredRoles { get; }
 }
 
 /// <summary>
 /// Provides utility methods for working with permission policies.
 /// </summary>
-/// <remarks>
-/// This class contains internal helper methods for handling permission policies
-/// and generating unique policy names for policy registration.
-/// </remarks>
 internal static class PermissionPolicy
 {
     /// <summary>
     /// Gets the unique name for a permission policy type.
     /// </summary>
-    /// <typeparam name="T">The permission policy type.</typeparam>
-    /// <returns>A unique string identifier for the policy derived from its type name.</returns>
-    /// <remarks>
-    /// Uses the full type name as a unique identifier for policy registration in the
-    /// authorization system. This ensures that each policy type has a distinct name.
-    /// </remarks>
+    /// <typeparam name="T">The permission policy type. This should be an <see cref="IPermissionPolicy"/> implementation.</typeparam>
+    /// <returns>A unique string identifier for the policy, derived from its fully qualified type name.</returns>
     /// <exception cref="ArgumentException">
-    /// Thrown when the full name of the type cannot be determined.
+    /// Thrown when the full name of the type cannot be determined, indicating a configuration issue.
     /// </exception>
     public static string Name<T>() where T : IPermissionPolicy
     {

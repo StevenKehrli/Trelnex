@@ -4,15 +4,10 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Api.CommandProviders;
 
 /// <summary>
-/// Health check implementation that monitors the status of a command provider factory.
+/// Health check that monitors the status of a command provider factory.
 /// </summary>
 /// <remarks>
-/// This health check queries the given command provider factory for its status,
-/// which typically reflects connectivity to the underlying data store such as
-/// a database or cloud storage service.
-///
-/// Each health check instance monitors a single command provider factory,
-/// allowing for independent monitoring of different data stores.
+/// Checks connectivity to the underlying data store.
 /// </remarks>
 /// <param name="providerFactory">The command provider factory to check status for.</param>
 internal class CommandProviderHealthCheck(
@@ -24,27 +19,17 @@ internal class CommandProviderHealthCheck(
     /// <param name="context">A context object associated with the current health check.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the health check.</param>
     /// <returns>
-    /// A task that represents the asynchronous health check operation. The result contains
-    /// the health check status and any additional diagnostic information.
+    /// A task that represents the asynchronous health check operation.
     /// </returns>
-    /// <remarks>
-    /// This method:
-    /// <list type="number">
-    ///   <item>Queries the command provider factory for its current status</item>
-    ///   <item>Maps the provider status to an appropriate health check status</item>
-    ///   <item>Includes any diagnostic data from the provider in the result</item>
-    /// </list>
-    /// The returned health status will be Healthy or Unhealthy based on the
-    /// provider factory's connection to its data store.
-    /// </remarks>
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
-        // Get the current status from the command provider factory
+        // Get the current status from the command provider factory.
         var status = providerFactory.GetStatus();
 
-        // Convert the provider status to a health check result
+        // Convert the provider status to a health check result.
+        // If the provider is healthy, return a healthy status; otherwise, return an unhealthy status.
         var healthCheckResult = new HealthCheckResult(
             status: status.IsHealthy ? HealthStatus.Healthy : HealthStatus.Unhealthy,
             data: status.Data);

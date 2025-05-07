@@ -7,65 +7,40 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Api.CommandProviders;
 
 /// <summary>
-/// Provides extension methods for registering in-memory command providers for testing and development.
+/// Provides extension methods for registering in-memory command providers.
 /// </summary>
 /// <remarks>
-/// In-memory command providers store data in memory rather than in a persistent data store,
-/// making them useful for testing, prototyping, and development scenarios where
-/// persistence is not required.
+/// In-memory command providers are useful for testing and development.
 /// </remarks>
 public static class InMemoryCommandProviderExtensions
 {
     /// <summary>
-    /// Registers in-memory command providers for data access in the application.
+    /// Registers in-memory command providers for data access.
     /// </summary>
     /// <param name="services">The service collection to add providers to.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <param name="bootstrapLogger">Logger for recording provider registration details.</param>
     /// <param name="configureCommandProviders">Configuration delegate for specifying which providers to register.</param>
     /// <returns>The service collection for method chaining.</returns>
-    /// <remarks>
-    /// This method:
-    /// <list type="number">
-    ///   <item>Creates an in-memory command provider factory</item>
-    ///   <item>Registers the factory with the service collection</item>
-    ///   <item>Creates command providers for each repository type via the configuration delegate</item>
-    ///   <item>Logs the registration of each command provider</item>
-    /// </list>
-    ///
-    /// In-memory command providers should be used primarily for testing or development
-    /// environments where data does not need to persist between application restarts.
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// services.AddInMemoryCommandProviders(
-    ///     configuration,
-    ///     logger,
-    ///     options => {
-    ///         options.Add&lt;IUser, User&gt;("user");
-    ///         options.Add&lt;IProduct, Product&gt;("product");
-    ///     });
-    /// </code>
-    /// </example>
     public static IServiceCollection AddInMemoryCommandProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<ICommandProviderOptions> configureCommandProviders)
     {
-        // Create an in-memory command provider factory
+        // Create an in-memory command provider factory.
         var providerFactory = InMemoryCommandProviderFactory.Create().GetAwaiter().GetResult();
 
-        // Register the factory with the service collection
+        // Register the factory with the service collection.
         services.AddCommandProviderFactory(providerFactory);
 
-        // Create options for configuring command providers
+        // Create options for configuring command providers.
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             providerFactory: providerFactory);
 
-        // Apply the user's configuration
+        // Apply the user's configuration.
         configureCommandProviders(commandProviderOptions);
 
         return services;
@@ -74,10 +49,6 @@ public static class InMemoryCommandProviderExtensions
     /// <summary>
     /// Implementation of command provider options for in-memory providers.
     /// </summary>
-    /// <remarks>
-    /// This class handles the creation and registration of in-memory command providers
-    /// for specific entity types.
-    /// </remarks>
     private class CommandProviderOptions : ICommandProviderOptions
     {
         private readonly IServiceCollection _services;
@@ -112,15 +83,6 @@ public static class InMemoryCommandProviderExtensions
         /// <exception cref="InvalidOperationException">
         /// Thrown when a command provider for the specified interface is already registered.
         /// </exception>
-        /// <remarks>
-        /// This method:
-        /// <list type="number">
-        ///   <item>Verifies that no provider for this interface is already registered</item>
-        ///   <item>Creates a command provider for the entity type</item>
-        ///   <item>Registers the provider with the dependency injection container</item>
-        ///   <item>Logs the registration for debugging and tracing</item>
-        /// </list>
-        /// </remarks>
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
@@ -128,23 +90,23 @@ public static class InMemoryCommandProviderExtensions
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // Check if a provider for this interface is already registered
+            // Check if a provider for this interface is already registered.
             if (_services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the command provider for this entity type
+            // Create the command provider for this entity type.
             var commandProvider = _providerFactory.Create<TInterface, TItem>(
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations);
 
-            // Register the provider with the DI container
+            // Register the provider with the DI container.
             _services.AddSingleton(commandProvider);
 
-            // Log the registration using literal format to avoid quotes
+            // Log the registration using literal format to avoid quotes.
             object[] args =
             [
                 typeof(TInterface), // TInterface

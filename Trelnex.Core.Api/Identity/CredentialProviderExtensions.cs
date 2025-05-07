@@ -4,12 +4,10 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Api.Identity;
 
 /// <summary>
-/// Provides extension methods for working with credential providers in the application.
+/// Provides extension methods for working with credential providers.
 /// </summary>
 /// <remarks>
-/// These extensions simplify the registration and retrieval of credential providers,
-/// which are responsible for acquiring and managing authentication tokens
-/// for accessing protected resources like cloud services and APIs.
+/// These extensions simplify registration and retrieval of credential providers.
 /// </remarks>
 public static class CredentialProviderExtensions
 {
@@ -20,23 +18,14 @@ public static class CredentialProviderExtensions
     /// <param name="services">The service collection to register the provider with.</param>
     /// <param name="credentialProvider">The credential provider instance to register.</param>
     /// <returns>The service collection for method chaining.</returns>
-    /// <remarks>
-    /// This method registers the credential provider as a keyed singleton service,
-    /// allowing it to be retrieved by name. The provider's name serves as the key
-    /// for retrieval, enabling multiple credential providers to coexist in the
-    /// same application (e.g., for different cloud providers or services).
-    ///
-    /// Credential providers are responsible for acquiring, refreshing, and validating
-    /// access tokens for external service authentication.
-    /// </remarks>
     public static IServiceCollection AddCredentialProvider<T>(
         this IServiceCollection services,
         ICredentialProvider<T> credentialProvider)
     {
         var credentialProviderName = credentialProvider.Name;
 
-        // Register the provider as a keyed singleton using its name as the key
-        // This allows retrieval by name for services that need tokens
+        // Register the provider as a keyed singleton using its name as the key.
+        // This allows retrieval by name for services that need tokens.
         services.AddKeyedSingleton<ICredentialProvider>(
             credentialProviderName,
             credentialProvider);
@@ -50,11 +39,6 @@ public static class CredentialProviderExtensions
     /// <param name="services">The service collection to search.</param>
     /// <param name="credentialProviderName">The name of the credential provider to retrieve.</param>
     /// <returns>The specified credential provider instance.</returns>
-    /// <remarks>
-    /// This method searches for a credential provider registered with the given name
-    /// and returns it if found. It's typically used by services that need to acquire
-    /// access tokens for external service authentication.
-    /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown when no credential provider with the specified name is registered.
     /// </exception>
@@ -62,16 +46,16 @@ public static class CredentialProviderExtensions
         this IServiceCollection services,
         string credentialProviderName)
     {
-        // Find the credential provider with the matching name
+        // Find the credential provider with the matching name.
         var serviceDescriptor = services.FirstOrDefault(sd =>
         {
             if (sd.IsCredentialProvider() is false) return false;
 
-            // Match by the service key (provider name)
+            // Match by the service key (provider name).
             return string.Equals(sd.ServiceKey as string, credentialProviderName);
         });
 
-        // Return the provider or throw if not found
+        // Return the provider or throw if not found.
         return serviceDescriptor?.KeyedImplementationInstance as ICredentialProvider
             ?? throw new InvalidOperationException($"ICredentialProvider '{credentialProviderName}' is not registered.");
     }
@@ -82,27 +66,22 @@ public static class CredentialProviderExtensions
     /// <typeparam name="T">The credential type that the provider manages.</typeparam>
     /// <param name="services">The service collection to search.</param>
     /// <returns>The typed credential provider instance.</returns>
-    /// <remarks>
-    /// This method searches for a credential provider that manages the specified
-    /// credential type and returns it if found. It's typically used when the code
-    /// needs to work with a specific type of credentials.
-    /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown when no credential provider for the specified type is registered.
     /// </exception>
     public static ICredentialProvider<T> GetCredentialProvider<T>(
         this IServiceCollection services)
     {
-        // Find the first credential provider that handles the specified type
+        // Find the first credential provider that handles the specified type.
         var serviceDescriptor = services.FirstOrDefault(sd =>
         {
             if (sd.IsCredentialProvider() is false) return false;
 
-            // Check if the provider is of the requested generic type
+            // Check if the provider is of the requested generic type.
             return sd.KeyedImplementationInstance is ICredentialProvider<T>;
         });
 
-        // Return the provider or throw if not found
+        // Return the provider or throw if not found.
         return serviceDescriptor?.KeyedImplementationInstance as ICredentialProvider<T>
             ?? throw new InvalidOperationException($"'ICredentialProvider<{typeof(T).Name}>' is not registered.");
     }
@@ -112,15 +91,10 @@ public static class CredentialProviderExtensions
     /// </summary>
     /// <param name="services">The service collection to search.</param>
     /// <returns>A collection of credential provider instances ordered by name.</returns>
-    /// <remarks>
-    /// This method is used internally to find all registered credential providers,
-    /// typically for health check registration or diagnostic purposes.
-    /// The providers are returned in alphabetical order by name.
-    /// </remarks>
     internal static IEnumerable<ICredentialProvider> GetCredentialProviders(
         this IServiceCollection services)
     {
-        // Find all credential providers in the service collection
+        // Find all credential providers in the service collection.
         return services
             .Where(sd => sd.IsCredentialProvider())
             .Select(sd => sd.KeyedImplementationInstance)
@@ -133,25 +107,16 @@ public static class CredentialProviderExtensions
     /// </summary>
     /// <param name="serviceDescriptor">The service descriptor to check.</param>
     /// <returns><see langword="true"/> if the descriptor represents a credential provider; otherwise, <see langword="false"/>.</returns>
-    /// <remarks>
-    /// This helper method checks if a service descriptor meets all the criteria
-    /// for being a credential provider, including:
-    /// <list type="bullet">
-    ///   <item>Having the correct service type (ICredentialProvider)</item>
-    ///   <item>Having a valid implementation instance of that type</item>
-    ///   <item>Having a string service key for keyed retrieval</item>
-    /// </list>
-    /// </remarks>
     private static bool IsCredentialProvider(
         this ServiceDescriptor serviceDescriptor)
     {
-        // Must be a keyed service of ICredentialProvider type
+        // Must be a keyed service of ICredentialProvider type.
         if (serviceDescriptor.ServiceType != typeof(ICredentialProvider)) return false;
 
-        // Must have a valid implementation instance
+        // Must have a valid implementation instance.
         if (serviceDescriptor.KeyedImplementationInstance is null or not ICredentialProvider) return false;
 
-        // Must have a string key for retrieval
+        // Must have a string key for retrieval.
         if (serviceDescriptor.ServiceKey is null or not string) return false;
 
         return true;

@@ -76,16 +76,17 @@ The framework includes comprehensive observability features:
 
 ### Exception Handling
 
-The `HttpStatusCodeExceptionHandler` provides standardized error responses for exceptions, converting them to structured JSON with appropriate HTTP status codes.
+The `HttpStatusCodeExceptionHandler` provides standardized error responses following RFC 7807 (Problem Details for HTTP APIs), converting exceptions to structured JSON with appropriate HTTP status codes.
 
 ```json
 {
-  "statusCode": 400,
-  "message": "Invalid input provided",
-  "errors": {
-    "id": ["The ID must be a valid GUID"],
-    "name": ["The name field is required"]
-  }
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Invalid input provided",
+  "instance": "/api/resources/123",
+  "id": ["The ID must be a valid GUID"],
+  "name": ["The name field is required"]
 }
 ```
 
@@ -254,7 +255,7 @@ public class YourService
 3. **Add health checks** for all external dependencies and critical services
 4. **Configure observability** to monitor application performance
 5. **Use typed HTTP clients** with the client extensions for external service integration
-6. **Implement proper exception handling** with HttpStatusCodeException for meaningful API responses
+6. **Implement proper exception handling** with HttpStatusCodeException for RFC 7807-compliant API error responses
 7. **Follow layered configuration** with environment-specific settings
 
 ## Extension Points
