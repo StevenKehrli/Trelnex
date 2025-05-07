@@ -49,7 +49,7 @@ public static class CosmosCommandProvidersExtensions
 
         var providerFactory = CosmosCommandProviderFactory.Create(
             cosmosClientOptions,
-            keyResolverOptions).Result;
+            keyResolverOptions).GetAwaiter().GetResult();
 
         // inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);

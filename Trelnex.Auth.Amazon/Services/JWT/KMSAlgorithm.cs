@@ -158,7 +158,7 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
                 SigningAlgorithm = new SigningAlgorithmSpec(_hashAlgorithmName.Name)
             };
 
-            var response = _client.SignAsync(request).Result;
+            var response = _client.SignAsync(request).GetAwaiter().GetResult();
 
             // the signature is a DER-encoded object
             // convert to ecdsa signature (aka r|s aka jose-style)
@@ -196,7 +196,7 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
                 SigningAlgorithm = new SigningAlgorithmSpec(_hashAlgorithmName.Name)
             };
 
-            var response = _client.VerifyAsync(request).Result;
+            var response = _client.VerifyAsync(request).GetAwaiter().GetResult();
 
             return response.SignatureValid ?? false;
         }

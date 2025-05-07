@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Client;
+using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Client;
 
@@ -53,19 +54,15 @@ public static class ClientExtensions
             ?? throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
 
         // Set up the access token provider if authentication is configured
-        var getAccessTokenProvider = () =>
+        IAccessTokenProvider? accessTokenProvider = null;
+        if (clientConfiguration.Authentication is not null)
         {
-            if (clientConfiguration.Authentication is null) return null;
-
-            // Get the credential provider by name
             var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
 
-            // Get the access token provider for the specific scope
-            return credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
-        };
-
-        var accessTokenProvider = getAccessTokenProvider();
-
+            // Get the access token provider for the specified scope
+            accessTokenProvider = credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
+        }
+        
         // Register the typed HTTP client with the DI container
         services.AddHttpClient<IClient, IClient>(httpClient =>
         {

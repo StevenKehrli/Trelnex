@@ -54,7 +54,7 @@ public static class InMemoryCommandProviderExtensions
         Action<ICommandProviderOptions> configureCommandProviders)
     {
         // Create an in-memory command provider factory
-        var providerFactory = InMemoryCommandProviderFactory.Create().Result;
+        var providerFactory = InMemoryCommandProviderFactory.Create().GetAwaiter().GetResult();
 
         // Register the factory with the service collection
         services.AddCommandProviderFactory(providerFactory);

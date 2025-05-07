@@ -92,7 +92,7 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
 
                     while (feedIterator.HasMoreResults)
                     {
-                        var feedResponse = feedIterator.ReadNextAsync().Result;
+                        var feedResponse = feedIterator.ReadNextAsync().GetAwaiter().GetResult();
 
                         foreach (var container in feedResponse)
                         {

@@ -143,7 +143,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             try
             {
                 // this is where cosmos will throw
-                feedResponse = feedIterator.ReadNextAsync(cancellationToken).Result;
+                feedResponse = feedIterator.ReadNextAsync(cancellationToken).GetAwaiter().GetResult();
             }
             catch (CosmosException ex)
             {

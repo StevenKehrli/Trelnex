@@ -75,7 +75,7 @@ internal class KMSAlgorithmCollection
         // check the default algorithm was successful
         try
         {
-            _ = defaultAlgorithmTask.algorithmTask.Result;
+            _ = defaultAlgorithmTask.algorithmTask.GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -90,7 +90,7 @@ internal class KMSAlgorithmCollection
         {
             try
             {
-                _ = regionalAlgorithmTask.algorithmTask.Result;
+                _ = regionalAlgorithmTask.algorithmTask.GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -106,7 +106,7 @@ internal class KMSAlgorithmCollection
         {
             try
             {
-                _ = secondaryAlgorithmTask.algorithmTask.Result;
+                _ = secondaryAlgorithmTask.algorithmTask.GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -124,7 +124,7 @@ internal class KMSAlgorithmCollection
         }
 
         // get the algorithms
-        var defaultAlgorithm = defaultAlgorithmTask.algorithmTask.Result;
+        var defaultAlgorithm = defaultAlgorithmTask.algorithmTask.GetAwaiter().GetResult();
 
         var regionalAlgorithms = regionalAlgorithmTasks?
             .Select(task => task.algorithmTask.Result)

@@ -30,11 +30,11 @@ Parser.Default
 
         var credentialsManager = AWSCredentialsManager.Create(
             logger: logger,
-            options: credentialOptions).Result;
+            options: credentialOptions).GetAwaiter().GetResult();
 
         // get the access token
         var accessToken = credentialsManager.GetAccessToken(
-            scope: o.Scope).Result;
+            scope: o.Scope).GetAwaiter().GetResult();
 
         // serialize and write to the console
         var json = JsonSerializer.Serialize(accessToken, jsonSerializerOptions);

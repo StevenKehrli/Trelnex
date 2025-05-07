@@ -36,7 +36,8 @@ Application.Run(args,
     // Register application services
     (services, configuration, logger) =>
     {
-        services.AddAuthentication(configuration)
+        services
+            .AddAuthentication(configuration)
             .AddPermissions<YourPermission>(logger);
 
         services.AddSwaggerToServices();
@@ -48,6 +49,16 @@ Application.Run(args,
 
         app.MapGet("/data", () => "Hello World")
             .RequirePermission<ReadDataPolicy>();
+    },
+    // Add custom health checks
+    (healthChecks, configuration) =>
+    {
+        // Add custom health check
+        healthChecks.AddCheck("CustomCheck", () =>
+        {
+            // Perform custom health verification
+            return HealthCheckResult.Healthy("All systems operational");
+        });
     });
 ```
 
@@ -62,15 +73,6 @@ The framework includes comprehensive observability features:
 - **Prometheus Metrics** - Exposes HTTP metrics and health check status as Prometheus metrics
 - **OpenTelemetry** - Distributed tracing with automatic instrumentation
 - **Health Checks** - Customizable health monitoring with JSON formatting
-
-```csharp
-// Health check configuration
-services.AddHealthChecks(builder =>
-{
-    builder.AddSqlServer(connectionString, name: "database");
-    builder.AddUrlGroup(new Uri("https://api.example.com"), name: "example-api");
-});
-```
 
 ### Exception Handling
 
@@ -102,11 +104,10 @@ The framework integrates with Trelnex.Core.Data command providers for data acces
 
 ```csharp
 // Register command provider factories
-services.AddCommandProviderFactory(
-    new YourCommandProviderFactory());
-
-// Add health checks for command providers
-services.AddCommandProviderHealthChecks();
+services.AddInMemoryCommandProviders(
+    configuration,
+    logger,
+    options => options.AddCustomerCommandProviders());
 ```
 
 ## Configuration
@@ -118,7 +119,7 @@ The `ServiceConfiguration` section is required in application settings:
 ```json
 {
   "ServiceConfiguration": {
-    "FullName": "Trelnex.YourService",
+    "FullName": "YourService",
     "DisplayName": "Your Service Name",
     "Version": "1.0.0",
     "Description": "Description of your service."
@@ -166,39 +167,9 @@ Configuration for typed HTTP clients:
 
 ## Usage
 
-### Creating a New API Service
-
-```csharp
-using Trelnex.Core.Api;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add the configuration
-builder.AddConfiguration();
-
-// Add service-specific components
-builder.Services.AddAuthentication(builder.Configuration)
-    .AddPermissions<YourPermission>(builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>());
-
-builder.Services.AddSwaggerToServices();
-
-var app = builder.Build();
-
-// Configure standard HTTP pipeline
-app.UseAuthentication();
-app.UseAuthorization();
-app.AddSwaggerToWebApplication();
-
-// Configure API endpoints
-app.MapGet("/secured", () => "This endpoint is secured")
-    .RequirePermission<ReadDataPolicy>();
-
-app.Run();
-```
-
 ### Using the Application Class
 
-For even simpler setup, use the `Application` class:
+For simple setup, use the `Application` class:
 
 ```csharp
 using Trelnex.Core.Api;
@@ -207,7 +178,8 @@ Application.Run(args,
     // Register services
     (services, configuration, logger) =>
     {
-        services.AddAuthentication(configuration)
+        services
+            .AddAuthentication(configuration)
             .AddPermissions<YourPermission>(logger);
 
         services.AddSwaggerToServices();
@@ -226,7 +198,12 @@ Application.Run(args,
     // Add custom health checks
     (healthChecks, configuration) =>
     {
-        healthChecks.AddSqlServer(configuration.GetConnectionString("Database"), name: "SQL Server");
+        // Add custom health check
+        healthChecks.AddCheck("CustomCheck", () =>
+        {
+            // Perform custom health verification
+            return HealthCheckResult.Healthy("All systems operational");
+        });
     });
 ```
 
@@ -270,26 +247,6 @@ public class YourService
 }
 ```
 
-### Custom Health Checks
-
-```csharp
-services.AddHealthChecks(builder =>
-{
-    // Check database connectivity
-    builder.AddSqlServer(connectionString, name: "Database");
-
-    // Check external service availability
-    builder.AddUrlGroup(new Uri("https://api.example.com/health"), name: "ExternalService");
-
-    // Add custom health check
-    builder.AddCheck("CustomCheck", () =>
-    {
-        // Perform custom health verification
-        return HealthCheckResult.Healthy("All systems operational");
-    });
-});
-```
-
 ## Best Practices
 
 1. **Use the Application class** for new projects to get standardized setup and middleware
@@ -304,7 +261,6 @@ services.AddHealthChecks(builder =>
 
 - **Custom Authentication**: Extend `JwtBearerPermission` or `MicrosoftIdentityPermission`
 - **Health Checks**: Implement custom health checks for application-specific components
-- **Exception Handling**: Create custom exception types derived from `HttpStatusCodeException`
 - **Typed HTTP Clients**: Implement `IClientFactory<T>` for custom client creation logic
 - **Command Providers**: Register custom command provider factories for data access
 

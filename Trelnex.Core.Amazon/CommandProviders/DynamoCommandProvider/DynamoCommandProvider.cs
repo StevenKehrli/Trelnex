@@ -218,7 +218,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
             try
             {
                 // get the next batch of documents
-                var documents = search.GetNextSetAsync(cancellationToken).Result;
+                var documents = search.GetNextSetAsync(cancellationToken).GetAwaiter().GetResult();
 
                 // convert each documnent to the TItem
                 documents.ForEach(document =>

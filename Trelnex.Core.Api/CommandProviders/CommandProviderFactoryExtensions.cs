@@ -55,7 +55,7 @@ public static class CommandProviderFactoryExtensions
     /// typically for health check registration. It filters the service descriptors
     /// to find keyed instances of <see cref="ICommandProviderFactory"/>.
     /// </remarks>
-    internal static IReadOnlyDictionary<string, ICommandProviderFactory>? GetCommandProviderFactories(
+    internal static IReadOnlyDictionary<string, ICommandProviderFactory> GetCommandProviderFactories(
         this IServiceCollection services)
     {
         // Find all registered command provider factories

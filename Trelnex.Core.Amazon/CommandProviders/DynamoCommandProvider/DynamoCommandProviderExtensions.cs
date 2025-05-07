@@ -45,7 +45,7 @@ public static class DynamoCommandProvidersExtensions
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
 
         var providerFactory = DynamoCommandProviderFactory.Create(
-            dynamoClientOptions).Result;
+            dynamoClientOptions).GetAwaiter().GetResult();
 
         // inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);

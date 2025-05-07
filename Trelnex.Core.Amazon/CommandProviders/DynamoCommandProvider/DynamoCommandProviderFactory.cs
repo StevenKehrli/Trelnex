@@ -61,7 +61,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
                             ExclusiveStartTableName = lastEvaluatedTableName
                         };
 
-                        var response = dynamoClient.ListTablesAsync(request).Result;
+                        var response = dynamoClient.ListTablesAsync(request).GetAwaiter().GetResult();
 
                         tableNames.AddRange(response.TableNames);
 

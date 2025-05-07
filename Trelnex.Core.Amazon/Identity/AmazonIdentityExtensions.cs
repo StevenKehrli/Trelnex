@@ -31,7 +31,7 @@ public static class AmazonIdentityExtensions
         // create the credential provider
         var credentialProvider = AmazonCredentialProvider.Create(
             bootstrapLogger,
-            options).Result;
+            options).GetAwaiter().GetResult();
 
         // register the provider
         services.AddCredentialProvider(credentialProvider);
