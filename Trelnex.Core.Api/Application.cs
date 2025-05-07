@@ -24,6 +24,8 @@ namespace Trelnex.Core.Api;
 /// </summary>
 public static class Application
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Configures and runs an ASP.NET Core web application.
     /// </summary>
@@ -53,6 +55,10 @@ public static class Application
         // Run the application.
         app.Run();
     }
+
+    #endregion
+
+    #region Internal Static Methods
 
     /// <summary>
     /// Creates and configures an ASP.NET Core web application.
@@ -123,7 +129,7 @@ public static class Application
         // Validate that authentication was properly configured.
         builder.Services.ThrowIfAuthenticationNotAdded();
 
-        // Add the request context as a transient object.
+        // Add the request context as a scoped service.
         builder.Services.AddRequestContext();
 
         // Add health check services.
@@ -167,4 +173,6 @@ public static class Application
 
         return app;
     }
+
+    #endregion
 }

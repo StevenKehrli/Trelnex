@@ -10,26 +10,40 @@ namespace Trelnex.Core.Api.Authentication;
 /// </summary>
 /// <remarks>
 /// This abstract class configures authentication using Microsoft Identity Web,
-/// which simplifies integration with Azure Active Directory and Microsoft identity platform.
+/// which simplifies integration with Azure Active Directory and the Microsoft identity platform.
 ///
 /// Configuration requires the following settings in the specified configuration section:
 /// <list type="bullet">
-///   <item><c>Authority</c>: The Azure AD instance URL</item>
-///   <item><c>Domain</c>: The Azure AD domain name</item>
-///   <item><c>TenantId</c>: The Azure AD tenant ID</item>
-///   <item><c>ClientId</c>: The application's client ID (app registration ID)</item>
-///   <item><c>Audience</c>: The valid audience for the JWT token</item>
-///   <item><c>Scope</c>: The required scope value for authorization</item>
+///   <item><c>Authority</c>: The Azure AD instance URL.</item>
+///   <item><c>Domain</c>: The Azure AD domain name.</item>
+///   <item><c>TenantId</c>: The Azure AD tenant ID.</item>
+///   <item><c>ClientId</c>: The application's client ID (app registration ID).</item>
+///   <item><c>Audience</c>: The valid audience for the JWT token.</item>
+///   <item><c>Scope</c>: The required scope value for authorization.</item>
 /// </list>
 /// </remarks>
 public abstract class MicrosoftIdentityPermission : IPermission
 {
+    #region Public Abstract Properties
+
+    /// <summary>
+    /// Gets the JWT Bearer authentication scheme name.
+    /// </summary>
+    /// <value>The scheme name that identifies this Microsoft Identity authentication handler.</value>
+    /// <remarks>
+    /// This value is used when registering the JWT Bearer authentication handler
+    /// and when applying the <see cref="AuthorizeAttribute"/> with a specific scheme.
+    /// </remarks>
+    public abstract string JwtBearerScheme { get; }
+
+    #endregion
+
+    #region Protected Abstract Properties
+
     /// <summary>
     /// Gets the configuration section name where Microsoft Identity settings are stored.
     /// </summary>
-    /// <value>
-    /// The name of the configuration section containing Microsoft Identity settings.
-    /// </value>
+    /// <value>The name of the configuration section containing Microsoft Identity settings.</value>
     /// <remarks>
     /// Derived classes must specify which configuration section contains the required
     /// Microsoft Identity Web settings. This typically follows the format "AzureAd"
@@ -37,17 +51,9 @@ public abstract class MicrosoftIdentityPermission : IPermission
     /// </remarks>
     protected abstract string ConfigSectionName { get; }
 
-    /// <summary>
-    /// Gets the JWT Bearer authentication scheme name.
-    /// </summary>
-    /// <value>
-    /// The scheme name that identifies this Microsoft Identity authentication handler.
-    /// </value>
-    /// <remarks>
-    /// This value is used when registering the JWT Bearer authentication handler
-    /// and when applying the [Authorize] attribute with a specific scheme.
-    /// </remarks>
-    public abstract string JwtBearerScheme { get; }
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Configures Microsoft Identity authentication for this permission.
@@ -70,18 +76,6 @@ public abstract class MicrosoftIdentityPermission : IPermission
             ConfigSectionName,
             JwtBearerScheme);
     }
-
-    /// <summary>
-    /// Configures authorization policies for this permission.
-    /// </summary>
-    /// <param name="policiesBuilder">The builder for registering authorization policies.</param>
-    /// <remarks>
-    /// Derived classes must implement this method to define the specific authorization
-    /// requirements associated with this permission, typically including Azure AD role
-    /// or scope-based authorization requirements.
-    /// </remarks>
-    public abstract void AddAuthorization(
-        IPoliciesBuilder policiesBuilder);
 
     /// <summary>
     /// Gets the required audience value for token validation.
@@ -126,4 +120,22 @@ public abstract class MicrosoftIdentityPermission : IPermission
 
         return scope;
     }
+
+    #endregion
+
+    #region Public Abstract Methods
+
+    /// <summary>
+    /// Configures authorization policies for this permission.
+    /// </summary>
+    /// <param name="policiesBuilder">The builder for registering authorization policies.</param>
+    /// <remarks>
+    /// Derived classes must implement this method to define the specific authorization
+    /// requirements associated with this permission, typically including Azure AD role
+    /// or scope-based authorization requirements.
+    /// </remarks>
+    public abstract void AddAuthorization(
+        IPoliciesBuilder policiesBuilder);
+
+    #endregion
 }

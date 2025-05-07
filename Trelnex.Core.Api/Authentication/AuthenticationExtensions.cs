@@ -12,6 +12,8 @@ namespace Trelnex.Core.Api.Authentication;
 /// </remarks>
 public static class AuthenticationExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds authentication and authorization services to the application's service collection.
     /// </summary>
@@ -79,6 +81,10 @@ public static class AuthenticationExtensions
         }
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Verifies that authentication has not been configured multiple times.
     /// </summary>
@@ -97,4 +103,6 @@ public static class AuthenticationExtensions
             throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(NoAuthentication)} has already been configured.");
         }
     }
+
+    #endregion
 }

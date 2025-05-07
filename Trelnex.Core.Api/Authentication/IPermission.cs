@@ -14,17 +14,14 @@ public interface IPermission
     /// <summary>
     /// Gets the JWT bearer token authentication scheme name.
     /// </summary>
-    /// <value>
-    /// A string identifier for the JWT bearer token scheme.
-    /// </value>
-    public string JwtBearerScheme { get; }
+    string JwtBearerScheme { get; }
 
     /// <summary>
     /// Configures authentication services for this permission.
     /// </summary>
     /// <param name="services">The service collection to register authentication services with.</param>
     /// <param name="configuration">The application configuration containing auth settings.</param>
-    public void AddAuthentication(
+    void AddAuthentication(
         IServiceCollection services,
         IConfiguration configuration);
 
@@ -32,7 +29,7 @@ public interface IPermission
     /// Configures authorization policies for this permission.
     /// </summary>
     /// <param name="policiesBuilder">The builder for registering permission-specific authorization policies.</param>
-    public void AddAuthorization(
+    void AddAuthorization(
         IPoliciesBuilder policiesBuilder);
 
     /// <summary>
@@ -40,7 +37,7 @@ public interface IPermission
     /// </summary>
     /// <param name="configuration">The application configuration containing audience settings.</param>
     /// <returns>The audience string that tokens must contain to be considered valid.</returns>
-    public string GetAudience(
+    string GetAudience(
         IConfiguration configuration);
 
     /// <summary>
@@ -48,6 +45,6 @@ public interface IPermission
     /// </summary>
     /// <param name="configuration">The application configuration containing scope settings.</param>
     /// <returns>The scope string that tokens must contain to be considered valid.</returns>
-    public string GetScope(
+    string GetScope(
         IConfiguration configuration);
 }

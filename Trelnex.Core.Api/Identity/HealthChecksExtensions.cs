@@ -11,6 +11,8 @@ namespace Trelnex.Core.Api.Identity;
 /// </remarks>
 public static class HealthChecksExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers health checks for all credential providers.
     /// </summary>
@@ -23,7 +25,7 @@ public static class HealthChecksExtensions
         var credentialProviders = services.GetCredentialProviders();
 
         // Get or create the health checks builder.
-        var builder = services.AddHealthChecks();
+        var healthChecksBuilder = services.AddHealthChecks();
 
         // Register a health check for each credential provider.
         foreach (var credentialProvider in credentialProviders)
@@ -32,7 +34,7 @@ public static class HealthChecksExtensions
             var healthCheckName = $"CredentialStatus: {credentialProvider.Name}";
 
             // Register the health check with the builder.
-            builder.Add(
+            healthChecksBuilder.Add(
                 new HealthCheckRegistration(
                     name: healthCheckName,
                     factory: _ => new CredentialStatusHealthCheck(credentialProvider),
@@ -42,4 +44,6 @@ public static class HealthChecksExtensions
 
         return services;
     }
+
+    #endregion
 }

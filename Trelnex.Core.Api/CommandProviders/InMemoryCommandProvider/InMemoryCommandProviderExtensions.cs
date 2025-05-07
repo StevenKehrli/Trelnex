@@ -14,6 +14,8 @@ namespace Trelnex.Core.Api.CommandProviders;
 /// </remarks>
 public static class InMemoryCommandProviderExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers in-memory command providers for data access.
     /// </summary>
@@ -46,30 +48,22 @@ public static class InMemoryCommandProviderExtensions
         return services;
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
     /// Implementation of command provider options for in-memory providers.
     /// </summary>
-    private class CommandProviderOptions : ICommandProviderOptions
+    /// <param name="services">The service collection to register providers with.</param>
+    /// <param name="bootstrapLogger">Logger for recording provider registration details.</param>
+    /// <param name="providerFactory">The factory to create command providers.</param>
+    private class CommandProviderOptions(
+        IServiceCollection services,
+        ILogger bootstrapLogger,
+        InMemoryCommandProviderFactory providerFactory)
+        : ICommandProviderOptions
     {
-        private readonly IServiceCollection _services;
-        private readonly ILogger _bootstrapLogger;
-        private readonly InMemoryCommandProviderFactory _providerFactory;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CommandProviderOptions"/> class.
-        /// </summary>
-        /// <param name="services">The service collection to register providers with.</param>
-        /// <param name="bootstrapLogger">Logger for recording provider registration details.</param>
-        /// <param name="providerFactory">The factory to create command providers.</param>
-        internal CommandProviderOptions(
-            IServiceCollection services,
-            ILogger bootstrapLogger,
-            InMemoryCommandProviderFactory providerFactory)
-        {
-            _services = services;
-            _bootstrapLogger = bootstrapLogger;
-            _providerFactory = providerFactory;
-        }
 
         /// <summary>
         /// Adds an in-memory command provider for a specific entity type.
@@ -91,33 +85,34 @@ public static class InMemoryCommandProviderExtensions
             where TItem : BaseItem, TInterface, new()
         {
             // Check if a provider for this interface is already registered.
-            if (_services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
+            if (services.Any(serviceDescriptor => serviceDescriptor.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
-                throw new InvalidOperationException(
-                    $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
+                throw new InvalidOperationException($"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
             // Create the command provider for this entity type.
-            var commandProvider = _providerFactory.Create<TInterface, TItem>(
+            var commandProvider = providerFactory.Create<TInterface, TItem>(
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations);
 
             // Register the provider with the DI container.
-            _services.AddSingleton(commandProvider);
+            services.AddSingleton(commandProvider);
 
             // Log the registration using literal format to avoid quotes.
             object[] args =
             [
                 typeof(TInterface), // TInterface
-                typeof(TItem), // TItem
+                typeof(TItem) // TItem
             ];
 
-            _bootstrapLogger.LogInformation(
+            bootstrapLogger.LogInformation(
                 message: "Added InMemoryCommandProvider<{TInterface:l}, {TItem:l}>.",
                 args: args);
 
             return this;
         }
     }
+
+    #endregion
 }

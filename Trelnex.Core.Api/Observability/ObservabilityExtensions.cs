@@ -16,6 +16,8 @@ namespace Trelnex.Core.Api.Observability;
 /// </remarks>
 internal static class ObservabilityExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Configures observability services for the application.
     /// </summary>
@@ -35,7 +37,7 @@ internal static class ObservabilityExtensions
             ?? new ObservabilityConfiguration();
 
         // Configure Prometheus metrics collection and exposure if enabled.
-        if (observabilityConfiguration.Prometheus is not null && observabilityConfiguration.Prometheus.Enabled is true)
+        if (observabilityConfiguration.Prometheus is not null && observabilityConfiguration.Prometheus.Enabled)
         {
             // Add Prometheus metrics server on specified URL and port.
             // See: https://github.com/prometheus-net/prometheus-net?tab=readme-ov-file#kestrel-stand-alone-server
@@ -51,23 +53,22 @@ internal static class ObservabilityExtensions
         }
 
         // Configure OpenTelemetry distributed tracing if enabled.
-        if (observabilityConfiguration.OpenTelemetry is not null && observabilityConfiguration.OpenTelemetry.Enabled is true)
+        if (observabilityConfiguration.OpenTelemetry is not null && observabilityConfiguration.OpenTelemetry.Enabled)
         {
             services
                 .AddOpenTelemetry()
                 // Configure resource attributes for service identification.
-                .ConfigureResource(configure =>
+                .ConfigureResource(resourceConfiguration =>
                 {
-                    configure
-                        .AddService(
-                            serviceName: serviceConfiguration.FullName,
-                            serviceVersion: serviceConfiguration.Version,
-                            autoGenerateServiceInstanceId: true);
+                    resourceConfiguration.AddService(
+                        serviceName: serviceConfiguration.FullName,
+                        serviceVersion: serviceConfiguration.Version,
+                        autoGenerateServiceInstanceId: true);
                 })
                 // Configure tracing with standard instrumentation.
-                .WithTracing(configure =>
+                .WithTracing(tracingConfiguration =>
                 {
-                    configure
+                    tracingConfiguration
                         // Trace ASP.NET Core requests
                         .AddAspNetCoreInstrumentation()
                         // Trace outgoing HTTP requests
@@ -97,6 +98,10 @@ internal static class ObservabilityExtensions
 
         return app;
     }
+
+    #endregion
+
+    #region Private Types
 
     /// <summary>
     /// Configuration model for observability features.
@@ -150,4 +155,6 @@ internal static class ObservabilityExtensions
         /// </summary>
         public string[] Sources { get; init; } = [];
     }
+
+    #endregion
 }

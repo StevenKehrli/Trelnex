@@ -11,6 +11,8 @@ namespace Trelnex.Core.Api.Identity;
 /// </remarks>
 public static class CredentialProviderExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers a credential provider with the dependency injection container.
     /// </summary>
@@ -47,12 +49,12 @@ public static class CredentialProviderExtensions
         string credentialProviderName)
     {
         // Find the credential provider with the matching name.
-        var serviceDescriptor = services.FirstOrDefault(sd =>
+        var serviceDescriptor = services.FirstOrDefault(serviceDescriptor =>
         {
-            if (sd.IsCredentialProvider() is false) return false;
+            if (serviceDescriptor.IsCredentialProvider() is false) return false;
 
             // Match by the service key (provider name).
-            return string.Equals(sd.ServiceKey as string, credentialProviderName);
+            return string.Equals(serviceDescriptor.ServiceKey as string, credentialProviderName);
         });
 
         // Return the provider or throw if not found.
@@ -73,18 +75,22 @@ public static class CredentialProviderExtensions
         this IServiceCollection services)
     {
         // Find the first credential provider that handles the specified type.
-        var serviceDescriptor = services.FirstOrDefault(sd =>
+        var serviceDescriptor = services.FirstOrDefault(serviceDescriptor =>
         {
-            if (sd.IsCredentialProvider() is false) return false;
+            if (serviceDescriptor.IsCredentialProvider() is false) return false;
 
             // Check if the provider is of the requested generic type.
-            return sd.KeyedImplementationInstance is ICredentialProvider<T>;
+            return serviceDescriptor.KeyedImplementationInstance is ICredentialProvider<T>;
         });
 
         // Return the provider or throw if not found.
         return serviceDescriptor?.KeyedImplementationInstance as ICredentialProvider<T>
             ?? throw new InvalidOperationException($"'ICredentialProvider<{typeof(T).Name}>' is not registered.");
     }
+
+    #endregion
+
+    #region Internal Static Methods
 
     /// <summary>
     /// Retrieves all registered credential providers from the service collection.
@@ -96,11 +102,15 @@ public static class CredentialProviderExtensions
     {
         // Find all credential providers in the service collection.
         return services
-            .Where(sd => sd.IsCredentialProvider())
-            .Select(sd => sd.KeyedImplementationInstance)
+            .Where(serviceDescriptor => serviceDescriptor.IsCredentialProvider())
+            .Select(serviceDescriptor => serviceDescriptor.KeyedImplementationInstance)
             .Cast<ICredentialProvider>()
-            .OrderBy(cp => cp.Name);
+            .OrderBy(credentialProvider => credentialProvider.Name);
     }
+
+    #endregion
+
+    #region Private Static Methods
 
     /// <summary>
     /// Determines if a service descriptor represents a credential provider.
@@ -121,4 +131,6 @@ public static class CredentialProviderExtensions
 
         return true;
     }
+
+    #endregion
 }

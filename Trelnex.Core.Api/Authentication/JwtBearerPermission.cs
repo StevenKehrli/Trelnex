@@ -14,37 +14,43 @@ namespace Trelnex.Core.Api.Authentication;
 ///
 /// Configuration requires the following settings in the specified configuration section:
 /// <list type="bullet">
-///   <item><c>Authority</c>: The issuer URL of the identity provider</item>
-///   <item><c>Audience</c>: The valid audience for the JWT token</item>
-///   <item><c>MetadataAddress</c>: The URL to the OAuth/OpenID Connect metadata document</item>
-///   <item><c>Scope</c>: The required scope value for authorization</item>
+///   <item><c>Authority</c>: The issuer URL of the identity provider.</item>
+///   <item><c>Audience</c>: The valid audience for the JWT token.</item>
+///   <item><c>MetadataAddress</c>: The URL to the OAuth/OpenID Connect metadata document.</item>
+///   <item><c>Scope</c>: The required scope value for authorization.</item>
 /// </list>
 /// </remarks>
 public abstract class JwtBearerPermission : IPermission
 {
+    #region Protected Abstract Properties
+
     /// <summary>
     /// Gets the configuration section name where JWT Bearer settings are stored.
     /// </summary>
-    /// <value>
-    /// The name of the configuration section containing JWT settings.
-    /// </value>
+    /// <value>The name of the configuration section containing JWT settings.</value>
     /// <remarks>
     /// Derived classes must specify which configuration section contains the required
     /// JWT Bearer token settings (Authority, Audience, MetadataAddress, Scope).
     /// </remarks>
     protected abstract string ConfigSectionName { get; }
 
+    #endregion
+
+    #region Public Abstract Properties
+
     /// <summary>
     /// Gets the JWT Bearer authentication scheme name.
     /// </summary>
-    /// <value>
-    /// The scheme name that identifies this JWT Bearer authentication handler.
-    /// </value>
+    /// <value>The scheme name that identifies this JWT Bearer authentication handler.</value>
     /// <remarks>
     /// This value is used when registering the JWT Bearer authentication handler
-    /// and when applying the [Authorize] attribute with a specific scheme.
+    /// and when applying the <see cref="AuthorizeAttribute"/> with a specific scheme.
     /// </remarks>
     public abstract string JwtBearerScheme { get; }
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Configures JWT Bearer token authentication for this permission.
@@ -92,17 +98,6 @@ public abstract class JwtBearerPermission : IPermission
     }
 
     /// <summary>
-    /// Configures authorization policies for this permission.
-    /// </summary>
-    /// <param name="policiesBuilder">The builder for registering authorization policies.</param>
-    /// <remarks>
-    /// Derived classes must implement this method to define the specific authorization
-    /// requirements associated with this permission, such as required scopes or roles.
-    /// </remarks>
-    public abstract void AddAuthorization(
-        IPoliciesBuilder policiesBuilder);
-
-    /// <summary>
     /// Gets the required audience value for JWT token validation.
     /// </summary>
     /// <param name="configuration">The application configuration containing audience settings.</param>
@@ -139,6 +134,25 @@ public abstract class JwtBearerPermission : IPermission
 
         return scope;
     }
+
+    #endregion
+
+    #region Public Abstract Methods
+
+    /// <summary>
+    /// Configures authorization policies for this permission.
+    /// </summary>
+    /// <param name="policiesBuilder">The builder for registering authorization policies.</param>
+    /// <remarks>
+    /// Derived classes must implement this method to define the specific authorization
+    /// requirements associated with this permission, such as required scopes or roles.
+    /// </remarks>
+    public abstract void AddAuthorization(
+        IPoliciesBuilder policiesBuilder);
+
+    #endregion
+
+    #region Private Methods
 
     /// <summary>
     /// Gets the authority (issuer) URL from configuration.
@@ -177,4 +191,6 @@ public abstract class JwtBearerPermission : IPermission
 
         return metadataAddress;
     }
+
+    #endregion
 }

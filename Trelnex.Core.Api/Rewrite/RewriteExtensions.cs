@@ -12,6 +12,8 @@ namespace Trelnex.Core.Api.Rewrite;
 /// </remarks>
 public static class RewriteExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Configures URL rewriting rules from application configuration.
     /// </summary>
@@ -26,7 +28,10 @@ public static class RewriteExtensions
             .Get<RewriteRule[]>();
 
         // If no rules are configured, do nothing.
-        if (rewriteRules?.Length is null or <= 0) return app;
+        if (rewriteRules?.Length is null or <= 0)
+        {
+            return app;
+        }
 
         // Create rewrite options and add each configured rule.
         var rewriteOptions = new RewriteOptions();
@@ -42,6 +47,10 @@ public static class RewriteExtensions
         return app;
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
     /// Represents a URL rewriting rule configuration.
     /// </summary>
@@ -52,4 +61,6 @@ public static class RewriteExtensions
         string Regex,
         string Replacement,
         bool SkipRemainingRules);
+
+    #endregion
 }

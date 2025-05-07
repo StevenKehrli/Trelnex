@@ -15,6 +15,8 @@ namespace Trelnex.Core.Api.HealthChecks;
 /// </remarks>
 public static class HealthChecksExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers health check services with customizable health checks.
     /// </summary>
@@ -26,18 +28,18 @@ public static class HealthChecksExtensions
         Action<IHealthChecksBuilder>? addHealthChecks)
     {
         // Register health check services.
-        var builder = services.AddHealthChecks();
+        var healthChecksBuilder = services.AddHealthChecks();
 
         // Allow application to register custom health checks.
-        addHealthChecks?.Invoke(builder);
+        addHealthChecks?.Invoke(healthChecksBuilder);
 
         // Add a default health check that always returns healthy.
         // This ensures the /healthz endpoint works even without custom checks.
-        builder.AddCheck("Default", () => HealthCheckResult.Healthy());
+        healthChecksBuilder.AddCheck("Default", () => HealthCheckResult.Healthy());
 
         // Configure Prometheus metrics integration to expose health check status as metrics.
         // See: https://github.com/prometheus-net/prometheus-net?tab=readme-ov-file#aspnet-core-health-check-status-metrics
-        builder.ForwardToPrometheus();
+        healthChecksBuilder.ForwardToPrometheus();
 
         return services;
     }
@@ -47,11 +49,10 @@ public static class HealthChecksExtensions
     /// </summary>
     /// <param name="endpoints">The endpoint route builder to configure.</param>
     /// <returns>The endpoint route builder for method chaining.</returns>
-    public static IEndpointRouteBuilder MapHealthChecks(
-        this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapHealthChecks(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapHealthChecks(
-            "/healthz",  // Standard Kubernetes health check path
+            "/healthz", // Standard Kubernetes health check path
             new HealthCheckOptions
             {
                 // Use custom JSON response writer for readable, structured output.
@@ -60,4 +61,6 @@ public static class HealthChecksExtensions
 
         return endpoints;
     }
+
+    #endregion
 }

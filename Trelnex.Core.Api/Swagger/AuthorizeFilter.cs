@@ -15,6 +15,8 @@ namespace Trelnex.Core.Api.Swagger;
 internal class AuthorizeFilter(
     ISecurityProvider securityProvider) : IOperationFilter
 {
+    #region Public Methods
+
     /// <summary>
     /// Applies security requirements to an OpenAPI operation.
     /// </summary>
@@ -28,8 +30,7 @@ internal class AuthorizeFilter(
         operation.Security = [];
 
         // Get any authorize attributes on the endpoint.
-        var authorizeAttributes =
-            context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>();
+        var authorizeAttributes = context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>();
 
         foreach (var authorizeAttribute in authorizeAttributes)
         {
@@ -37,7 +38,7 @@ internal class AuthorizeFilter(
             var securityRequirement = securityProvider.GetSecurityRequirement(authorizeAttribute.Policy!);
 
             // Create the security requirement and add to this operation.
-            var openApiSecurityRequirement = new OpenApiSecurityRequirement()
+            var openApiSecurityRequirement = new OpenApiSecurityRequirement
             {
                 {
                     new OpenApiSecurityScheme
@@ -48,9 +49,8 @@ internal class AuthorizeFilter(
                             Id = securityRequirement.JwtBearerScheme
                         }
                     },
-                    securityRequirement
-                        .RequiredRoles
-                        .Select(rr => $"{securityRequirement.Audience}/{securityRequirement.Scope}/{rr}")
+                    securityRequirement.RequiredRoles
+                        .Select(requiredRole => $"{securityRequirement.Audience}/{securityRequirement.Scope}/{requiredRole}")
                         .ToArray()
                 }
             };
@@ -58,4 +58,6 @@ internal class AuthorizeFilter(
             operation.Security.Add(openApiSecurityRequirement);
         }
     }
+
+    #endregion
 }

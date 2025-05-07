@@ -13,6 +13,8 @@ namespace Trelnex.Core.Api.Context;
 /// </remarks>
 public static class RequestContextExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers the request context service with dependency injection.
     /// </summary>
@@ -21,18 +23,21 @@ public static class RequestContextExtensions
     public static IServiceCollection AddRequestContext(
         this IServiceCollection services)
     {
-        services
-            .AddScoped(provider =>
-            {
-                // Access the HTTP context through the accessor service.
-                var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+        services.AddScoped(serviceProvider =>
+        {
+            // Access the HTTP context through the accessor service.
+            var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
 
-                // Create a request context from the current HTTP context.
-                return GetRequestContext(httpContextAccessor);
-            });
+            // Create a request context from the current HTTP context.
+            return GetRequestContext(httpContextAccessor);
+        });
 
         return services;
     }
+
+    #endregion
+
+    #region Private Static Methods
 
     /// <summary>
     /// Creates a request context instance from the current HTTP context.
@@ -61,6 +66,10 @@ public static class RequestContextExtensions
             HttpRequestPath: httpRequestPath);
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
     /// Implementation of the request context interface that stores HTTP request metadata.
     /// </summary>
@@ -71,4 +80,6 @@ public static class RequestContextExtensions
         string? ObjectId,
         string? HttpTraceIdentifier,
         string? HttpRequestPath) : IRequestContext;
+
+    #endregion
 }

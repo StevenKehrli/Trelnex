@@ -16,7 +16,7 @@ public interface IPoliciesBuilder
     /// </summary>
     /// <typeparam name="T">The type of permission policy to add.</typeparam>
     /// <returns>The same builder instance for method chaining.</returns>
-    public IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy;
+    IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy;
 }
 
 /// <summary>
@@ -28,7 +28,13 @@ internal class PoliciesBuilder(
     SecurityProvider securityProvider,
     ISecurityDefinition securityDefinition) : IPoliciesBuilder
 {
+    #region Private Fields
+
     private readonly List<PolicyContainer> _policyContainers = [];
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Adds a permission policy to the builder and registers its security requirements.
@@ -63,6 +69,10 @@ internal class PoliciesBuilder(
         return this;
     }
 
+    #endregion
+
+    #region Internal Methods
+
     /// <summary>
     /// Builds and registers all configured policies with the authorization options.
     /// </summary>
@@ -85,6 +95,10 @@ internal class PoliciesBuilder(
         });
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
     /// Represents a named permission policy container with its policy implementation.
     /// </summary>
@@ -93,4 +107,6 @@ internal class PoliciesBuilder(
     private record PolicyContainer(
         string Name,
         IPermissionPolicy Policy);
+
+    #endregion
 }

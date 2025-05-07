@@ -35,6 +35,8 @@ internal class SecurityDefinition(
     string audience,
     string scope) : ISecurityDefinition
 {
+    #region Public Properties
+
     /// <inheritdoc/>
     public string JwtBearerScheme => jwtBearerScheme;
 
@@ -43,4 +45,6 @@ internal class SecurityDefinition(
 
     /// <inheritdoc/>
     public string Scope => scope;
+
+    #endregion
 }

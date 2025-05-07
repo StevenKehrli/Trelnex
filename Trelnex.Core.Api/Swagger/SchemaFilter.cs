@@ -11,6 +11,8 @@ namespace Trelnex.Core.Api.Swagger;
 /// </remarks>
 internal class SchemaFilter : ISchemaFilter
 {
+    #region Public Methods
+
     /// <summary>
     /// Applies schema customizations to the OpenAPI schema for a specific type.
     /// </summary>
@@ -23,4 +25,6 @@ internal class SchemaFilter : ISchemaFilter
         // Disable additional properties for strict schema validation.
         schema.AdditionalPropertiesAllowed = false;
     }
+
+    #endregion
 }

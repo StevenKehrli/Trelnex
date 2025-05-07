@@ -14,6 +14,8 @@ namespace Trelnex.Core.Api.Swagger;
 internal class SecurityFilter(
     ISecurityProvider securityProvider) : IDocumentFilter
 {
+    #region Public Methods
+
     /// <summary>
     /// Applies security definitions to the OpenAPI document.
     /// </summary>
@@ -35,11 +37,13 @@ internal class SecurityFilter(
                 Name = "Authorization",
                 Type = SecuritySchemeType.Http,
                 BearerFormat = "JWT",
-                Scheme = "bearer",
+                Scheme = "bearer"
             };
 
             // Add the security scheme to the document's components.
             document.Components.SecuritySchemes.Add(securityDefinition.JwtBearerScheme, openApiSecurityScheme);
         }
     }
+
+    #endregion
 }

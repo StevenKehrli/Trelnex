@@ -10,16 +10,20 @@ namespace Trelnex.Core.Api.Authentication;
 /// </remarks>
 public static class PermissionsExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Requires a specific permission policy for authorization on an API endpoint.
     /// </summary>
     /// <typeparam name="T">The permission policy type that defines the required access rights.</typeparam>
-    /// <param name="rhb">The route handler builder being configured.</param>
+    /// <param name="routeHandlerBuilder">The route handler builder being configured.</param>
     /// <returns>The route handler builder with the permission policy applied.</returns>
     public static RouteHandlerBuilder RequirePermission<T>(
-        this RouteHandlerBuilder rhb) where T : IPermissionPolicy
+        this RouteHandlerBuilder routeHandlerBuilder) where T : IPermissionPolicy
     {
         // Applies the authorization requirement based on the specified permission policy.
-        return rhb.RequireAuthorization(PermissionPolicy.Name<T>());
+        return routeHandlerBuilder.RequireAuthorization(PermissionPolicy.Name<T>());
     }
+
+    #endregion
 }

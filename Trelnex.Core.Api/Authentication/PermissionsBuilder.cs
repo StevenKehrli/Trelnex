@@ -35,6 +35,8 @@ internal class PermissionsBuilder(
     SecurityProvider securityProvider)
     : IPermissionsBuilder
 {
+    #region Public Methods
+
     /// <inheritdoc />
     public IPermissionsBuilder AddPermissions<T>(
         ILogger bootstrapLogger) where T : IPermission
@@ -90,4 +92,6 @@ internal class PermissionsBuilder(
 
         return this;
     }
+
+    #endregion
 }

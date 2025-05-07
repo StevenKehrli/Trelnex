@@ -15,6 +15,8 @@ internal class CredentialStatusHealthCheck(
     ICredentialProvider credentialProvider)
     : IHealthCheck
 {
+    #region Public Methods
+
     /// <inheritdoc />
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
@@ -41,21 +43,30 @@ internal class CredentialStatusHealthCheck(
         return Task.FromResult(healthCheckResult);
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Determines the health status based on credential token states.
     /// </summary>
-    /// <param name="statuses">The collection of access token statuses to evaluate.</param>
+    /// <param name="accessTokenStatuses">The collection of access token statuses to evaluate.</param>
     /// <returns>The overall health status for this credential provider.</returns>
     private static HealthStatus GetHealthStatus(
-        AccessTokenStatus[] statuses)
+        AccessTokenStatus[] accessTokenStatuses)
     {
         // If no tokens are being monitored, report as healthy.
-        if (statuses.Length <= 0) return HealthStatus.Healthy;
+        if (accessTokenStatuses.Length <= 0)
+        {
+            return HealthStatus.Healthy;
+        }
 
         // Check if any token has expired.
-        var anyExpired = statuses.Any(ats => ats.Health == AccessTokenHealth.Expired);
+        var anyExpired = accessTokenStatuses.Any(accessTokenStatus => accessTokenStatus.Health == AccessTokenHealth.Expired);
 
         // Report unhealthy if any token has expired.
         return anyExpired ? HealthStatus.Unhealthy : HealthStatus.Healthy;
     }
+
+    #endregion
 }

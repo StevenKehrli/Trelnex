@@ -22,6 +22,8 @@ public interface IPermissionPolicy
 /// </summary>
 internal static class PermissionPolicy
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Gets the unique name for a permission policy type.
     /// </summary>
@@ -34,4 +36,6 @@ internal static class PermissionPolicy
     {
         return typeof(T).FullName ?? throw new ArgumentException("Could not determine type name for permission policy.");
     }
+
+    #endregion
 }

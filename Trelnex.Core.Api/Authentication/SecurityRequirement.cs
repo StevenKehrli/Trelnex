@@ -49,6 +49,8 @@ internal class SecurityRequirement(
     string policy,
     string[] requiredRoles) : ISecurityRequirement
 {
+    #region Public Properties
+
     /// <inheritdoc/>
     public string JwtBearerScheme => jwtBearerScheme;
 
@@ -63,4 +65,6 @@ internal class SecurityRequirement(
 
     /// <inheritdoc/>
     public string[] RequiredRoles => requiredRoles;
+
+    #endregion
 }

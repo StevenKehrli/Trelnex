@@ -15,16 +15,22 @@ namespace Trelnex.Core.Api.HealthChecks;
 /// </remarks>
 public static class JsonResponseWriter
 {
+    #region Private Static Fields
+
     /// <summary>
     /// JSON serialization options for formatting health check responses.
     /// </summary>
-    private static readonly JsonSerializerOptions _options = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
+        WriteIndented = true
     };
+
+    #endregion
+
+    #region Public Static Methods
 
     /// <summary>
     /// Formats and writes a health report as a JSON response.
@@ -41,27 +47,24 @@ public static class JsonResponseWriter
         {
             Status = report.Status.ToString(),
             Duration = report.TotalDuration,
-            Info = report.Entries
-                .Select(e =>
-                    new
-                    {
-                        Key = e.Key,
-                        Description = e.Value.Description,
-                        Duration = e.Value.Duration,
-                        Status = Enum.GetName(
-                            typeof(HealthStatus),
-                            e.Value.Status),
-                        Error = e.Value.Exception?.Message,
-                        Data = e.Value.Data
-                    })
-                .ToList()
+            Info = report.Entries.Select(entry => new
+            {
+                Key = entry.Key,
+                Description = entry.Value.Description,
+                Duration = entry.Value.Duration,
+                Status = Enum.GetName(entry.Value.Status),
+                Error = entry.Value.Exception?.Message,
+                Data = entry.Value.Data
+            }).ToList()
         };
 
         // Serialize to JSON with the configured options.
-        var json = JsonSerializer.Serialize(responseObject, _options);
+        var json = JsonSerializer.Serialize(responseObject, _jsonSerializerOptions);
 
         // Set content type and write response.
         context.Response.ContentType = MediaTypeNames.Application.Json;
         return context.Response.WriteAsync(json);
     }
+
+    #endregion
 }

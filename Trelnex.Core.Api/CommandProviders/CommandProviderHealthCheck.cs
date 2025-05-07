@@ -13,6 +13,8 @@ namespace Trelnex.Core.Api.CommandProviders;
 internal class CommandProviderHealthCheck(
     ICommandProviderFactory providerFactory) : IHealthCheck
 {
+    #region Public Methods
+
     /// <summary>
     /// Performs a health check on the command provider factory.
     /// </summary>
@@ -36,4 +38,6 @@ internal class CommandProviderHealthCheck(
 
         return Task.FromResult(healthCheckResult);
     }
+
+    #endregion
 }

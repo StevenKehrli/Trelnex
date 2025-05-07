@@ -17,6 +17,8 @@ namespace Trelnex.Core.Api.Serilog;
 /// </remarks>
 public static class SerilogExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Configures Serilog logging for the application.
     /// </summary>
@@ -47,6 +49,10 @@ public static class SerilogExtensions
         return new SerilogLoggerFactory(Log.Logger).CreateLogger(serviceConfiguration.FullName);
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Applies standard configuration to a Serilog logger configuration.
     /// </summary>
@@ -70,11 +76,13 @@ public static class SerilogExtensions
             .WriteTo.Debug(formatter)
 
             // Configure OpenTelemetry integration.
-            .WriteTo.OpenTelemetry(options =>
+            .WriteTo.OpenTelemetry(telemetryOptions =>
             {
                 // Add service identification to logs.
-                options.ResourceAttributes.Add("service.name", serviceConfiguration.FullName);
-                options.ResourceAttributes.Add("service.version", serviceConfiguration.Version);
+                telemetryOptions.ResourceAttributes.Add("service.name", serviceConfiguration.FullName);
+                telemetryOptions.ResourceAttributes.Add("service.version", serviceConfiguration.Version);
             });
     }
+
+    #endregion
 }

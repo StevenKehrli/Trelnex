@@ -11,6 +11,8 @@ namespace Trelnex.Core.Api.CommandProviders;
 /// </remarks>
 public static class HealthChecksExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds health checks for all registered command provider factories.
     /// </summary>
@@ -21,23 +23,27 @@ public static class HealthChecksExtensions
     {
         // Find all registered command provider factories.
         var commandProviderFactories = services.GetCommandProviderFactories();
+
         // If no command provider factories are found, return the service collection.
-        if (commandProviderFactories is null) return services;
+        if (commandProviderFactories is null)
+        {
+            return services;
+        }
 
         // Get or create the health checks builder.
-        var builder = services.AddHealthChecks();
+        var healthChecksBuilder = services.AddHealthChecks();
 
         // Register a health check for each command provider factory.
         foreach (var kvp in commandProviderFactories)
         {
-            var name = kvp.Key;
+            var providerName = kvp.Key;
             var commandProviderFactory = kvp.Value;
 
             // Use a consistent naming pattern for the health checks.
-            var healthCheckName = $"CommandProvider: {name}";
+            var healthCheckName = $"CommandProvider: {providerName}";
 
             // Register the health check with the builder.
-            builder.Add(
+            healthChecksBuilder.Add(
                 new HealthCheckRegistration(
                     name: healthCheckName,
                     factory: _ => new CommandProviderHealthCheck(commandProviderFactory),
@@ -47,4 +53,6 @@ public static class HealthChecksExtensions
 
         return services;
     }
+
+    #endregion
 }

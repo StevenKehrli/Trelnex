@@ -12,6 +12,8 @@ namespace Trelnex.Core.Api.CommandProviders;
 /// </remarks>
 public static class CommandProviderFactoryExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers a command provider factory with the dependency injection container.
     /// </summary>
@@ -33,6 +35,10 @@ public static class CommandProviderFactoryExtensions
         return services;
     }
 
+    #endregion
+
+    #region Internal Static Methods
+
     /// <summary>
     /// Retrieves all registered command provider factories from the service collection.
     /// </summary>
@@ -46,19 +52,32 @@ public static class CommandProviderFactoryExtensions
     {
         // Find all registered command provider factories.
         return services
-            .Where(sd =>
+            .Where(serviceDescriptor =>
             {
                 // Must be a keyed service of ICommandProviderFactory type.
-                if (sd.ServiceType != typeof(ICommandProviderFactory)) return false;
+                if (serviceDescriptor.ServiceType != typeof(ICommandProviderFactory))
+                {
+                    return false;
+                }
+
                 // The service key must not be null and must be a string.
-                if (sd.ServiceKey is null or not string) return false;
+                if (serviceDescriptor.ServiceKey is null or not string)
+                {
+                    return false;
+                }
+
                 // The keyed implementation instance must not be null and must be an ICommandProviderFactory.
-                if (sd.KeyedImplementationInstance is null or not ICommandProviderFactory) return false;
+                if (serviceDescriptor.KeyedImplementationInstance is null or not ICommandProviderFactory)
+                {
+                    return false;
+                }
 
                 return true;
             })
             .ToImmutableSortedDictionary(
-                keySelector: sd => (sd.ServiceKey as string)!,
-                elementSelector: sd => (sd.KeyedImplementationInstance as ICommandProviderFactory)!);
+                keySelector: serviceDescription => (serviceDescription.ServiceKey as string)!,
+                elementSelector: serviceDescription => (serviceDescription.KeyedImplementationInstance as ICommandProviderFactory)!);
     }
+
+    #endregion
 }

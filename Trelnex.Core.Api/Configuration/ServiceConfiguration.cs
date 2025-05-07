@@ -7,6 +7,8 @@ namespace Trelnex.Core.Api.Configuration;
 /// </summary>
 public record ServiceConfiguration
 {
+    #region Public Properties
+
     /// <summary>
     /// Gets the fully qualified name of the service.
     /// </summary>
@@ -31,4 +33,6 @@ public record ServiceConfiguration
     /// Gets the parsed semantic version object.
     /// </summary>
     public SemVersion SemVersion => SemVersion.Parse(Version);
+
+    #endregion
 }

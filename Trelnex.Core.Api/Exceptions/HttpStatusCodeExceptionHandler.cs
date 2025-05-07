@@ -16,15 +16,21 @@ namespace Trelnex.Core.Api.Exceptions;
 /// </remarks>
 public class HttpStatusCodeExceptionHandler : IExceptionHandler
 {
+    #region Private Static Fields
+
     /// <summary>
     /// JSON serialization options for formatting error responses.
     /// </summary>
-    private static readonly JsonSerializerOptions _options = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Attempts to handle the specified exception.
@@ -41,7 +47,10 @@ public class HttpStatusCodeExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken)
     {
         // Only handle exceptions of the specific HTTP status code type.
-        if (exception is not HttpStatusCodeException httpStatusCodeException) return false;
+        if (exception is not HttpStatusCodeException httpStatusCodeException)
+        {
+            return false;
+        }
 
         // Create a Problem Details response.
         var problemDetails = new ProblemDetails
@@ -71,9 +80,11 @@ public class HttpStatusCodeExceptionHandler : IExceptionHandler
         httpContext.Response.ContentType = MediaTypeNames.Application.ProblemJson;
 
         // Write the structured response as JSON.
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, _options, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, _jsonSerializerOptions, cancellationToken);
 
         // Indicate that the exception has been handled.
         return true;
     }
+
+    #endregion
 }

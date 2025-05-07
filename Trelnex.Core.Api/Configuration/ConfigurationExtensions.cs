@@ -12,6 +12,8 @@ namespace Trelnex.Core.Api.Configuration;
 /// </remarks>
 public static class ConfigurationExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Configures the application's configuration sources using a layered approach.
     /// </summary>
@@ -42,6 +44,10 @@ public static class ConfigurationExtensions
         builder.Services.AddOptions();
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Adds multiple JSON configuration files to the configuration builder.
     /// </summary>
@@ -62,4 +68,6 @@ public static class ConfigurationExtensions
 
         return configurationBuilder;
     }
+
+    #endregion
 }

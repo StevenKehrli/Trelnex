@@ -12,14 +12,14 @@ public interface ISecurityProvider
     /// Gets all registered security definitions that describe authentication schemes.
     /// </summary>
     /// <returns>A collection of security definitions for the application.</returns>
-    public IEnumerable<ISecurityDefinition> GetSecurityDefinitions();
+    IEnumerable<ISecurityDefinition> GetSecurityDefinitions();
 
     /// <summary>
     /// Gets a specific security requirement by its policy name.
     /// </summary>
     /// <param name="policy">The policy name to look up.</param>
     /// <returns>The security requirement associated with the specified policy.</returns>
-    public ISecurityRequirement GetSecurityRequirement(
+    ISecurityRequirement GetSecurityRequirement(
         string policy);
 }
 
@@ -31,6 +31,8 @@ public interface ISecurityProvider
 /// </remarks>
 internal class SecurityProvider : ISecurityProvider
 {
+    #region Private Fields
+
     /// <summary>
     /// The collection of security definitions registered with this provider.
     /// </summary>
@@ -40,6 +42,10 @@ internal class SecurityProvider : ISecurityProvider
     /// The dictionary of security requirements indexed by policy name.
     /// </summary>
     private readonly Dictionary<string, ISecurityRequirement> _securityRequirements = [];
+
+    #endregion
+
+    #region Public Methods
 
     /// <inheritdoc/>
     public IEnumerable<ISecurityDefinition> GetSecurityDefinitions()
@@ -53,6 +59,10 @@ internal class SecurityProvider : ISecurityProvider
     {
         return _securityRequirements[policy];
     }
+
+    #endregion
+
+    #region Internal Methods
 
     /// <summary>
     /// Registers a security definition with this provider.
@@ -88,11 +98,14 @@ internal class SecurityProvider : ISecurityProvider
     {
         // Filter security requirements based on the provided authentication criteria, order them by policy name, and return them as an array.
         return _securityRequirements
-            .Where(kvp => kvp.Value.JwtBearerScheme == jwtBearerScheme &&
-                         kvp.Value.Audience == audience &&
-                         kvp.Value.Scope == scope)
+            .Where(kvp =>
+                kvp.Value.JwtBearerScheme == jwtBearerScheme &&
+                kvp.Value.Audience == audience &&
+                kvp.Value.Scope == scope)
             .OrderBy(kvp => kvp.Key)
             .Select(kvp => kvp.Value)
             .ToArray();
     }
+
+    #endregion
 }

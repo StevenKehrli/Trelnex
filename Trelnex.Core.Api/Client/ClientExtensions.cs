@@ -15,6 +15,8 @@ namespace Trelnex.Core.Api.Client;
 /// </remarks>
 public static class ClientExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Registers a typed HTTP client with the dependency injection container.
     /// </summary>
@@ -65,6 +67,10 @@ public static class ClientExtensions
         return services;
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
     /// Configuration model for HTTP clients.
     /// </summary>
@@ -82,4 +88,6 @@ public static class ClientExtensions
     private record AuthenticationConfiguration(
         string CredentialProviderName,
         string Scope);
+
+    #endregion
 }

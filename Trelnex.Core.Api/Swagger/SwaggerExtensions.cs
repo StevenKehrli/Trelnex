@@ -13,6 +13,8 @@ namespace Trelnex.Core.Api.Swagger;
 /// </remarks>
 public static class SwaggerExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds Swagger generator and explorer services to the <see cref="IServiceCollection"/>.
     /// </summary>
@@ -22,8 +24,7 @@ public static class SwaggerExtensions
     public static IServiceCollection AddSwaggerToServices(
         this IServiceCollection services)
     {
-        var serviceDescriptor = services
-            .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
+        var serviceDescriptor = services.FirstOrDefault(serviceDescriptor => serviceDescriptor.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
 
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
@@ -60,13 +61,13 @@ public static class SwaggerExtensions
                 };
             }
 
-            options.OrderActionsBy((apiDesc) =>
+            options.OrderActionsBy(apiDescription =>
             {
                 // Get the ordinal value for the HTTP method.
-                var httpMethodOrdinal = GetHttpMethodOrdinal(apiDesc.HttpMethod ?? string.Empty);
+                var httpMethodOrdinal = GetHttpMethodOrdinal(apiDescription.HttpMethod ?? string.Empty);
 
                 // Order by relative path and then by HTTP method ordinal.
-                return $"{apiDesc.RelativePath} {httpMethodOrdinal}";
+                return $"{apiDescription.RelativePath} {httpMethodOrdinal}";
             });
 
             options.SchemaFilter<SchemaFilter>();
@@ -111,15 +112,21 @@ public static class SwaggerExtensions
         return app;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Formats a semantic version into a Swagger version string.
     /// </summary>
-    /// <param name="semVer">The semantic version to format.</param>
+    /// <param name="semanticVersion">The semantic version to format.</param>
     /// <returns>A formatted version string in the format "v{Major}".</returns>
     private static string FormatVersionString(
-        SemVersion semVer)
+        SemVersion semanticVersion)
     {
         // Format the version string.
-        return $"v{semVer.Major}";
+        return $"v{semanticVersion.Major}";
     }
+
+    #endregion
 }
