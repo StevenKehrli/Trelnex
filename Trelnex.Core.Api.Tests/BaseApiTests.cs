@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
-using Trelnex.Core.Api.Responses;
 using Trelnex.Core.Api.Swagger;
 using Trelnex.Core.Data;
 
@@ -79,7 +78,7 @@ public abstract class BaseApiTests
                     {
                         throw new HttpStatusCodeException(HttpStatusCode.BadRequest);
                     })
-                    .Produces<HttpStatusCodeResponse>(StatusCodes.Status400BadRequest);
+                    .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
                 app
                     .MapDelete("/delete1", () =>

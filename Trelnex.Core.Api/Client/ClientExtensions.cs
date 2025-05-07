@@ -62,7 +62,7 @@ public static class ClientExtensions
             // Get the access token provider for the specified scope
             accessTokenProvider = credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
         }
-        
+
         // Register the typed HTTP client with the DI container
         services.AddHttpClient<IClient, IClient>(httpClient =>
         {

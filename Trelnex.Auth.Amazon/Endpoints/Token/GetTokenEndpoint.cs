@@ -8,7 +8,6 @@ using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core;
 using Trelnex.Core.Amazon.Identity;
-using Trelnex.Core.Api.Responses;
 using Trelnex.Core.Identity;
 using Trelnex.Core.Validation;
 
@@ -25,10 +24,10 @@ internal static class GetTokenEndpoint
             .Accepts<GetTokenForm>(MediaTypeNames.Application.FormUrlEncoded)
             .DisableAntiforgery()
             .Produces<AccessToken>()
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status400BadRequest)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status415UnsupportedMediaType)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+            .Produces<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)
+            .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
             .WithName("GetAccessToken")
             .WithDescription("Gets an access token using client credentials.")
             .WithTags("Auth");

@@ -85,6 +85,7 @@ public static class SwaggerExtensions
                 return $"{apiDesc.RelativePath} {httpMethodOrdinal}";
             });
 
+            options.SchemaFilter<SchemaFilter>();
             options.OperationFilter<AuthorizeFilter>();
             options.DocumentFilter<SecurityFilter>();
         });

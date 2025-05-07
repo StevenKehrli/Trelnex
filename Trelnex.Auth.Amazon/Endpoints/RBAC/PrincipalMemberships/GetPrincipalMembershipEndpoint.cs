@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
-using Trelnex.Core.Api.Responses;
 using Trelnex.Core.Validation;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -27,10 +26,10 @@ internal static class GetPrincipalMembershipEndpoint
             .RequirePermission<RBACPermission.RBACReadPolicy>()
             .Accepts<GetPrincipalMembershipRequest>(MediaTypeNames.Application.Json)
             .Produces<GetPrincipalMembershipResponse>()
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status400BadRequest)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status401Unauthorized)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status403Forbidden)
-            .Produces<HttpStatusCodeResponse>(StatusCodes.Status422UnprocessableEntity)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
+            .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
+            .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
             .WithName("GetPrincipalMembership")
             .WithDescription("Get the role memberships for a principal.")
             .WithTags("Principal Memberships");
