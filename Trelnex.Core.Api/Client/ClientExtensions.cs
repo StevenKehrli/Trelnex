@@ -44,15 +44,7 @@ public static class ClientExtensions
             ?? throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
 
         // Set up the access token provider if authentication is configured.
-        IAccessTokenProvider? accessTokenProvider = null;
-        if (clientConfiguration.Authentication is not null)
-        {
-            // Retrieve the credential provider based on the configured name.
-            var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
-
-            // Get the access token provider for the specified scope.
-            accessTokenProvider = credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
-        }
+        var accessTokenProvider = GetAccessTokenProvider(services, clientConfiguration);
 
         // Register the typed HTTP client with the DI container.
         services.AddHttpClient<IClient, IClient>(httpClient =>
@@ -65,6 +57,32 @@ public static class ClientExtensions
         });
 
         return services;
+    }
+
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Retrieves the access token provider for a specific client configuration.
+    /// </summary>
+    /// <param name="services">The service collection to search for the provider.</param>
+    /// <param name="clientConfiguration">The client configuration containing authentication settings.</param>
+    /// <returns>The access token provider for the specified scope, or null if not configured.</returns>
+    private static IAccessTokenProvider? GetAccessTokenProvider(
+        this IServiceCollection services,
+        ClientConfiguration clientConfiguration)
+    {
+        if (clientConfiguration.Authentication is null)
+        {
+            return null;
+        }
+
+        // Retrieve the credential provider based on the configured name.
+        var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
+
+        // Get the access token provider for the specified scope.
+        return credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
     }
 
     #endregion
