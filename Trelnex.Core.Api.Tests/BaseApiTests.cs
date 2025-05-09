@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
@@ -75,9 +76,6 @@ public abstract class BaseApiTests
     /// - Multiple authentication schemes operating in parallel
     /// - Proper authorization enforcement for each scheme
     /// - Cross-scheme access attempts (which should fail)
-    ///
-    /// This dual-provider approach creates a comprehensive test environment for
-    /// multi-tenant or multi-service authentication scenarios.
     /// </summary>
     internal TestJwtProvider _jwtProvider2;
 
@@ -162,7 +160,7 @@ public abstract class BaseApiTests
         // Uses issuer 1 to create tokens that will be accepted by TestPermission1 validators
         _jwtProvider1 = new TestJwtProvider(
             jwtAlgorithm: new TestAlgorithm(), // RSA-SHA256 algorithm that creates cryptographically valid signatures
-            keyId: "KeyId.trelnex-auth-amazon-tests-authentication", // Key ID in token header
+            keyId: "KeyId.trelnex-auth-amazon-tests-authentication-1", // Key ID in token header
             issuer: "Issuer.trelnex-auth-amazon-tests-authentication-1", // Issuer for scheme 1
             expirationInMinutes: 15); // Valid for 15 minutes
 
@@ -170,7 +168,7 @@ public abstract class BaseApiTests
         // Uses issuer 2 to create tokens that will be accepted by TestPermission2 validators
         _jwtProvider2 = new TestJwtProvider(
             jwtAlgorithm: new TestAlgorithm(), // Same algorithm instance ensures consistent signature generation
-            keyId: "KeyId.trelnex-auth-amazon-tests-authentication", // Same key ID
+            keyId: "KeyId.trelnex-auth-amazon-tests-authentication-2", // Key ID in token header
             issuer: "Issuer.trelnex-auth-amazon-tests-authentication-2", // Different issuer
             expirationInMinutes: 15); // Same expiration time
 
@@ -186,7 +184,7 @@ public abstract class BaseApiTests
                 // Add authentication and permissions using test permissions
                 // This sets up two parallel authentication schemes with different validation criteria:
                 // 1. TestPermission1 - Validates tokens for audience 1, issuer 1, with role "test.role.1"
-                // 2. TestPermission2 - Validates tokens for audience 2, issuer 2, with role "test.role.2"
+                // 2. TestPermission2 - Validates tokens for audience 2, issuer 2, with role "test.role.2a" or "test.role.2b"
                 // This allows tests to verify proper authentication and authorization enforcement
                 services
                     .AddAuthentication(configuration)
@@ -215,20 +213,34 @@ public abstract class BaseApiTests
                 // - Issuer: "Issuer.trelnex-auth-amazon-tests-authentication-1"
                 // - Role: "test.role.1"
                 // It returns the ObjectId claim from the authenticated user's token
-                app.MapGet("/testRolePolicy1", (IRequestContext context) => context.ObjectId)
+                app.MapGet("/testRolePolicy1", (IRequestContext context, ClaimsPrincipal user) =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = context.ObjectId!,
+                            Role = GetRole(user)
+                        };
+                    })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
-                    .Produces<string>();
+                    .Produces<TestResponse>();
 
                 // Endpoint requiring TestPermission2.TestRolePolicy
                 // This endpoint requires tokens with:
                 // - Audience: "Audience.trelnex-auth-amazon-tests-authentication-2"
                 // - Issuer: "Issuer.trelnex-auth-amazon-tests-authentication-2"
-                // - Role: "test.role.2"
+                // - Role: "test.role.2a" or "test.role.2b"
                 // It returns the ObjectId claim from the authenticated user's token
-                // This endpoint is intentionally parallel to /testRolePolicy1 but with different auth requirements
-                app.MapGet("/testRolePolicy2", (IRequestContext context) => context.ObjectId)
+                // This endpoint is intentionally parallel to /testRolePolicy1 and /testRolePolicy2 but with different auth requirements
+                app.MapGet("/testRolePolicy2", (IRequestContext context, ClaimsPrincipal user) =>
+                    {
+                        return new TestResponse
+                        {
+                            Message = context.ObjectId!,
+                            Role = GetRole(user)
+                        };
+                    })
                     .RequirePermission<TestPermission2.TestRolePolicy>()
-                    .Produces<string>();
+                    .Produces<TestResponse>();
 
                 // Endpoint that throws an exception
                 app.MapGet("/exception", () =>
@@ -321,6 +333,30 @@ public abstract class BaseApiTests
 
         // Dispose of the HTTP client if it exists
         _httpClient?.Dispose();
+    }
+
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Retrieves the role claim from the user's claims.
+    ///
+    /// This method searches the user's claims for a claim of type ClaimTypes.Role
+    /// and returns its value. If no such claim is found, it returns null.
+    ///
+    /// This is used to verify the role of the authenticated user in tests.
+    /// It allows tests to check if the user has the expected role after authentication
+    /// and authorization processes.
+    /// This is important for testing role-based access control and ensuring that
+    /// the correct permissions are enforced for different user roles.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal representing the authenticated user.</param>
+    /// <returns>The role claim value, or null if not found.</returns>
+    private static string? GetRole(
+        ClaimsPrincipal user)
+    {
+        return user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
     }
 
     #endregion

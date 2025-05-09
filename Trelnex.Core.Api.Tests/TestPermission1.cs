@@ -28,6 +28,20 @@ namespace Trelnex.Core.Api.Tests;
 /// for each protected endpoint. This ensures that authentication, audience validation, and
 /// role-based access control are properly implemented and enforced.
 ///
+/// TestPermission1 and TestPermission2 each represent a distinct authentication scheme,
+/// differentiated by their JwtBearerScheme, Audience, Issuer, and RequiredRoles. This setup allows for comprehensive
+/// testing of multi-scheme authentication scenarios.
+///
+/// - TestPermission1 uses "Bearer.trelnex-auth-amazon-tests-authentication-1" as its JwtBearerScheme,
+///   requires the "Audience.trelnex-auth-amazon-tests-authentication-1" audience,
+///   expects the "Issuer.trelnex-auth-amazon-tests-authentication-1" issuer,
+///   and enforces the "test.role.1" role.
+///
+/// - TestPermission2 uses "Bearer.trelnex-auth-amazon-tests-authentication-2" as its JwtBearerScheme,
+///   requires the "Audience.trelnex-auth-amazon-tests-authentication-2" audience,
+///   expects the "Issuer.trelnex-auth-amazon-tests-authentication-2" issuer,
+///   and enforces the "test.role.2a" or "test.role.2b" roles.
+///
 /// Endpoints using this permission require tokens with audience "Audience.trelnex-auth-amazon-tests-authentication-1",
 /// issuer "Issuer.trelnex-auth-amazon-tests-authentication-1", and the "test.role.1" role.
 /// </summary>

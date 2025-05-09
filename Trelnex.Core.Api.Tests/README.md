@@ -67,7 +67,7 @@ The framework configures various endpoints for testing different aspects of the 
 
 - **/anonymous**: No authentication required
 - **/testRolePolicy1**: Protected by TestPermission1 with role "test.role.1"
-- **/testRolePolicy2**: Protected by TestPermission2 with role "test.role.2"
+- **/testRolePolicy2**: Protected by TestPermission2 with role "test.role.2a" or "test.role.2b"
 - **/exception**: Throws an exception for error handling testing
 - HTTP method endpoints (**/delete1**, **/get1**, etc.): Test different HTTP methods
 - **/queryString**: Tests query parameter handling

@@ -216,8 +216,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string",
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/TestResponse"
                 }
               }
             }
@@ -243,8 +242,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string",
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/TestResponse"
                 }
               }
             }
@@ -253,7 +251,8 @@
         "security": [
           {
             "Bearer.trelnex-auth-amazon-tests-authentication-2": [
-              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2"
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2a",
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2b"
             ]
           }
         ]
@@ -301,6 +300,11 @@
         "type": "object",
         "properties": {
           "message": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "role": {
             "type": "string",
             "additionalProperties": false,
             "nullable": true

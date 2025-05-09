@@ -28,4 +28,12 @@ internal record TestResponse
     /// </summary>
     [JsonPropertyName("message")]
     public required string Message { get; init; }
+
+    /// <summary>
+    /// Gets or initializes the user role.
+    /// This property indicates the role of the user making the request,
+    /// which can be useful for testing role-based access control or permissions.
+    /// </summary>
+    [JsonPropertyName("role")]
+    public string? Role { get; init; } = null;
 }

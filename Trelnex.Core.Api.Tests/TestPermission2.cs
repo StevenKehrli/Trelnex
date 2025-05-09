@@ -6,30 +6,44 @@ using Trelnex.Core.Api.Authentication;
 namespace Trelnex.Core.Api.Tests;
 
 /// <summary>
-/// A test implementation of <see cref="IPermission"/> that configures the second JWT authentication
-/// and authorization scheme for testing multi-scheme role-based access control.
+/// A test implementation of <see cref="IPermission"/> that configures a specific JWT authentication
+/// and authorization scheme for testing role-based access control.
 ///
-/// This class complements TestPermission1 in the test authentication framework:
+/// This class is a key component of the test authentication framework and serves multiple purposes:
 ///
 /// 1. It configures the second of two parallel authentication schemes in the test environment,
 ///    with its own distinct bearer scheme, audience, issuer, and role requirements.
 ///
-/// 2. It defines authentication parameters for validating tokens in the second scheme,
-///    using the same TestAlgorithm security key but with different audience and issuer values.
+/// 2. It defines the authentication parameters for validating tokens in the second scheme,
+///    using the TestAlgorithm's security key for JWT signature validation.
 ///
-/// 3. It provides a nested TestRolePolicy class that specifies the "test.role.2" role requirement
-///    used to protect the /testRolePolicy2 endpoint in BaseApiTests.
+/// 3. It provides a nested TestRolePolicy class that specifies the "test.role.2a" and "test.role.2b" role requirement
+///    used to protect various test endpoints in BaseApiTests.
 ///
-/// 4. It enables AuthenticationTests to verify proper multi-scheme authentication by testing endpoints
-///    protected with RequirePermission&lt;TestPermission2.TestRolePolicy&gt;.
+/// 4. It allows AuthenticationTests to verify proper role-based access control by testing
+///    endpoints protected with RequirePermission&lt;TestPermission2.TestRolePolicy&gt;.
 ///
-/// The class works together with TestPermission1 to demonstrate multiple authentication schemes
-/// operating side-by-side. This pattern validates that each scheme correctly enforces its own
-/// requirements independently, preventing tokens intended for one scheme from accessing endpoints
-/// protected by the other scheme.
+/// The class works in conjunction with TestPermission1 and TestPermission2 to create a test environment with
+/// multiple authorization schemes, allowing tests to verify the correct scheme is enforced
+/// for each protected endpoint. This ensures that authentication, audience validation, and
+/// role-based access control are properly implemented and enforced.
+///
+/// TestPermission1 and TestPermission2 each represent a distinct authentication scheme,
+/// differentiated by their JwtBearerScheme, Audience, Issuer, and RequiredRoles. This setup allows for comprehensive
+/// testing of multi-scheme authentication scenarios.
+///
+/// - TestPermission1 uses "Bearer.trelnex-auth-amazon-tests-authentication-1" as its JwtBearerScheme,
+///   requires the "Audience.trelnex-auth-amazon-tests-authentication-1" audience,
+///   expects the "Issuer.trelnex-auth-amazon-tests-authentication-1" issuer,
+///   and enforces the "test.role.1" role.
+///
+/// - TestPermission2 uses "Bearer.trelnex-auth-amazon-tests-authentication-2" as its JwtBearerScheme,
+///   requires the "Audience.trelnex-auth-amazon-tests-authentication-2" audience,
+///   expects the "Issuer.trelnex-auth-amazon-tests-authentication-2" issuer,
+///   and enforces the "test.role.2a" or "test.role.2b" roles.
 ///
 /// Endpoints using this permission require tokens with audience "Audience.trelnex-auth-amazon-tests-authentication-2",
-/// issuer "Issuer.trelnex-auth-amazon-tests-authentication-2", and the "test.role.2" role.
+/// issuer "Issuer.trelnex-auth-amazon-tests-authentication-2", and the "test.role.2a" or "test.role.2b" role.
 /// </summary>
 internal class TestPermission2 : IPermission
 {
@@ -117,9 +131,9 @@ internal class TestPermission2 : IPermission
     /// Configures authorization policies for this permission by adding the TestRolePolicy.
     ///
     /// This method registers the nested TestRolePolicy with the authorization system, which
-    /// requires the "test.role.2" role for access. In BaseApiTests.cs, the /testRolePolicy2 endpoint
+    /// requires the "test.role.2a" or "test.role.2b" role for access. In BaseApiTests.cs, the /testRolePolicy2 endpoint
     /// is protected using RequirePermission&lt;TestPermission2.TestRolePolicy&gt;, enforcing
-    /// that only tokens containing the "test.role.2" role can access this endpoint.
+    /// that only tokens containing the "test.role.2a" or "test.role.2b" role can access this endpoint.
     ///
     /// This creates a clear separation between endpoints protected by TestPermission1 (which require
     /// the "test.role.1" role) and those protected by TestPermission2, allowing AuthenticationTests
@@ -185,37 +199,36 @@ internal class TestPermission2 : IPermission
     #region Nested Types
 
     /// <summary>
-    /// A test role-based permission policy that enforces the "test.role.2" role requirement.
+    /// A test role-based permission policy that enforces the "test.role.2a" or "test.role.2b" role requirement.
     ///
     /// This nested class implements IPermissionPolicy and defines the specific role requirement
-    /// for endpoints protected by TestPermission2. In BaseApiTests.cs, the /testRolePolicy2 endpoint
-    /// is protected with RequirePermission&lt;TestPermission2.TestRolePolicy&gt;, which enforces
+    /// for endpoints protected by TestPermission2. In BaseApiTests.cs, multiple endpoints are
+    /// protected with RequirePermission&lt;TestPermission2.TestRolePolicy&gt;, which enforces
     /// this policy.
     ///
-    /// The key distinction between this policy and TestPermission1.TestRolePolicy is the required role.
-    /// This policy requires "test.role.2" while TestPermission1.TestRolePolicy requires "test.role.1".
-    /// This difference allows the test framework to verify that:
+    /// When a request is made to these endpoints:
+    /// 1. The authentication system validates the token (signature, audience, issuer, etc.)
+    /// 2. This policy verifies that the token contains the "test.role.2a" or "test.role.2b" role
+    /// 3. Access is granted only if both validations pass
     ///
-    /// 1. Each policy correctly enforces its own role requirements
-    /// 2. A token with "test.role.1" cannot access endpoints protected by this policy
-    /// 3. A token with "test.role.2" cannot access endpoints protected by TestPermission1.TestRolePolicy
+    /// AuthenticationTests verifies this policy by testing:
+    /// - Tokens with the correct role (should succeed)
+    /// - Tokens with incorrect roles (should be rejected)
+    /// - Tokens with no roles (should be rejected)
     ///
-    /// AuthenticationTests uses this separation to validate proper role-based access control
-    /// across multiple authentication schemes.
+    /// This TestRolePolicy is intentionally different from TestPermission1.TestRolePolicy and TestPermission2.TestRolePolicy to
+    /// demonstrate separate access control for different endpoints.
     /// </summary>
     public class TestRolePolicy : IPermissionPolicy
     {
         /// <summary>
         /// Gets the roles required for authorization under this policy.
         ///
-        /// This property returns an array containing only "test.role.2", which means
-        /// that any JWT token must contain this exact role in its "roles" claim to
+        /// This property returns an array containing "test.role.2a" and "test.role.2b", which means
+        /// that any JWT token must contain one of these roles in its "roles" claim to
         /// be granted access to endpoints protected by this policy.
-        ///
-        /// The difference between this value and TestPermission1.TestRolePolicy.RequiredRoles
-        /// is intentional and central to testing proper role-based authorization.
         /// </summary>
-        public string[] RequiredRoles => ["test.role.2"];
+        public string[] RequiredRoles => ["test.role.2a", "test.role.2b"];
     }
 
     #endregion
