@@ -4,18 +4,50 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Tests;
 
+/// <summary>
+/// A test utility class for generating JWT tokens with specific claims, issuer, and algorithm for testing authentication and authorization scenarios.
+/// It allows tests to simulate different user roles, scopes, and audiences without relying on an external authentication server.
+/// </summary>
 internal class TestJwtProvider
 {
-    private readonly IJwtAlgorithm _jwtAlgorithm;
+    #region Private Fields
 
-    private readonly string _keyId;
-
-    private readonly string _issuer;
-
+    /// <summary>
+    /// The expiration time of the token in minutes.
+    /// </summary>
     private readonly int _expirationInMinutes;
 
+    /// <summary>
+    /// The issuer of the token.
+    /// </summary>
+    private readonly string _issuer;
+
+    /// <summary>
+    /// The JWT algorithm used to sign the token.
+    /// </summary>
+    private readonly IJwtAlgorithm _jwtAlgorithm;
+
+    /// <summary>
+    /// The key ID of the signing key.
+    /// </summary>
+    private readonly string _keyId;
+
+    /// <summary>
+    /// The refresh time of the token in minutes.
+    /// </summary>
     private readonly int _refreshInMinutes;
 
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestJwtProvider"/> class.
+    /// </summary>
+    /// <param name="jwtAlgorithm">The JWT algorithm used to sign the token.</param>
+    /// <param name="keyId">The key ID of the signing key.</param>
+    /// <param name="issuer">The issuer of the token.</param>
+    /// <param name="expirationInMinutes">The expiration time of the token in minutes.</param>
     public TestJwtProvider(
         IJwtAlgorithm jwtAlgorithm,
         string keyId,
@@ -26,68 +58,72 @@ internal class TestJwtProvider
         _keyId = keyId;
         _issuer = issuer;
 
-        // expiration is a minimum of 15 minutes
-        // refresh is 5 minutes before expiration
+        // Ensure expiration is a minimum of 15 minutes to avoid issues with clock skew.
+        // Refresh is set to 5 minutes before expiration to allow for token refresh before expiration.
         _expirationInMinutes = Math.Max(15, expirationInMinutes);
         _refreshInMinutes = _expirationInMinutes - 5;
     }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Encodes a jwt token for the specified caller identity.
+    /// Encodes a JWT token for the specified caller identity.
     /// </summary>
     /// <param name="audience">The audience of the token.</param>
-    /// <param name="principalId">The ARN of the caller.</param>
+    /// <param name="principalId">The principal ID of the caller.</param>
     /// <param name="scopes">The scopes of the token.</param>
     /// <param name="roles">The roles assigned to the caller identity to be encoded as the roles claim.</param>
-    /// <returns>The jwt token.</returns>
+    /// <returns>The JWT token.</returns>
     public AccessToken Encode(
         string audience,
         string principalId,
         string[] scopes,
         string[] roles)
     {
-        // create the jwt builder
+        // Create the JWT builder.
         var jwtBuilder = JwtBuilder
             .Create()
             .WithAlgorithm(_jwtAlgorithm)
-            .AddHeader(HeaderName.KeyId, _keyId);
+            .AddHeader(HeaderName.KeyId, _keyId); // Add the key ID to the header for key rotation.
 
-        // set the issuer
+        // Set the issuer.
         jwtBuilder.Issuer(_issuer);
 
-        // get the current date time
+        // Get the current date time.
         var dateTime = DateTime.UtcNow;
         var expiresOn = dateTime.AddMinutes(_expirationInMinutes);
         var refreshOn = dateTime.AddMinutes(_refreshInMinutes);
 
-        // set the issued at, not bofore, and expiration time
+        // Set the issued at, not before, and expiration time.
         jwtBuilder
             .IssuedAt(dateTime)
             .NotBefore(dateTime)
             .ExpirationTime(expiresOn);
 
-        // set the audience
+        // Set the audience.
         jwtBuilder.Audience(audience);
 
-        // add any scopes
+        // Add any scopes.
         if (scopes.Length > 0)
         {
             var scp = string.Join(" ", scopes);
-            jwtBuilder.AddClaim("scp", scp);
+            jwtBuilder.AddClaim("scp", scp); // "scp" is the standard claim name for scopes.
         }
 
-        // add any roles
+        // Add any roles.
         if (roles.Length > 0)
         {
-            jwtBuilder.AddClaim("roles", roles);
+            jwtBuilder.AddClaim("roles", roles); // "roles" is a custom claim name for roles.
         }
 
-        // add the principalId as the oid and sub claims
+        // Add the principalId as the oid and sub claims.
         jwtBuilder
-            .AddClaim("oid", principalId)
-            .AddClaim("sub", principalId);
+            .AddClaim("oid", principalId) // "oid" is the standard claim name for object ID.
+            .AddClaim("sub", principalId); // "sub" is the standard claim name for subject.
 
-        // encode the jwt token
+        // Encode the JWT token.
         var token = jwtBuilder.Encode();
 
         return new AccessToken()
@@ -98,4 +134,6 @@ internal class TestJwtProvider
             TokenType = "Bearer"
         };
     }
+
+    #endregion
 }

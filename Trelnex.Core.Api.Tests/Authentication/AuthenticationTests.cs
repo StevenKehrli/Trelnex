@@ -4,353 +4,402 @@ using Trelnex.Core.Api.Tests;
 
 namespace Trelnex.Core.Api.Authentication.Tests;
 
+[Category("Authentication")]
 public class AuthenticationTests : BaseApiTests
 {
     [Test]
-    public void Anonymous()
+    [Description("Tests the /anonymous endpoint, which should always succeed")]
+    public async Task Anonymous()
     {
+        // Create a request to the /anonymous endpoint
         var request = new HttpRequestMessage(HttpMethod.Get, "/anonymous");
-        var response = _httpClient.SendAsync(request).Result;
 
-        // this should succeed because there is no authentication or authorization
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response is successful and returns "anonymous"
         Assert.That(
-            response.Content.ReadAsStringAsync().Result,
+            await response.Content.ReadAsStringAsync(),
             Is.EqualTo("anonymous"));
     }
 
     [Test]
-    public void RequirePermission_Unauthorized_NoHeader_1()
+    [Description("Tests that /testRolePolicy1 requires authentication (no header)")]
+    public async Task RequirePermission_Unauthorized_NoHeader_1()
     {
-        // create the request without the authorization header
+        // Create a request to /testRolePolicy1 without the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-        var response = _httpClient.SendAsync(request).Result;
 
-        // this should fail because we have not set the authorization header
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response status code is Unauthorized
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
     [Test]
-    public void RequirePermission_Unauthorized_NoHeader_2()
+    [Description("Tests that /testRolePolicy2 requires authentication (no header)")]
+    public async Task RequirePermission_Unauthorized_NoHeader_2()
     {
-        // create the request without the authorization header
+        // Create a request to /testRolePolicy2 without the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-        var response = _httpClient.SendAsync(request).Result;
 
-        // this should fail because we have not set the authorization header
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response status code is Unauthorized
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_MissingScope_1()
+    [Description("Tests that /testRolePolicy1 returns Forbidden when missing scope")]
+    public async Task RequirePermission_Forbidden_MissingScope_1()
     {
-        // create a JWT token with a wrong scope
+        // Create a JWT token with a missing scope
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_1",
             scopes: [],
-            roles: [ "test.role.1" ]);
+            roles: ["test.role.1"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong scope
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_MissingScope_2()
+    [Description("Tests that /testRolePolicy2 returns Forbidden when missing scope")]
+    public async Task RequirePermission_Forbidden_MissingScope_2()
     {
-        // create a JWT token with a wrong scope
+        // Create a JWT token with a missing scope
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_2",
             scopes: [],
-            roles: [ "test.role.2" ]);
+            roles: ["test.role.2"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong scope
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_MissingRole_1()
+    [Description("Tests that /testRolePolicy1 returns Forbidden when missing role")]
+    public async Task RequirePermission_Forbidden_MissingRole_1()
     {
-        // create a JWT token with a missing role
+        // Create a JWT token with a missing role
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingRole_1",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: []);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong role
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_MissingRole_2()
+    [Description("Tests that /testRolePolicy2 returns Forbidden when missing role")]
+    public async Task RequirePermission_Forbidden_MissingRole_2()
     {
-        // create a JWT token with a missing role
+        // Create a JWT token with a missing role
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_MissingRole_2",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
             roles: []);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong role
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongAudience_1()
+    [Description("Tests that /testRolePolicy1 returns Unauthorized when wrong audience")]
+    public async Task RequirePermission_Forbidden_WrongAudience_1()
     {
-        // create a JWT token with a wrong audience
+        // Create a JWT token with a wrong audience
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongAudience_2",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
-            roles: [ "test.role.2" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
+            roles: ["test.role.2"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong audience
+        // Verify that the response status code is Unauthorized
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongAudience_2()
+    [Description("Tests that /testRolePolicy2 returns Unauthorized when wrong audience")]
+    public async Task RequirePermission_Forbidden_WrongAudience_2()
     {
-        // create a JWT token with a wrong audience
+        // Create a JWT token with a wrong audience
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongAudience_1",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
-            roles: [ "test.role.1" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
+            roles: ["test.role.1"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong audience
+        // Verify that the response status code is Unauthorized
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongScope_1()
+    [Description("Tests that /testRolePolicy1 returns Forbidden when wrong scope")]
+    public async Task RequirePermission_Forbidden_WrongScope_1()
     {
-        // create a JWT token with a wrong scope
+        // Create a JWT token with a wrong scope
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongScope_1",
-            scopes: [ "wrong.scope" ],
-            roles: [ "test.role.1" ]);
+            scopes: ["wrong.scope"],
+            roles: ["test.role.1"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong scope
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongScope_2()
+    [Description("Tests that /testRolePolicy2 returns Forbidden when wrong scope")]
+    public async Task RequirePermission_Forbidden_WrongScope_2()
     {
-        // create a JWT token with a wrong scope
+        // Create a JWT token with a wrong scope
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongScope_2",
-            scopes: [ "wrong.scope" ],
-            roles: [ "test.role.2" ]);
+            scopes: ["wrong.scope"],
+            roles: ["test.role.2"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong scope
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongRole_1()
+    [Description("Tests that /testRolePolicy1 returns Forbidden when wrong role")]
+    public async Task RequirePermission_Forbidden_WrongRole_1()
     {
-        // create a JWT token with a wrong role
+        // Create a JWT token with a wrong role
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongRole_1",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
-            roles: [ "wrong.role" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
+            roles: ["wrong.role"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong role
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Forbidden_WrongRole_2()
+    [Description("Tests that /testRolePolicy2 returns Forbidden when wrong role")]
+    public async Task RequirePermission_Forbidden_WrongRole_2()
     {
-        // create a JWT token with a wrong role
+        // Create a JWT token with a wrong role
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Forbidden_WrongRole_2",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
-            roles: [ "wrong.role" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
+            roles: ["wrong.role"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should fail because we have the wrong role
+        // Verify that the response status code is Forbidden
         Assert.That(
             response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     [Test]
-    public void RequirePermission_Response_1()
+    [Description("Tests that /testRolePolicy1 returns the correct response when authorized")]
+    public async Task RequirePermission_Response_1()
     {
+        // Create a JWT token with the correct claims, scopes, and roles
         var accessToken = _jwtProvider1.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
             principalId: "PrincipalId.RequirePermission_Response_1",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-1" ],
-            roles: [ "test.role.1" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
+            roles: ["test.role.1"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy1 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should succeed because we have set the authorization header
+        // Verify that the response is successful and returns the correct principal ID
         Assert.That(
-            response.Content.ReadAsStringAsync().Result,
+            await response.Content.ReadAsStringAsync(),
             Is.EqualTo("PrincipalId.RequirePermission_Response_1"));
     }
 
     [Test]
-    public void RequirePermission_Response_2()
+    [Description("Tests that /testRolePolicy2 returns the correct response when authorized")]
+    public async Task RequirePermission_Response_2()
     {
+        // Create a JWT token with the correct claims, scopes, and roles
         var accessToken = _jwtProvider2.Encode(
             audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
             principalId: "PrincipalId.RequirePermission_Response_2",
-            scopes: [ "Scope.trelnex-auth-amazon-tests-authentication-2" ],
-            roles: [ "test.role.2" ]);
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
+            roles: ["test.role.2"]);
 
+        // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(
             "Bearer",
             accessToken.Token);
 
+        // Create a request to /testRolePolicy2 with the authorization header
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
-
         request.Headers.Authorization = authorizationHeader;
 
-        var response = _httpClient.SendAsync(request).Result;
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
 
-        // this should succeed because we have set the authorization header
+        // Verify that the response is successful and returns the correct principal ID
         Assert.That(
-            response.Content.ReadAsStringAsync().Result,
+            await response.Content.ReadAsStringAsync(),
             Is.EqualTo("PrincipalId.RequirePermission_Response_2"));
     }
 }

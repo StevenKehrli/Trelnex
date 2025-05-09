@@ -8,15 +8,17 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Api.Tests.CommandProviders;
 
+[Category("InMemoryCommandProviderExtensions")]
 public class InMemoryCommandProviderExtensionsTests
 {
     [Test]
+    [Description("Tests that adding the InMemoryCommandProvider twice throws an exception")]
     public void InMemoryCommandProvider_AlreadyRegistered()
     {
-        // create the service collection
+        // Create a new service collection
         var services = new ServiceCollection();
 
-        // create the test configuration
+        // Create the test configuration
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
@@ -31,7 +33,7 @@ public class InMemoryCommandProviderExtensionsTests
                 Description = "InMemoryCommandProviderExtensionsTests",
             });
 
-        // add twice
+        // Verify that adding the InMemoryCommandProviders twice throws an InvalidOperationException
         Assert.Throws<InvalidOperationException>(() =>
         {
             services.AddInMemoryCommandProviders(
