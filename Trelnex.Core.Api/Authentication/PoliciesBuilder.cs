@@ -88,9 +88,7 @@ internal class PoliciesBuilder(
                 {
                     policyBuilder.AuthenticationSchemes = [securityDefinition.JwtBearerScheme];
                     policyBuilder.RequireClaim(ClaimConstants.Scope, securityDefinition.Scope);
-                    Array.ForEach(
-                        policyContainer.Policy.RequiredRoles,
-                        r => policyBuilder.RequireRole(r));
+                    policyBuilder.RequireRole(policyContainer.Policy.RequiredRoles);
                 });
         });
     }
