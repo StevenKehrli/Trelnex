@@ -41,9 +41,9 @@ internal partial class PostgresCommandProvider<TInterface, TItem> : DbCommandPro
     protected override bool IsPrimaryKeyViolationException(Exception ex) =>
         ex is PostgresException pgEx && PrimaryKeyViolationRegex().IsMatch(pgEx.Message);
 
-    [GeneratedRegex(@"^23505: duplicate key value violates unique constraint")]
+    [GeneratedRegex(@"^\d{5}: duplicate key value violates unique constraint")]
     private static partial Regex PrimaryKeyViolationRegex();
 
-    [GeneratedRegex(@"^23514: Precondition Failed.$")]
+    [GeneratedRegex(@"^\d{5}: Precondition Failed.$")]
     private static partial Regex PreconditionFailedRegex();
 }

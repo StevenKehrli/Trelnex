@@ -12,10 +12,10 @@ namespace Trelnex.Core.Azure.Tests.CommandProviders;
 /// in the dependency injection container.
 /// </summary>
 /// <remarks>
-/// This class inherits from <see cref="CosmosCommandProviderTestBase"/> to leverage the shared 
-/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage 
+/// This class inherits from <see cref="CosmosCommandProviderTestBase"/> to leverage the shared
+/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
-/// 
+///
 /// This class focuses on testing the extension methods for DI registration rather than
 /// direct factory instantiation. It also adds an additional test for duplicate registration handling.
 ///

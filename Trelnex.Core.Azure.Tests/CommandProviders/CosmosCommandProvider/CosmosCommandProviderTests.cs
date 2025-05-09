@@ -8,10 +8,10 @@ namespace Trelnex.Core.Azure.Tests.CommandProviders;
 /// Tests for the CosmosCommandProvider implementation using direct factory instantiation.
 /// </summary>
 /// <remarks>
-/// This class inherits from <see cref="CosmosCommandProviderTestBase"/> to leverage the shared 
-/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage 
+/// This class inherits from <see cref="CosmosCommandProviderTestBase"/> to leverage the shared
+/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
-/// 
+///
 /// This approach tests the factory pattern and provider implementation directly.
 ///
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance

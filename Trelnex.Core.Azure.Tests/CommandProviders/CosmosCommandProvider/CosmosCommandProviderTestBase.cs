@@ -22,25 +22,25 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
     /// The CosmosDB container used for testing.
     /// </summary>
     protected Container _container = null!;
-    
+
     /// <summary>
     /// The endpoint URI for the Cosmos DB account.
     /// </summary>
     /// <example>https://cosmosdb-account.documents.azure.com:443/</example>
     protected string _endpointUri = null!;
-    
+
     /// <summary>
     /// The database ID for the Cosmos DB database.
     /// </summary>
     /// <example>trelnex-core-data-tests</example>
     protected string _databaseId = null!;
-    
+
     /// <summary>
     /// The container ID for the Cosmos DB container.
     /// </summary>
     /// <example>test-items</example>
     protected string _containerId = null!;
-    
+
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
     /// </summary>
@@ -101,7 +101,7 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
         _container = cosmosClient.GetContainer(
             databaseId: _databaseId,
             containerId: _containerId);
-            
+
         return configuration;
     }
 
