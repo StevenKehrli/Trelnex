@@ -5,8 +5,17 @@ namespace Trelnex.Core.Api.Tests;
 
 /// <summary>
 /// A test client that inherits from <see cref="BaseClient"/> and is used to test API endpoints.
-/// It provides methods for making HTTP requests to specific test endpoints, such as /delete1, /get1, etc.
-/// The client uses a provided <see cref="HttpClient"/> and <see cref="IAccessTokenProvider"/> for making authenticated requests.
+///
+/// This client provides methods for making HTTP requests to specific test endpoints defined in
+/// BaseApiTests.cs, such as /delete1, /get1, etc. Each method corresponds to a different HTTP
+/// method (GET, POST, PUT, DELETE, PATCH) and deserializes the response into a <see cref="TestResponse"/> object.
+///
+/// The TestResponse objects returned by these endpoints have a Message property containing a unique
+/// identifier string that allows tests to verify they received the expected response from the correct endpoint.
+/// The client methods are used by ClientTests.cs to test both authentication and HTTP method handling.
+///
+/// The client uses a provided <see cref="HttpClient"/> and <see cref="IAccessTokenProvider"/> for making
+/// authenticated requests, allowing tests to verify both authorized and unauthorized scenarios.
 /// </summary>
 internal class TestClient1(
     HttpClient httpClient,
@@ -16,7 +25,7 @@ internal class TestClient1(
     /// <summary>
     /// Sends a DELETE request to the /delete1 endpoint.
     /// </summary>
-    /// <returns>A <see cref="TestResponse"/> from the /delete1 endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value of "delete1" to verify the endpoint.</returns>
     public async Task<TestResponse> Delete()
     {
         // Append "/delete1" to the base address and send the DELETE request.
@@ -27,7 +36,7 @@ internal class TestClient1(
     /// <summary>
     /// Sends a GET request to the /get1 endpoint.
     /// </summary>
-    /// <returns>A <see cref="TestResponse"/> from the /get1 endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value of "get1" to verify the endpoint.</returns>
     public async Task<TestResponse> Get()
     {
         // Append "/get1" to the base address and send the GET request.
@@ -38,7 +47,7 @@ internal class TestClient1(
     /// <summary>
     /// Sends a PATCH request to the /patch1 endpoint.
     /// </summary>
-    /// <returns>A <see cref="TestResponse"/> from the /patch1 endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value of "patch1" to verify the endpoint.</returns>
     public async Task<TestResponse> Patch()
     {
         // Append "/patch1" to the base address and send the PATCH request with no content.
@@ -50,7 +59,7 @@ internal class TestClient1(
     /// <summary>
     /// Sends a POST request to the /post1 endpoint.
     /// </summary>
-    /// <returns>A <see cref="TestResponse"/> from the /post1 endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value of "post1" to verify the endpoint.</returns>
     public async Task<TestResponse> Post()
     {
         // Append "/post1" to the base address and send the POST request with no content.
@@ -62,7 +71,7 @@ internal class TestClient1(
     /// <summary>
     /// Sends a PUT request to the /put1 endpoint.
     /// </summary>
-    /// <returns>A <see cref="TestResponse"/> from the /put1 endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value of "put1" to verify the endpoint.</returns>
     public async Task<TestResponse> Put()
     {
         // Append "/put1" to the base address and send the PUT request with no content.
@@ -75,7 +84,8 @@ internal class TestClient1(
     /// Sends a GET request to the /queryString endpoint with a query string parameter.
     /// </summary>
     /// <param name="value">The value to pass as a query string parameter.</param>
-    /// <returns>A <see cref="TestResponse"/> from the /queryString endpoint.</returns>
+    /// <returns>A <see cref="TestResponse"/> with a Message property value matching the input parameter,
+    /// demonstrating that query string parameters are correctly received and processed.</returns>
     public async Task<TestResponse> QueryString(
         string value)
     {

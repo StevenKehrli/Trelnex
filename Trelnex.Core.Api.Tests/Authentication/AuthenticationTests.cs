@@ -59,12 +59,13 @@ public class AuthenticationTests : BaseApiTests
     [Description("Tests that /testRolePolicy1 returns Forbidden when missing scope")]
     public async Task RequirePermission_Forbidden_MissingScope_1()
     {
-        // Create a JWT token with a missing scope
+        // Create a JWT token with the correct audience and role but missing scope
+        // This tests that endpoints properly enforce scope requirements (should return 403 Forbidden)
         var accessToken = _jwtProvider1.Encode(
-            audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
-            principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_1",
-            scopes: [],
-            roles: ["test.role.1"]);
+            audience: "Audience.trelnex-auth-amazon-tests-authentication-1", // Correct audience for TestPermission1
+            principalId: "PrincipalId.RequirePermission_Forbidden_MissingScope_1", // Identifying user ID
+            scopes: [], // Empty scopes array - this should cause authorization to fail
+            roles: ["test.role.1"]); // Correct role for TestPermission1.TestRolePolicy
 
         // Create an authorization header with the JWT token
         var authorizationHeader = new AuthenticationHeaderValue(

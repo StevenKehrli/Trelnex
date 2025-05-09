@@ -2,6 +2,18 @@ using Trelnex.Core.Api.Tests;
 
 namespace Trelnex.Core.Api.Client.Tests;
 
+/// <summary>
+/// Tests for the TestClient1 class that verify HTTP method behaviors and proper response handling.
+///
+/// These tests ensure that the TestClient1 methods correctly call the corresponding endpoints
+/// defined in BaseApiTests.cs and properly deserialize the responses into TestResponse objects.
+/// Each test verifies the correct TestResponse.Message value is received, confirming that:
+/// 1. The request was sent to the correct endpoint
+/// 2. Authentication was properly handled
+/// 3. The response was correctly deserialized
+///
+/// The TestResponse pattern allows for consistent verification across different HTTP methods.
+/// </summary>
 [Category("Client")]
 public class ClientTests : BaseApiTests
 {
@@ -18,10 +30,11 @@ public class ClientTests : BaseApiTests
             scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: ["test.role.1"]);
 
-        // Set up the access token provider with the encoded token
+        // Create a TestAccessTokenProvider that will supply the token to the client
+        // This bridges between the token generation (TestJwtProvider) and the client authentication
         var accessTokenProvider = new TestAccessTokenProvider(
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            accessToken: accessToken);
+            scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
+            accessToken: accessToken); // The pre-generated token with necessary claims
 
         // Create the test client with the http client and access token provider
         var testClient = new TestClient1(
@@ -31,7 +44,8 @@ public class ClientTests : BaseApiTests
         // Call the Delete method on the test client
         var response = await testClient.Delete();
 
-        // Verify that the message in the response is equal to "delete1"
+        // Verify that the message in the TestResponse is equal to "delete1"
+        // This confirms the response came from the /delete1 endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("delete1"));
@@ -48,10 +62,11 @@ public class ClientTests : BaseApiTests
             scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: ["test.role.1"]);
 
-        // Set up the access token provider with the encoded token
+        // Create a TestAccessTokenProvider that will supply the token to the client
+        // This bridges between the token generation (TestJwtProvider) and the client authentication
         var accessTokenProvider = new TestAccessTokenProvider(
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            accessToken: accessToken);
+            scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
+            accessToken: accessToken); // The pre-generated token with necessary claims
 
         // Create the test client with the http client and access token provider
         var testClient = new TestClient1(
@@ -61,7 +76,8 @@ public class ClientTests : BaseApiTests
         // Call the Get method on the test client
         var response = await testClient.Get();
 
-        // Verify that the message in the response is equal to "get1"
+        // Verify that the message in the TestResponse is equal to "get1"
+        // This confirms the response came from the /get1 endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("get1"));
@@ -71,8 +87,10 @@ public class ClientTests : BaseApiTests
     [Description("Tests the GetQueryString method of the TestClient")]
     public async Task Client_GetQueryString()
     {
-        // Create the test client with the http client and a null access token provider
-        // because this method does not require authorization
+        // Create the test client with a null access token provider since
+        // this endpoint doesn't require authentication. This demonstrates how
+        // TestClient1/BaseClient can handle both authenticated and unauthenticated requests,
+        // and shows that TestAccessTokenProvider is only needed for protected endpoints.
         var testClient = new TestClient1(
             httpClient: _httpClient,
             accessTokenProvider: null!);
@@ -80,7 +98,8 @@ public class ClientTests : BaseApiTests
         // Call the QueryString method on the test client
         var response = await testClient.QueryString("value");
 
-        // Verify that the message in the response is equal to "value"
+        // Verify that the message in the TestResponse is equal to "value"
+        // This confirms the query string parameter was correctly passed to and processed by the endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("value"));
@@ -97,10 +116,11 @@ public class ClientTests : BaseApiTests
             scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: ["test.role.1"]);
 
-        // Set up the access token provider with the encoded token
+        // Create a TestAccessTokenProvider that will supply the token to the client
+        // This bridges between the token generation (TestJwtProvider) and the client authentication
         var accessTokenProvider = new TestAccessTokenProvider(
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            accessToken: accessToken);
+            scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
+            accessToken: accessToken); // The pre-generated token with necessary claims
 
         // Create the test client with the http client and access token provider
         var testClient = new TestClient1(
@@ -110,7 +130,8 @@ public class ClientTests : BaseApiTests
         // Call the Patch method on the test client
         var response = await testClient.Patch();
 
-        // Verify that the message in the response is equal to "patch1"
+        // Verify that the message in the TestResponse is equal to "patch1"
+        // This confirms the response came from the /patch1 endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("patch1"));
@@ -127,10 +148,11 @@ public class ClientTests : BaseApiTests
             scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: ["test.role.1"]);
 
-        // Set up the access token provider with the encoded token
+        // Create a TestAccessTokenProvider that will supply the token to the client
+        // This bridges between the token generation (TestJwtProvider) and the client authentication
         var accessTokenProvider = new TestAccessTokenProvider(
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            accessToken: accessToken);
+            scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
+            accessToken: accessToken); // The pre-generated token with necessary claims
 
         // Create the test client with the http client and access token provider
         var testClient = new TestClient1(
@@ -140,7 +162,8 @@ public class ClientTests : BaseApiTests
         // Call the Post method on the test client
         var response = await testClient.Post();
 
-        // Verify that the message in the response is equal to "post1"
+        // Verify that the message in the TestResponse is equal to "post1"
+        // This confirms the response came from the /post1 endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("post1"));
@@ -157,10 +180,11 @@ public class ClientTests : BaseApiTests
             scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
             roles: ["test.role.1"]);
 
-        // Set up the access token provider with the encoded token
+        // Create a TestAccessTokenProvider that will supply the token to the client
+        // This bridges between the token generation (TestJwtProvider) and the client authentication
         var accessTokenProvider = new TestAccessTokenProvider(
-            scope: "Scope.trelnex-auth-amazon-tests-authentication-1",
-            accessToken: accessToken);
+            scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
+            accessToken: accessToken); // The pre-generated token with necessary claims
 
         // Create the test client with the http client and access token provider
         var testClient = new TestClient1(
@@ -170,7 +194,8 @@ public class ClientTests : BaseApiTests
         // Call the Put method on the test client
         var response = await testClient.Put();
 
-        // Verify that the message in the response is equal to "put1"
+        // Verify that the message in the TestResponse is equal to "put1"
+        // This confirms the response came from the /put1 endpoint
         Assert.That(
             response?.Message,
             Is.EqualTo("put1"));
