@@ -34,10 +34,15 @@ public class HealthChecksTests : BaseApiTests
                             fieldOption.Field<string>("duration"),
                             Is.Not.Default);
 
-                        // into[*].duration
+                        // into[0].duration
                         Assert.That(
-                            fieldOption.Field<string>("info[*].duration"),
-                            Has.All.Not.Default.And.Not.Empty);
+                            fieldOption.Field<string>("info[0].duration"),
+                            Is.Not.Default);
+
+                        // into[1].duration
+                        Assert.That(
+                            fieldOption.Field<string>("info[1].duration"),
+                            Is.Not.Default);
                     });
                 }));
     }
