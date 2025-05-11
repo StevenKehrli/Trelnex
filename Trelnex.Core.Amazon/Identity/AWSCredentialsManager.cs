@@ -20,8 +20,7 @@ namespace Trelnex.Core.Amazon.Identity;
 /// </remarks>
 public class AWSCredentialsManager
 {
-
-#region Private Fields
+    #region Private Fields
 
     /// <summary>
     /// Client for requesting access tokens.
@@ -85,17 +84,17 @@ public class AWSCredentialsManager
         AmazonCredentialOptions options)
     {
         // Create the AWS credentials with automatic refresh
-        var credentials = CreateAWSCredentials(logger);
+        var awsCredentials = CreateAWSCredentials(logger);
 
         // Create the Security Token Service client with the specified region
         var regionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
 
-        var clientConfig = new AmazonSecurityTokenServiceConfig
+        var stsClientConfig = new AmazonSecurityTokenServiceConfig
         {
             RegionEndpoint = regionEndpoint,
         };
 
-        var stsClient = new AmazonSecurityTokenServiceClient(credentials, clientConfig);
+        var stsClient = new AmazonSecurityTokenServiceClient(awsCredentials, stsClientConfig);
 
         // Get the caller identity (AWS principal)
         var request = new GetCallerIdentityRequest();
@@ -147,8 +146,8 @@ public class AWSCredentialsManager
         marshalledRequest.Endpoint = new Uri(endpoint.URL);
 
         // Create an AWS SigV4 signer and sign the request
-        var signer = new AWS4Signer();
-        signer.Sign(
+        var awsSigner = new AWS4Signer();
+        awsSigner.Sign(
             request: marshalledRequest,
             clientConfig: _stsClient.Config,
             metrics: null,
@@ -186,18 +185,18 @@ public class AWSCredentialsManager
         ILogger logger)
     {
         // Get the default AWS credentials
-        var credentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
+        var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         // For refreshing credentials, wrap them to ensure timely refresh
-        if (credentials is RefreshingAWSCredentials refreshingAWSCredentials)
+        if (awsCredentials is RefreshingAWSCredentials refreshingAWSCredentials)
         {
             return RefreshingCredentials.Create(logger, refreshingAWSCredentials);
         }
 
         // For other credential types, initialize them and return
-        _ = credentials.GetCredentials();
+        _ = awsCredentials.GetCredentials();
 
-        return credentials;
+        return awsCredentials;
     }
 
     #endregion
@@ -247,7 +246,7 @@ public class AWSCredentialsManager
         /// <summary>
         /// The timer used to schedule credential refresh.
         /// </summary>
-        private readonly Timer _timer;
+        private readonly Timer _refreshTimer;
 
         #endregion
 
@@ -266,7 +265,7 @@ public class AWSCredentialsManager
             _refreshingAWSCredentials = refreshingAWSCredentials;
 
             // Create a timer but don't start it yet
-            _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _refreshTimer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
         #endregion
@@ -366,7 +365,7 @@ public class AWSCredentialsManager
             var dueTime = refreshOn - DateTime.UtcNow;
 
             // Schedule the next refresh
-            _timer.Change(
+            _refreshTimer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
         }

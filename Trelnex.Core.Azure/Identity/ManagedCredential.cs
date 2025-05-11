@@ -38,6 +38,8 @@ internal class ManagedCredential(
     TokenCredential tokenCredential)
     : TokenCredential, ICredential
 {
+    #region Private Fields
+
     /// <summary>
     /// A thread-safe cache of token items indexed by their request contexts.
     /// </summary>
@@ -53,7 +55,9 @@ internal class ManagedCredential(
     /// </remarks>
     private readonly ConcurrentDictionary<TokenRequestContextKey, Lazy<AzureTokenItem>> _azureTokenItemsByTokenRequestContextKey = new();
 
-#region TokenCredential Implementation
+    #endregion
+
+    #region TokenCredential
 
     /// <summary>
     /// Gets an access token for the specified context.
@@ -117,9 +121,9 @@ internal class ManagedCredential(
             GetToken(tokenRequestContext, cancellationToken));
     }
 
-#endregion
+    #endregion
 
-#region ICredential Implementation
+    #region ICredential
 
     /// <summary>
     /// Gets a Trelnex access token for the specified scope.
@@ -197,7 +201,9 @@ internal class ManagedCredential(
             Statuses: statuses ?? []);
     }
 
-#endregion
+    #endregion
+
+    #region TokenRequestContextKey
 
     /// <summary>
     /// A reference-type wrapper for <see cref="TokenRequestContext"/> that serves as a key for caching tokens.
@@ -218,6 +224,8 @@ internal class ManagedCredential(
         string[] scopes,
         string? tenantId)
     {
+        #region Public Properties
+
         /// <summary>
         /// Gets the additional claims to be included in the token.
         /// </summary>
@@ -257,6 +265,10 @@ internal class ManagedCredential(
         /// </value>
         public string? TenantId => tenantId;
 
+        #endregion
+
+        #region Public Static Methods
+
         /// <summary>
         /// Creates a <see cref="TokenRequestContextKey"/> from a <see cref="TokenRequestContext"/>.
         /// </summary>
@@ -272,6 +284,10 @@ internal class ManagedCredential(
                 scopes: tokenRequestContext.Scopes,
                 tenantId: tokenRequestContext.TenantId);
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Converts this <see cref="TokenRequestContextKey"/> back to a <see cref="TokenRequestContext"/>.
@@ -293,7 +309,8 @@ internal class ManagedCredential(
         /// <param name="obj">The object to compare with the current key.</param>
         /// <returns><c>true</c> if the specified object is a <see cref="TokenRequestContextKey"/> and
         /// has the same property values; otherwise, <c>false</c>.</returns>
-        public override bool Equals(object? obj)
+        public override bool Equals(
+            object? obj)
         {
             // Check if the object is null or of a different type.
             return (obj is TokenRequestContextKey other) && Equals(other);
@@ -335,7 +352,13 @@ internal class ManagedCredential(
 
             return hashCode;
         }
+
+        #endregion
     }
+
+    #endregion
+
+    #region AzureTokenItem
 
     /// <summary>
     /// Manages an Azure access token with automatic refresh capabilities.
@@ -353,6 +376,8 @@ internal class ManagedCredential(
     /// </remarks>
     private class AzureTokenItem
     {
+        #region Private Fields
+
         /// <summary>
         /// The logger used for diagnostic information.
         /// </summary>
@@ -388,6 +413,10 @@ internal class ManagedCredential(
         /// </summary>
         private Exception? _unavailableInnerException;
 
+        #endregion
+
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AzureTokenItem"/> class.
         /// </summary>
@@ -406,6 +435,10 @@ internal class ManagedCredential(
             // Create a timer but don't start it yet.
             _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
+
+        #endregion
+
+        #region Public Static Methods
 
         /// <summary>
         /// Creates and initializes a new <see cref="AzureTokenItem"/> instance.
@@ -431,6 +464,10 @@ internal class ManagedCredential(
 
             return azureTokenItem;
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Gets the current access token.
@@ -476,11 +513,16 @@ internal class ManagedCredential(
             }
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
         /// Refreshes the access token and schedules the next refresh.
         /// </summary>
         /// <param name="state">The state object passed by the Timer (not used).</param>
-        private void Refresh(object? state)
+        private void Refresh(
+            object? state)
         {
             // Log the refresh attempt.
             _logger.LogInformation(
@@ -577,5 +619,9 @@ internal class ManagedCredential(
                 _unavailableInnerException = ex.InnerException;
             }
         }
+
+        #endregion
     }
+
+    #endregion
 }

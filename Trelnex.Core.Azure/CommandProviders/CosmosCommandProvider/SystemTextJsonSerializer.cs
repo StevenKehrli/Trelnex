@@ -15,10 +15,16 @@ internal class SystemTextJsonSerializer(
     JsonSerializerOptions options)
     : CosmosLinqSerializer
 {
+    #region Private Fields
+
     /// <summary>
     /// The underlying JSON serializer.
     /// </summary>
-    private readonly JsonObjectSerializer _serializer = new(options);
+    private readonly JsonObjectSerializer _jsonObjectSerializer = new(options);
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Deserializes a stream into an object of the specified type.
@@ -35,29 +41,8 @@ internal class SystemTextJsonSerializer(
         // Deserialize the stream using the underlying serializer.
         using (stream)
         {
-            return (T)(_serializer.Deserialize(stream, typeof(T), default)!);
+            return (T)_jsonObjectSerializer.Deserialize(stream, typeof(T), default)!;
         }
-    }
-
-    /// <summary>
-    /// Serializes an object into a stream.
-    /// </summary>
-    /// <typeparam name="T">The type of object to serialize.</typeparam>
-    /// <param name="input">The object to serialize.</param>
-    /// <returns>A stream containing the serialized JSON data.</returns>
-    public override Stream ToStream<T>(
-        T input)
-    {
-        // Create a memory stream to hold the serialized data.
-        var ms = new MemoryStream();
-
-        // Serialize the input object to the memory stream.
-        _serializer.Serialize(ms, input, input.GetType(), default);
-
-        // Reset the stream position to the beginning.
-        ms.Position = 0;
-
-        return ms;
     }
 
     /// <summary>
@@ -83,4 +68,27 @@ internal class SystemTextJsonSerializer(
 
         return memberName;
     }
+
+    /// <summary>
+    /// Serializes an object into a stream.
+    /// </summary>
+    /// <typeparam name="T">The type of object to serialize.</typeparam>
+    /// <param name="item">The object to serialize.</param>
+    /// <returns>A stream containing the serialized JSON data.</returns>
+    public override Stream ToStream<T>(
+        T item)
+    {
+        // Create a memory stream to hold the serialized data.
+        var memoryStream = new MemoryStream();
+
+        // Serialize the input object to the memory stream.
+        _jsonObjectSerializer.Serialize(memoryStream, item, item.GetType(), default);
+
+        // Reset the stream position to the beginning.
+        memoryStream.Position = 0;
+
+        return memoryStream;
+    }
+
+    #endregion
 }

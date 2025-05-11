@@ -14,7 +14,8 @@ namespace Trelnex.Core.Amazon.CommandProviders;
 /// <remarks>
 /// Provides PostgreSQL-specific exception handling.
 /// </remarks>
-internal partial class PostgresCommandProvider<TInterface, TItem> : DbCommandProvider<TInterface, TItem>
+internal partial class PostgresCommandProvider<TInterface, TItem>
+    : DbCommandProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {

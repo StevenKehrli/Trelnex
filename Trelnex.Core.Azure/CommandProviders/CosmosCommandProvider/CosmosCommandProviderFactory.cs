@@ -17,6 +17,8 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <remarks>Manages CosmosDB client initialization, connection, encryption setup, and provider creation.</remarks>
 internal class CosmosCommandProviderFactory : ICommandProviderFactory
 {
+    #region Private Fields
+
     /// <summary>
     /// The configured Cosmos DB client.
     /// </summary>
@@ -31,6 +33,10 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// Function to retrieve the current operational status.
     /// </summary>
     private readonly Func<CommandProviderFactoryStatus> _getStatus;
+
+    #endregion
+
+    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CosmosCommandProviderFactory"/> class.
@@ -47,6 +53,10 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
         _databaseId = databaseId;
         _getStatus = getStatus;
     }
+
+    #endregion
+
+    #region Public Static Methods
 
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="CosmosCommandProviderFactory"/>.
@@ -156,9 +166,9 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
                     IsHealthy: 0 == missingContainerIds.Count,
                     Data: data);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                data["error"] = ex.Message;
+                data["error"] = exception.Message;
 
                 return new CommandProviderFactoryStatus(
                     IsHealthy: false,
@@ -166,12 +176,12 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
             }
         }
 
-        var status = getStatus();
-        if (status.IsHealthy is false)
+        var factoryStatus = getStatus();
+        if (factoryStatus.IsHealthy is false)
         {
             throw new CommandException(
                 HttpStatusCode.ServiceUnavailable,
-                status.Data["error"] as string);
+                factoryStatus.Data["error"] as string);
         }
 
         return new CosmosCommandProviderFactory(
@@ -179,6 +189,10 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
             cosmosClientOptions.DatabaseId,
             getStatus);
     }
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Creates a command provider for a specific item type.
@@ -217,4 +231,6 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     /// <returns>Status information including connectivity and container availability.</returns>
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
+
+    #endregion
 }

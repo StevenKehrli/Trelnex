@@ -17,6 +17,8 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <remarks>Provides dependency injection integration for Cosmos DB command providers.</remarks>
 public static class CosmosCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds Cosmos DB command providers to the service collection.
     /// </summary>
@@ -70,6 +72,10 @@ public static class CosmosCommandProvidersExtensions
 
         return services;
     }
+
+    #endregion
+
+    #region Private Static Methods
 
     /// <summary>
     /// Creates Cosmos DB client options with properly configured authentication.
@@ -133,6 +139,10 @@ public static class CosmosCommandProvidersExtensions
             TokenCredential: tokenCredential);
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
     /// <summary>
     /// Implementation of <see cref="ICommandProviderOptions"/> for configuring Cosmos DB providers.
     /// </summary>
@@ -144,6 +154,8 @@ public static class CosmosCommandProvidersExtensions
         CosmosCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        #region Public Methods
+
         /// <summary>
         /// Registers a command provider for a specific item type with container mapping.
         /// </summary>
@@ -208,7 +220,13 @@ public static class CosmosCommandProvidersExtensions
 
             return this;
         }
+
+        #endregion
     }
+
+    #endregion
+
+    #region Configuration Records
 
     /// <summary>
     /// Container configuration mapping type names to container IDs.
@@ -251,6 +269,10 @@ public static class CosmosCommandProvidersExtensions
         public required ContainerConfiguration[] Containers { get; init; }
     }
 
+    #endregion
+
+    #region Provider Options
+
     /// <summary>
     /// Runtime options for Cosmos DB command providers.
     /// </summary>
@@ -263,10 +285,16 @@ public static class CosmosCommandProvidersExtensions
         string endpointUri,
         string databaseId)
     {
+        #region Private Fields
+
         /// <summary>
         /// The mappings from type names to container IDs.
         /// </summary>
         private readonly Dictionary<string, string> _containerIdsByTypeName = [];
+
+        #endregion
+
+        #region Public Static Methods
 
         /// <summary>
         /// Parses configuration into a validated options object.
@@ -279,7 +307,7 @@ public static class CosmosCommandProvidersExtensions
             CosmosCommandProviderConfiguration providerConfiguration)
         {
             // Get the tenant, endpoint, and database
-            var options = new CosmosCommandProviderOptions(
+            var providerOptions = new CosmosCommandProviderOptions(
                 tenantId: providerConfiguration.TenantId,
                 endpointUri: providerConfiguration.EndpointUri,
                 databaseId: providerConfiguration.DatabaseId);
@@ -312,12 +340,16 @@ public static class CosmosCommandProvidersExtensions
             Array.ForEach(groups, group =>
             {
                 // Extract the single container ID for this type name and add it to the lookup dictionary.
-                options._containerIdsByTypeName[group.Key] = group.Single().ContainerId;
+                providerOptions._containerIdsByTypeName[group.Key] = group.Single().ContainerId;
             });
 
             // Return the fully initialized and validated options object for use in creating providers.
-            return options;
+            return providerOptions;
         }
+
+        #endregion
+
+        #region Public Properties
 
         /// <summary>
         /// Gets the database ID.
@@ -333,6 +365,10 @@ public static class CosmosCommandProvidersExtensions
         /// Gets the Azure tenant ID.
         /// </summary>
         public string TenantId => tenantId;
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Gets the container ID for a specified type name.
@@ -360,5 +396,9 @@ public static class CosmosCommandProvidersExtensions
                 .OrderBy(c => c)
                 .ToArray();
         }
+
+        #endregion
     }
+
+    #endregion
 }

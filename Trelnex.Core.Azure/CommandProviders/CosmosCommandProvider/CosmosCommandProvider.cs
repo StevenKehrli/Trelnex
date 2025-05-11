@@ -21,6 +21,60 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Protected Methods
+
+    /// <summary>
+    /// Creates a queryable for Cosmos DB that filters by type name and deleted status.
+    /// </summary>
+    /// <returns>An <see cref="IQueryable{TItem}"/> for the container.</returns>
+    /// <remarks>Adds standard predicate filters.</remarks>
+    protected override IQueryable<TItem> CreateQueryable()
+    {
+        // Add typeName and isDeleted predicates
+        return container
+            .GetItemLinqQueryable<TItem>()
+            .Where(item => item.TypeName == TypeName)
+            .Where(item => item.IsDeleted.IsDefined() == false || item.IsDeleted == false);
+    }
+
+    /// <summary>
+    /// Executes a query against Cosmos DB and returns the results.
+    /// </summary>
+    /// <param name="queryable">The queryable to execute.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>An enumerable of items matching the query.</returns>
+    /// <exception cref="CommandException">When a Cosmos DB exception occurs during query execution.</exception>
+    /// <remarks>Uses the Cosmos DB feed iterator to page through results.</remarks>
+    protected override IEnumerable<TItem> ExecuteQueryable(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        // Get the feed iterator
+        var feedIterator = queryable.ToFeedIterator();
+
+        // Iterate through results
+        while (feedIterator.HasMoreResults)
+        {
+            FeedResponse<TItem>? feedResponse = null;
+
+            try
+            {
+                // This is where cosmos will throw
+                feedResponse = feedIterator.ReadNextAsync(cancellationToken).GetAwaiter().GetResult();
+            }
+            catch (CosmosException exception)
+            {
+                throw new CommandException(exception.StatusCode);
+            }
+
+            // Yield each item
+            foreach (var item in feedResponse)
+            {
+                yield return item;
+            }
+        }
+    }
+
     /// <summary>
     /// Reads an item from the Cosmos DB container.
     /// </summary>
@@ -42,13 +96,13 @@ internal class CosmosCommandProvider<TInterface, TItem>(
                 partitionKey: new PartitionKey(partitionKey),
                 cancellationToken: cancellationToken);
         }
-        catch (CosmosException ce) when (ce.StatusCode == HttpStatusCode.NotFound)
+        catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
         {
             return default;
         }
-        catch (CosmosException ex)
+        catch (CosmosException cosmosException)
         {
-            throw new CommandException(ex.StatusCode, ex.Message);
+            throw new CommandException(cosmosException.StatusCode, cosmosException.Message);
         }
     }
 
@@ -111,90 +165,44 @@ internal class CosmosCommandProvider<TInterface, TItem>(
 
             return saveResults;
         }
-        catch (CosmosException ce)
+        catch (CosmosException cosmosException)
         {
-            throw new CommandException(ce.StatusCode, ce.Message);
+            throw new CommandException(cosmosException.StatusCode, cosmosException.Message);
         }
     }
 
-    /// <summary>
-    /// Creates a queryable for Cosmos DB that filters by type name and deleted status.
-    /// </summary>
-    /// <returns>An <see cref="IQueryable{TItem}"/> for the container.</returns>
-    /// <remarks>Adds standard predicate filters.</remarks>
-    protected override IQueryable<TItem> CreateQueryable()
-    {
-        // Add typeName and isDeleted predicates
-        return container
-            .GetItemLinqQueryable<TItem>()
-            .Where(i => i.TypeName == TypeName)
-            .Where(i => i.IsDeleted.IsDefined() == false || i.IsDeleted == false);
-    }
+    #endregion
 
-    /// <summary>
-    /// Executes a query against Cosmos DB and returns the results.
-    /// </summary>
-    /// <param name="queryable">The queryable to execute.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>An enumerable of items matching the query.</returns>
-    /// <exception cref="CommandException">When a Cosmos DB exception occurs during query execution.</exception>
-    /// <remarks>Uses the Cosmos DB feed iterator to page through results.</remarks>
-    protected override IEnumerable<TItem> ExecuteQueryable(
-        IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
-    {
-        // Get the feed iterator
-        var feedIterator = queryable.ToFeedIterator();
-
-        // Iterate through results
-        while (feedIterator.HasMoreResults)
-        {
-            FeedResponse<TItem>? feedResponse = null;
-
-            try
-            {
-                // This is where cosmos will throw
-                feedResponse = feedIterator.ReadNextAsync(cancellationToken).GetAwaiter().GetResult();
-            }
-            catch (CosmosException ex)
-            {
-                throw new CommandException(ex.StatusCode);
-            }
-
-            // Yield each item
-            foreach (var item in feedResponse)
-            {
-                yield return item;
-            }
-        }
-    }
+    #region Private Static Methods
 
     /// <summary>
     /// Adds an item and its event to a transactional batch.
     /// </summary>
     /// <param name="batch">The batch to add operations to.</param>
-    /// <param name="request">The save request containing the item and event.</param>
+    /// <param name="saveRequest">The save request containing the item and event.</param>
     /// <returns>The transactional batch with operations added.</returns>
-    /// <exception cref="InvalidOperationException">When the <paramref name="request"/> has an unrecognized <see cref="SaveAction"/>.</exception>
+    /// <exception cref="InvalidOperationException">When the <paramref name="saveRequest"/> has an unrecognized <see cref="SaveAction"/>.</exception>
     /// <remarks>Handles different operations based on the save action.</remarks>
     private static TransactionalBatch AddItem(
         TransactionalBatch batch,
-        SaveRequest<TInterface, TItem> request) => request.SaveAction switch
+        SaveRequest<TInterface, TItem> saveRequest) => saveRequest.SaveAction switch
     {
         SaveAction.CREATED => batch
             .CreateItem(
-                item: request.Item)
+                item: saveRequest.Item)
             .CreateItem(
-                item: request.Event),
+                item: saveRequest.Event),
 
         SaveAction.UPDATED or SaveAction.DELETED => batch
             .ReplaceItem(
-                id: request.Item.Id,
-                item: request.Item,
-                requestOptions: new TransactionalBatchItemRequestOptions { IfMatchEtag = request.Item.ETag })
+                id: saveRequest.Item.Id,
+                item: saveRequest.Item,
+                requestOptions: new TransactionalBatchItemRequestOptions { IfMatchEtag = saveRequest.Item.ETag })
             .CreateItem(
-                item: request.Event),
+                item: saveRequest.Event),
 
-        _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
+        _ => throw new InvalidOperationException($"Unrecognized SaveAction: {saveRequest.SaveAction}")
     };
+
+    #endregion
 }

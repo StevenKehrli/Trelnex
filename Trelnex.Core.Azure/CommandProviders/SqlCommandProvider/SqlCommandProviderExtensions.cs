@@ -18,6 +18,8 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <remarks>Provides dependency injection integration for SQL Server command providers.</remarks>
 public static class SqlCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds SQL Server command providers to the service collection.
     /// </summary>
@@ -81,6 +83,10 @@ public static class SqlCommandProvidersExtensions
         return services;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
     /// Creates SQL Server client options with properly configured authentication.
     /// </summary>
@@ -115,6 +121,10 @@ public static class SqlCommandProvidersExtensions
         );
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
     /// <summary>
     /// Implementation of <see cref="ICommandProviderOptions"/> for configuring SQL Server providers.
     /// </summary>
@@ -126,6 +136,8 @@ public static class SqlCommandProvidersExtensions
         SqlCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        #region Public Methods
+
         /// <summary>
         /// Registers a command provider for a specific item type with table mapping.
         /// </summary>
@@ -191,7 +203,13 @@ public static class SqlCommandProvidersExtensions
             // Return this instance to enable method chaining for fluent configuration.
             return this;
         }
+
+        #endregion
     }
+
+    #endregion
+
+    #region Configuration Records
 
     /// <summary>
     /// Table configuration mapping type names to table names.
@@ -228,6 +246,10 @@ public static class SqlCommandProvidersExtensions
         public required TableConfiguration[] Tables { get; init; }
     }
 
+    #endregion
+
+    #region Provider Options
+
     /// <summary>
     /// Runtime options for SQL Server command providers.
     /// </summary>
@@ -238,10 +260,30 @@ public static class SqlCommandProvidersExtensions
         string dataSource,
         string initialCatalog)
     {
+        #region Private Fields
+
         /// <summary>
         /// The mappings from type names to table names.
         /// </summary>
         private readonly Dictionary<string, string> _tableNamesByTypeName = [];
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the SQL Server name or network address.
+        /// </summary>
+        public string DataSource => dataSource;
+
+        /// <summary>
+        /// Gets the database name.
+        /// </summary>
+        public string InitialCatalog => initialCatalog;
+
+        #endregion
+
+        #region Public Static Methods
 
         /// <summary>
         /// Parses configuration into a validated options object.
@@ -254,14 +296,14 @@ public static class SqlCommandProvidersExtensions
             SqlCommandProviderConfiguration providerConfiguration)
         {
             // Create a new options instance with the connection information from configuration.
-            var options = new SqlCommandProviderOptions(
+            var providerOptions = new SqlCommandProviderOptions(
                 dataSource: providerConfiguration.DataSource,
                 initialCatalog: providerConfiguration.InitialCatalog);
 
             // Group the table configurations by type name to detect duplicates.
             var groups = providerConfiguration
                 .Tables
-                .GroupBy(o => o.TypeName)
+                .GroupBy(tableConfiguration => tableConfiguration.TypeName)
                 .ToArray();
 
             // Prepare to collect any configuration errors for comprehensive reporting.
@@ -284,22 +326,16 @@ public static class SqlCommandProvidersExtensions
             // With validation complete, build the type-to-table mapping dictionary.
             Array.ForEach(groups, group =>
             {
-                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
+                providerOptions._tableNamesByTypeName[group.Key] = group.Single().TableName;
             });
 
             // Return the fully configured and validated options object.
-            return options;
+            return providerOptions;
         }
 
-        /// <summary>
-        /// Gets the SQL Server name or network address.
-        /// </summary>
-        public string DataSource => dataSource;
+        #endregion
 
-        /// <summary>
-        /// Gets the database name.
-        /// </summary>
-        public string InitialCatalog => initialCatalog;
+        #region Public Methods
 
         /// <summary>
         /// Gets the table name for a specified type name.
@@ -324,8 +360,12 @@ public static class SqlCommandProvidersExtensions
             // Extract all the table names from the mapping dictionary.
             return _tableNamesByTypeName
                 .Values
-                .OrderBy(tn => tn)
+                .OrderBy(tableName => tableName)
                 .ToArray();
         }
+
+        #endregion
     }
+
+    #endregion
 }

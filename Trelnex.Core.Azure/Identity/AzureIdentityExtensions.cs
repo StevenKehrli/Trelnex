@@ -14,6 +14,8 @@ namespace Trelnex.Core.Azure.Identity;
 /// </remarks>
 public static class AzureIdentityExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
     /// Adds Azure Identity services to the <see cref="IServiceCollection"/>.
     /// </summary>
@@ -41,7 +43,7 @@ public static class AzureIdentityExtensions
         ILogger bootstrapLogger)
     {
         // Extract Azure credential options.
-        var options = configuration
+        var credentialOptions = configuration
             .GetSection("AzureCredentials")
             .Get<AzureCredentialOptions>()
             ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not found.");
@@ -49,7 +51,7 @@ public static class AzureIdentityExtensions
         // Create the credential provider.
         var credentialProvider = AzureCredentialProvider.Create(
             bootstrapLogger,
-            options);
+            credentialOptions);
 
         // Register the provider for dependency injection.
         services.AddCredentialProvider(credentialProvider);
@@ -57,4 +59,6 @@ public static class AzureIdentityExtensions
         // Return the service collection to allow for method chaining.
         return services;
     }
+
+    #endregion
 }

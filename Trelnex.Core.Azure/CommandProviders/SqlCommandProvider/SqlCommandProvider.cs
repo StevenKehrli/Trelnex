@@ -12,10 +12,13 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <typeparam name="TInterface">Interface type for the items.</typeparam>
 /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
 /// <remarks>Provides SQL-specific implementations for database exception handling.</remarks>
-internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider<TInterface, TItem>
+internal partial class SqlCommandProvider<TInterface, TItem>
+    : DbCommandProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlCommandProvider{TInterface, TItem}"/> class.
     /// </summary>
@@ -33,31 +36,39 @@ internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider
     {
     }
 
+    #endregion
+
+    #region Protected Methods
+
     /// <inheritdoc />
     protected override bool IsDatabaseException(
-        Exception ex)
+        Exception exception)
     {
         // Check if the exception is a SqlException.
-        return ex is SqlException;
+        return exception is SqlException;
     }
 
     /// <inheritdoc />
     /// <remarks>Detects precondition failures by matching error message.</remarks>
     protected override bool IsPreconditionFailedException(
-        Exception ex)
+        Exception exception)
     {
         // Check if the exception is a SqlException and the message matches the precondition failed regex.
-        return ex is SqlException sqlEx && PreconditionFailedRegex().IsMatch(sqlEx.Message);
+        return exception is SqlException sqlException && PreconditionFailedRegex().IsMatch(sqlException.Message);
     }
 
     /// <inheritdoc />
     /// <remarks>Detects primary key violations by matching error message.</remarks>
     protected override bool IsPrimaryKeyViolationException(
-        Exception ex)
+        Exception exception)
     {
         // Check if the exception is a SqlException and the message matches the primary key violation regex.
-        return ex is SqlException sqlEx && PrimaryKeyViolationRegex().IsMatch(sqlEx.Message);
+        return exception is SqlException sqlException && PrimaryKeyViolationRegex().IsMatch(sqlException.Message);
     }
+
+    #endregion
+
+    #region Regular Expressions
 
     /// <summary>
     /// Regular expression to identify primary key violation errors.
@@ -72,4 +83,6 @@ internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider
     /// <returns>Compiled regular expression pattern.</returns>
     [GeneratedRegex(@"^Precondition Failed\.$")]
     private static partial Regex PreconditionFailedRegex();
+
+    #endregion
 }

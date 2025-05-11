@@ -122,7 +122,7 @@ public class QueryHelper<T>
             }
 
             // Invoke the method call expression.  This applies the LINQ method to the queryable with the extracted parameter.
-            result = methodCallExpression.Method.Invoke(null, new object[] { queryable, parameter }) as IEnumerable<T>;
+            result = methodCallExpression.Method.Invoke(null, [ queryable, parameter ]) as IEnumerable<T>;
         }
 
         return result!;
@@ -218,44 +218,6 @@ public class QueryHelper<T>
     #region Private Static Methods
 
     /// <summary>
-    /// Extracts the source and predicate lambda from a WHERE method call expression.
-    /// </summary>
-    /// <param name="methodCallExpression">The WHERE method call expression.</param>
-    /// <returns>A tuple containing the source expression and the lambda predicate expression.</returns>
-    /// <exception cref="NotSupportedException">Thrown when the expression is not a valid WHERE method call.</exception>
-    /// <remarks>
-    /// Handles inline lambda expressions and pre-defined predicates.
-    /// </remarks>
-    private static (LinqExpression source, LambdaExpression lambda) ParseWhereMethod(
-        MethodCallExpression methodCallExpression)
-    {
-        if (methodCallExpression.Arguments.Count != 2)
-        {
-            throw new NotSupportedException($"ParseWhereMethod() does not support '{methodCallExpression}'.");
-        }
-
-        var source = methodCallExpression.Arguments[0];
-
-        // Case 1: Inline lambda
-        //   var q = queryable.Where(r => r.Property == value)
-        if (methodCallExpression.Arguments[1] is UnaryExpression ue &&
-            ue.Operand is LambdaExpression ule)
-        {
-            return (source: source, lambda: ule);
-        }
-
-        // Case 2: Pre-defined predicate
-        //   Expression<Func<T, bool>> predicate = r => r.Property == value;
-        //   var q = queryable.Where(predicate);
-        if (methodCallExpression.Arguments[1] is LambdaExpression dle)
-        {
-            return (source: source, lambda: dle);
-        }
-
-        throw new NotSupportedException($"ParseWhereMethod() does not support '{methodCallExpression}'.");
-    }
-
-    /// <summary>
     /// Extracts and processes the WHERE clause from a LINQ expression.
     /// </summary>
     /// <param name="methodCallExpression">The LINQ expression containing a WHERE clause.</param>
@@ -298,6 +260,44 @@ public class QueryHelper<T>
         }
 
         return lambda;
+    }
+
+    /// <summary>
+    /// Extracts the source and predicate lambda from a WHERE method call expression.
+    /// </summary>
+    /// <param name="methodCallExpression">The WHERE method call expression.</param>
+    /// <returns>A tuple containing the source expression and the lambda predicate expression.</returns>
+    /// <exception cref="NotSupportedException">Thrown when the expression is not a valid WHERE method call.</exception>
+    /// <remarks>
+    /// Handles inline lambda expressions and pre-defined predicates.
+    /// </remarks>
+    private static (LinqExpression source, LambdaExpression lambda) ParseWhereMethod(
+        MethodCallExpression methodCallExpression)
+    {
+        if (methodCallExpression.Arguments.Count != 2)
+        {
+            throw new NotSupportedException($"ParseWhereMethod() does not support '{methodCallExpression}'.");
+        }
+
+        var source = methodCallExpression.Arguments[0];
+
+        // Case 1: Inline lambda
+        //   var q = queryable.Where(r => r.Property == value)
+        if (methodCallExpression.Arguments[1] is UnaryExpression ue &&
+            ue.Operand is LambdaExpression ule)
+        {
+            return (source: source, lambda: ule);
+        }
+
+        // Case 2: Pre-defined predicate
+        //   Expression<Func<T, bool>> predicate = r => r.Property == value;
+        //   var q = queryable.Where(predicate);
+        if (methodCallExpression.Arguments[1] is LambdaExpression dle)
+        {
+            return (source: source, lambda: dle);
+        }
+
+        throw new NotSupportedException($"ParseWhereMethod() does not support '{methodCallExpression}'.");
     }
 
     #endregion

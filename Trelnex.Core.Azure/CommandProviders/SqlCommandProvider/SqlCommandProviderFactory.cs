@@ -17,10 +17,16 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// </remarks>
 internal class SqlCommandProviderFactory : DbCommandProviderFactory
 {
+    #region Private Fields
+
     /// <summary>
     /// The client options for SQL Server connection.
     /// </summary>
     private readonly SqlClientOptions _sqlClientOptions;
+
+    #endregion
+
+    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlCommandProviderFactory"/> class.
@@ -35,6 +41,10 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         _sqlClientOptions = sqlClientOptions;
     }
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="SqlCommandProviderFactory"/>.
     /// </summary>
@@ -48,7 +58,7 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         SqlClientOptions sqlClientOptions)
     {
         // Build a connection string.
-        var csb = new SqlConnectionStringBuilder()
+        var connectionStringBuilder = new SqlConnectionStringBuilder()
         {
             ApplicationName = serviceConfiguration.FullName,
             DataSource = sqlClientOptions.DataSource,
@@ -57,18 +67,22 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         };
 
         // Configure the data access layer.
-        var dataOptions = new DataOptions().UseSqlServer(csb.ConnectionString);
+        var dataOptions = new DataOptions().UseSqlServer(connectionStringBuilder.ConnectionString);
 
         // Instantiate the factory. Authentication via AAD tokens in BeforeConnectionOpened.
-        var factory = new SqlCommandProviderFactory(
+        var commandProviderFactory = new SqlCommandProviderFactory(
             dataOptions,
             sqlClientOptions);
 
         // Verify connectivity and table existence.
-        factory.IsHealthyOrThrow();
+        commandProviderFactory.IsHealthyOrThrow();
 
-        return factory;
+        return commandProviderFactory;
     }
+
+    #endregion
+
+    #region Protected Methods
 
     /// <inheritdoc />
     protected override ICommandProvider<TInterface> CreateCommandProvider<TInterface, TItem>(
@@ -93,7 +107,7 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         DbConnection dbConnection)
     {
         // Check if the connection is a SqlConnection.
-        if (dbConnection is not SqlConnection connection) return;
+        if (dbConnection is not SqlConnection sqlConnection) return;
 
         // Get the access token.
         var tokenCredential = _sqlClientOptions.TokenCredential;
@@ -101,8 +115,12 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
 
         // Assign an access token to the SQL connection for AAD authentication.
-        connection.AccessToken = accessToken;
+        sqlConnection.AccessToken = accessToken;
     }
+
+    #endregion
+
+    #region Protected Properties
 
     /// <inheritdoc />
     protected override IReadOnlyDictionary<string, object> StatusData
@@ -123,4 +141,6 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
 
     /// <inheritdoc />
     protected override string VersionQueryString => "SELECT @@VERSION;";
+
+    #endregion
 }

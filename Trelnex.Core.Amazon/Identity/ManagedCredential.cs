@@ -238,7 +238,8 @@ internal class ManagedCredential(
         /// Refreshes the access token and schedules the next refresh.
         /// </summary>
         /// <param name="state">The state object passed by the Timer (not used).</param>
-        private void Refresh(object? state)
+        private void Refresh(
+            object? state)
         {
             // Log the refresh attempt.
             _logger.LogInformation(
@@ -317,13 +318,13 @@ internal class ManagedCredential(
         /// </summary>
         /// <param name="ex">The exception that occurred during token acquisition.</param>
         private void SetUnavailable(
-            HttpStatusCodeException ex)
+            HttpStatusCodeException exception)
         {
             lock (this)
             {
                 // Store the error information.
-                _unavailableMessage = ex.Message;
-                _unavailableInnerException = ex.InnerException;
+                _unavailableMessage = exception.Message;
+                _unavailableInnerException = exception.InnerException;
             }
         }
 
