@@ -7,19 +7,26 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// An implementation of <see cref="ICommandProvider{TInterface}"/> that uses a Postgres table as a backing store.
+/// PostgreSQL implementation of <see cref="DbCommandProvider{TInterface, TItem}"/>.
 /// </summary>
+/// <typeparam name="TInterface">Interface type for the items.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+/// <remarks>
+/// Provides PostgreSQL-specific exception handling.
+/// </remarks>
 internal partial class PostgresCommandProvider<TInterface, TItem> : DbCommandProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Constructors
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresCommandProvider{TInterface, TItem}"/> class.
     /// </summary>
-    /// <param name="dataOptions">The data connection options.</param>
-    /// <param name="typeName">The type name.</param>
-    /// <param name="validator">The validator.</param>
-    /// <param name="commandOperations">The command operations.</param>
+    /// <param name="dataOptions">The data connection options for PostgreSQL.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
     public PostgresCommandProvider(
         DataOptions dataOptions,
         string typeName,
@@ -29,21 +36,48 @@ internal partial class PostgresCommandProvider<TInterface, TItem> : DbCommandPro
     {
     }
 
-    /// <inheritdoc />
-    protected override bool IsDatabaseException(Exception ex) =>
-        ex is NpgsqlException || ex is PostgresException;
+    #endregion
+
+    #region Protected Methods
 
     /// <inheritdoc />
-    protected override bool IsPreconditionFailedException(Exception ex) =>
-        ex is PostgresException pgEx && PreconditionFailedRegex().IsMatch(pgEx.Message);
+    protected override bool IsDatabaseException(
+        Exception ex)
+    {
+        return ex is NpgsqlException || ex is PostgresException;
+    }
 
     /// <inheritdoc />
-    protected override bool IsPrimaryKeyViolationException(Exception ex) =>
-        ex is PostgresException pgEx && PrimaryKeyViolationRegex().IsMatch(pgEx.Message);
+    protected override bool IsPreconditionFailedException(
+        Exception ex)
+    {
+        return ex is PostgresException pgEx && PreconditionFailedRegex().IsMatch(pgEx.Message);
+    }
 
+    /// <inheritdoc />
+    protected override bool IsPrimaryKeyViolationException(
+        Exception ex)
+    {
+        return ex is PostgresException pgEx && PrimaryKeyViolationRegex().IsMatch(pgEx.Message);
+    }
+
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Regular expression to identify primary key violation errors.
+    /// </summary>
+    /// <returns>Compiled regular expression pattern.</returns>
     [GeneratedRegex(@"^\d{5}: duplicate key value violates unique constraint")]
     private static partial Regex PrimaryKeyViolationRegex();
 
+    /// <summary>
+    /// Regular expression to identify precondition failed errors.
+    /// </summary>
+    /// <returns>Compiled regular expression pattern.</returns>
     [GeneratedRegex(@"^\d{5}: Precondition Failed.$")]
     private static partial Regex PreconditionFailedRegex();
+
+    #endregion
 }

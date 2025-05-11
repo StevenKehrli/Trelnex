@@ -6,45 +6,59 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.Identity;
 
 /// <summary>
-/// Enables authentication to AWS IAM to obtain an access token.
+/// Manages authentication to AWS IAM to obtain access tokens.
 /// </summary>
 /// <remarks>
-/// <para>
-/// ManagedCredential is an internal class. Users will get an instance of the <see cref="AWSCredentials"/> class.
-/// </para>
+/// Implements <see cref="AWSCredentials"/> and <see cref="ICredential"/>.
+/// Caches, refreshes, and provides status reporting for tokens.
 /// </remarks>
-/// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-/// <param name="awsCredentialsManager">The <see cref="AWSCredentialsManager"/> to manage the <see cref="AWSCredentials"/> and get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.</param>
+/// <param name="logger">The logger.</param>
+/// <param name="awsCredentialsManager">The AWS credentials manager.</param>
 internal class ManagedCredential(
     ILogger logger,
     AWSCredentialsManager awsCredentialsManager)
     : AWSCredentials, ICredential
 {
+    #region Private Fields
 
     /// <summary>
-    /// A thread-safe collection of scope to <see cref="AmazonTokenItem"/>.
+    /// Thread-safe cache of token items by scope.
     /// </summary>
-    private readonly ConcurrentDictionary<string, Lazy<AmazonTokenItem>> _amazonTokenItemsByTokenRequestContextKey = new();
+    /// <remarks>
+    /// Uses <see cref="Lazy{T}"/> to ensure thread-safe token acquisition.
+    /// Each <see cref="AmazonTokenItem"/> handles its own refresh scheduling.
+    /// </remarks>
+    private readonly ConcurrentDictionary<string, Lazy<AmazonTokenItem>> _amazonTokenItemsByScope = new();
 
-#region AWSCredentials
+    #endregion
 
+    #region AWSCredentials
+
+    /// <inheritdoc />
     public override ImmutableCredentials GetCredentials() => awsCredentialsManager.AWSCredentials.GetCredentials();
 
-#endregion AWSCredentials
+    #endregion AWSCredentials
 
-#region ICredential
+    #region ICredential
 
     /// <summary>
-    /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.
+    /// Gets a Trelnex access token for the specified scope.
     /// </summary>
     /// <param name="scope">The scope required for the token.</param>
-    /// <returns>The <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.</returns>
+    /// <returns>A Trelnex <see cref="AccessToken"/> for the specified scope.</returns>
+    /// <exception cref="AccessTokenUnavailableException">Thrown when the credential cannot retrieve a token.</exception>
+    /// <remarks>
+    /// Implements <see cref="ICredential.GetAccessToken"/>.
+    /// Tokens are cached by scope and refreshed automatically.
+    /// </remarks>
     public AccessToken GetAccessToken(
         string scope)
     {
-        // https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
+        // Get or create a token item for this scope.
+        // Using Lazy<T> ensures thread safety during creation.
+        // See: https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
         var lazyAmazonTokenItem =
-            _amazonTokenItemsByTokenRequestContextKey.GetOrAdd(
+            _amazonTokenItemsByScope.GetOrAdd(
                 key: scope,
                 value: new Lazy<AmazonTokenItem>(
                     AmazonTokenItem.Create(
@@ -52,19 +66,22 @@ internal class ManagedCredential(
                         awsCredentialsManager,
                         scope)));
 
-
-        // get the access token
+        // Return the token from the token item.
         return lazyAmazonTokenItem.Value.GetAccessToken();
     }
 
     /// <summary>
-    /// Gets the <see cref="CredentialStatus"/> of the credential used by this token provider.
+    /// Gets the status of all credentials managed by this provider.
     /// </summary>
-    /// <returns>The <see cref="CredentialStatus"/> of the credential used by this token provider.</returns>
+    /// <returns>A <see cref="CredentialStatus"/> object containing the status of all managed tokens.</returns>
+    /// <remarks>
+    /// Implements <see cref="ICredential.GetStatus"/>.
+    /// Collects status information from all token items in the cache.
+    /// </remarks>
     public CredentialStatus GetStatus()
     {
-        // get the amazon token item
-        var statuses = _amazonTokenItemsByTokenRequestContextKey
+        // Collect status of all token items in the cache.
+        var statuses = _amazonTokenItemsByScope
             .Select(kvp =>
             {
                 var lazy = kvp.Value;
@@ -75,63 +92,67 @@ internal class ManagedCredential(
             .OrderBy(status => string.Join(", ", status.Scopes))
             .ToArray();
 
+        // Return a consolidated credential status with all token statuses.
         return new CredentialStatus(
             Statuses: statuses ?? []);
     }
 
-#endregion
+#endregion ICredential
+
+    #region AmazonTokenItem
 
     /// <summary>
-    /// Combines an <see cref="Trelnex.Core.Identity.AccessToken"/> with a <see cref="System.Threading.Timer"/> to refresh the <see cref="Trelnex.Core.Identity.AccessToken"/>.
+    /// Manages an AWS access token with automatic refresh.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// An AmazonTokenItem will refresh its token in accordance with <see cref="Trelnex.Core.Identity.AccessToken.RefreshOn"/>.
-    /// This will maintain a valid token and enable <see cref="GetToken"/> to return immediately.
-    /// </para>
-    /// </remarks>
     private class AmazonTokenItem
     {
+        #region Private Fields
+
         /// <summary>
-        /// The <see cref="ILogger"> used to perform logging.
+        /// The logger.
         /// </summary>
         private readonly ILogger _logger;
 
         /// <summary>
-        /// The <see cref="AWSCredentialsManager"/> to manage the <see cref="AWSCredentials"/> and get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.
+        /// The AWS credentials manager.
         /// </summary>
         private readonly AWSCredentialsManager _awsCredentialsManager;
 
         /// <summary>
-        /// The scope of the <see cref="AccessToken"/>.
+        /// The scope of the access token.
+        /// </summary>
         private readonly string _scope;
 
         /// <summary>
-        /// The <see cref="Timer"/> to refresh the <see cref="Trelnex.Core.Identity.AccessToken"/>.
+        /// The timer used to schedule token refresh.
         /// </summary>
         private readonly Timer _timer;
 
         /// <summary>
-        /// The underlying <see cref="Trelnex.Core.Identity.AccessToken"/>.
+        /// The current access token.
         /// </summary>
         private AccessToken? _accessToken;
 
         /// <summary>
-        /// The message to throw when the token is unavailable.
+        /// The error message if the token is unavailable.
         /// </summary>
         private string? _unavailableMessage;
 
         /// <summary>
-        /// The inner exception to include when the token is unavailable.
+        /// The inner exception if the token is unavailable.
         /// </summary>
         private Exception? _unavailableInnerException;
 
+        #endregion
+
+        #region Constructors
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="AmazonTokenItem"/>.
+        /// Initializes a new instance of the <see cref="AmazonTokenItem"/> class.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="awsCredentialsManager">The <see cref="AWSCredentialsManager"/> to manage the <see cref="AWSCredentials"/> and get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.</param>
-        /// <param name="scope">The scope of the <see cref="AccessToken"/>.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="awsCredentialsManager">The AWS credentials manager.</param>
+        /// <param name="scope">The scope of the access token.</param>
         private AmazonTokenItem(
             ILogger logger,
             AWSCredentialsManager awsCredentialsManager,
@@ -141,55 +162,67 @@ internal class ManagedCredential(
             _awsCredentialsManager = awsCredentialsManager;
             _scope = scope;
 
+            // Create a timer but don't start it yet.
             _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="AmazonTokenItem"/>.
+        /// Creates and initializes a new <see cref="AmazonTokenItem"/> instance.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="awsCredentialsManager">The <see cref="AWSCredentialsManager"/> to manage the <see cref="AWSCredentials"/> and get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.</param>
-        /// <param name="scope">The scope of the <see cref="AccessToken"/>.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="awsCredentialsManager">The AWS credentials manager.</param>
+        /// <param name="scope">The scope of the access token.</param>
+        /// <returns>A new <see cref="AmazonTokenItem"/> instance with an initial token.</returns>
+        /// <remarks>Creates the token item and triggers an initial token refresh.</remarks>
         public static AmazonTokenItem Create(
             ILogger logger,
             AWSCredentialsManager awsCredentialsManager,
             string scope)
         {
-            // create the amazonTokenItem and schedule the refresh (to get its token)
-            // this will set _accessToken
+            // Create the token item.
             var amazonTokenItem = new AmazonTokenItem(
                 logger,
                 awsCredentialsManager,
                 scope);
 
+            // Immediately trigger a refresh to acquire the initial token.
             amazonTokenItem.Refresh(null);
 
             return amazonTokenItem;
         }
 
         /// <summary>
-        /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/>.
+        /// Gets the current access token.
         /// </summary>
+        /// <returns>The current access token.</returns>
+        /// <exception cref="AccessTokenUnavailableException">Thrown when no valid token is available.</exception>
         public AccessToken GetAccessToken()
         {
             lock (this)
             {
+                // If no token is available, throw an exception with the error details.
                 return _accessToken ?? throw new AccessTokenUnavailableException(_unavailableMessage, _unavailableInnerException);
             }
         }
 
         /// <summary>
-        /// Gets the <see cref="AccessTokenStatus"/> for this access token.
+        /// Gets the status of the access token managed by this item.
         /// </summary>
-        /// <returns>A <see cref="AccessTokenStatus"/> describing the status of this access token.</returns>
+        /// <returns>An <see cref="AccessTokenStatus"/> containing the token's health and metadata.</returns>
         public AccessTokenStatus GetStatus()
         {
             lock (this)
             {
+                // Determine if the token is valid based on its expiration time.
                 var health = ((_accessToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
                     ? AccessTokenHealth.Expired
                     : AccessTokenHealth.Valid;
 
+                // Return a status object with all relevant information.
                 return new AccessTokenStatus(
                     Health: health,
                     Scopes: [ _scope ],
@@ -197,81 +230,105 @@ internal class ManagedCredential(
             }
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
-        /// The <see cref="TimerCallback"/> delegate of the <see cref="_timer"/> <see cref="Timer"/>.
+        /// Refreshes the access token and schedules the next refresh.
         /// </summary>
-        /// <param name="state">An object containing application-specific information relevant to the method invoked by this delegate, or null.</param>
+        /// <param name="state">The state object passed by the Timer (not used).</param>
         private void Refresh(object? state)
         {
+            // Log the refresh attempt.
             _logger.LogInformation(
                 "AmazonTokenItem.Refresh: scope = '{scope:l}'",
                 _scope);
 
-            // assume we need to refresh in 5 seconds
+            // Default to refreshing in 5 seconds if something goes wrong.
             var dueTime = TimeSpan.FromSeconds(5);
 
             try
             {
-                // get a new token and set
+                // Attempt to get a new token.
                 var accessToken = _awsCredentialsManager.GetAccessToken(_scope).GetAwaiter().GetResult();
 
+                // Store the new token.
                 SetAccessToken(accessToken);
 
-                // we got a token - schedule refresh
+                // Determine when to refresh the token.
                 var refreshOn = accessToken.RefreshOn ?? accessToken.ExpiresOn;
 
+                // Log the successful token acquisition.
                 _logger.LogInformation(
                     "AmazonTokenItem.AccessToken: scope = '{scope:l}', refreshOn = '{refreshOn:o}'.",
                     _scope,
                     refreshOn);
 
+                // Schedule the next refresh at the token's refresh time.
                 dueTime = refreshOn - DateTimeOffset.UtcNow;
             }
             catch (HttpStatusCodeException ex)
             {
+                // Handle token unavailable errors.
                 SetUnavailable(ex);
 
+                // Log the error.
                 _logger.LogError(
                     "AmazonTokenItem.Unavailable: scope = '{scope:l}', message = '{message:}'.",
                     _scope,
                     ex.Message);
             }
-            catch
+            catch (Exception ex)
             {
+                // Catch any other exceptions to ensure the timer is always rescheduled.
+                _logger.LogError(
+                    "AmazonTokenItem.Error: scope = '{scope:l}', message = '{message:}'.",
+                    _scope,
+                    ex.Message);
             }
 
+            // Schedule the next refresh.
             _timer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
-        /// Sets the <see cref="Trelnex.Core.Identity.AccessToken"/> for this object.
+        /// Sets a new access token and clears any error state.
         /// </summary>
+        /// <param name="accessToken">The new access token.</param>
         private void SetAccessToken(
             AccessToken accessToken)
         {
             lock (this)
             {
+                // Store the new token.
                 _accessToken = accessToken;
 
+                // Clear any error state.
                 _unavailableMessage = null;
                 _unavailableInnerException = null;
             }
         }
 
         /// <summary>
-        /// Sets the message to throw when the token is unavailable.
+        /// Sets the error information to use when the token is unavailable.
         /// </summary>
-        /// <param name="ex">The <see cref="HttpStatusCodeException"/> with the message to throw when the token is unavailable.</param>
+        /// <param name="ex">The exception that occurred during token acquisition.</param>
         private void SetUnavailable(
             HttpStatusCodeException ex)
         {
             lock (this)
             {
+                // Store the error information.
                 _unavailableMessage = ex.Message;
                 _unavailableInnerException = ex.InnerException;
             }
         }
+
+        #endregion
     }
+
+    #endregion AmazonTokenItem
 }

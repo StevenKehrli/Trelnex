@@ -12,25 +12,37 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
+/// Extension methods for configuring DynamoDB command providers.
 /// </summary>
+/// <remarks>
+/// Provides dependency injection integration.
+/// </remarks>
 public static class DynamoCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the necessary command providers as a <see cref="ICommandProvider{TInterface}"/> to the <see cref="IServiceCollection"/>.
+    /// Adds DynamoDB command providers to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <param name="configureCommandProviders">The action to configure the command providers.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="bootstrapLogger">Logger for initialization.</param>
+    /// <param name="configureCommandProviders">Action to configure providers.</param>
+    /// <returns>The service collection.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the DynamoCommandProviders section is missing.</exception>
+    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
+    /// <exception cref="InvalidOperationException">When attempting to register the same command provider interface twice.</exception>
+    /// <remarks>
+    /// Configures DynamoDB command providers for specific entity types.
+    /// Uses AWS credentials from the registered credential provider to authenticate with DynamoDB.
+    /// </remarks>
     public static IServiceCollection AddDynamoCommandProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<ICommandProviderOptions> configureCommandProviders)
     {
-        // get the amazon identity provider
+        // Retrieve the Amazon identity provider for AWS credentials
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
         var providerConfiguration = configuration
@@ -38,19 +50,20 @@ public static class DynamoCommandProvidersExtensions
             .Get<DynamoCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
 
-        // parse the dynamo options
+        // Parse the DynamoDB options from the configuration
         var providerOptions = DynamoCommandProviderOptions.Parse(providerConfiguration);
 
-        // create our factory
+        // Create DynamoDB client options with authentication
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
 
+        // Create the DynamoDB command provider factory
         var providerFactory = DynamoCommandProviderFactory.Create(
             dynamoClientOptions).GetAwaiter().GetResult();
 
-        // inject the factory as the status interface
+        // Register the factory as the command provider interface
         services.AddCommandProviderFactory(providerFactory);
 
-        // create the command providers and inject
+        // Create the command providers and inject them into the service collection
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
@@ -62,22 +75,24 @@ public static class DynamoCommandProvidersExtensions
         return services;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Gets the <see cref="DynamoClientOptions"/> to be used by <see cref="DynamoClient"/>.
+    /// Creates DynamoDB client options with authentication.
     /// </summary>
+    /// <param name="credentialProvider">Provider for AWS credentials.</param>
+    /// <param name="providerOptions">Configuration options for DynamoDB.</param>
+    /// <returns>Fully configured DynamoDB client options.</returns>
     /// <remarks>
-    /// <para>
-    /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="DynamoClient"/> scopes.
-    /// </para>
+    /// Retrieves AWS credentials and sets connection parameters.
     /// </remarks>
-    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
-    /// <param name="providerOptions">The <see cref="DynamoCommandProviderOptions"/>.</param>
-    /// <returns>A valid <see cref="DynamoClientOptions"/>.</returns>
     private static DynamoClientOptions GetDynamoClientOptions(
         ICredentialProvider<AWSCredentials> credentialProvider,
         DynamoCommandProviderOptions providerOptions)
     {
-        // get the aws credentials and initialize
+        // Retrieve AWS credentials and initialize the client options
         var awsCredentials = credentialProvider.GetCredential();
 
         return new DynamoClientOptions(
@@ -86,6 +101,16 @@ public static class DynamoCommandProvidersExtensions
             TableNames: providerOptions.GetTableNames());
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
+    /// <summary>
+    /// Implementation of <see cref="ICommandProviderOptions"/> for configuring DynamoDB providers.
+    /// </summary>
+    /// <remarks>
+    /// Provides type-to-table mapping and command provider registration.
+    /// </remarks>
     private class CommandProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -93,6 +118,22 @@ public static class DynamoCommandProvidersExtensions
         DynamoCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        #region Public Methods
+
+        /// <summary>
+        /// Registers a command provider for a specific item type with table mapping.
+        /// </summary>
+        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+        /// <param name="typeName">Type name to map to a DynamoDB table.</param>
+        /// <param name="itemValidator">Optional validator for items.</param>
+        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <returns>The options instance for method chaining.</returns>
+        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
+        /// <exception cref="InvalidOperationException">When a command provider for the interface is already registered.</exception>
+        /// <remarks>
+        /// Maps a logical entity type with its physical DynamoDB table location.
+        /// </remarks>
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
@@ -100,7 +141,7 @@ public static class DynamoCommandProvidersExtensions
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // get the table name for the specified item type
+            // Retrieve the table name for the specified item type
             var tableName = providerOptions.GetTableName(typeName);
 
             if (tableName is null)
@@ -116,7 +157,7 @@ public static class DynamoCommandProvidersExtensions
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // create the command provider and inject
+            // Create the command provider and inject it into the service collection
             var commandProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableName,
                 typeName: typeName,
@@ -133,110 +174,82 @@ public static class DynamoCommandProvidersExtensions
                 tableName // tableName
             ];
 
-            // log - the :l format parameter (l = literal) to avoid the quotes
+            // Log the registration of the command provider
             bootstrapLogger.LogInformation(
                 message: "Added DynamoCommandProvider<{TInterface:l}, {TItem:l}>: region = '{region:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;
         }
+
+        #endregion
     }
 
+    #endregion
+
+    #region Configuration Records
+
     /// <summary>
-    /// Represents the table for the specified item type.
+    /// Table configuration mapping type names to DynamoDB table names.
     /// </summary>
-    /// <param name="TypeName">The specified item type name.</param>
-    /// <param name="TableName">The table for the specified item type.</param>
+    /// <param name="TypeName">The type name.</param>
+    /// <param name="TableName">The table name in DynamoDB.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName);
 
     /// <summary>
-    /// Represents the configuration properties for Dynamo command providers.
+    /// Configuration properties for DynamoDB command providers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// https://github.com/dotnet/runtime/issues/83803
-    /// </para>
-    /// </remarks>
     private record DynamoCommandProviderConfiguration
     {
         /// <summary>
-        /// The region for the tables.
+        /// The AWS region where the DynamoDB tables are located.
         /// </summary>
         public required string Region { get; init; }
 
         /// <summary>
-        /// The collection of tables by item type
+        /// The collection of table mappings by item type.
         /// </summary>
         public required TableConfiguration[] Tables { get; init; }
     }
 
+    #endregion
+
+    #region Provider Options
+
     /// <summary>
-    /// Represents the Dynamo command provider options: the collection of tables by item type.
+    /// Runtime options for DynamoDB command providers.
     /// </summary>
+    /// <param name="region">The AWS region where the DynamoDB tables are located.</param>
     private class DynamoCommandProviderOptions(
         string region)
     {
+        #region Private Fields
+
         /// <summary>
-        /// The collection of tables by item type.
+        /// The mappings from type names to table names.
         /// </summary>
         private readonly Dictionary<string, string> _tableNamesByTypeName = [];
 
-        /// <summary>
-        /// Initialize an instance of <see cref="DynamoCommandProviderOptions"/>.
-        /// </summary>
-        /// <param name="providerConfiguration">The Dynamo command providers configuration.</param>
-        /// <returns>The <see cref="DynamoCommandProviderOptions"/>.</returns>
-        /// <exception cref="AggregateException">Represents one or more configuration errors.</exception>
-        public static DynamoCommandProviderOptions Parse(
-            DynamoCommandProviderConfiguration providerConfiguration)
-        {
-            var options = new DynamoCommandProviderOptions(
-                region: providerConfiguration.Region);
+        #endregion
 
-            // group the tables by item type
-            var groups = providerConfiguration
-                .Tables
-                .GroupBy(o => o.TypeName)
-                .ToArray();
-
-            // any exceptions
-            var exs = new List<ConfigurationErrorsException>();
-
-            // enumerate each group - should be one
-            Array.ForEach(groups, group =>
-            {
-                if (group.Count() <= 1) return;
-
-                exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
-            });
-
-            // if there are any exceptions, then throw an aggregate exception of all exceptions
-            if (exs.Count > 0)
-            {
-                throw new AggregateException(exs);
-            }
-
-            // enumerate each group and set the table (value) for each item type (key)
-            Array.ForEach(groups, group =>
-            {
-                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
-            });
-
-            return options;
-        }
+        #region Public Properties
 
         /// <summary>
-        /// Get the region name.
+        /// Gets the AWS region name.
         /// </summary>
         public string Region => region;
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Get the table for the specified item type.
+        /// Gets the table name for a specified type name.
         /// </summary>
-        /// <param name="typeName">The specified item type.</param>
-        /// <returns>The table for the specified item type.</returns>
+        /// <param name="typeName">The type name to look up.</param>
+        /// <returns>The table name if found, or <see langword="null"/> if no mapping exists.</returns>
         public string? GetTableName(
             string typeName)
         {
@@ -246,9 +259,9 @@ public static class DynamoCommandProvidersExtensions
         }
 
         /// <summary>
-        /// Get the table names.
+        /// Gets all configured table names.
         /// </summary>
-        /// <returns>The array of table names.</returns>
+        /// <returns>Array of distinct table names sorted alphabetically.</returns>
         public string[] GetTableNames()
         {
             return _tableNamesByTypeName
@@ -256,5 +269,60 @@ public static class DynamoCommandProvidersExtensions
                 .OrderBy(tn => tn)
                 .ToArray();
         }
+
+        #endregion
+
+        #region Internal Static Methods
+
+        /// <summary>
+        /// Parses configuration into a validated options object.
+        /// </summary>
+        /// <param name="providerConfiguration">Raw configuration data.</param>
+        /// <returns>Validated options with type-to-table mappings.</returns>
+        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
+        /// <remarks>
+        /// Validates that no type name is mapped to multiple tables.
+        /// </remarks>
+        internal static DynamoCommandProviderOptions Parse(
+            DynamoCommandProviderConfiguration providerConfiguration)
+        {
+            var options = new DynamoCommandProviderOptions(
+                region: providerConfiguration.Region);
+
+            // Group the tables by item type
+            var groups = providerConfiguration
+                .Tables
+                .GroupBy(o => o.TypeName)
+                .ToArray();
+
+            // Collect any configuration errors
+            var exs = new List<ConfigurationErrorsException>();
+
+            // Validate that each type name maps to only one table
+            Array.ForEach(groups, group =>
+            {
+                if (group.Count() <= 1) return;
+
+                exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
+            });
+
+            // Throw an aggregate exception if there are any configuration errors
+            if (exs.Count > 0)
+            {
+                throw new AggregateException(exs);
+            }
+
+            // Populate the type-to-table mapping
+            Array.ForEach(groups, group =>
+            {
+                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
+            });
+
+            return options;
+        }
+
+        #endregion
     }
+
+    #endregion
 }

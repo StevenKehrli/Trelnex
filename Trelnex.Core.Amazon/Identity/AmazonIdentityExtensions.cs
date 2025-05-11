@@ -7,35 +7,53 @@ using Trelnex.Core.Api.Identity;
 
 namespace Trelnex.Core.Amazon.Identity;
 
+/// <summary>
+/// Extension methods for configuring Amazon Identity.
+/// </summary>
+/// <remarks>
+/// Registers Amazon Identity services with the dependency injection container.
+/// </remarks>
 public static class AmazonIdentityExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the <see cref="CredentialFactory"/> to the <see cref="IServiceCollection"/>.
+    /// Adds Amazon Identity services to the <see cref="IServiceCollection"/>.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The <see cref="IServiceCollection to add the services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <param name="bootstrapLogger">The logger for setup.</param>
+    /// <returns>The same service collection.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the "AmazonCredentials" configuration section is not found.</exception>
+    /// <remarks>
+    /// Configures and registers an <see cref="AmazonCredentialProvider"/> for authentication with AWS.
+    /// Adds AWS instrumentation for observability.
+    /// </remarks>
     public static IServiceCollection AddAmazonIdentity(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
     {
+        // Add AWS instrumentation for observability
         services.AddAWSInstrumentation();
 
+        // Extract Amazon credential options from the configuration
         var options = configuration
             .GetSection("AmazonCredentials")
             .Get<AmazonCredentialOptions>()
             ?? throw new ConfigurationErrorsException("The AmazonCredentials configuration is not found.");
 
-        // create the credential provider
+        // Create the credential provider using the extracted options
         var credentialProvider = AmazonCredentialProvider.Create(
             bootstrapLogger,
             options).GetAwaiter().GetResult();
 
-        // register the provider
+        // Register the credential provider for dependency injection
         services.AddCredentialProvider(credentialProvider);
 
+        // Return the service collection to allow for method chaining
         return services;
     }
+
+    #endregion
 }

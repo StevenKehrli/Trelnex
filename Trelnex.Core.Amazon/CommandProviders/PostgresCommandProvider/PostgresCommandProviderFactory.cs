@@ -10,11 +10,20 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="PostgresCommandProvider"/>.
+/// Factory for creating and configuring PostgreSQL command providers.
 /// </summary>
+/// <remarks>
+/// Creates command providers that connect to a PostgreSQL database using AWS IAM authentication.
+/// </remarks>
 internal class PostgresCommandProviderFactory : DbCommandProviderFactory
 {
+    #region Private Fields
+
     private readonly PostgresClientOptions _postgresClientOptions;
+
+    #endregion
+
+    #region Constructors
 
     private PostgresCommandProviderFactory(
         DataOptions dataOptions,
@@ -24,12 +33,19 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
         _postgresClientOptions = postgresClientOptions;
     }
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
-    /// Create an instance of the <see cref="PostgresCommandProviderFactory"/>.
+    /// Creates an instance of the <see cref="PostgresCommandProviderFactory"/>.
     /// </summary>
-    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/> options.</param>
-    /// <param name="postgresClientOptions">The <see cref="PostgresClientOptions"/> options.</param>
-    /// <returns>The <see cref="PostgresCommandProviderFactory"/>.</returns>
+    /// <param name="serviceConfiguration">Service configuration.</param>
+    /// <param name="postgresClientOptions">PostgreSQL client options.</param>
+    /// <returns>A configured and validated PostgreSQL command provider factory.</returns>
+    /// <remarks>
+    /// Configures a new factory and performs a health check to verify database connectivity.
+    /// </remarks>
     public static PostgresCommandProviderFactory Create(
         ServiceConfiguration serviceConfiguration,
         PostgresClientOptions postgresClientOptions)
@@ -59,24 +75,17 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
         return factory;
     }
 
-    /// <inheritdoc />
-    protected override ICommandProvider<TInterface> CreateCommandProvider<TInterface, TItem>(
-        DataOptions dataOptions,
-        string typeName,
-        IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
-    {
-        return new PostgresCommandProvider<TInterface, TItem>(
-            dataOptions,
-            typeName,
-            validator,
-            commandOperations);
-    }
+    #endregion
+
+    #region Protected Methods
 
     /// <summary>
-    /// Set the password for the connection string.
+    /// Sets the password for the PostgreSQL connection string using AWS IAM authentication.
     /// </summary>
-    /// <param name="dbConnection">The <see cref="DbConnection"/>.</param>
+    /// <param name="dbConnection">The database connection to configure.</param>
+    /// <remarks>
+    /// Generates and sets a fresh IAM authentication token before each connection is opened.
+    /// </remarks>
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
@@ -100,6 +109,33 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
         connection.ConnectionString = csb.ConnectionString;
     }
 
+    /// <inheritdoc />
+    /// <summary>
+    /// Creates a command provider for the specified item type.
+    /// </summary>
+    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+    /// <param name="dataOptions">Data access options.</param>
+    /// <param name="typeName">Type name to filter items by in the database.</param>
+    /// <param name="validator">Optional validator for items of type TItem.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
+    protected override ICommandProvider<TInterface> CreateCommandProvider<TInterface, TItem>(
+        DataOptions dataOptions,
+        string typeName,
+        IValidator<TItem>? validator = null,
+        CommandOperations? commandOperations = null)
+    {
+        return new PostgresCommandProvider<TInterface, TItem>(
+            dataOptions,
+            typeName,
+            validator,
+            commandOperations);
+    }
+
+    /// <summary>
+    /// Gets diagnostic data about the PostgreSQL command provider factory status.
+    /// </summary>
     protected override IReadOnlyDictionary<string, object> StatusData
     {
         get
@@ -116,9 +152,20 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
         }
     }
 
-    /// <inheritdoc/>
+    #endregion
+
+    #region Protected Properties
+
+    /// <summary>
+    /// Gets the list of table names managed by this factory.
+    /// </summary>
     protected override string[] TableNames => _postgresClientOptions.TableNames;
 
     /// <inheritdoc/>
+    /// <summary>
+    /// Gets the SQL query used to check database connectivity and version.
+    /// </summary>
     protected override string VersionQueryString => "SELECT version();";
+
+    #endregion
 }

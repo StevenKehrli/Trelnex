@@ -8,13 +8,34 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="DynamoCommandProvider"/>.
+/// Factory for creating DynamoDB command providers.
 /// </summary>
+/// <remarks>
+/// Manages DynamoDB client initialization, table validation, and provider creation.
+/// </remarks>
 internal class DynamoCommandProviderFactory : ICommandProviderFactory
 {
+    #region Private Fields
+
+    /// <summary>
+    /// The DynamoDB client.
+    /// </summary>
     private readonly AmazonDynamoDBClient _dynamoClient;
+
+    /// <summary>
+    /// Function to retrieve the current operational status.
+    /// </summary>
     private readonly Func<CommandProviderFactoryStatus> _getStatus;
 
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DynamoCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="dynamoClient">The configured DynamoDB client.</param>
+    /// <param name="getStatus">Function that provides operational status information.</param>
     private DynamoCommandProviderFactory(
         AmazonDynamoDBClient dynamoClient,
         Func<CommandProviderFactoryStatus> getStatus)
@@ -23,19 +44,28 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         _getStatus = getStatus;
     }
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
-    /// Create an instance of the <see cref="DynamoCommandProviderFactory"/>.
+    /// Creates and initializes a new instance of the <see cref="DynamoCommandProviderFactory"/>.
     /// </summary>
-    /// <param name="dynamoClientOptions">The <see cref="DynamoClient"/> options.</param>
-    /// <returns>The <see cref="DynamoCommandProviderFactory"/>.</returns>
+    /// <param name="dynamoClientOptions">Options for DynamoDB client configuration.</param>
+    /// <returns>A fully initialized <see cref="DynamoCommandProviderFactory"/> instance.</returns>
+    /// <exception cref="CommandException">Thrown when the DynamoDB connection cannot be established or tables are missing.</exception>
+    /// <remarks>
+    /// Initializes the DynamoDB client and validates that all required tables exist.
+    /// </remarks>
     public static async Task<DynamoCommandProviderFactory> Create(
         DynamoClientOptions dynamoClientOptions)
     {
-        // create the dynamo client
+        // Create the DynamoDB client using the provided AWS credentials and region.
         var dynamoClient = new AmazonDynamoDBClient(
             dynamoClientOptions.AWSCredentials,
             RegionEndpoint.GetBySystemName(dynamoClientOptions.Region));
 
+        // Function to retrieve the current operational status of the factory.
         CommandProviderFactoryStatus getStatus()
         {
             var data = new Dictionary<string, object>
@@ -46,7 +76,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
             try
             {
-                // get the tables
+                // Retrieve the list of table names from DynamoDB.
                 string[] getTableNames()
                 {
                     var tableNames = new List<string>();
@@ -55,7 +85,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
                     do
                     {
-                        // get the next batch of table names
+                        // Get the next batch of table names.
                         var request = new ListTablesRequest
                         {
                             ExclusiveStartTableName = lastEvaluatedTableName
@@ -73,7 +103,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
                 var tableNames = getTableNames();
 
-                // get any tables not found
+                // Identify any required tables that are missing.
                 var missingTableNames = new List<string>();
                 foreach (var tableName in dynamoClientOptions.TableNames.OrderBy(tableName => tableName))
                 {
@@ -110,7 +140,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
                 status.Data["error"] as string);
         }
 
-        // build the factory
+        // Build and return the factory instance.
         var factory = new DynamoCommandProviderFactory(
             dynamoClient,
             getStatus);
@@ -118,16 +148,23 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         return await Task.FromResult(factory);
     }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Create an instance of the <see cref="DynamoCommandProvider"/>.
+    /// Creates a command provider for a specific item type.
     /// </summary>
-    /// <param name="tableName">The table name for the item.</param>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The value indicating if update and delete commands are allowed. By default, update is allowed; delete is not allowed.</param>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-    /// <returns>The <see cref="DynamoCommandProvider"/>.</returns>
+    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+    /// <param name="tableName">Name of the DynamoDB table to use.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
+    /// <remarks>
+    /// Creates a <see cref="DynamoCommandProvider{TInterface, TItem}"/> that operates on the specified DynamoDB table.
+    /// </remarks>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
@@ -136,8 +173,10 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
+        // Get a Table object with the standard key schema for the specified table name.
         var table = _dynamoClient.GetTable(tableName);
 
+        // Create and return the command provider instance.
         return new DynamoCommandProvider<TInterface, TItem>(
             table,
             typeName,
@@ -145,5 +184,14 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
             commandOperations);
     }
 
+    /// <summary>
+    /// Gets the current operational status of the factory.
+    /// </summary>
+    /// <returns>Status information.</returns>
+    /// <remarks>
+    /// Provides information about the DynamoDB connection and table availability.
+    /// </remarks>
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
+
+    #endregion
 }

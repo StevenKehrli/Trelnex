@@ -13,18 +13,30 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
+/// Extension methods for configuring PostgreSQL command providers.
 /// </summary>
+/// <remarks>
+/// Provides dependency injection integration.
+/// </remarks>
 public static class PostgresCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the necessary command providers as a <see cref="ICommandProvider{TInterface}"/> to the <see cref="IServiceCollection"/>.
+    /// Adds PostgreSQL command providers to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <param name="configureCommandProviders">The action to configure the command providers.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="bootstrapLogger">Logger for initialization.</param>
+    /// <param name="configureCommandProviders">Action to configure providers.</param>
+    /// <returns>The service collection.</returns>
+    /// <exception cref="ConfigurationErrorsException">When the PostgresCommandProviders section is missing.</exception>
+    /// <exception cref="InvalidOperationException">When the ServiceConfiguration is not registered or when attempting to register the same command provider interface twice.</exception>
+    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
+    /// <remarks>
+    /// Configures PostgreSQL command providers for specific entity types.
+    /// Uses AWS credentials from the registered credential provider to authenticate with PostgreSQL through IAM.
+    /// </remarks>
     public static IServiceCollection AddPostgresCommandProviders(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -71,17 +83,19 @@ public static class PostgresCommandProvidersExtensions
         return services;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Gets the <see cref="PostgresClientOptions"/> to be used by <see cref="NpgsqlDataSource"/>.
+    /// Creates PostgreSQL client options with authentication.
     /// </summary>
+    /// <param name="credentialProvider">Provider for AWS credentials.</param>
+    /// <param name="providerOptions">Configuration options for PostgreSQL.</param>
+    /// <returns>Fully configured PostgreSQL client options.</returns>
     /// <remarks>
-    /// <para>
-    /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="NpgsqlDataSource"/> scopes.
-    /// </para>
+    /// Retrieves AWS credentials and sets connection parameters.
     /// </remarks>
-    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
-    /// <param name="providerOptions">The <see cref="PostgresCommandProviderOptions"/>.</param>
-    /// <returns>A valid <see cref="PostgresClientOptions"/>.</returns>
     private static PostgresClientOptions GetPostgresClientOptions(
         ICredentialProvider<AWSCredentials> credentialProvider,
         PostgresCommandProviderOptions providerOptions)
@@ -100,6 +114,16 @@ public static class PostgresCommandProvidersExtensions
         );
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
+    /// <summary>
+    /// Implementation of <see cref="ICommandProviderOptions"/> for configuring PostgreSQL providers.
+    /// </summary>
+    /// <remarks>
+    /// Provides type-to-table mapping and command provider registration.
+    /// </remarks>
     private class CommandProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -107,6 +131,20 @@ public static class PostgresCommandProvidersExtensions
         PostgresCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        /// <summary>
+        /// Registers a command provider for a specific item type with table mapping.
+        /// </summary>
+        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+        /// <param name="typeName">Type name to map to a PostgreSQL table.</param>
+        /// <param name="itemValidator">Optional validator for items.</param>
+        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <returns>The options instance.</returns>
+        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
+        /// <exception cref="InvalidOperationException">When a command provider for the interface is already registered.</exception>
+        /// <remarks>
+        /// Maps a logical entity type with its physical PostgreSQL table location.
+        /// </remarks>
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
@@ -160,58 +198,61 @@ public static class PostgresCommandProvidersExtensions
         }
     }
 
+    #endregion
+
+    #region Configuration Records
+
     /// <summary>
-    /// Represents the table for the specified item type.
+    /// Table configuration mapping type names to PostgreSQL table names.
     /// </summary>
-    /// <param name="TypeName">The specified item type name.</param>
-    /// <param name="TableId">The table for the specified item type.</param>
+    /// <param name="TypeName">The type name.</param>
+    /// <param name="TableName">The table name in PostgreSQL.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName);
 
     /// <summary>
-    /// Represents the configuration properties for Postgres command providers.
+    /// Configuration properties for Postgres command providers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// https://github.com/dotnet/runtime/issues/83803
-    /// </para>
-    /// </remarks>
     private record PostgresCommandProviderConfiguration
     {
         /// <summary>
-        /// The AWS region of the Postgres Server.
+        /// The AWS region of the PostgreSQL server.
         /// </summary>
         public required string Region { get; init; }
 
         /// <summary>
-        /// The name/network address to the Postgres Server.
+        /// The hostname of the PostgreSQL server.
         /// </summary>
         public required string Host { get; init; }
 
         /// <summary>
-        /// The post number to the Postgres Server.
+        /// The port number of the PostgreSQL server.
         /// </summary>
         public required int Port { get; init; } = 5432;
 
         /// <summary>
-        /// The database name to initialize.
+        /// The name of the PostgreSQL database.
         /// </summary>
         public required string Database { get; init; }
 
         /// <summary>
-        /// The database user name to connect with.
+        /// The database username.
         /// </summary>
         public required string DbUser { get; init; }
 
         /// <summary>
-        /// The collection of tables by item type
+        /// The collection of tables mapped to item types.
         /// </summary>
         public required TableConfiguration[] Tables { get; init; }
     }
 
+    #endregion
+
+    #region Provider Options
+
     /// <summary>
-    /// Represents the Postgres command provider options: the collection of tables by item type.
+    /// Represents the PostgreSQL command provider options.
     /// </summary>
     private class PostgresCommandProviderOptions(
         string region,
@@ -220,18 +261,85 @@ public static class PostgresCommandProvidersExtensions
         string database,
         string dbUser)
     {
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the database name.
+        /// </summary>
+        public string Database => database;
+
+        /// <summary>
+        /// Gets the database username.
+        /// </summary>
+        public string DbUser => dbUser;
+
+        /// <summary>
+        /// Gets the hostname of the PostgreSQL server.
+        /// </summary>
+        public string Host => host;
+
+        /// <summary>
+        /// Gets the port number of the PostgreSQL server.
+        /// </summary>
+        public int Port => port;
+
+        /// <summary>
+        /// Gets the AWS region of the PostgreSQL server.
+        /// </summary>
+        public string Region => region;
+
+        #endregion
+
+        #region Private Fields
+
         /// <summary>
         /// The collection of tables by item type.
         /// </summary>
         private readonly Dictionary<string, string> _tableNamesByTypeName = [];
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Initialize an instance of <see cref="PostgresCommandProviderOptions"/>.
+        /// Gets the table name for the specified item type.
         /// </summary>
-        /// <param name="providerConfiguration">The Postgres command providers configuration.</param>
-        /// <returns>The <see cref="PostgresCommandProviderOptions"/>.</returns>
-        /// <exception cref="AggregateException">Represents one or more configuration errors.</exception>
-        public static PostgresCommandProviderOptions Parse(
+        /// <param name="typeName">The logical type name.</param>
+        /// <returns>The corresponding table name, or <see langword="null"/> if no mapping exists.</returns>
+        public string? GetTableName(
+            string typeName)
+        {
+            return _tableNamesByTypeName.TryGetValue(typeName, out var tableName)
+                ? tableName
+                : null;
+        }
+
+        /// <summary>
+        /// Gets all configured table names.
+        /// </summary>
+        /// <returns>An array containing all table names, sorted alphabetically.</returns>
+        public string[] GetTableNames()
+        {
+            return _tableNamesByTypeName
+                .Values
+                .OrderBy(tn => tn)
+                .ToArray();
+        }
+
+        #endregion
+
+        #region Internal Static Methods
+
+        /// <summary>
+        /// Parses configuration settings into a validated <see cref="PostgresCommandProviderOptions"/> instance.
+        /// </summary>
+        /// <param name="providerConfiguration">The PostgreSQL command providers configuration.</param>
+        /// <returns>A configured and validated <see cref="PostgresCommandProviderOptions"/> instance.</returns>
+        /// <exception cref="AggregateException">Thrown when one or more configuration errors are detected.</exception>
+        /// <remarks>
+        /// Validates that each type name is mapped to exactly one table name.
+        /// </remarks>
+        internal static PostgresCommandProviderOptions Parse(
             PostgresCommandProviderConfiguration providerConfiguration)
         {
             // get the server and database
@@ -274,54 +382,8 @@ public static class PostgresCommandProvidersExtensions
             return options;
         }
 
-        /// <summary>
-        /// The AWS region of the Postgres Server.
-        /// </summary>
-        public string Region => region;
-
-        /// <summary>
-        /// Get the host.
-        /// </summary>
-        public string Host => host;
-
-        /// <summary>
-        /// Get the port.
-        /// </summary>
-        public int Port => port;
-
-        /// <summary>
-        /// Get the database.
-        /// </summary>
-        public string Database => database;
-
-        /// <summary>
-        /// Get the database user.
-        /// </summary>
-        public string DbUser => dbUser;
-
-        /// <summary>
-        /// Get the table for the specified item type.
-        /// </summary>
-        /// <param name="typeName">The specified item type.</param>
-        /// <returns>The table for the specified item type.</returns>
-        public string? GetTableName(
-            string typeName)
-        {
-            return _tableNamesByTypeName.TryGetValue(typeName, out var tableName)
-                ? tableName
-                : null;
-        }
-
-        /// <summary>
-        /// Get the tables.
-        /// </summary>
-        /// <returns>The array of tables.</returns>
-        public string[] GetTableNames()
-        {
-            return _tableNamesByTypeName
-                .Values
-                .OrderBy(tn => tn)
-                .ToArray();
-        }
+        #endregion
     }
+
+    #endregion
 }
