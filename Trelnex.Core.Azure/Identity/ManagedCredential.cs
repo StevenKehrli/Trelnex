@@ -11,35 +11,80 @@ using TrelnexToken = Trelnex.Core.Identity.AccessToken;
 namespace Trelnex.Core.Azure.Identity;
 
 /// <summary>
-/// Enables authentication to Microsoft Entra ID to obtain an access token.
+/// A credential that manages authentication to Microsoft Entra ID (formerly Azure AD) to obtain access tokens.
 /// </summary>
 /// <remarks>
 /// <para>
-/// ManagedCredential is an internal class. Users will get an instance of the <see cref="TokenCredential"/> class.
+/// ManagedCredential implements both <see cref="TokenCredential"/> and <see cref="ICredential"/>, allowing it
+/// to be used with both Azure SDK clients (via TokenCredential) and Trelnex's credential system (via ICredential).
+/// </para>
+/// <para>
+/// This credential is responsible for:
+/// <list type="bullet">
+///   <item><description>Caching tokens by their request context (scopes, tenant, etc.)</description></item>
+///   <item><description>Automatically refreshing tokens before they expire</description></item>
+///   <item><description>Providing token status reporting</description></item>
+///   <item><description>Converting between Azure and Trelnex token formats</description></item>
+/// </list>
+/// </para>
+/// <para>
+/// ManagedCredential is an internal class. Application code will interact with this via the <see cref="AzureCredentialProvider"/>.
 /// </para>
 /// </remarks>
-/// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-/// <param name="tokenCredential">The underlying <see cref="ChainedTokenCredential"/>.</param>
+/// <param name="logger">The logger used for recording token acquisition and refresh events.</param>
+/// <param name="tokenCredential">The underlying credential used to acquire tokens from Azure.</param>
 internal class ManagedCredential(
     ILogger logger,
     TokenCredential tokenCredential)
     : TokenCredential, ICredential
 {
     /// <summary>
-    /// A thread-safe collection of <see cref="TokenRequestContext"/> to <see cref="AzureTokenItem"/>.
+    /// A thread-safe cache of token items indexed by their request contexts.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This dictionary maps token request contexts to their corresponding token items.
+    /// The Lazy wrapper ensures that token acquisition for a given context happens only once,
+    /// even if multiple threads request the same token simultaneously.
+    /// </para>
+    /// <para>
+    /// Each AzureTokenItem handles its own token refresh scheduling.
+    /// </para>
+    /// </remarks>
     private readonly ConcurrentDictionary<TokenRequestContextKey, Lazy<AzureTokenItem>> _azureTokenItemsByTokenRequestContextKey = new();
 
-#region TokenCredential
+#region TokenCredential Implementation
 
+    /// <summary>
+    /// Gets an access token for the specified context.
+    /// </summary>
+    /// <param name="tokenRequestContext">The context containing the details of the token request.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>An access token for the specified request context.</returns>
+    /// <exception cref="CredentialUnavailableException">Thrown when the credential cannot retrieve a token.</exception>
+    /// <remarks>
+    /// <para>
+    /// This method implements the <see cref="TokenCredential.GetToken"/> method, making this class
+    /// usable with Azure SDK clients.
+    /// </para>
+    /// <para>
+    /// Tokens are cached by request context. If a token for the specified context already exists
+    /// and is valid, it is returned immediately. Otherwise, a new token is acquired and cached.
+    /// </para>
+    /// <para>
+    /// Tokens are refreshed before expiry by a background timer.
+    /// </para>
+    /// </remarks>
     public override AzureToken GetToken(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
-        // create a TokenRequestContextKey - we do not care about ParentRequestId
+        // Create a cache key from the token request context.
         var key = TokenRequestContextKey.FromTokenRequestContext(tokenRequestContext);
 
-        // https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
+        // Get or create a token item for this request context.
+        // Using Lazy<T> ensures thread safety during creation.
+        // See: https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
         var lazyAzureTokenItem =
             _azureTokenItemsByTokenRequestContextKey.GetOrAdd(
                 key: key,
@@ -49,39 +94,62 @@ internal class ManagedCredential(
                         tokenCredential,
                         key)));
 
+        // Return the token from the token item.
         return lazyAzureTokenItem.Value.GetAzureToken();
     }
 
+    /// <summary>
+    /// Gets an access token for the specified context asynchronously.
+    /// </summary>
+    /// <param name="tokenRequestContext">The context containing the details of the token request.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>A task that completes with an access token for the specified request context.</returns>
+    /// <remarks>
+    /// This implementation delegates to <see cref="GetToken(TokenRequestContext, CancellationToken)"/>.
+    /// The synchronous implementation is sufficient because tokens are cached and refreshed in the background.
+    /// </remarks>
     public override ValueTask<AzureToken> GetTokenAsync(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
+        // Delegate to the synchronous GetToken method.
         return ValueTask.FromResult(
             GetToken(tokenRequestContext, cancellationToken));
     }
 
 #endregion
 
-#region ICredential
+#region ICredential Implementation
 
     /// <summary>
-    /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.
+    /// Gets a Trelnex access token for the specified scope.
     /// </summary>
-    /// <param name="scope">The scope required for the token.</param>
-    /// <returns>The <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.</returns>
+    /// <param name="scope">The scope required for the token (e.g., "https://storage.azure.com/.default").</param>
+    /// <returns>A Trelnex <see cref="AccessToken"/> for the specified scope.</returns>
+    /// <exception cref="AccessTokenUnavailableException">Thrown when the credential cannot retrieve a token.</exception>
+    /// <remarks>
+    /// <para>
+    /// This method implements the <see cref="ICredential.GetAccessToken"/> method, making this class
+    /// usable with Trelnex's token provider system.
+    /// </para>
+    /// <para>
+    /// It creates a token request context for the specified scope, acquires an Azure token,
+    /// and converts it to a Trelnex token format.
+    /// </para>
+    /// </remarks>
     public TrelnexToken GetAccessToken(
         string scope)
     {
-        // format the scope into a TokenRequestContext
+        // Format the scope into a TokenRequestContext.
         var tokenRequestContext = new TokenRequestContext(
             scopes: [ scope ]);
 
         try
         {
-            // get the azure access token
+            // Get the Azure access token.
             var azureToken = GetToken(tokenRequestContext, default);
 
-            // convert to trelnex access token
+            // Convert to Trelnex access token format.
             return new TrelnexToken{
                 Token = azureToken.Token,
                 TokenType = azureToken.TokenType,
@@ -91,17 +159,28 @@ internal class ManagedCredential(
         }
         catch (CredentialUnavailableException ex)
         {
+            // Translate Azure exception to Trelnex exception.
             throw new AccessTokenUnavailableException(ex.Message, ex.InnerException);
         }
     }
 
     /// <summary>
-    /// Gets the <see cref="CredentialStatus"/> of the credential used by this token provider.
+    /// Gets the status of all credentials managed by this provider.
     /// </summary>
-    /// <returns>The <see cref="CredentialStatus"/> of the credential used by this token provider.</returns>
+    /// <returns>A <see cref="CredentialStatus"/> object containing the status of all managed tokens.</returns>
+    /// <remarks>
+    /// <para>
+    /// This method implements the <see cref="ICredential.GetStatus"/> method, allowing health monitoring
+    /// of the credential.
+    /// </para>
+    /// <para>
+    /// It collects status information from all token items in the cache, including their health,
+    /// scopes, expiration, and other metadata.
+    /// </para>
+    /// </remarks>
     public CredentialStatus GetStatus()
     {
-        // get the azure token item
+        // Collect status of all token items in the cache.
         var statuses = _azureTokenItemsByTokenRequestContextKey
             .Select(kvp =>
             {
@@ -113,6 +192,7 @@ internal class ManagedCredential(
             .OrderBy(status => string.Join(", ", status.Scopes))
             .ToArray();
 
+        // Return a consolidated credential status with all token statuses.
         return new CredentialStatus(
             Statuses: statuses ?? []);
     }
@@ -120,27 +200,18 @@ internal class ManagedCredential(
 #endregion
 
     /// <summary>
-    /// Contains the details of an access token request.
+    /// A reference-type wrapper for <see cref="TokenRequestContext"/> that serves as a key for caching tokens.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is used as the key to <see cref="_azureTokenItemsByTokenRequestContextKey"/>.
+    /// This class provides a stable key for the token cache dictionary, with proper equality comparison
+    /// and hash code generation for the relevant properties of a token request context.
     /// </para>
     /// <para>
-    /// This is a class (reference type) alternative to the struct (value type) of <see cref="TokenRequestContext"/>.
-    /// </para>
-    /// <para>
-    /// This ignores the <see cref="TokenRequestContext.ParentRequestId"/> property.
-    /// It is not used by <see cref="GetToken"/> and <see cref="GetTokenAsync"/>.
-    /// </para>
-    /// <para>
-    /// This implements the <see cref="Equals"/> and <see cref="GetHashCode"/> necessary for the <see cref="_azureTokenItemsByTokenRequestContextKey"/>.
+    /// It deliberately ignores the <see cref="TokenRequestContext.ParentRequestId"/> property since
+    /// it's not relevant for token caching.
     /// </para>
     /// </remarks>
-    /// <param name="claims">Additional claims to be included in the token.</param>
-    /// <param name="isCaeEnabled">Indicates whether to enable Continuous Access Evaluation (CAE) for the requested token.</param>
-    /// <param name="scopes">The scopes required for the token.</param>
-    /// <param name="tenantId">The tenantId to be included in the token request.</param>
     private class TokenRequestContextKey(
         string? claims,
         bool isCaeEnabled,
@@ -148,33 +219,53 @@ internal class ManagedCredential(
         string? tenantId)
     {
         /// <summary>
-        /// Additional claims to be included in the token. See <see href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</see> for more information on format and content.
+        /// Gets the additional claims to be included in the token.
         /// </summary>
+        /// <value>
+        /// A JSON string of claims as defined in the OpenID Connect Core specification.
+        /// See <see href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">
+        /// OpenID Connect Claims Parameter</see> for more information.
+        /// </value>
         public string? Claims => claims;
 
         /// <summary>
-        /// Indicates whether to enable Continuous Access Evaluation (CAE) for the requested token.
+        /// Gets a value indicating whether Continuous Access Evaluation (CAE) is enabled for the token.
         /// </summary>
+        /// <value>
+        /// <c>true</c> if CAE is enabled; otherwise, <c>false</c>.
+        /// </value>
+        /// <remarks>
+        /// Continuous Access Evaluation enables real-time security signals during token usage.
+        /// See <see href="https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/concept-continuous-access-evaluation">
+        /// Continuous Access Evaluation</see> for more information.
+        /// </remarks>
         public bool IsCaeEnabled => isCaeEnabled;
 
         /// <summary>
-        /// The scopes required for the token.
+        /// Gets the scopes required for the token.
         /// </summary>
+        /// <value>
+        /// An array of scope strings identifying the Azure resources and permissions needed.
+        /// </value>
         public string[] Scopes => scopes;
 
         /// <summary>
-        /// The tenantId to be included in the token request.
+        /// Gets the tenant ID to be included in the token request.
         /// </summary>
+        /// <value>
+        /// The tenant ID, or <c>null</c> to use the default tenant.
+        /// </value>
         public string? TenantId => tenantId;
 
         /// <summary>
-        /// Converts a <see cref="TokenRequestContext"/> to a <see cref="TokenRequestContextKey"/>.
+        /// Creates a <see cref="TokenRequestContextKey"/> from a <see cref="TokenRequestContext"/>.
         /// </summary>
-        /// <param name="tokenRequestContext">The <see cref="TokenRequestContext"/>.</param>
-        /// <returns>A <see cref="TokenRequestContextKey"/>.</returns>
+        /// <param name="tokenRequestContext">The token request context to convert.</param>
+        /// <returns>A new <see cref="TokenRequestContextKey"/> with values from the token request context.</returns>
         public static TokenRequestContextKey FromTokenRequestContext(
             TokenRequestContext tokenRequestContext)
         {
+            // Create a new TokenRequestContextKey from the provided TokenRequestContext.
             return new TokenRequestContextKey(
                 claims: tokenRequestContext.Claims,
                 isCaeEnabled: tokenRequestContext.IsCaeEnabled,
@@ -183,11 +274,12 @@ internal class ManagedCredential(
         }
 
         /// <summary>
-        /// Converts this <see cref="TokenRequestContextKey"/> to a <see cref="TokenRequestContext"/>.
+        /// Converts this <see cref="TokenRequestContextKey"/> back to a <see cref="TokenRequestContext"/>.
         /// </summary>
-        /// <returns>A <see cref="TokenRequestContext"/>.</returns>
+        /// <returns>A new <see cref="TokenRequestContext"/> with values from this key.</returns>
         public TokenRequestContext ToTokenRequestContext()
         {
+            // Create a new TokenRequestContext from the values in this TokenRequestContextKey.
             return new TokenRequestContext(
                 claims: Claims,
                 isCaeEnabled: IsCaeEnabled,
@@ -195,23 +287,32 @@ internal class ManagedCredential(
                 tenantId: TenantId);
         }
 
+        /// <summary>
+        /// Determines whether the specified object is equal to the current <see cref="TokenRequestContextKey"/>.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current key.</param>
+        /// <returns><c>true</c> if the specified object is a <see cref="TokenRequestContextKey"/> and
+        /// has the same property values; otherwise, <c>false</c>.</returns>
         public override bool Equals(object? obj)
         {
+            // Check if the object is null or of a different type.
             return (obj is TokenRequestContextKey other) && Equals(other);
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="TokenRequestContextKey"/> is equal to the current object.
+        /// Determines whether the specified <see cref="TokenRequestContextKey"/> is equal to the current key.
         /// </summary>
-        /// <param name="other">The <see cref="TokenRequestContextKey"/> to compare with the current object.</param>
-        /// <returns>true if the specified <see cref="TokenRequestContextKey"/> is equal to the current object; otherwise, false.</returns>
+        /// <param name="other">The <see cref="TokenRequestContextKey"/> to compare with the current key.</param>
+        /// <returns><c>true</c> if the specified key has the same property values; otherwise, <c>false</c>.</returns>
         private bool Equals(
             TokenRequestContextKey other)
         {
+            // Compare each property for equality.
             if (string.Equals(Claims, other.Claims) is false) return false;
 
             if (IsCaeEnabled != other.IsCaeEnabled) return false;
 
+            // Use structural comparison for the scopes array.
             if (StructuralComparisons.StructuralEqualityComparer.Equals(Scopes, other.Scopes) is false) return false;
 
             if (string.Equals(TenantId, other.TenantId) is false) return false;
@@ -219,8 +320,13 @@ internal class ManagedCredential(
             return true;
         }
 
+        /// <summary>
+        /// Returns a hash code for the current <see cref="TokenRequestContextKey"/>.
+        /// </summary>
+        /// <returns>A hash code for the current key.</returns>
         public override int GetHashCode()
         {
+            // Create a hash code that combines all property values.
             var hashCode = HashCode.Combine(
                 claims,
                 isCaeEnabled,
@@ -232,57 +338,62 @@ internal class ManagedCredential(
     }
 
     /// <summary>
-    /// Combines an <see cref="Azure.Core.AccessToken"/> with a <see cref="System.Threading.Timer"/> to refresh the <see cref="Azure.Core.AccessToken"/>.
+    /// Manages an Azure access token with automatic refresh capabilities.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An AzureTokenItem will refresh its token in accordance with <see cref="Azure.Core.AccessToken.RefreshOn"/>.
-    /// This will maintain a valid token and enable <see cref="GetToken"/> to return immediately.
+    /// An <see cref="AzureTokenItem"/> is responsible for acquiring, caching, and refreshing a token
+    /// for a specific request context. It uses a timer to refresh the token before it expires,
+    /// ensuring that valid tokens are always available.
+    /// </para>
+    /// <para>
+    /// This class handles both successful token acquisition and failure cases, maintaining
+    /// appropriate state to report token status and errors.
     /// </para>
     /// </remarks>
     private class AzureTokenItem
     {
         /// <summary>
-        /// The <see cref="ILogger"> used to perform logging.
+        /// The logger used for diagnostic information.
         /// </summary>
         private readonly ILogger _logger;
 
         /// <summary>
-        /// The underlying <see cref="TokenCredential"/>.
+        /// The credential used to acquire tokens.
         /// </summary>
         private readonly TokenCredential _tokenCredential;
 
         /// <summary>
-        /// The underlying <see cref="TokenRequestContextKey"/>.
+        /// The request context for which this item acquires tokens.
         /// </summary>
         private readonly TokenRequestContextKey _tokenRequestContextKey;
 
         /// <summary>
-        /// The <see cref="Timer"/> to refresh the <see cref="Azure.Core.AccessToken"/>.
+        /// The timer used to schedule token refresh operations.
         /// </summary>
         private readonly Timer _timer;
 
         /// <summary>
-        /// The underlying <see cref="Azure.Core.AccessToken"/>.
+        /// The current access token, or null if no valid token is available.
         /// </summary>
         private AzureToken? _azureToken;
 
         /// <summary>
-        /// The message to throw when the token is unavailable.
+        /// The error message to use when a token is unavailable, or null if no error occurred.
         /// </summary>
         private string? _unavailableMessage;
 
         /// <summary>
-        /// The inner exception to include when the token is unavailable.
+        /// The inner exception to include when a token is unavailable, or null if no error occurred.
         /// </summary>
         private Exception? _unavailableInnerException;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureTokenItem"/>.
+        /// Initializes a new instance of the <see cref="AzureTokenItem"/> class.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="Azure.Core.AccessToken"/>.</param>
-        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details for the access token request.</param>
+        /// <param name="logger">The logger used for diagnostic information.</param>
+        /// <param name="tokenCredential">The credential used to acquire tokens.</param>
+        /// <param name="tokenRequestContextKey">The request context for which to acquire tokens.</param>
         private AzureTokenItem(
             ILogger logger,
             TokenCredential tokenCredential,
@@ -292,55 +403,63 @@ internal class ManagedCredential(
             _tokenCredential = tokenCredential;
             _tokenRequestContextKey = tokenRequestContextKey;
 
+            // Create a timer but don't start it yet.
             _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureTokenItem"/>.
+        /// Creates and initializes a new <see cref="AzureTokenItem"/> instance.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"> used to perform logging.</param>
-        /// <param name="tokenCredential">The <see cref="TokenCredential"/> capable of providing a <see cref="Azure.Core.AccessToken"/>.</param>
-        /// <param name="tokenRequestContextKey">The <see cref="TokenRequestContextKey"/> containing the details for the access token request.</param>
+        /// <param name="logger">The logger used for diagnostic information.</param>
+        /// <param name="tokenCredential">The credential used to acquire tokens.</param>
+        /// <param name="tokenRequestContextKey">The request context for which to acquire tokens.</param>
+        /// <returns>A new <see cref="AzureTokenItem"/> instance with an initial token.</returns>
+        /// <remarks>This method creates the token item and immediately triggers a token refresh to acquire the initial token.</remarks>
         public static AzureTokenItem Create(
             ILogger logger,
             TokenCredential tokenCredential,
             TokenRequestContextKey tokenRequestContextKey)
         {
-            // create the azureTokenItem and schedule the refresh (to get its token)
-            // this will set _azureToken
+            // Create the token item.
             var azureTokenItem = new AzureTokenItem(
                 logger,
                 tokenCredential,
                 tokenRequestContextKey);
 
+            // Immediately trigger a refresh to acquire the initial token.
             azureTokenItem.Refresh(null);
 
             return azureTokenItem;
         }
 
         /// <summary>
-        /// Gets the <see cref="Azure.Core.AccessToken"/>.
+        /// Gets the current access token.
         /// </summary>
+        /// <returns>The current access token.</returns>
+        /// <exception cref="CredentialUnavailableException">Thrown when no valid token is available.</exception>
         public AzureToken GetAzureToken()
         {
             lock (this)
             {
+                // If no token is available, throw an exception with the error details.
                 return _azureToken ?? throw new CredentialUnavailableException(_unavailableMessage, _unavailableInnerException);
             }
         }
 
         /// <summary>
-        /// Gets the <see cref="AccessTokenStatus"/> for this access token.
+        /// Gets the status of the access token managed by this item.
         /// </summary>
-        /// <returns>A <see cref="AccessTokenStatus"/> describing the status of this access token.</returns>
+        /// <returns>An <see cref="AccessTokenStatus"/> containing the token's health and metadata.</returns>
         public AccessTokenStatus GetStatus()
         {
             lock (this)
             {
+                // Determine if the token is valid based on its expiration time.
                 var health = ((_azureToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
                     ? AccessTokenHealth.Expired
                     : AccessTokenHealth.Valid;
 
+                // Include additional metadata about the token.
                 var data = new Dictionary<string, object?>
                 {
                     { "tenantId", _tokenRequestContextKey.TenantId },
@@ -348,6 +467,7 @@ internal class ManagedCredential(
                     { "isCaeEnabled", _tokenRequestContextKey.IsCaeEnabled },
                 };
 
+                // Return a status object with all relevant information.
                 return new AccessTokenStatus(
                     Health: health,
                     Scopes: _tokenRequestContextKey.Scopes,
@@ -357,11 +477,12 @@ internal class ManagedCredential(
         }
 
         /// <summary>
-        /// The <see cref="TimerCallback"/> delegate of the <see cref="_timer"/> <see cref="Timer"/>.
+        /// Refreshes the access token and schedules the next refresh.
         /// </summary>
-        /// <param name="state">An object containing application-specific information relevant to the method invoked by this delegate, or null.</param>
+        /// <param name="state">The state object passed by the Timer (not used).</param>
         private void Refresh(object? state)
         {
+            // Log the refresh attempt.
             _logger.LogInformation(
                 "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
                 string.Join(", ", _tokenRequestContextKey.Scopes),
@@ -369,23 +490,25 @@ internal class ManagedCredential(
                 _tokenRequestContextKey.Claims,
                 _tokenRequestContextKey.IsCaeEnabled);
 
-            // assume we need to refresh in 5 seconds
+            // Default to refreshing in 5 seconds if something goes wrong.
             var dueTime = TimeSpan.FromSeconds(5);
 
             try
             {
-                // get a new token and set
+                // Attempt to get a new token.
                 var azureToken = _tokenCredential.GetToken(
                     requestContext: _tokenRequestContextKey.ToTokenRequestContext(),
                     cancellationToken: default);
 
+                // Store the new token.
                 SetAzureToken(azureToken);
 
-                // we got a token - schedule refresh
-                // workloadIdentityCredential will have RefreshOn set - use RefreshOn
-                // azureCliCredential will not - use ExpiresOn
+                // Determine when to refresh the token.
+                // WorkloadIdentityCredential will have RefreshOn set - use that.
+                // AzureCliCredential will not - fall back to ExpiresOn.
                 var refreshOn = azureToken.RefreshOn ?? azureToken.ExpiresOn;
 
+                // Log the successful token acquisition.
                 _logger.LogInformation(
                     "AzureTokenItem.AccessToken: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', refreshOn = '{refreshOn:o}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
@@ -394,12 +517,15 @@ internal class ManagedCredential(
                     _tokenRequestContextKey.IsCaeEnabled,
                     refreshOn);
 
+                // Schedule the next refresh at the token's refresh time.
                 dueTime = refreshOn - DateTimeOffset.UtcNow;
             }
             catch (CredentialUnavailableException ex)
             {
+                // Handle credential unavailable errors.
                 SetUnavailable(ex);
 
+                // Log the error.
                 _logger.LogError(
                     "AzureTokenItem.Unavailable: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
@@ -410,37 +536,43 @@ internal class ManagedCredential(
             }
             catch
             {
+                // Catch any other exceptions to ensure the timer is always rescheduled.
             }
 
+            // Schedule the next refresh.
             _timer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
-        /// Sets the <see cref="Azure.Core.AccessToken"/> for this object.
+        /// Sets a new access token and clears any error state.
         /// </summary>
+        /// <param name="azureToken">The new access token.</param>
         private void SetAzureToken(
             AzureToken azureToken)
         {
             lock (this)
             {
+                // Store the new token.
                 _azureToken = azureToken;
 
+                // Clear any error state.
                 _unavailableMessage = null;
                 _unavailableInnerException = null;
             }
         }
 
         /// <summary>
-        /// Sets the message to throw when the token is unavailable.
+        /// Sets the error information to use when the token is unavailable.
         /// </summary>
-        /// <param name="ex">The <see cref="CredentialUnavailableException"/> with the message to throw when the token is unavailable.</param>
+        /// <param name="ex">The exception that occurred during token acquisition.</param>
         private void SetUnavailable(
             CredentialUnavailableException ex)
         {
             lock (this)
             {
+                // Store the error information.
                 _unavailableMessage = ex.Message;
                 _unavailableInnerException = ex.InnerException;
             }

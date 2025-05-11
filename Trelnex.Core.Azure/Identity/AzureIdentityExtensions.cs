@@ -6,33 +6,55 @@ using Trelnex.Core.Api.Identity;
 
 namespace Trelnex.Core.Azure.Identity;
 
+/// <summary>
+/// Extension methods for configuring Azure Identity services.
+/// </summary>
+/// <remarks>
+/// Enables registration of Azure Identity services with the dependency injection container.
+/// </remarks>
 public static class AzureIdentityExtensions
 {
     /// <summary>
-    /// Add the <see cref="CredentialFactory"/> to the <see cref="IServiceCollection"/>.
+    /// Adds Azure Identity services to the <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="configuration">The application configuration containing Azure credential settings.</param>
+    /// <param name="bootstrapLogger">The logger for setup and initialization information.</param>
+    /// <returns>The same service collection to enable method chaining.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the "AzureCredentials" configuration section is not found.</exception>
+    /// <remarks>
+    /// Configures and registers an <see cref="AzureCredentialProvider"/> for authentication with Azure services.
+    /// Expects an "AzureCredentials" section in the configuration, containing <see cref="AzureCredentialOptions"/>.
+    ///
+    /// Example configuration:
+    /// <code>
+    /// {
+    ///   "AzureCredentials": {
+    ///     "Sources": [ "WorkloadIdentity", "AzureCli" ]
+    ///   }
+    /// }
+    /// </code>
+    /// </remarks>
     public static IServiceCollection AddAzureIdentity(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
     {
+        // Extract Azure credential options.
         var options = configuration
             .GetSection("AzureCredentials")
             .Get<AzureCredentialOptions>()
             ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not found.");
 
-        // create the credential provider
+        // Create the credential provider.
         var credentialProvider = AzureCredentialProvider.Create(
             bootstrapLogger,
             options);
 
-        // register the provider
+        // Register the provider for dependency injection.
         services.AddCredentialProvider(credentialProvider);
 
+        // Return the service collection to allow for method chaining.
         return services;
     }
 }

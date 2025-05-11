@@ -7,8 +7,11 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// An implementation of <see cref="ICommandProvider{TInterface}"/> that uses a SQL table as a backing store.
+/// SQL Server implementation of <see cref="DbCommandProvider{TInterface, TItem}"/>.
 /// </summary>
+/// <typeparam name="TInterface">Interface type for the items.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+/// <remarks>Provides SQL-specific implementations for database exception handling.</remarks>
 internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -16,10 +19,11 @@ internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlCommandProvider{TInterface, TItem}"/> class.
     /// </summary>
-    /// <param name="dataOptions">The data connection options.</param>
-    /// <param name="typeName">The type name.</param>
-    /// <param name="validator">The validator.</param>
-    /// <param name="commandOperations">The command operations.</param>
+    /// <param name="dataOptions">The data connection options for SQL Server.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <remarks>Configures the provider with SQL Server connectivity and filtering.</remarks>
     public SqlCommandProvider(
         DataOptions dataOptions,
         string typeName,
@@ -30,20 +34,42 @@ internal partial class SqlCommandProvider<TInterface, TItem> : DbCommandProvider
     }
 
     /// <inheritdoc />
-    protected override bool IsDatabaseException(Exception ex) =>
-        ex is SqlException;
+    protected override bool IsDatabaseException(
+        Exception ex)
+    {
+        // Check if the exception is a SqlException.
+        return ex is SqlException;
+    }
 
     /// <inheritdoc />
-    protected override bool IsPreconditionFailedException(Exception ex) =>
-        ex is SqlException sqlEx && PreconditionFailedRegex().IsMatch(sqlEx.Message);
+    /// <remarks>Detects precondition failures by matching error message.</remarks>
+    protected override bool IsPreconditionFailedException(
+        Exception ex)
+    {
+        // Check if the exception is a SqlException and the message matches the precondition failed regex.
+        return ex is SqlException sqlEx && PreconditionFailedRegex().IsMatch(sqlEx.Message);
+    }
 
     /// <inheritdoc />
-    protected override bool IsPrimaryKeyViolationException(Exception ex) =>
-        ex is SqlException sqlEx && PrimaryKeyViolationRegex().IsMatch(sqlEx.Message);
+    /// <remarks>Detects primary key violations by matching error message.</remarks>
+    protected override bool IsPrimaryKeyViolationException(
+        Exception ex)
+    {
+        // Check if the exception is a SqlException and the message matches the primary key violation regex.
+        return ex is SqlException sqlEx && PrimaryKeyViolationRegex().IsMatch(sqlEx.Message);
+    }
 
+    /// <summary>
+    /// Regular expression to identify primary key violation errors.
+    /// </summary>
+    /// <returns>Compiled regular expression pattern.</returns>
     [GeneratedRegex(@"^Violation of PRIMARY KEY constraint ")]
     private static partial Regex PrimaryKeyViolationRegex();
 
+    /// <summary>
+    /// Regular expression to identify precondition failed errors.
+    /// </summary>
+    /// <returns>Compiled regular expression pattern.</returns>
     [GeneratedRegex(@"^Precondition Failed\.$")]
     private static partial Regex PreconditionFailedRegex();
 }

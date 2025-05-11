@@ -9,12 +9,24 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="SqlCommandProvider"/>.
+/// Factory for creating SQL Server command providers.
 /// </summary>
+/// <remarks>
+/// SQL Server-specific implementation of <see cref="DbCommandProviderFactory"/>.
+/// Manages SQL connection setup, authentication, and provider creation.
+/// </remarks>
 internal class SqlCommandProviderFactory : DbCommandProviderFactory
 {
+    /// <summary>
+    /// The client options for SQL Server connection.
+    /// </summary>
     private readonly SqlClientOptions _sqlClientOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SqlCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="dataOptions">The data connection options for SQL Server.</param>
+    /// <param name="sqlClientOptions">The client options for SQL Server.</param>
     private SqlCommandProviderFactory(
         DataOptions dataOptions,
         SqlClientOptions sqlClientOptions)
@@ -24,15 +36,18 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="SqlCommandProviderFactory"/>.
+    /// Creates and initializes a new instance of the <see cref="SqlCommandProviderFactory"/>.
     /// </summary>
-    /// <param name="serviceConfiguration">The <see cref="ServiceConfiguration"/> options.</param>
-    /// <param name="sqlClientOptions">The <see cref="SqlClientOptions"/> options.</param>
-    /// <returns>The <see cref="SqlCommandProviderFactory"/>.</returns>
+    /// <param name="serviceConfiguration">Service configuration information.</param>
+    /// <param name="sqlClientOptions">SQL Server connection options.</param>
+    /// <returns>A fully initialized <see cref="SqlCommandProviderFactory"/> instance.</returns>
+    /// <exception cref="CommandException">When the SQL Server connection cannot be established or required tables are missing.</exception>
+    /// <remarks>Verifies connectivity and table existence.</remarks>
     public static SqlCommandProviderFactory Create(
         ServiceConfiguration serviceConfiguration,
         SqlClientOptions sqlClientOptions)
     {
+        // Build a connection string.
         var csb = new SqlConnectionStringBuilder()
         {
             ApplicationName = serviceConfiguration.FullName,
@@ -41,15 +56,15 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
             Encrypt = true,
         };
 
-        // bootstrap the data options
+        // Configure the data access layer.
         var dataOptions = new DataOptions().UseSqlServer(csb.ConnectionString);
 
-        // build the factory
+        // Instantiate the factory. Authentication via AAD tokens in BeforeConnectionOpened.
         var factory = new SqlCommandProviderFactory(
             dataOptions,
             sqlClientOptions);
 
-        // assert the factory is healthy
+        // Verify connectivity and table existence.
         factory.IsHealthyOrThrow();
 
         return factory;
@@ -70,22 +85,26 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
     }
 
     /// <summary>
-    /// Set the access token on the connection.
+    /// Sets the access token on the database connection before use.
     /// </summary>
-    /// <param name="dbConnection">The <see cref="DbConnection"/>.</param>
+    /// <param name="dbConnection">The database connection to configure.</param>
+    /// <remarks>Assigns an access token to the SQL connection for AAD authentication.</remarks>
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
+        // Check if the connection is a SqlConnection.
         if (dbConnection is not SqlConnection connection) return;
 
-        // get the access token
+        // Get the access token.
         var tokenCredential = _sqlClientOptions.TokenCredential;
         var tokenRequestContext = new TokenRequestContext([ _sqlClientOptions.Scope ]);
         var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
 
+        // Assign an access token to the SQL connection for AAD authentication.
         connection.AccessToken = accessToken;
     }
 
+    /// <inheritdoc />
     protected override IReadOnlyDictionary<string, object> StatusData
     {
         get
@@ -99,9 +118,9 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     protected override string[] TableNames => _sqlClientOptions.TableNames;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     protected override string VersionQueryString => "SELECT @@VERSION;";
 }

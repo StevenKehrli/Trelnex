@@ -12,14 +12,32 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="CosmosCommandProvider"/>.
+/// Factory for creating CosmosDB command providers.
 /// </summary>
+/// <remarks>Manages CosmosDB client initialization, connection, encryption setup, and provider creation.</remarks>
 internal class CosmosCommandProviderFactory : ICommandProviderFactory
 {
+    /// <summary>
+    /// The configured Cosmos DB client.
+    /// </summary>
     private readonly CosmosClient _cosmosClient;
+
+    /// <summary>
+    /// The database ID to use for all command providers.
+    /// </summary>
     private readonly string _databaseId;
+
+    /// <summary>
+    /// Function to retrieve the current operational status.
+    /// </summary>
     private readonly Func<CommandProviderFactoryStatus> _getStatus;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CosmosCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="cosmosClient">The configured CosmosDB client.</param>
+    /// <param name="databaseId">The database ID to use.</param>
+    /// <param name="getStatus">Function that provides operational status information.</param>
     private CosmosCommandProviderFactory(
         CosmosClient cosmosClient,
         string databaseId,
@@ -31,28 +49,31 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="CosmosCommandProviderFactory"/>.
+    /// Creates and initializes a new instance of the <see cref="CosmosCommandProviderFactory"/>.
     /// </summary>
-    /// <param name="cosmosClientOptions">The <see cref="CosmosClient"/> options.</param>
-    /// <param name="keyResolverOptions">The <see cref="KeyResolver"/> options.</param>
-    /// <returns>The <see cref="CosmosCommandProviderFactory"/>.</returns>
+    /// <param name="cosmosClientOptions">Options for CosmosDB client configuration.</param>
+    /// <param name="keyResolverOptions">Options for Key Vault encryption key resolution.</param>
+    /// <returns>A fully initialized <see cref="CosmosCommandProviderFactory"/> instance.</returns>
+    /// <exception cref="CommandException">When the CosmosDB connection cannot be established or required containers are missing.</exception>
+    /// <remarks>Configures JSON serialization, initializes the CosmosDB client, sets up encryption, and validates database health.</remarks>
     public static async Task<CosmosCommandProviderFactory> Create(
         CosmosClientOptions cosmosClientOptions,
         KeyResolverOptions keyResolverOptions)
     {
+        // Configure JSON serialization settings
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        // build the list of ( database, container ) tuples
+        // Build the list of ( database, container ) tuples
         var containers = cosmosClientOptions.ContainerIds
             .Select(container => (cosmosClientOptions.DatabaseId, container))
             .ToList()
             .AsReadOnly();
 
-        // create the cosmos client
+        // Create the cosmos client
         var cosmosClient = await
             new CosmosClientBuilder(
                 cosmosClientOptions.AccountEndpoint,
@@ -64,11 +85,12 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
                 CancellationToken.None
             );
 
-        // add encryption
+        // Add encryption
         cosmosClient = cosmosClient.WithEncryption(
             new KeyResolver(keyResolverOptions.TokenCredential),
             KeyEncryptionKeyResolverName.AzureKeyVault);
 
+        // Function to retrieve the current operational status.
         CommandProviderFactoryStatus getStatus()
         {
             var data = new Dictionary<string, object>
@@ -80,37 +102,47 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
 
             try
             {
-                // get the database
+                // Get the database
                 var database = cosmosClient.GetDatabase(cosmosClientOptions.DatabaseId);
 
-                // get the containers
+                // Get the containers
                 ContainerProperties[] getContainers()
                 {
+                    // Initialize a collection to hold all container properties from the database.
                     var containers = new List<ContainerProperties>();
 
+                    // Create a query iterator to retrieve all containers in the database.
                     var feedIterator = database.GetContainerQueryIterator<ContainerProperties>();
 
+                    // Process all pages of results until we've exhausted the feed.
                     while (feedIterator.HasMoreResults)
                     {
+                        // Synchronously read the next page of results.
                         var feedResponse = feedIterator.ReadNextAsync().GetAwaiter().GetResult();
 
+                        // Add each container from this page to our collection.
                         foreach (var container in feedResponse)
                         {
                             containers.Add(container);
                         }
                     }
 
+                    // Return an array for immutability and to match the expected return type.
                     return containers.ToArray();
                 }
 
                 var containers = getContainers();
 
-                // get any containers not in the database
+                // Compare the requested container IDs against the actual containers in the database.
                 var missingContainerIds = new List<string>();
+
+                // Sort the container IDs to ensure consistent ordering in error messages.
                 foreach (var containerId in cosmosClientOptions.ContainerIds.OrderBy(containerId => containerId))
                 {
+                    // Check if this container ID exists in the retrieved containers.
                     if (containers.Any(containerProperties => containerProperties.Id == containerId) is false)
                     {
+                        // Track any missing containers that will need to be created.
                         missingContainerIds.Add(containerId);
                     }
                 }
@@ -149,15 +181,16 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Create an instance of the <see cref="CosmosCommandProvider"/>.
+    /// Creates a command provider for a specific item type.
     /// </summary>
-    /// <param name="containerId">The Cosmos container as the backing data store.</param>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The value indicating if update and delete commands are allowed. By default, update is allowed; delete is not allowed.</param>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-    /// <returns>The <see cref="CosmosCommandProvider"/>.</returns>
+    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+    /// <param name="containerId">ID of the CosmosDB container to use.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
+    /// <remarks>Uses the specified container for all operations on the given type.</remarks>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string containerId,
         string typeName,
@@ -166,10 +199,12 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
+        // Retrieve the specific Cosmos DB container instance.
         var container = _cosmosClient.GetContainer(
             _databaseId,
             containerId);
 
+        // Instantiate a new command provider.
         return new CosmosCommandProvider<TInterface, TItem>(
             container,
             typeName,
@@ -177,5 +212,9 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
             commandOperations);
     }
 
+    /// <summary>
+    /// Gets the current operational status of the factory.
+    /// </summary>
+    /// <returns>Status information including connectivity and container availability.</returns>
     public CommandProviderFactoryStatus GetStatus() => _getStatus();
 }

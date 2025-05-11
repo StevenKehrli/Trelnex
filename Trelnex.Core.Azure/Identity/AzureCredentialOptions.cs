@@ -1,8 +1,12 @@
 namespace Trelnex.Core.Azure.Identity;
 
 /// <summary>
-/// Represents the configuration options for creating an <see cref="AzureCredentialProvider"/> instance.
+/// Configuration options for creating an <see cref="AzureCredentialProvider"/> instance.
 /// </summary>
-/// <param name="Sources">The array of <see cref="CredentialSource"/> values to specify the credential sources when creating the <see cref="AzureCredential"/> instance.</param>
+/// <remarks>
+/// Configures the credential sources for Azure authentication.
+/// Loaded from appsettings.json under the "AzureCredentials" section.
+/// </remarks>
+/// <param name="Sources">The array of <see cref="CredentialSource"/> values to specify the credential sources when creating the <see cref="ChainedTokenCredential"/> instance.</param>
 internal record AzureCredentialOptions(
     CredentialSource[] Sources);
