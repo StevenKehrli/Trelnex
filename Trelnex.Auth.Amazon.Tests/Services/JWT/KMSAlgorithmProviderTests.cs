@@ -6,14 +6,25 @@ using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Tests.Services.JWT;
 
+/// <summary>
+/// Tests for the KMSAlgorithmCollection class to verify key validation and error handling.
+/// </summary>
+[Category("JWT")]
 public class KMSAlgorithmCollectionTests
 {
+    /// <summary>
+    /// Credential provider for tests that returns basic AWS credentials.
+    /// </summary>
     private static readonly ICredentialProvider<AWSCredentials> _credentialProvider = new CredentialProvider();
 
+    /// <summary>
+    /// Tests that an exception is thrown when duplicate regional keys are provided.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when duplicate regional keys are provided.")]
     public void KMSAlgorithmCollection_DuplicateRegional()
     {
-        // create the test configuration
+        // Create the test configuration with duplicate regional keys
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/7bb77ef2-8421-4c14-bdba-4ecea906e145",
@@ -28,6 +39,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -39,13 +51,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when duplicate secondary keys are provided.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when duplicate secondary keys are provided.")]
     public void KMSAlgorithmCollection_DuplicateSecondary()
     {
-        // create the test configuration
+        // Create the test configuration with duplicate secondary keys
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var secondaryKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c",
@@ -60,6 +77,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -71,13 +89,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when an invalid default key is provided.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when an invalid default key is provided.")]
     public void KMSAlgorithmCollection_InvalidDefault()
     {
-        // create the test configuration
+        // Create the test configuration with an invalid default key
         var defaultKey = "Invalid";
 
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
@@ -88,6 +111,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -98,13 +122,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when an invalid regional key is provided.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when an invalid regional key is provided.")]
     public void KMSAlgorithmCollection_InvalidRegional()
     {
-        // create the test configuration
+        // Create the test configuration with an invalid regional key
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var regionalKeys = new[] {
                 "Invalid"
@@ -118,6 +147,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -129,13 +159,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when an invalid secondary key is provided.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when an invalid secondary key is provided.")]
     public void KMSAlgorithmCollection_InvalidSecondary()
     {
-        // create the test configuration
+        // Create the test configuration with an invalid secondary key
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var secondaryKeys = new[] {
                 "Invalid"
@@ -149,6 +184,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -160,13 +196,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when a regional key is the same as the default key.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when a regional key is the same as the default key.")]
     public void KMSAlgorithmCollection_RegionalSpecifiedAsDefault()
     {
-        // create the test configuration
+        // Create the test configuration with a regional key that matches the default key
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4"
@@ -180,6 +221,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -191,13 +233,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when a secondary key is the same as the default key.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when a secondary key is the same as the default key.")]
     public void KMSAlgorithmCollection_SecondarySpecifiedAsDefault()
     {
-        // create the test configuration
+        // Create the test configuration with a secondary key that matches the default key
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var secondaryKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4"
@@ -211,6 +258,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -222,13 +270,18 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Tests that an exception is thrown when a secondary key matches a regional key.
+    /// </summary>
     [Test]
+    [Description("Verifies that an exception is thrown when a secondary key matches a regional key.")]
     public void KMSAlgorithmCollection_SecondarySpecifiedAsRegional()
     {
-        // create the test configuration
+        // Create the test configuration with a secondary key that matches a regional key
         var defaultKey = "arn:aws:kms:us-east-1:571096773025:key/875de039-9e63-4f2c-abae-1877a2f5a4d4";
         var regionalKeys = new[] {
                 "arn:aws:kms:us-east-1:571096773025:key/449c147f-267e-4dad-8731-3e150703301c"
@@ -245,6 +298,7 @@ public class KMSAlgorithmCollectionTests
 
         var bootstrapLogger = factory.CreateLogger("Trelnex.Auth.Amazon.Tests");
 
+        // Assert that an AggregateException is thrown when creating the collection
         var ex = Assert.Throws<AggregateException>(() =>
         {
             KMSAlgorithmCollection.Create(
@@ -257,24 +311,45 @@ public class KMSAlgorithmCollectionTests
 
         var o = ex.InnerExceptions.Select(e => e.Message).ToArray();
 
+        // Verify the error messages match expected values
         Snapshot.Match(o);
     }
 
+    /// <summary>
+    /// Mock credential provider for testing purposes.
+    /// </summary>
     private class CredentialProvider : ICredentialProvider<AWSCredentials>
     {
+        /// <summary>
+        /// Gets the name of the credential provider.
+        /// </summary>
         public string Name => "Amazon";
 
-        public IAccessTokenProvider GetAccessTokenProvider(
-            string scope)
+        /// <summary>
+        /// Gets an access token provider for the specified scope.
+        /// </summary>
+        /// <param name="scope">The scope for which to get an access token provider.</param>
+        /// <returns>An access token provider.</returns>
+        /// <exception cref="NotImplementedException">This method is not implemented for testing.</exception>
+        public IAccessTokenProvider GetAccessTokenProvider(string scope)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets AWS credentials for authentication.
+        /// </summary>
+        /// <returns>Basic AWS credentials with test values.</returns>
         public AWSCredentials GetCredential()
         {
             return new BasicAWSCredentials("accessKey", "secretKey");
         }
 
+        /// <summary>
+        /// Gets the status of the credential provider.
+        /// </summary>
+        /// <returns>The credential status.</returns>
+        /// <exception cref="NotImplementedException">This method is not implemented for testing.</exception>
         public CredentialStatus GetStatus()
         {
             throw new NotImplementedException();
