@@ -361,7 +361,7 @@ public abstract class BaseApiTests
 
     #endregion
 
-    #region Nested Classes
+    #region Nested Types
 
     /// <summary>
     /// A minimal IHostLifetime implementation that does nothing, used for in-memory testing.

@@ -6,8 +6,27 @@ using Trelnex.Core.Validation;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 
+/// <summary>
+/// Provides an endpoint for deleting a principal and all its role assignments from the RBAC system.
+/// </summary>
+/// <remarks>
+/// This endpoint allows administrators to completely remove a principal (user or service)
+/// from the RBAC system. The operation cascades to remove all role assignments for this principal
+/// across all resources and scopes, effectively revoking all access permissions. This is typically
+/// performed when a principal no longer needs any access or when it has been deprovisioned
+/// from the identity system.
+/// </remarks>
 internal static class DeletePrincipalEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for when the principal ID is missing or invalid.
+    /// </summary>
+    /// <remarks>
+    /// Using a static exception improves performance by avoiding creation of new exception
+    /// instances for common validation errors.
+    /// </remarks>
     private static readonly ValidationException _validationException = new(
         $"The '{typeof(DeletePrincipalRequest).Name}' is not valid.",
         new Dictionary<string, string[]>
@@ -15,9 +34,23 @@ internal static class DeletePrincipalEndpoint
             { nameof(DeletePrincipalRequest.PrincipalId), new[] { "principalId is not valid." } }
         });
 
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Maps the Delete Principal endpoint to the application's routing pipeline.
+    /// </summary>
+    /// <param name="erb">The endpoint route builder for configuring routes.</param>
+    /// <remarks>
+    /// Configures the endpoint with authentication requirements, request/response content types,
+    /// and possible status codes. Only users with the RBAC delete permission can access this endpoint.
+    /// The endpoint uses HTTP DELETE semantics to indicate the removal of a principal entity.
+    /// </remarks>
     public static void Map(
         IEndpointRouteBuilder erb)
     {
+        // Map the DELETE endpoint for deleting a principal to "/principals".
         erb.MapDelete(
                 "/principals",
                 HandleRequest)
@@ -34,23 +67,55 @@ internal static class DeletePrincipalEndpoint
             .WithTags("Principals");
     }
 
+    /// <summary>
+    /// Handles requests to the Delete Principal endpoint.
+    /// </summary>
+    /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
+    /// <param name="parameters">The request parameters containing the principal ID to delete.</param>
+    /// <returns>An HTTP 200 OK result if the operation succeeds.</returns>
+    /// <exception cref="ValidationException">
+    /// Thrown when the request parameters fail validation, such as missing principal ID.
+    /// </exception>
+    /// <remarks>
+    /// The endpoint performs validation on the principal ID before calling the RBAC repository
+    /// to delete the principal. This operation is cascading and will remove all role assignments
+    /// for the principal across all resources and scopes. After successful deletion, a 200 OK
+    /// response is returned with no content.
+    /// </remarks>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
         [AsParameters] RequestParameters parameters)
     {
-        // validate the principal id
+        // Validate the principal id.
         if (parameters.Request?.PrincipalId is null) throw _validationException;
 
-        // delete the principal
+        // Delete the principal.
         await rbacRepository.DeletePrincipalAsync(
             principalId: parameters.Request!.PrincipalId);
 
+        // Return an Ok result.
         return Results.Ok();
     }
 
+    #endregion
+
+    #region Nested Types
+
+    /// <summary>
+    /// Contains the parameters for the Delete Principal request.
+    /// </summary>
+    /// <remarks>
+    /// This class is used to bind the request body to a strongly-typed object
+    /// when the endpoint is invoked.
+    /// </remarks>
     public class RequestParameters
     {
+        /// <summary>
+        /// Gets the deserialized request body containing the principal ID to delete.
+        /// </summary>
         [FromBody]
         public DeletePrincipalRequest? Request { get; init; }
     }
+
+    #endregion
 }
