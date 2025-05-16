@@ -154,7 +154,7 @@ The RBAC system uses a single DynamoDB table with a composite key structure:
 
 1. **Resources**:
    - `subjectName`: `"RESOURCE#"`
-   
+
 2. **Roles**:
    - `subjectName`: `"ROLE#{roleName}"`
    - Example: `"ROLE#admin"`
