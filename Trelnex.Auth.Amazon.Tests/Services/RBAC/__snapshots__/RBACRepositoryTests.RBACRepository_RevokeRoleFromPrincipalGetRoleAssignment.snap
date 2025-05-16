@@ -1,0 +1,30 @@
+﻿{
+  "roleAssignmentBefore": {
+    "ResourceName": "testResource_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+    "RoleName": "testRole_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+    "PrincipalIds": [
+      "testPrincipal_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment"
+    ]
+  },
+  "roleAssignmentAfter": {
+    "ResourceName": "testResource_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+    "RoleName": "testRole_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+    "PrincipalIds": []
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+      "roleName": "testRole_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+      "subjectName": "ROLE#testRole_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+      "scopeName": "testScope_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment",
+      "subjectName": "SCOPE#testScope_RBACRepository_RevokeRoleFromPrincipalGetRoleAssignment"
+    }
+  ]
+}

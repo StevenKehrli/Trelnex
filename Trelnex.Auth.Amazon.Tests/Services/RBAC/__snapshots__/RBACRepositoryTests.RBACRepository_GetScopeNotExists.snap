@@ -2,7 +2,7 @@
   "scopeAfter": null,
   "items": [
     {
-      "resourceName": "testResource_RBACRepositoryTests_DeleteScope",
+      "resourceName": "testResource_RBACRepository_GetScopeNotExists",
       "subjectName": "RESOURCE#"
     }
   ]

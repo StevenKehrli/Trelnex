@@ -1,0 +1,36 @@
+﻿{
+  "principalMembershipBefore": {
+    "PrincipalId": "testPrincipal_RBACRepository_RevokeRoleFromPrincipal",
+    "ResourceName": "testResource_RBACRepository_RevokeRoleFromPrincipal",
+    "ScopeNames": [
+      "testScope_RBACRepository_RevokeRoleFromPrincipal"
+    ],
+    "RoleNames": [
+      "testRole_RBACRepository_RevokeRoleFromPrincipal"
+    ]
+  },
+  "principalMembershipAfter": {
+    "PrincipalId": "testPrincipal_RBACRepository_RevokeRoleFromPrincipal",
+    "ResourceName": "testResource_RBACRepository_RevokeRoleFromPrincipal",
+    "ScopeNames": [
+      "testScope_RBACRepository_RevokeRoleFromPrincipal"
+    ],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipal",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipal",
+      "roleName": "testRole_RBACRepository_RevokeRoleFromPrincipal",
+      "subjectName": "ROLE#testRole_RBACRepository_RevokeRoleFromPrincipal"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_RevokeRoleFromPrincipal",
+      "scopeName": "testScope_RBACRepository_RevokeRoleFromPrincipal",
+      "subjectName": "SCOPE#testScope_RBACRepository_RevokeRoleFromPrincipal"
+    }
+  ]
+}

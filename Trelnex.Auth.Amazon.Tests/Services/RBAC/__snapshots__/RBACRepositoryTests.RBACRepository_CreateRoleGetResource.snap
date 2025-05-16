@@ -1,0 +1,20 @@
+﻿{
+  "resourceAfter": {
+    "ResourceName": "testResource_RBACRepository_CreateRoleGetResource",
+    "ScopeNames": [],
+    "RoleNames": [
+      "testRole_RBACRepository_CreateRoleGetResource"
+    ]
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_CreateRoleGetResource",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_CreateRoleGetResource",
+      "roleName": "testRole_RBACRepository_CreateRoleGetResource",
+      "subjectName": "ROLE#testRole_RBACRepository_CreateRoleGetResource"
+    }
+  ]
+}

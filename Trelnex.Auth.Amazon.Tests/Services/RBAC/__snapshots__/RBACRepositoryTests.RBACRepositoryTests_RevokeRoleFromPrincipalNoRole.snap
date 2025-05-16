@@ -1,4 +1,0 @@
-﻿{
-  "statusCode": "NotFound",
-  "message": "Role 'testRole_RBACRepositoryTests_RevokeRoleFromPrincipalNoRole' not found."
-}

@@ -1,0 +1,30 @@
+﻿{
+  "roleAssignmentBefore": {
+    "ResourceName": "testResource_RBACRepository_DeletePrincipal",
+    "RoleName": "testRole_RBACRepository_DeletePrincipal",
+    "PrincipalIds": [
+      "testPrincipal_RBACRepository_DeletePrincipal"
+    ]
+  },
+  "roleAssignmentAfter": {
+    "ResourceName": "testResource_RBACRepository_DeletePrincipal",
+    "RoleName": "testRole_RBACRepository_DeletePrincipal",
+    "PrincipalIds": []
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_DeletePrincipal",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_DeletePrincipal",
+      "roleName": "testRole_RBACRepository_DeletePrincipal",
+      "subjectName": "ROLE#testRole_RBACRepository_DeletePrincipal"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_DeletePrincipal",
+      "scopeName": "testScope_RBACRepository_DeletePrincipal",
+      "subjectName": "SCOPE#testScope_RBACRepository_DeletePrincipal"
+    }
+  ]
+}

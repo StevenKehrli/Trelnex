@@ -2,7 +2,7 @@
   "roleAfter": null,
   "items": [
     {
-      "resourceName": "testResource_RBACRepositoryTests_DeleteRole",
+      "resourceName": "testResource_RBACRepository_GetRoleNotExists",
       "subjectName": "RESOURCE#"
     }
   ]

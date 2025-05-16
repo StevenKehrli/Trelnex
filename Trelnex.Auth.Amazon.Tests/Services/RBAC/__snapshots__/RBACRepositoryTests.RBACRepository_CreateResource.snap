@@ -1,0 +1,11 @@
+﻿{
+  "resourcesAfter": [
+    "testResource_RBACRepository_CreateResource"
+  ],
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_CreateResource",
+      "subjectName": "RESOURCE#"
+    }
+  ]
+}

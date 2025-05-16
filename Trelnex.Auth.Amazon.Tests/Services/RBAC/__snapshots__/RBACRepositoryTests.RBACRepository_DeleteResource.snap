@@ -1,6 +1,6 @@
 ﻿{
   "resourcesBefore": [
-    "testResource_RBACRepositoryTests_DeleteResource"
+    "testResource_RBACRepository_DeleteResource"
   ],
   "resourcesAfter": [],
   "items": []

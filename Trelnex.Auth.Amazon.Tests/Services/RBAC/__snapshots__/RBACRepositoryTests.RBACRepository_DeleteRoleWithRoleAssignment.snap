@@ -1,0 +1,21 @@
+﻿{
+  "principalMembershipAfter": {
+    "PrincipalId": "testPrincipal_RBACRepository_DeleteRoleWithRoleAssignment",
+    "ResourceName": "testResource_RBACRepository_DeleteRoleWithRoleAssignment",
+    "ScopeNames": [
+      "testScope_RBACRepository_DeleteRoleWithRoleAssignment"
+    ],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "resourceName": "testResource_RBACRepository_DeleteRoleWithRoleAssignment",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_DeleteRoleWithRoleAssignment",
+      "scopeName": "testScope_RBACRepository_DeleteRoleWithRoleAssignment",
+      "subjectName": "SCOPE#testScope_RBACRepository_DeleteRoleWithRoleAssignment"
+    }
+  ]
+}

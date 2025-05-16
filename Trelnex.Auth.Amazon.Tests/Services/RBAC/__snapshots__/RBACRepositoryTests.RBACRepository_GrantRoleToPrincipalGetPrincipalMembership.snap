@@ -1,0 +1,34 @@
+﻿{
+  "principalMembershipAfter": {
+    "PrincipalId": "testPrincipal_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+    "ResourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+    "ScopeNames": [
+      "testScope_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership"
+    ],
+    "RoleNames": [
+      "testRole_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership"
+    ]
+  },
+  "items": [
+    {
+      "principalId": "testPrincipal_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "roleName": "testRole_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "subjectName": "PRINCIPAL#testPrincipal_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership#ROLE#testRole_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "roleName": "testRole_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "subjectName": "ROLE#testRole_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "scopeName": "testScope_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership",
+      "subjectName": "SCOPE#testScope_RBACRepository_GrantRoleToPrincipalGetPrincipalMembership"
+    }
+  ]
+}

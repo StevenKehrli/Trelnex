@@ -1,0 +1,36 @@
+﻿{
+  "roleAssignmentBefore": {
+    "ResourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+    "RoleName": "testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+    "PrincipalIds": []
+  },
+  "roleAssignmentAfter": {
+    "ResourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+    "RoleName": "testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+    "PrincipalIds": [
+      "testPrincipal_RBACRepository_GrantRoleToPrincipalGetRoleAssignment"
+    ]
+  },
+  "items": [
+    {
+      "principalId": "testPrincipal_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "roleName": "testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "subjectName": "PRINCIPAL#testPrincipal_RBACRepository_GrantRoleToPrincipalGetRoleAssignment#ROLE#testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "subjectName": "RESOURCE#"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "roleName": "testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "subjectName": "ROLE#testRole_RBACRepository_GrantRoleToPrincipalGetRoleAssignment"
+    },
+    {
+      "resourceName": "testResource_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "scopeName": "testScope_RBACRepository_GrantRoleToPrincipalGetRoleAssignment",
+      "subjectName": "SCOPE#testScope_RBACRepository_GrantRoleToPrincipalGetRoleAssignment"
+    }
+  ]
+}
