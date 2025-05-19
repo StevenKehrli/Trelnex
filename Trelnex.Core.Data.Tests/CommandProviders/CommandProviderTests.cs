@@ -18,9 +18,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -43,7 +40,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var created = await batchCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(created, Is.Not.Null);
@@ -97,9 +93,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create and save an initial item with id2
         var createCommand1 = _commandProvider.Create(
             id: id2,
@@ -110,7 +103,6 @@ public abstract class CommandProviderTests
 
         // Save the initial item
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for a new item with unique id
@@ -136,7 +128,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var saved = await batchCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(saved, Is.Not.Null);
@@ -198,9 +189,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -223,7 +211,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var created = await batchCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create delete commands for both items
@@ -248,7 +235,6 @@ public abstract class CommandProviderTests
 
         // Save the delete batch command and capture the result
         var deleted = await batchCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(deleted, Is.Not.Null);
@@ -307,9 +293,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -332,7 +315,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var created = await batchCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the second item (will be saved first)
@@ -361,7 +343,6 @@ public abstract class CommandProviderTests
 
         // Save the first delete command for the second item
         await deleteCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a batch command for delete operations (one will succeed, one will fail due to precondition)
@@ -371,7 +352,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var saved = await batchCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(saved, Is.Not.Null);
@@ -433,9 +413,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -458,7 +435,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var created = await batchCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create update commands for both items
@@ -489,7 +465,6 @@ public abstract class CommandProviderTests
 
         // Save the update batch command and capture the result
         var updated = await batchCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
@@ -543,9 +518,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -568,7 +540,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var created = await batchCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a update command for the second item (will be saved first)
@@ -606,7 +577,6 @@ public abstract class CommandProviderTests
 
         // Save the first update command for the second item
         await updateCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a batch command for update operations (one will succeed, one will fail due to precondition)
@@ -616,7 +586,6 @@ public abstract class CommandProviderTests
 
         // Save the batch command and capture the result
         var saved = await batchCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(saved, Is.Not.Null);
@@ -682,9 +651,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand1 = _commandProvider.Create(
             id: id,
@@ -695,7 +661,6 @@ public abstract class CommandProviderTests
 
         // Save the command and capture the result
         var created1 = await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(created1, Is.Not.Null);
@@ -711,7 +676,6 @@ public abstract class CommandProviderTests
         // Attempt to save the second command (should throw a CommandException)
         var ex = Assert.ThrowsAsync<CommandException>(
             async () => await createCommand2.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         // Create object for snapshot matching
@@ -736,9 +700,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -749,7 +710,6 @@ public abstract class CommandProviderTests
 
         // Save the command and capture the result
         var created = await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(created, Is.Not.Null);
@@ -797,9 +757,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -810,7 +767,6 @@ public abstract class CommandProviderTests
 
         // Save the create command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the item
@@ -823,7 +779,6 @@ public abstract class CommandProviderTests
 
         // Save the delete command and capture the result
         var deleted = await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(deleted, Is.Not.Null);
@@ -876,9 +831,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -889,7 +841,6 @@ public abstract class CommandProviderTests
 
         // Save the create command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create two delete commands for the same item
@@ -909,7 +860,6 @@ public abstract class CommandProviderTests
 
         // Save the first delete command and capture the result
         var deleted = await deleteCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(deleted, Is.Not.Null);
@@ -917,7 +867,6 @@ public abstract class CommandProviderTests
         // Attempt to save the second delete command (should throw a CommandException)
         var ex = Assert.ThrowsAsync<CommandException>(
             async () => await deleteCommand2.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         // Create object for snapshot matching
@@ -945,9 +894,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -958,7 +904,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -971,7 +916,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command with ordering
@@ -1005,9 +949,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -1018,7 +959,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -1031,7 +971,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command with descending order
@@ -1065,9 +1004,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -1078,7 +1014,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -1091,7 +1026,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command with skip operation
@@ -1125,9 +1059,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -1138,7 +1069,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -1151,7 +1081,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command with take limit
@@ -1185,9 +1114,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -1198,7 +1124,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -1211,7 +1136,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command with filtering
@@ -1245,9 +1169,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
             id: id1,
@@ -1258,7 +1179,6 @@ public abstract class CommandProviderTests
 
         // Save the first create command
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a command for creating the second test item
@@ -1271,7 +1191,6 @@ public abstract class CommandProviderTests
 
         // Save the second create command
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command
@@ -1299,9 +1218,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -1312,7 +1228,6 @@ public abstract class CommandProviderTests
 
         // Save the create command and capture the result
         var created = await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the item
@@ -1325,7 +1240,6 @@ public abstract class CommandProviderTests
 
         // Save the delete command
         await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a query command
@@ -1348,9 +1262,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -1361,7 +1272,6 @@ public abstract class CommandProviderTests
 
         // Save the create command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Read the item using the command provider
@@ -1411,9 +1321,6 @@ public abstract class CommandProviderTests
         var id = "040e17ef-b29f-4be0-885c-6e3609169743";
         var partitionKey = "802398b0-892a-49c5-8310-48212b4817a0";
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Attempt to read a non-existent item
         var read = await _commandProvider.ReadAsync(
             id: id,
@@ -1433,9 +1340,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -1446,7 +1350,6 @@ public abstract class CommandProviderTests
 
         // Save the create command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create an update command for the item
@@ -1462,7 +1365,6 @@ public abstract class CommandProviderTests
 
         // Save the update command and capture the result
         var updated = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
@@ -1510,9 +1412,6 @@ public abstract class CommandProviderTests
         // Track start time for timing assertions
         var startDateTime = DateTime.UtcNow;
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
             id: id,
@@ -1523,7 +1422,6 @@ public abstract class CommandProviderTests
 
         // Save the create command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create two update commands for the same item
@@ -1549,7 +1447,6 @@ public abstract class CommandProviderTests
 
         // Save the first update command and capture the result
         var updated = await updateCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
@@ -1557,7 +1454,6 @@ public abstract class CommandProviderTests
         // Attempt to save the second update command (should throw a CommandException)
         var ex = Assert.ThrowsAsync<CommandException>(
             async () => await updateCommand2.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         // Create object for snapshot matching

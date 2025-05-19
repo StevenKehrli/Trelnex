@@ -10,9 +10,6 @@ public class ReadCommandReadTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -32,7 +29,6 @@ public class ReadCommandReadTests
 
         // Save the item first so we can read it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Read the saved item

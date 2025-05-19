@@ -17,9 +17,6 @@ public class DeleteCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -40,7 +37,6 @@ public class DeleteCommandValidateTests
 
         // Save the item first so we can delete it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the saved item

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Snapshooter.NUnit;
 
 namespace Trelnex.Core.Data.Tests.Events;
@@ -9,13 +10,21 @@ public class DeleteCommandEventTests
     [Description("Tests that delete commands generate proper events with correct change tracking")]
     public async Task DeleteCommandEvent()
     {
+        var activityListener = new ActivityListener
+        {
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ShouldListenTo = _ => true
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        using var activitySource = new ActivitySource(nameof(CreateCommandEventTests));
+        using var activity = activitySource.StartActivity();
+
         var id = "bc4971e4-6dae-45ba-b3ee-43c036e0d957";
         var partitionKey = "60525a8e-b084-4a37-b461-d08330760ef2";
 
         var startDateTime = DateTime.UtcNow;
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -37,7 +46,6 @@ public class DeleteCommandEventTests
 
         // Save the initial state
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Get a delete command for the same item
@@ -50,7 +58,6 @@ public class DeleteCommandEventTests
 
         // Save the deletion
         await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Get the events from the command provider
@@ -127,20 +134,20 @@ public class DeleteCommandEventTests
                             fieldOption.Field<Guid>("[0].ETag"),
                             Is.Not.Default);
 
-                        // context.objectId
+                        // traceContext
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.ObjectId"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].TraceContext"),
+                            Does.Match("00-[0-9a-f]{32}-[0-9a-f]{16}-01"));
 
-                        // context.httpTraceIdentifier
+                        // traceId
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpTraceIdentifier"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].TraceId"),
+                            Does.Match("[0-9a-f]{32}"));
 
-                        // context.httpRequestPath
+                        // spanId
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpRequestPath"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].SpanId"),
+                            Does.Match("[0-9a-f]{16}"));
 
                         // Verify second event properties (delete event)
                         // id
@@ -169,36 +176,20 @@ public class DeleteCommandEventTests
                             Is.Not.Default);
 
                         // Verify context values consistency between events
-                        // context.objectId
+                        // traceContext
                         Assert.That(
-                            fieldOption.Field<Guid>("[1].Context.ObjectId"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[1].TraceContext"),
+                            Is.EqualTo(fieldOption.Field<string>("[0].TraceContext")));
 
-                        // context.httpTraceIdentifier
+                        // traceId
                         Assert.That(
-                            fieldOption.Field<Guid>("[1].Context.HttpTraceIdentifier"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[1].TraceId"),
+                            Is.EqualTo(fieldOption.Field<string>("[0].TraceId")));
 
-                        // context.httpRequestPath
+                        // spanId
                         Assert.That(
-                            fieldOption.Field<Guid>("[1].Context.HttpRequestPath"),
-                            Is.Not.Default);
-
-                        // context values should be the same between events
-                        // context.objectId
-                        Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.ObjectId"),
-                            Is.EqualTo(fieldOption.Field<Guid>("[1].Context.ObjectId")));
-
-                        // context.httpTraceIdentifier
-                        Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpTraceIdentifier"),
-                            Is.EqualTo(fieldOption.Field<Guid>("[1].Context.HttpTraceIdentifier")));
-
-                        // context.httpRequestPath
-                        Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpRequestPath"),
-                            Is.EqualTo(fieldOption.Field<Guid>("[1].Context.HttpRequestPath")));
+                            fieldOption.Field<string>("[1].SpanId"),
+                            Is.EqualTo(fieldOption.Field<string>("[0].SpanId")));
                     });
                 }));
     }

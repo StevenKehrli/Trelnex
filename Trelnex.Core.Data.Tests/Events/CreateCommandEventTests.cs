@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Snapshooter.NUnit;
 
 namespace Trelnex.Core.Data.Tests.Events;
@@ -9,13 +10,21 @@ public class CreateCommandEventTests
     [Description("Tests that create commands generate proper events with correct change tracking")]
     public async Task CreateCommandEvent()
     {
+        var activityListener = new ActivityListener
+        {
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ShouldListenTo = _ => true
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        using var activitySource = new ActivitySource(nameof(CreateCommandEventTests));
+        using var activity = activitySource.StartActivity();
+
         var id = "569d9c11-f66f-46b9-98be-ff0cff833475";
         var partitionKey = "05f393b2-72af-409e-9186-0679773e9c55";
 
         var startDateTime = DateTime.UtcNow;
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -37,7 +46,6 @@ public class CreateCommandEventTests
 
         // Save the initial state
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Get the events from the command provider
@@ -108,21 +116,20 @@ public class CreateCommandEventTests
                             fieldOption.Field<Guid>("[0].ETag"),
                             Is.Not.Default);
 
-                        // Verify context values
-                        // context.objectId
+                        // traceContext
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.ObjectId"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].TraceContext"),
+                            Does.Match("00-[0-9a-f]{32}-[0-9a-f]{16}-01"));
 
-                        // context.httpTraceIdentifier
+                        // traceId
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpTraceIdentifier"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].TraceId"),
+                            Does.Match("[0-9a-f]{32}"));
 
-                        // context.httpRequestPath
+                        // spanId
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Context.HttpRequestPath"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].SpanId"),
+                            Does.Match("[0-9a-f]{16}"));
                     });
                 }));
     }

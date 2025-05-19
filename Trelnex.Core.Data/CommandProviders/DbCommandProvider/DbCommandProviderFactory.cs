@@ -122,10 +122,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
             .Property(e => e.PartitionKey).IsPrimaryKey()
             .Property(e => e.Changes).HasConversion(
                 changes => JsonSerializer.Serialize(changes, _jsonSerializerOptions),
-                s => JsonSerializer.Deserialize<PropertyChange[]>(s, _jsonSerializerOptions))
-            .Property(e => e.Context).HasConversion(
-                context => JsonSerializer.Serialize(context, _jsonSerializerOptions),
-                s => JsonSerializer.Deserialize<ItemEventContext>(s, _jsonSerializerOptions) ?? new ItemEventContext());
+                s => JsonSerializer.Deserialize<PropertyChange[]>(s, _jsonSerializerOptions));
 
         fmBuilder.Build();
 

@@ -19,9 +19,6 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -47,7 +44,6 @@ public class BatchCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -72,9 +68,6 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -96,7 +89,6 @@ public class BatchCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -119,9 +111,6 @@ public class BatchCommandValidateTests
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -147,7 +136,6 @@ public class BatchCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -170,9 +158,6 @@ public class BatchCommandValidateTests
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -198,7 +183,6 @@ public class BatchCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -222,9 +206,6 @@ public class BatchCommandValidateTests
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -250,7 +231,6 @@ public class BatchCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -277,9 +257,6 @@ public class BatchCommandValidateTests
 
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "823bcd49-bb5b-4cb3-8a3a-f678cf03a78a";
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -314,7 +291,6 @@ public class BatchCommandValidateTests
         // Attempt to save the batch command again, which should also throw
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -340,9 +316,6 @@ public class BatchCommandValidateTests
 
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "748af380-281b-4d9f-b375-56d62b4f34b6";
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -377,7 +350,6 @@ public class BatchCommandValidateTests
         // Attempt to save the batch command again, which should also throw
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -595,9 +567,6 @@ public class BatchCommandValidateTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "59cdc22b-04b2-46de-a90f-04b1ed0b6a62";
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -648,9 +617,6 @@ public class BatchCommandValidateTests
 
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "a87d1e2e-c67f-402f-8780-092a8225f80f";
-
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();

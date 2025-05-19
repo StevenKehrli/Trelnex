@@ -10,9 +10,6 @@ public class DeleteCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -32,7 +29,6 @@ public class DeleteCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the saved item
@@ -84,9 +80,6 @@ public class DeleteCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -106,7 +99,6 @@ public class DeleteCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the saved item
@@ -119,7 +111,6 @@ public class DeleteCommandSaveTests
 
         // Save the delete command and get the result
         var deleted = await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(deleted, Is.Not.Null);
@@ -145,9 +136,6 @@ public class DeleteCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -167,7 +155,6 @@ public class DeleteCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create a delete command for the saved item
@@ -180,13 +167,11 @@ public class DeleteCommandSaveTests
 
         // Save the delete command
         await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Attempt to save it again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await deleteCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }

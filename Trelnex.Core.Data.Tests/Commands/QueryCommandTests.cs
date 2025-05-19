@@ -13,8 +13,6 @@ public class QueryCommandTests
         var id2 = "46046bff-12ff-42bc-850a-50da59e264c3";
         var partitionKey2 = "0ab56811-b146-4465-948e-3c0816021954";
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -31,7 +29,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -43,7 +40,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -66,8 +62,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -84,7 +78,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -114,8 +107,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -132,7 +123,6 @@ public class QueryCommandTests
 
         // save it and read it back
         var created = (await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default))!;
 
         var deleteCommand = await commandProvider.DeleteAsync(
@@ -141,7 +131,6 @@ public class QueryCommandTests
 
         // save it
         await deleteCommand!.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -162,8 +151,6 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -180,7 +167,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -192,7 +178,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -221,8 +206,6 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -239,7 +222,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -251,7 +233,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -277,8 +258,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -295,7 +274,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -325,8 +303,6 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -343,7 +319,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -355,7 +330,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -384,8 +358,6 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -402,7 +374,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -414,7 +385,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -443,8 +413,6 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -461,7 +429,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand1.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         var createCommand2 = commandProvider.Create(
@@ -473,7 +440,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand2.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -499,8 +465,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -517,7 +481,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -533,7 +496,6 @@ public class QueryCommandTests
         var deleteCommand = read1[0].Delete();
 
         var result = await deleteCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Snapshot.Match(
@@ -559,8 +521,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -577,7 +537,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -604,8 +563,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -622,7 +579,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -649,8 +605,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -667,7 +621,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -686,7 +639,6 @@ public class QueryCommandTests
         updateCommand.Item.PrivateMessage = "Private #2";
 
         var result = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // should return empty
@@ -709,8 +661,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -727,7 +677,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query
@@ -754,8 +703,6 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
         // create our command provider
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -772,7 +719,6 @@ public class QueryCommandTests
 
         // save it
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // query

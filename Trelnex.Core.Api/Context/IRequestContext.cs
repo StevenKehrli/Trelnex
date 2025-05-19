@@ -1,4 +1,4 @@
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Api.Context;
 
 /// <summary>
 /// Contextual information about an HTTP request.
@@ -12,14 +12,4 @@ public interface IRequestContext
     /// Unique object ID of the authenticated user (can be null).
     /// </summary>
     string? ObjectId { get; }
-
-    /// <summary>
-    /// Unique identifier for this request in trace logs (can be null).
-    /// </summary>
-    string? HttpTraceIdentifier { get; }
-
-    /// <summary>
-    /// HTTP request path (can be null).
-    /// </summary>
-    string? HttpRequestPath { get; }
 }

@@ -230,7 +230,9 @@ CREATE TABLE "test-items-events" (
     "relatedId" varchar NOT NULL,
     "relatedTypeName" varchar NOT NULL,
     "changes" varchar NULL,
-    "context" varchar NULL,
+    "traceContext" varchar(55) NULL,
+    "traceId" varchar(32) NULL,
+    "spanId" varchar(16) NULL,
     PRIMARY KEY ("id", "partitionKey"),
     FOREIGN KEY ("relatedId", "partitionKey") REFERENCES "test-items"("id", "partitionKey")
 );

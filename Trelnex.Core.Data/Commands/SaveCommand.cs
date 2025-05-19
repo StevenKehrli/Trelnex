@@ -21,7 +21,6 @@ public interface ISaveCommand<TInterface>
     /// <summary>
     /// Persists the item.
     /// </summary>
-    /// <param name="requestContext">Request context for auditing.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Read-only wrapper for the saved item.</returns>
     /// <exception cref="InvalidOperationException">When already executed.</exception>
@@ -29,7 +28,6 @@ public interface ISaveCommand<TInterface>
     /// <exception cref="CommandException">When storage operation fails.</exception>
     /// <exception cref="OperationCanceledException">When canceled.</exception>
     Task<IReadResult<TInterface>> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -114,7 +112,6 @@ internal class SaveCommand<TInterface, TItem>
 
     /// <inheritdoc/>
     public async Task<IReadResult<TInterface>> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         try
@@ -122,7 +119,7 @@ internal class SaveCommand<TInterface, TItem>
             // Ensure that only one operation that modifies the item is in progress at a time
             await _semaphore.WaitAsync(cancellationToken);
 
-            var request = CreateSaveRequest(requestContext);
+            var request = CreateSaveRequest();
 
             // Validate the underlying item
             var validationResult = await ValidateAsync(cancellationToken);
@@ -144,7 +141,6 @@ internal class SaveCommand<TInterface, TItem>
     /// <summary>
     /// Acquires exclusive access to this command and its item.
     /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"/> that invoked this method.</param>
     /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="SaveRequest{TInterface, TItem}"/> to add to the batch.</returns>
     /// <exception cref="InvalidOperationException">
@@ -157,7 +153,6 @@ internal class SaveCommand<TInterface, TItem>
     /// This method is designed for use by <see cref="BatchCommand{TInterface, TItem}"/>.
     /// </remarks>
     public async Task<SaveRequest<TInterface, TItem>> AcquireAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken = default)
     {
         try
@@ -165,7 +160,7 @@ internal class SaveCommand<TInterface, TItem>
             // Ensure that only one operation that modifies the item is in progress at a time
             await _semaphore.WaitAsync(cancellationToken);
 
-            return CreateSaveRequest(requestContext);
+            return CreateSaveRequest();
         }
         catch
         {
@@ -223,13 +218,11 @@ internal class SaveCommand<TInterface, TItem>
     /// <summary>
     /// Creates a save request for the current item state.
     /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"/> that invoked this method.</param>
     /// <returns>A <see cref="SaveRequest{TInterface, TItem}"/> representing the save request.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the command is no longer valid.
     /// </exception>
-    private SaveRequest<TInterface, TItem> CreateSaveRequest(
-        IRequestContext requestContext)
+    private SaveRequest<TInterface, TItem> CreateSaveRequest()
     {
         // Check if already saved
         if (_saveAsyncDelegate is null)
@@ -241,8 +234,7 @@ internal class SaveCommand<TInterface, TItem>
         var itemEvent = ItemEvent<TItem>.Create(
             related: _item,
             saveAction: _saveAction,
-            changes: GetPropertyChanges(),
-            requestContext: requestContext);
+            changes: GetPropertyChanges());
 
         return new SaveRequest<TInterface, TItem>(
             Item: _item,

@@ -10,9 +10,6 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -32,7 +29,6 @@ public class CreateCommandSaveTests
 
         // Save the command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Verify the item is read-only after save
@@ -76,9 +72,6 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -98,7 +91,6 @@ public class CreateCommandSaveTests
 
         // Save the command and get the result
         var created = await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(created, Is.Not.Null);
@@ -124,9 +116,6 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -146,13 +135,11 @@ public class CreateCommandSaveTests
 
         // Save the command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Attempt to save it again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }

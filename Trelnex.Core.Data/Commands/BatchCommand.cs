@@ -28,7 +28,6 @@ public interface IBatchCommand<TInterface>
     /// <summary>
     /// Executes the batch as a single atomic transaction.
     /// </summary>
-    /// <param name="requestContext">Context for auditing and event tracking.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Array of batch results.
@@ -36,7 +35,6 @@ public interface IBatchCommand<TInterface>
     /// <exception cref="InvalidOperationException">Thrown when already executed.</exception>
     /// <exception cref="OperationCanceledException">Thrown when canceled.</exception>
     Task<IBatchResult<TInterface>[]> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -119,7 +117,6 @@ internal class BatchCommand<TInterface, TItem>(
 
     /// <inheritdoc/>
     public async Task<IBatchResult<TInterface>[]> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
         try
@@ -145,7 +142,7 @@ internal class BatchCommand<TInterface, TItem>(
 
             // Acquire the save requests from each save command in parallel
             var acquireTasks = _saveCommands
-                .Select(sc => sc.AcquireAsync(requestContext, cancellationToken))
+                .Select(sc => sc.AcquireAsync(cancellationToken))
                 .ToArray();
 
             // Wait for the acquire tasks to complete

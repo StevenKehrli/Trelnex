@@ -9,8 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Context;
 using Trelnex.Core.Api.Swagger;
-using Trelnex.Core.Data;
 
 namespace Trelnex.Core.Api.Tests;
 

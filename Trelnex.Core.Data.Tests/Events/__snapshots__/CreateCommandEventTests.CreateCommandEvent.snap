@@ -21,11 +21,9 @@
         }
       }
     ],
-    "Context": {
-      "ObjectId": "f922e810-f328-448f-9868-52ddd30d3e31",
-      "HttpTraceIdentifier": "c2d74ea4-cdd8-476b-b21b-d65d00331df2",
-      "HttpRequestPath": "bcdcf583-7649-4244-a70c-e0e256e23719"
-    },
+    "TraceContext": "00-c79b5e998977e36a0b2759c5d4a09a33-2b331069a27d0bec-01",
+    "TraceId": "c79b5e998977e36a0b2759c5d4a09a33",
+    "SpanId": "2b331069a27d0bec",
     "Id": "7efadb9d-53a9-450e-945b-cde622a9392c",
     "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
     "TypeName": "event",

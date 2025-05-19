@@ -204,7 +204,9 @@ CREATE TABLE [test-items-events] (
 	[relatedId] nvarchar(255) NOT NULL,
 	[relatedTypeName] nvarchar(max) NOT NULL,
 	[changes] json NULL,
-	[context] json NULL,
+    [traceContext] nvarchar(55) NULL,
+    [traceId] nvarchar(32) NULL,
+    [spanId] nvarchar(16) NULL,
 	PRIMARY KEY ([id], [partitionKey]),
 	FOREIGN KEY ([relatedId], [partitionKey]) REFERENCES [test-items]([id], [partitionKey])
 );

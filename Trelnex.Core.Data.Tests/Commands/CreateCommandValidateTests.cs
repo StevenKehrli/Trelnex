@@ -19,9 +19,6 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -43,7 +40,6 @@ public class CreateCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -68,9 +64,6 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -88,7 +81,6 @@ public class CreateCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -112,9 +104,6 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -135,7 +124,6 @@ public class CreateCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -159,9 +147,6 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -182,7 +167,6 @@ public class CreateCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new
@@ -207,9 +191,6 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -230,7 +211,6 @@ public class CreateCommandValidateTests
         // Save it - this should throw a validation exception
         var ex = Assert.ThrowsAsync<ValidationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default))!;
 
         var o = new

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data;
@@ -45,11 +46,25 @@ public sealed class ItemEvent<TItem>
     public PropertyChange[]? Changes { get; private init; } = null!;
 
     /// <summary>
-    /// Information about the request that generated this event.
+    /// W3C trace context (Activity.Current?.Id).
     /// </summary>
     [JsonInclude]
-    [JsonPropertyName("context")]
-    public ItemEventContext Context { get; private init; } = null!;
+    [JsonPropertyName("traceContext")]
+    public string? TraceContext { get; private init; } = null!;
+
+    /// <summary>
+    /// W3C trace ID (Activity.Current?.TraceId).
+    /// </summary>
+    [JsonInclude]
+    [JsonPropertyName("traceId")]
+    public string? TraceId { get; private init; } = null!;
+
+    /// <summary>
+    /// W3C span ID (Activity.Current?.SpanId).
+    /// </summary>
+    [JsonInclude]
+    [JsonPropertyName("spanId")]
+    public string? SpanId { get; private init; } = null!;
 
     #endregion
 
@@ -61,7 +76,6 @@ public sealed class ItemEvent<TItem>
     /// <param name="related">Item that was modified.</param>
     /// <param name="saveAction">Operation type performed.</param>
     /// <param name="changes">Property changes made, if any.</param>
-    /// <param name="requestContext">Caller information.</param>
     /// <returns>A new event with details about the operation.</returns>
     /// <remarks>
     /// Creates a timestamped record with a unique ID.
@@ -69,8 +83,7 @@ public sealed class ItemEvent<TItem>
     internal static ItemEvent<TItem> Create(
         TItem related,
         SaveAction saveAction,
-        PropertyChange[]? changes,
-        IRequestContext requestContext)
+        PropertyChange[]? changes)
     {
         var dateTimeUtcNow = DateTime.UtcNow;
 
@@ -88,7 +101,10 @@ public sealed class ItemEvent<TItem>
             RelatedId = related.Id,
             RelatedTypeName = related.TypeName,
             Changes = changes,
-            Context = ItemEventContext.Convert(requestContext),
+
+            TraceContext = Activity.Current?.Id,
+            TraceId = Activity.Current?.TraceId.ToString(),
+            SpanId = Activity.Current?.SpanId.ToString(),
         };
     }
 

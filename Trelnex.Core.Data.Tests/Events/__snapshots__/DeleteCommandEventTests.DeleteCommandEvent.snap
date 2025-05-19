@@ -21,11 +21,9 @@
         }
       }
     ],
-    "Context": {
-      "ObjectId": "549cc53c-e8d2-4595-ae39-981863ba7d33",
-      "HttpTraceIdentifier": "61244c2b-aea8-41a1-a1a9-fc3c60ed243d",
-      "HttpRequestPath": "38f6015d-b245-4e91-9d8e-dcccee4b151c"
-    },
+    "TraceContext": "00-9b747d581c85dedebfc14091720fff6c-f3d8ecbd34c74a35-01",
+    "TraceId": "9b747d581c85dedebfc14091720fff6c",
+    "SpanId": "f3d8ecbd34c74a35",
     "Id": "1e6fcd05-5687-4b64-a1ae-5b032df7b80d",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
@@ -40,11 +38,9 @@
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "Context": {
-      "ObjectId": "549cc53c-e8d2-4595-ae39-981863ba7d33",
-      "HttpTraceIdentifier": "61244c2b-aea8-41a1-a1a9-fc3c60ed243d",
-      "HttpRequestPath": "38f6015d-b245-4e91-9d8e-dcccee4b151c"
-    },
+    "TraceContext": "00-9b747d581c85dedebfc14091720fff6c-f3d8ecbd34c74a35-01",
+    "TraceId": "9b747d581c85dedebfc14091720fff6c",
+    "SpanId": "f3d8ecbd34c74a35",
     "Id": "323866f6-1522-4261-93eb-727e878225be",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",

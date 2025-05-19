@@ -10,9 +10,6 @@ public class UpdateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -32,7 +29,6 @@ public class UpdateCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create an update command for the saved item
@@ -49,7 +45,6 @@ public class UpdateCommandSaveTests
 
         // Save the update and get the result
         var updated = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
@@ -96,9 +91,6 @@ public class UpdateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -118,7 +110,6 @@ public class UpdateCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create an update command for the saved item
@@ -135,7 +126,6 @@ public class UpdateCommandSaveTests
 
         // Save the update and get the result
         var updated = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
@@ -161,9 +151,6 @@ public class UpdateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -183,7 +170,6 @@ public class UpdateCommandSaveTests
 
         // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Create an update command for the saved item
@@ -200,13 +186,11 @@ public class UpdateCommandSaveTests
 
         // Save the update command
         await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Attempt to save it again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await updateCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }

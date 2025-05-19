@@ -10,9 +10,6 @@ public class BatchCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create test request context
-        var requestContext = TestRequestContext.Create();
-
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
@@ -36,20 +33,17 @@ public class BatchCommandSaveTests
 
         // Save the batch command (which also saves the contained create command)
         await batchCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         // Attempt to save the create command again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
 
         // Attempt to save the batch command again, which should also throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await batchCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }

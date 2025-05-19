@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
-using Trelnex.Core.Data;
 
 namespace Trelnex.Core.Api.Context;
 
@@ -53,17 +52,9 @@ public static class RequestContextExtensions
         // Extract the user's object ID from the claims principal (for Azure AD).
         var objectId = httpContext?.User.GetObjectId();
 
-        // Get the trace identifier for request correlation, or generate one if not available.
-        var httpTraceIdentifier = httpContext?.TraceIdentifier ?? Guid.NewGuid().ToString();
-
-        // Get the request path for context information.
-        var httpRequestPath = httpContext?.Request.Path.Value;
-
         // Create a new immutable request context object.
         return new RequestContext(
-            ObjectId: objectId,
-            HttpTraceIdentifier: httpTraceIdentifier,
-            HttpRequestPath: httpRequestPath);
+            ObjectId: objectId);
     }
 
     #endregion
@@ -74,12 +65,9 @@ public static class RequestContextExtensions
     /// Implementation of the request context interface that stores HTTP request metadata.
     /// </summary>
     /// <param name="ObjectId">The unique Azure AD object ID of the authenticated user.</param>
-    /// <param name="HttpTraceIdentifier">The unique trace identifier for the current request.</param>
-    /// <param name="HttpRequestPath">The request path that identified the requested resource.</param>
     private record RequestContext(
-        string? ObjectId,
-        string? HttpTraceIdentifier,
-        string? HttpRequestPath) : IRequestContext;
+        string? ObjectId)
+        : IRequestContext;
 
     #endregion
 }
