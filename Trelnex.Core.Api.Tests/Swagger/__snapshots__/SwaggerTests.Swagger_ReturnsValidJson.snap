@@ -231,6 +231,38 @@
         ]
       }
     },
+    "/testRolePolicy1orPolicy2": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          },
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-2": [
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2a",
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2b"
+            ]
+          }
+        ]
+      }
+    },
     "/testRolePolicy2": {
       "get": {
         "tags": [
@@ -304,8 +336,12 @@
             "additionalProperties": false,
             "nullable": true
           },
-          "role": {
-            "type": "string",
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "additionalProperties": false
+            },
             "additionalProperties": false,
             "nullable": true
           }
