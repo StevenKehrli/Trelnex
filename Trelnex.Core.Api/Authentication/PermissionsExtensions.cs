@@ -22,7 +22,9 @@ public static class PermissionsExtensions
         this RouteHandlerBuilder routeHandlerBuilder) where T : IPermissionPolicy
     {
         // Applies the authorization requirement based on the specified permission policy.
-        return routeHandlerBuilder.RequireAuthorization(PermissionPolicy.Name<T>());
+        var policy = PermissionPolicy.Name<T>();
+        var permissionAttribute = new PermissionAttribute(policy);
+        return routeHandlerBuilder.WithMetadata(permissionAttribute);
     }
 
     #endregion

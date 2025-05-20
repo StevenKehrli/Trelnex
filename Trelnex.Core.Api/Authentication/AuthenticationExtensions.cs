@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
@@ -31,6 +32,8 @@ public static class AuthenticationExtensions
 
         services.AddHttpContextAccessor();
         services.AddInMemoryTokenCaches();
+
+        services.AddSingleton<IAuthorizationHandler, PermissionRequirementAuthorizationHandler>();
 
         // Inject our security provider.
         var securityProvider = new SecurityProvider();

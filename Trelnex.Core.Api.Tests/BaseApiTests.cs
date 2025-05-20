@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
-using Trelnex.Core.Api.Context;
 using Trelnex.Core.Api.Swagger;
 
 namespace Trelnex.Core.Api.Tests;
@@ -213,12 +212,12 @@ public abstract class BaseApiTests
                 // - Issuer: "Issuer.trelnex-auth-amazon-tests-authentication-1"
                 // - Role: "test.role.1"
                 // It returns the ObjectId claim from the authenticated user's token
-                app.MapGet("/testRolePolicy1", (IRequestContext context, ClaimsPrincipal user) =>
+                app.MapGet("/testRolePolicy1", (IUserContext context, ClaimsPrincipal user) =>
                     {
                         return new TestResponse
                         {
                             Message = context.ObjectId!,
-                            Role = GetRole(user)
+                            Roles = GetRoles(user)
                         };
                     })
                     .RequirePermission<TestPermission1.TestRolePolicy>()
@@ -231,14 +230,30 @@ public abstract class BaseApiTests
                 // - Role: "test.role.2a" or "test.role.2b"
                 // It returns the ObjectId claim from the authenticated user's token
                 // This endpoint is intentionally parallel to /testRolePolicy1 and /testRolePolicy2 but with different auth requirements
-                app.MapGet("/testRolePolicy2", (IRequestContext context, ClaimsPrincipal user) =>
+                app.MapGet("/testRolePolicy2", (IUserContext context, ClaimsPrincipal user) =>
                     {
                         return new TestResponse
                         {
                             Message = context.ObjectId!,
-                            Role = GetRole(user)
+                            Roles = GetRoles(user)
                         };
                     })
+                    .RequirePermission<TestPermission2.TestRolePolicy>()
+                    .Produces<TestResponse>();
+
+                // Endpoint requiring TestPermission1.TestRolePolicy or TestPermission2.TestRolePolicy
+                // It returns the a string indicating whether the user has either policy
+                app.MapGet("testRolePolicy1orPolicy2", (IUserContext context, ClaimsPrincipal user) =>
+                    {
+                        var hasPolicy1 = context.HasPermission<TestPermission1.TestRolePolicy>();
+                        var hasPolicy2 = context.HasPermission<TestPermission2.TestRolePolicy>();
+
+                        return new TestResponse
+                        {
+                            Message = $"hasPolicy1: {hasPolicy1}, hasPolicy2: {hasPolicy2}"
+                        };
+                    })
+                    .RequirePermission<TestPermission1.TestRolePolicy>()
                     .RequirePermission<TestPermission2.TestRolePolicy>()
                     .Produces<TestResponse>();
 
@@ -353,10 +368,13 @@ public abstract class BaseApiTests
     /// </summary>
     /// <param name="user">The ClaimsPrincipal representing the authenticated user.</param>
     /// <returns>The role claim value, or null if not found.</returns>
-    private static string? GetRole(
+    private static string[] GetRoles(
         ClaimsPrincipal user)
     {
-        return user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+        return user.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToArray();
     }
 
     #endregion

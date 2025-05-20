@@ -34,6 +34,6 @@ internal record TestResponse
     /// This property indicates the role of the user making the request,
     /// which can be useful for testing role-based access control or permissions.
     /// </summary>
-    [JsonPropertyName("role")]
-    public string? Role { get; init; } = null;
+    [JsonPropertyName("roles")]
+    public string[] Roles { get; init; } = [];
 }

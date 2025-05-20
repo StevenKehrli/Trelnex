@@ -8,7 +8,6 @@ using Serilog;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Configuration;
-using Trelnex.Core.Api.Context;
 using Trelnex.Core.Api.Exceptions;
 using Trelnex.Core.Api.HealthChecks;
 using Trelnex.Core.Api.Identity;
@@ -129,8 +128,8 @@ public static class Application
         // Validate that authentication was properly configured.
         builder.Services.ThrowIfAuthenticationNotAdded();
 
-        // Add the request context as a scoped service.
-        builder.Services.AddRequestContext();
+        // Add the user context as a scoped service.
+        builder.Services.AddUserContext();
 
         // Add health check services.
         builder.Services.AddIdentityHealthChecks();

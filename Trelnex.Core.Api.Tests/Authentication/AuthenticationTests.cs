@@ -377,7 +377,40 @@ public class AuthenticationTests : BaseApiTests
         Assert.Multiple(() =>
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_1"));
-            Assert.That(testResponse.Role, Is.EqualTo("test.role.1"));
+            Assert.That(testResponse.Roles, Is.EqualTo(["test.role.1"]));
+        });
+    }
+
+    [Test]
+    [Description("Tests that /testRolePolicy2 returns the correct response when authorized with test.role.2a and test.role.2b")]
+    public async Task RequirePermission_Response_2()
+    {
+        // Create a JWT token with the correct claims, scopes, and roles
+        var accessToken = _jwtProvider2.Encode(
+            audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
+            principalId: "PrincipalId.RequirePermission_Response_2b",
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
+            roles: ["test.role.2a", "test.role.2b"]);
+
+        // Create an authorization header with the JWT token
+        var authorizationHeader = new AuthenticationHeaderValue(
+            "Bearer",
+            accessToken.Token);
+
+        // Create a request to /testRolePolicy2 with the authorization header
+        var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
+        request.Headers.Authorization = authorizationHeader;
+
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response is successful and returns the correct principal ID and role
+        var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
+        Assert.That(testResponse, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2b"));
+            Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2a", "test.role.2b"]));
         });
     }
 
@@ -410,7 +443,7 @@ public class AuthenticationTests : BaseApiTests
         Assert.Multiple(() =>
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2a"));
-            Assert.That(testResponse.Role, Is.EqualTo("test.role.2a"));
+            Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2a"]));
         });
     }
 
@@ -443,7 +476,71 @@ public class AuthenticationTests : BaseApiTests
         Assert.Multiple(() =>
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2b"));
-            Assert.That(testResponse.Role, Is.EqualTo("test.role.2b"));
+            Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2b"]));
+        });
+    }
+
+    [Test]
+    [Description("Tests that /testRolePolicy1orPolicy2 returns the correct response when authorized with test.Policy1")]
+    public async Task RequirePermission_Response_HasPolicy1()
+    {
+        // Create a JWT token with the correct claims, scopes, and roles
+        var accessToken = _jwtProvider1.Encode(
+            audience: "Audience.trelnex-auth-amazon-tests-authentication-1",
+            principalId: "PrincipalId.RequirePermission_Response_HasPolicy1",
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-1"],
+            roles: ["test.role.1"]);
+
+        // Create an authorization header with the JWT token
+        var authorizationHeader = new AuthenticationHeaderValue(
+            "Bearer",
+            accessToken.Token);
+
+        // Create a request to /testRolePolicy1orPolicy2 with the authorization header
+        var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1orPolicy2");
+        request.Headers.Authorization = authorizationHeader;
+
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response is successful and returns the correct principal ID and role
+        var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
+        Assert.That(testResponse, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(testResponse.Message, Is.EqualTo("hasPolicy1: True, hasPolicy2: False"));
+        });
+    }
+
+    [Test]
+    [Description("Tests that /testRolePolicy1orPolicy2 returns the correct response when authorized with test.Policy2")]
+    public async Task RequirePermission_Response_HasPolicy2()
+    {
+        // Create a JWT token with the correct claims, scopes, and roles
+        var accessToken = _jwtProvider2.Encode(
+            audience: "Audience.trelnex-auth-amazon-tests-authentication-2",
+            principalId: "PrincipalId.RequirePermission_Response_HasPolicy2",
+            scopes: ["Scope.trelnex-auth-amazon-tests-authentication-2"],
+            roles: ["test.role.2a", "test.role.2b"]);
+
+        // Create an authorization header with the JWT token
+        var authorizationHeader = new AuthenticationHeaderValue(
+            "Bearer",
+            accessToken.Token);
+
+        // Create a request to /testRolePolicy1orPolicy2 with the authorization header
+        var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1orPolicy2");
+        request.Headers.Authorization = authorizationHeader;
+
+        // Send the request
+        var response = await _httpClient.SendAsync(request);
+
+        // Verify that the response is successful and returns the correct principal ID and role
+        var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
+        Assert.That(testResponse, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(testResponse.Message, Is.EqualTo("hasPolicy1: False, hasPolicy2: True"));
         });
     }
 }

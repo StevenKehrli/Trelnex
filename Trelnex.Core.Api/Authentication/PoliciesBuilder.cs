@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Identity.Web;
 
 namespace Trelnex.Core.Api.Authentication;
 
@@ -28,6 +27,12 @@ internal class PoliciesBuilder(
     SecurityProvider securityProvider,
     ISecurityDefinition securityDefinition) : IPoliciesBuilder
 {
+    #region Private Static Fields
+
+    private static readonly PermissionRequirement _permissionRequirement = new();
+
+    #endregion
+
     #region Private Fields
 
     private readonly List<PolicyContainer> _policyContainers = [];
@@ -87,8 +92,7 @@ internal class PoliciesBuilder(
                 policyBuilder =>
                 {
                     policyBuilder.AuthenticationSchemes = [securityDefinition.JwtBearerScheme];
-                    policyBuilder.RequireClaim(ClaimConstants.Scope, securityDefinition.Scope);
-                    policyBuilder.RequireRole(policyContainer.Policy.RequiredRoles);
+                    policyBuilder.Requirements.Add(_permissionRequirement);
                 });
         });
     }
