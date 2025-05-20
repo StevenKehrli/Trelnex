@@ -13,6 +13,11 @@ The `Trelnex.Core.Api.Authentication` namespace provides a comprehensive framewo
 - **IPermissionPolicy**: Interface defining role-based authorization requirements
   - Used with `RequirePermission<T>()` to protect API endpoints
 
+- **Authorization Components**:
+  - **PermissionAttribute**: Applies policy-based authorization to endpoints
+  - **PermissionRequirement**: Represents a permission policy requirement
+  - **PermissionRequirementAuthorizationHandler**: Evaluates authorization requirements and supports multiple policies
+
 - **Security Infrastructure**:
   - **SecurityDefinition**: Describes authentication schemes with audience and scope requirements
   - **SecurityRequirement**: Specifies authorization conditions with required roles
@@ -95,20 +100,53 @@ public class AdminPolicy : IPermissionPolicy
 
 ### 4. Apply Policies to Endpoints
 
-Apply the policies to API endpoints:
+Apply the policies to API endpoints using Minimal APIs:
 
 ```csharp
-// For Minimal APIs
+// Single policy
 app.MapGet("/data", () => "Secure data")
     .RequirePermission<ReadDataPolicy>();
 
 app.MapPost("/data", (Data data) => "Data saved")
     .RequirePermission<WriteDataPolicy>();
 
-// For Controllers
-[HttpGet]
-[Authorize(Policy = PermissionPolicy.Name<ReadDataPolicy>())]
-public IActionResult GetData() { ... }
+// Multiple policies (OR condition - any policy can grant access)
+app.MapGet("/data/multi", (IUserContext context) => 
+{
+    bool hasReadAccess = context.HasPermission<ReadDataPolicy>();
+    bool hasWriteAccess = context.HasPermission<WriteDataPolicy>();
+    
+    if (hasReadAccess && hasWriteAccess)
+    {
+        return "User has both read and write access";
+    }
+    else if (hasReadAccess)
+    {
+        return "User has read-only access";
+    }
+    else if (hasWriteAccess)
+    {
+        return "User has write-only access";
+    }
+    
+    // This code won't execute since authorization would fail if neither policy passes
+    return "User has no access";
+})
+    .RequirePermission<ReadDataPolicy>()
+    .RequirePermission<WriteDataPolicy>();
+
+// Checking for admin vs regular user access
+app.MapGet("/admin-or-user", (IUserContext context) =>
+{
+    if (context.HasPermission<AdminPolicy>())
+    {
+        return "You have admin access with elevated privileges";
+    }
+    
+    return "You have regular user access";
+})
+    .RequirePermission<AdminPolicy>()
+    .RequirePermission<UserPolicy>();
 ```
 
 ## Configuration Settings
@@ -192,5 +230,22 @@ This ensures that the API documentation accurately reflects the authentication a
    - Adds the SecurityRequirement to the SecurityProvider
 2. **Build** configures ASP.NET Core authorization policies with:
    - The appropriate authentication scheme
-   - Required scope claim
-   - Required role claims
+   - A PermissionRequirement (instead of directly requiring claims)
+
+### Authorization Flow
+
+1. **RequirePermission<T>** adds a PermissionAttribute with the policy name to the endpoint metadata
+2. The **PermissionRequirementAuthorizationHandler** evaluates all PermissionAttributes on the endpoint
+3. For each policy, it checks:
+   - If the user has the required scope claim
+   - If the user has at least one of the required roles
+4. If ANY policy succeeds, the user is authorized (OR condition)
+5. The handler creates a **UserContext** with information about which policies passed
+6. The **IUserContext** service can be used in endpoints to check which specific policies the user satisfies
+
+### User Context
+
+The **IUserContext** provides:
+- Access to the user's identity information
+- A way to check if the user satisfies specific permission policies
+- Support for scenarios requiring granular permission checks
