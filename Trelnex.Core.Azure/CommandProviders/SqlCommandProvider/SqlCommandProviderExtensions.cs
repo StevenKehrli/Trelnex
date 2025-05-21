@@ -43,7 +43,7 @@ public static class SqlCommandProvidersExtensions
 
         // Load and validate configuration.
         var providerConfiguration = configuration
-            .GetSection("SqlCommandProviders")
+            .GetSection("Azure.SqlCommandProviders")
             .Get<SqlCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The SqlCommandProviders configuration is not found.");
 
@@ -224,7 +224,7 @@ public static class SqlCommandProvidersExtensions
     /// <summary>
     /// Configuration properties for SQL Server command providers.
     /// </summary>
-    /// <remarks>Reads from the "SqlCommandProviders" section in application configuration.</remarks>
+    /// <remarks>Reads from the "Azure.SqlCommandProviders" section in application configuration.</remarks>
     private record SqlCommandProviderConfiguration
     {
         /// <summary>

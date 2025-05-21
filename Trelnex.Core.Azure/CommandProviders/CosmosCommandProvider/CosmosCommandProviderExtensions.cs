@@ -42,7 +42,7 @@ public static class CosmosCommandProvidersExtensions
 
         // Load the Cosmos DB provider configuration.
         var providerConfiguration = configuration
-            .GetSection("CosmosCommandProviders")
+            .GetSection("Azure.CosmosCommandProviders")
             .Get<CosmosCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
 
@@ -241,7 +241,7 @@ public static class CosmosCommandProvidersExtensions
     /// <summary>
     /// Configuration properties for Cosmos DB command providers.
     /// </summary>
-    /// <remarks>Reads from the "CosmosCommandProviders" section in application configuration.</remarks>
+    /// <remarks>Reads from the "Azure.CosmosCommandProviders" section in application configuration.</remarks>
     private record CosmosCommandProviderConfiguration
     {
         /// <summary>

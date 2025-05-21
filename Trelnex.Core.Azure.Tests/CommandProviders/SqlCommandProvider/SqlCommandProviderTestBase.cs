@@ -75,19 +75,19 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
         // Get the data source from the configuration.
         // Example: "sqlcommandprovider-tests.database.windows.net"
         _dataSource = configuration
-            .GetSection("SqlCommandProviders:DataSource")
+            .GetSection("Azure.SqlCommandProviders:DataSource")
             .Value!;
 
         // Get the initial catalog from the configuration.
         // Example: "trelnex-core-data-tests"
         _initialCatalog = configuration
-            .GetSection("SqlCommandProviders:InitialCatalog")
+            .GetSection("Azure.SqlCommandProviders:InitialCatalog")
             .Value!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("SqlCommandProviders:Tables:0:TableName")
+            .GetSection("Azure.SqlCommandProviders:Tables:0:TableName")
             .Value!;
 
         // Create the SQL connection string.

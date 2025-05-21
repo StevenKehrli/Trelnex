@@ -77,7 +77,7 @@ The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>`
 `appsettings.json` specifies the configuration of a `CosmosCommandProvider`. Values like connection strings can be sourced from environment variables for security.
 
 ```json
-  "CosmosCommandProviders": {
+  "Azure.CosmosCommandProviders": {
     "TenantId": "FROM_ENV",
     "EndpointUri": "FROM_ENV",
     "DatabaseId": "trelnex-core-data-tests",
@@ -153,7 +153,7 @@ The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `c
 `appsettings.json` specifies the configuration of a `SqlCommandProvider`. Connection strings can be securely loaded from environment variables.
 
 ```json
-  "SqlCommandProviders": {
+  "Azure.SqlCommandProviders": {
     "DataSource": "FROM_ENV",
     "InitialCatalog": "trelnex-core-data-tests",
     "Tables": [
@@ -349,7 +349,7 @@ Trelnex.Core.Azure uses a credential chain approach:
 
 ```json
 {
-  "AzureCredentials": {
+  "Azure.Credentials": {
     "Sources": [ "WorkloadIdentity", "AzureCli" ]
   }
 }
@@ -368,7 +368,7 @@ Configure Azure credentials in your `appsettings.json`:
 
 ```json
 {
-  "AzureCredentials": {
+  "Azure.Credentials": {
     "Sources": [ "WorkloadIdentity", "AzureCli" ]
   }
 }

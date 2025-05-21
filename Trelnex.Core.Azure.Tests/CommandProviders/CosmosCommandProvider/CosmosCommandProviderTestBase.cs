@@ -74,19 +74,19 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
         // Get the endpoint URI from the configuration.
         // Example: "https://cosmoscommandprovider-tests.documents.azure.com:443/"
         _endpointUri = configuration
-            .GetSection("CosmosCommandProviders:EndpointUri")
+            .GetSection("Azure.CosmosCommandProviders:EndpointUri")
             .Value!;
 
         // Get the database ID from the configuration.
         // Example: "trelnex-core-data-tests"
         _databaseId = configuration
-            .GetSection("CosmosCommandProviders:DatabaseId")
+            .GetSection("Azure.CosmosCommandProviders:DatabaseId")
             .Value!;
 
         // Get the container ID from the configuration.
         // Example: "test-items"
         _containerId = configuration
-            .GetSection("CosmosCommandProviders:Containers:0:ContainerId")
+            .GetSection("Azure.CosmosCommandProviders:Containers:0:ContainerId")
             .Value!;
 
         // Create a token credential for authentication.

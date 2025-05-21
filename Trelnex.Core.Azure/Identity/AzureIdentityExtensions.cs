@@ -23,15 +23,15 @@ public static class AzureIdentityExtensions
     /// <param name="configuration">The application configuration containing Azure credential settings.</param>
     /// <param name="bootstrapLogger">The logger for setup and initialization information.</param>
     /// <returns>The same service collection to enable method chaining.</returns>
-    /// <exception cref="ConfigurationErrorsException">Thrown when the "AzureCredentials" configuration section is not found.</exception>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the "Azure.Credentials" configuration section is not found.</exception>
     /// <remarks>
     /// Configures and registers an <see cref="AzureCredentialProvider"/> for authentication with Azure services.
-    /// Expects an "AzureCredentials" section in the configuration, containing <see cref="AzureCredentialOptions"/>.
+    /// Expects an "Azure.Credentials" section in the configuration, containing <see cref="AzureCredentialOptions"/>.
     ///
     /// Example configuration:
     /// <code>
     /// {
-    ///   "AzureCredentials": {
+    ///   "Azure.Credentials": {
     ///     "Sources": [ "WorkloadIdentity", "AzureCli" ]
     ///   }
     /// }
@@ -44,7 +44,7 @@ public static class AzureIdentityExtensions
     {
         // Extract Azure credential options.
         var credentialOptions = configuration
-            .GetSection("AzureCredentials")
+            .GetSection("Azure.Credentials")
             .Get<AzureCredentialOptions>()
             ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not found.");
 
