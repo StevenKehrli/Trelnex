@@ -59,7 +59,7 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
     /// The region for AWS services.
     /// </summary>
     /// <example>us-west-2</example>
-    protected string _region = null!;
+    protected RegionEndpoint _region = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -91,17 +91,16 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()!;
 
-        // Get the region from the configuration.
-        // Example: "us-west-2"
-        _region = configuration
-            .GetSection("Amazon.PostgresCommandProviders:Region")
-            .Value!;
-
         // Get the host from the configuration.
-        // Example: "postgrescommandprovider-tests.us-west-2.rds.amazonaws.com"
+        // Example: "instanceName.uniqueId.region.rds.amazonaws.com"
         _host = configuration
             .GetSection("Amazon.PostgresCommandProviders:Host")
             .Value!;
+
+        // Get the region from the host.
+        // Example: "us-west-2"
+        var regionSystemName = _host.Split('.')[2];
+        _region = RegionEndpoint.GetBySystemName(regionSystemName);
 
         // Get the port from the configuration.
         // Example: 5432
@@ -131,12 +130,10 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        var regionEndpoint = RegionEndpoint.GetBySystemName(_region);
-
         // Generate an RDS authentication token.
         var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
             credentials: _awsCredentials,
-            region: regionEndpoint,
+            region: _region,
             hostname: _host,
             port: _port,
             dbUser: _dbUser);

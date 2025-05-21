@@ -1,4 +1,6 @@
 using System.Configuration;
+using System.Text.RegularExpressions;
+using Amazon;
 using Amazon.Runtime;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +20,7 @@ namespace Trelnex.Core.Amazon.CommandProviders;
 /// <remarks>
 /// Provides dependency injection integration.
 /// </remarks>
-public static class PostgresCommandProvidersExtensions
+public static partial class PostgresCommandProvidersExtensions
 {
     #region Public Static Methods
 
@@ -217,11 +219,6 @@ public static class PostgresCommandProvidersExtensions
     private record PostgresCommandProviderConfiguration
     {
         /// <summary>
-        /// The AWS region of the PostgreSQL server.
-        /// </summary>
-        public required string Region { get; init; }
-
-        /// <summary>
         /// The hostname of the PostgreSQL server.
         /// </summary>
         public required string Host { get; init; }
@@ -254,8 +251,8 @@ public static class PostgresCommandProvidersExtensions
     /// <summary>
     /// Represents the PostgreSQL command provider options.
     /// </summary>
-    private class PostgresCommandProviderOptions(
-        string region,
+    private partial class PostgresCommandProviderOptions(
+        RegionEndpoint region,
         string host,
         int port,
         string database,
@@ -286,7 +283,7 @@ public static class PostgresCommandProvidersExtensions
         /// <summary>
         /// Gets the AWS region of the PostgreSQL server.
         /// </summary>
-        public string Region => region;
+        public RegionEndpoint Region => region;
 
         #endregion
 
@@ -342,9 +339,21 @@ public static class PostgresCommandProvidersExtensions
         internal static PostgresCommandProviderOptions Parse(
             PostgresCommandProviderConfiguration providerConfiguration)
         {
+            // Apply regex pattern matching to extract components.
+            var match = HostRegex().Match(providerConfiguration.Host);
+            if (match.Success is false)
+            {
+                throw new ConfigurationErrorsException($"The Host '{providerConfiguration.Host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
+            }
+
+            // Get the region from the regex match.
+            var regionSystemName = match.Groups["region"].Value;
+            var region = RegionEndpoint.GetBySystemName(regionSystemName)
+                ?? throw new ConfigurationErrorsException($"The Host '{providerConfiguration.Host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
+
             // get the server and database
             var options = new PostgresCommandProviderOptions(
-                region: providerConfiguration.Region,
+                region: region,
                 host: providerConfiguration.Host,
                 port: providerConfiguration.Port,
                 database: providerConfiguration.Database,
@@ -381,6 +390,17 @@ public static class PostgresCommandProvidersExtensions
 
             return options;
         }
+
+        #endregion
+
+        #region Private Static Methods
+
+        /// <summary>
+        /// Creates a regular expression that parses the host strings.
+        /// </summary>
+        /// <returns>A <see cref="Regex"/> that matches valid host strings.</returns>
+        [GeneratedRegex(@"^(?<instanceName>[^.]+)\.(?<uniqueId>[^.]+)\.(?<region>[a-z]{2}-[a-z]+-\d)\.rds\.amazonaws\.com$")]
+        private static partial Regex HostRegex();
 
         #endregion
     }

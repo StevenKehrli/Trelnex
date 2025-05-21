@@ -1,3 +1,4 @@
+using Amazon;
 using Amazon.Runtime;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
@@ -15,7 +16,7 @@ namespace Trelnex.Core.Amazon.CommandProviders;
 /// <remarks>Used to establish a connection to PostgreSQL using AWS IAM authentication.</remarks>
 internal record PostgresClientOptions(
     AWSCredentials AWSCredentials,
-    string Region,
+    RegionEndpoint Region,
     string Host,
     int Port,
     string Database,

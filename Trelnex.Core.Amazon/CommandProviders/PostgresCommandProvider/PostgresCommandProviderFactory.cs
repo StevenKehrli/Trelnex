@@ -1,5 +1,4 @@
 using System.Data.Common;
-using Amazon;
 using Amazon.RDS.Util;
 using FluentValidation;
 using LinqToDB;
@@ -91,11 +90,9 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
     {
         if (dbConnection is not NpgsqlConnection connection) return;
 
-        var regionEndpoint = RegionEndpoint.GetBySystemName(_postgresClientOptions.Region);
-
         var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
             credentials: _postgresClientOptions.AWSCredentials,
-            region: regionEndpoint,
+            region: _postgresClientOptions.Region,
             hostname: _postgresClientOptions.Host,
             port: _postgresClientOptions.Port,
             dbUser: _postgresClientOptions.DbUser);
