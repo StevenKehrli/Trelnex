@@ -108,18 +108,18 @@ The service is configured through `appsettings.json` with the following sections
     "Version": "1.0.0",
     "Description": "Amazon RBAC Authentication and Authorization Service"
   },
-  "AmazonCredentials": {
-    "Region": "us-west-2",
-    "AccessTokenClientConfiguration": {
-      "BaseAddress": "https://sts.amazonaws.com"
-    }
-  },
   "Auth": {
     "trelnex-api-rbac": {
       "Audience": "https://api.example.com",
       "Authority": "https://auth.example.com",
       "MetadataAddress": "https://auth.example.com/.well-known/openid-configuration",
       "Scope": "rbac"
+    }
+  },
+  "Amazon.Credentials": {
+    "Region": "us-west-2",
+    "AccessTokenClientConfiguration": {
+      "BaseAddress": "https://auth.example.com/"
     }
   },
   "JWT": {

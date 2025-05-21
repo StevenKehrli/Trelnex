@@ -5,7 +5,7 @@ namespace Trelnex.Core.Amazon.Identity;
 /// </summary>
 /// <remarks>
 /// Configures the AWS region and token acquisition endpoint.
-/// Loaded from appsettings.json under the "AmazonCredentials" section.
+/// Loaded from appsettings.json under the "Amazon.Credentials" section.
 /// </remarks>
 /// <param name="Region">The AWS region name.</param>
 /// <param name="AccessTokenClient">Configuration for the token acquisition client.</param>

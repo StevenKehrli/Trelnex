@@ -24,7 +24,7 @@ public static class AmazonIdentityExtensions
     /// <param name="configuration">The application configuration.</param>
     /// <param name="bootstrapLogger">The logger for setup.</param>
     /// <returns>The same service collection.</returns>
-    /// <exception cref="ConfigurationErrorsException">Thrown when the "AmazonCredentials" configuration section is not found.</exception>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the "Amazon.Credentials" configuration section is not found.</exception>
     /// <remarks>
     /// Configures and registers an <see cref="AmazonCredentialProvider"/> for authentication with AWS.
     /// Adds AWS instrumentation for observability.
@@ -39,9 +39,9 @@ public static class AmazonIdentityExtensions
 
         // Extract Amazon credential options from the configuration
         var options = configuration
-            .GetSection("AmazonCredentials")
+            .GetSection("Amazon.Credentials")
             .Get<AmazonCredentialOptions>()
-            ?? throw new ConfigurationErrorsException("The AmazonCredentials configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.Credentials configuration is not found.");
 
         // Create the credential provider using the extracted options
         var credentialProvider = AmazonCredentialProvider.Create(

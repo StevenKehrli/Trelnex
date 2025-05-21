@@ -364,18 +364,6 @@ Trelnex.Core.Amazon manages AWS credentials through the following components:
 2. **AccessTokenClient** - Client for requesting and validating tokens
 3. **CallerIdentitySignature** - Handler for AWS SigV4 signatures
 
-### AmazonCredentialProvider - Configuration
-
-Configure AWS credentials in your `appsettings.json`:
-
-```json
-{
-  "AmazonCredentials": {
-    "Profile": "default"
-  }
-}
-```
-
 ### AmazonCredentialProvider - Dependency Injection
 
 Add Amazon Identity to your service collection:
