@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,7 +51,7 @@ public static class AuthenticationExtensions
     /// <exception cref="InvalidOperationException">
     /// Thrown if authentication services were already configured.
     /// </exception>
-    public static void NoAuthentication(
+    public static void AnonymousAuthentication(
         this IServiceCollection services)
     {
         services.ThrowIfSecurityProviderAdded();
@@ -76,7 +77,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services)
     {
         // Check if the security provider was added.
-        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
+        var added = services.Any(sd => sd.ServiceType == typeof(IAuthenticationService));
 
         if (added is false)
         {
@@ -103,7 +104,7 @@ public static class AuthenticationExtensions
 
         if (added is true)
         {
-            throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(NoAuthentication)} has already been configured.");
+            throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(AnonymousAuthentication)} has already been configured.");
         }
     }
 
