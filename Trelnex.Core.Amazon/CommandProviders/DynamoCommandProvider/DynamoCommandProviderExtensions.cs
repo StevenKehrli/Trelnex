@@ -46,7 +46,7 @@ public static class DynamoCommandProvidersExtensions
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
         var providerConfiguration = configuration
-            .GetSection("DynamoCommandProviders")
+            .GetSection("Amazon.DynamoCommandProviders")
             .Get<DynamoCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
 

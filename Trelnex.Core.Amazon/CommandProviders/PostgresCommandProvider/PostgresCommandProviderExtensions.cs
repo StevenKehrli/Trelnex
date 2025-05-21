@@ -47,7 +47,7 @@ public static class PostgresCommandProvidersExtensions
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
         var providerConfiguration = configuration
-            .GetSection("PostgresCommandProviders")
+            .GetSection("Amazon.PostgresCommandProviders")
             .Get<PostgresCommandProviderConfiguration>()
             ?? throw new ConfigurationErrorsException("The PostgresCommandProviders configuration is not found.");
 

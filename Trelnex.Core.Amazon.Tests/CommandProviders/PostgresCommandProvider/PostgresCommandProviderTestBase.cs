@@ -94,38 +94,38 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
         // Get the region from the configuration.
         // Example: "us-west-2"
         _region = configuration
-            .GetSection("PostgresCommandProviders:Region")
+            .GetSection("Amazon.PostgresCommandProviders:Region")
             .Value!;
 
         // Get the host from the configuration.
         // Example: "postgrescommandprovider-tests.us-west-2.rds.amazonaws.com"
         _host = configuration
-            .GetSection("PostgresCommandProviders:Host")
+            .GetSection("Amazon.PostgresCommandProviders:Host")
             .Value!;
 
         // Get the port from the configuration.
         // Example: 5432
         _port = int.Parse(
             configuration
-                .GetSection("PostgresCommandProviders:Port")
+                .GetSection("Amazon.PostgresCommandProviders:Port")
                 .Value!);
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
         _database = configuration
-            .GetSection("PostgresCommandProviders:Database")
+            .GetSection("Amazon.PostgresCommandProviders:Database")
             .Value!;
 
         // Get the database user from the configuration.
         // Example: "admin"
         _dbUser = configuration
-            .GetSection("PostgresCommandProviders:DbUser")
+            .GetSection("Amazon.PostgresCommandProviders:DbUser")
             .Value!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("PostgresCommandProviders:Tables:0:TableName")
+            .GetSection("Amazon.PostgresCommandProviders:Tables:0:TableName")
             .Value!;
 
         // Create AWS credentials

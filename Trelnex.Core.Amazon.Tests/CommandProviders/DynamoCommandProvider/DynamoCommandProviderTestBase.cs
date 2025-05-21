@@ -71,13 +71,13 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
         // Get the region from the configuration.
         // Example: "us-west-2"
         _region = configuration
-            .GetSection("DynamoCommandProviders:Region")
+            .GetSection("Amazon.DynamoCommandProviders:Region")
             .Value!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("DynamoCommandProviders:Tables:0:TableName")
+            .GetSection("Amazon.DynamoCommandProviders:Tables:0:TableName")
             .Value!;
 
         // Create AWS credentials

@@ -78,7 +78,7 @@ The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>`
 `appsettings.json` specifies the configuration of a `DynamoCommandProvider`. Values like region can be sourced from environment variables for security.
 
 ```json
-  "DynamoCommandProviders": {
+  "Amazon.DynamoCommandProviders": {
     "Region": "FROM_ENV",
     "Tables": [
       {
@@ -176,7 +176,7 @@ The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions
 `appsettings.json` specifies the configuration of a `PostgresCommandProvider`. Connection information can be securely loaded from environment variables.
 
 ```json
-  "PostgresCommandProviders": {
+  "Amazon.PostgresCommandProviders": {
     "Region": "FROM_ENV",
     "Host": "FROM_ENV",
     "Port": 5432,
