@@ -34,17 +34,17 @@ public interface IBaseItem
     /// <summary>
     /// Creation timestamp.
     /// </summary>
-    DateTime CreatedDate { get; }
+    DateTimeOffset CreatedDateTimeOffset { get; }
 
     /// <summary>
     /// Last update timestamp.
     /// </summary>
-    DateTime UpdatedDate { get; }
+    DateTimeOffset UpdatedDateTimeOffset { get; }
 
     /// <summary>
     /// Deletion timestamp, or null if not deleted.
     /// </summary>
-    DateTime? DeletedDate { get; }
+    DateTimeOffset? DeletedDateTimeOffset { get; }
 
     /// <summary>
     /// Flag indicating if item is deleted.
@@ -83,16 +83,16 @@ public abstract class BaseItem : IBaseItem
     public string TypeName { get; internal set; } = null!;
 
     [JsonInclude]
-    [JsonPropertyName("createdDate")]
-    public DateTime CreatedDate { get; internal set; }
+    [JsonPropertyName("createdDateTimeOffset")]
+    public DateTimeOffset CreatedDateTimeOffset { get; internal set; }
 
     [JsonInclude]
-    [JsonPropertyName("updatedDate")]
-    public DateTime UpdatedDate { get; internal set; }
+    [JsonPropertyName("updatedDateTimeOffset")]
+    public DateTimeOffset UpdatedDateTimeOffset { get; internal set; }
 
     [JsonInclude]
-    [JsonPropertyName("deletedDate")]
-    public DateTime? DeletedDate { get; internal set; }
+    [JsonPropertyName("deletedDateTimeOffset")]
+    public DateTimeOffset? DeletedDateTimeOffset { get; internal set; }
 
     [JsonInclude]
     [JsonPropertyName("isDeleted")]

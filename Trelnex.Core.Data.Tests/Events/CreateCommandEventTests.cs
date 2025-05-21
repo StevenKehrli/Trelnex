@@ -24,7 +24,7 @@ public class CreateCommandEventTests
         var id = "569d9c11-f66f-46b9-98be-ff0cff833475";
         var partitionKey = "05f393b2-72af-409e-9186-0679773e9c55";
 
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -88,7 +88,7 @@ public class CreateCommandEventTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify event properties (create event)
                         // id
@@ -98,18 +98,18 @@ public class CreateCommandEventTests
 
                         // createdDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[0].CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[0].UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // createdDate == updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[0].UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[0].CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[0].UpdatedDateTimeOffset")));
 
                         // _eTag
                         Assert.That(

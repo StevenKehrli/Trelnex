@@ -233,6 +233,7 @@ Extension methods for FluentValidation's `ValidationResult`:
 Adds additional validation rules to FluentValidation:
 
 - `NotDefault<T>` for `DateTime`: Ensures a DateTime property is not the default value
+- `NotDefault<T>` for `DateTimeOffset`: Ensures a DateTimeOffset property is not the default value
 - `NotDefault<T>` for `Guid`: Ensures a Guid property is not the default/empty value
 
 ### Usage Example

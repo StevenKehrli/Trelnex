@@ -216,15 +216,15 @@ public abstract partial class CommandProvider<TInterface, TItem>
             throw new NotSupportedException("The requested Create operation is not supported.");
         }
 
-        var dateTimeUtcNow = DateTime.UtcNow;
+        var dateTimeOffsetUtcNow = DateTimeOffset.UtcNow;
 
         var item = new TItem
         {
             Id = id,
             PartitionKey = partitionKey,
             TypeName = _typeName,
-            CreatedDate = dateTimeUtcNow,
-            UpdatedDate = dateTimeUtcNow,
+            CreatedDateTimeOffset = dateTimeOffsetUtcNow,
+            UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
         };
 
         return SaveCommand<TInterface, TItem>.Create(
@@ -400,13 +400,13 @@ public abstract partial class CommandProvider<TInterface, TItem>
             .Must(k => k == typeName)
             .WithMessage($"TypeName is not '{typeName}'.");
 
-        baseItemValidator.RuleFor(k => k.CreatedDate)
+        baseItemValidator.RuleFor(k => k.CreatedDateTimeOffset)
             .NotDefault()
-            .WithMessage("CreatedDate is not valid.");
+            .WithMessage("CreatedDateTimeOffset is not valid.");
 
-        baseItemValidator.RuleFor(k => k.UpdatedDate)
+        baseItemValidator.RuleFor(k => k.UpdatedDateTimeOffset)
             .NotDefault()
-            .WithMessage("UpdatedDate is not valid.");
+            .WithMessage("UpdatedDateTimeOffset is not valid.");
 
         return baseItemValidator;
     }
@@ -432,7 +432,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     private ISaveCommand<TInterface> CreateDeleteCommand(
         TItem item)
     {
-        item.DeletedDate = DateTime.UtcNow;
+        item.DeletedDateTimeOffset = DateTimeOffset.UtcNow;
         item.IsDeleted = true;
 
         return SaveCommand<TInterface, TItem>.Create(
@@ -453,7 +453,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     private ISaveCommand<TInterface> CreateUpdateCommand(
         TItem item)
     {
-        item.UpdatedDate = DateTime.UtcNow;
+        item.UpdatedDateTimeOffset = DateTimeOffset.UtcNow;
 
         return SaveCommand<TInterface, TItem>.Create(
             item: item,

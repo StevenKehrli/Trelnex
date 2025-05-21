@@ -24,7 +24,7 @@ public class DeleteCommandEventTests
         var id = "bc4971e4-6dae-45ba-b3ee-43c036e0d957";
         var partitionKey = "60525a8e-b084-4a37-b461-d08330760ef2";
 
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
@@ -106,7 +106,7 @@ public class DeleteCommandEventTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify first event properties (create event)
                         // id
@@ -116,18 +116,18 @@ public class DeleteCommandEventTests
 
                         // createdDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[0].CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[0].UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // createdDate == updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[0].UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[0].CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[0].UpdatedDateTimeOffset")));
 
                         // _eTag
                         Assert.That(
@@ -157,18 +157,18 @@ public class DeleteCommandEventTests
 
                         // createdDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[1].CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("[1].UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // createdDate == updatedDate
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[1].CreatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[1].CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[1].CreatedDateTimeOffset")));
 
                         // _eTag
                         Assert.That(

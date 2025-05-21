@@ -51,8 +51,8 @@ public class QueryCommandTests
         Snapshot.Match(
             read,
             matchOptions => matchOptions
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -192,8 +192,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -247,8 +247,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -344,8 +344,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -399,8 +399,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -454,8 +454,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -503,9 +503,9 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
-                .IgnoreField("**.DeletedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
+                .IgnoreField("**.DeletedDateTimeOffset")
                 .IgnoreField("**.ETag"));
 
         // should return empty
@@ -649,8 +649,8 @@ public class QueryCommandTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
 
     }

@@ -16,7 +16,7 @@ public abstract class CommandProviderTests
         var partitionKey = "355bff90-f0b6-4a50-8b49-ba9882820390";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
@@ -52,27 +52,27 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date for first item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].ReadResult.Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[0].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify created date equals updated date for second item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].ReadResult.Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[1].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify ETags are present
                         Assert.That(
@@ -91,7 +91,7 @@ public abstract class CommandProviderTests
         var partitionKey = "ae9d5360-1e01-480a-9465-4da82ee882b7";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create and save an initial item with id2
         var createCommand1 = _commandProvider.Create(
@@ -153,22 +153,22 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date for initial item
                         Assert.That(
-                            fieldOption.Field<DateTime>("read.[0].Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("read.[0].Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("read.[0].Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("read.[0].Item.UpdatedDateTimeOffset")));
 
                         // Verify ETags are present
                         Assert.That(
@@ -187,7 +187,7 @@ public abstract class CommandProviderTests
         var partitionKey = "75e5d19c-e809-49ed-a7ba-a89e96217ed3";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
@@ -247,32 +247,32 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date for first item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].ReadResult.Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[0].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify created date equals updated date for second item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].ReadResult.Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("[1].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify deleted dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.DeletedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.DeletedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify ETags are present
                         Assert.That(
@@ -291,7 +291,7 @@ public abstract class CommandProviderTests
         var partitionKey = "c25361d6-3d14-452d-a99d-22ef7c85d70e";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
@@ -377,22 +377,22 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date for the remaining item
                         Assert.That(
-                            fieldOption.Field<DateTime>("read.[0].Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("read.[0].Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("read.[0].Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("read.[0].Item.UpdatedDateTimeOffset")));
 
                         // Verify ETags are present
                         Assert.That(
@@ -411,7 +411,7 @@ public abstract class CommandProviderTests
         var partitionKey = "0a7bc917-5670-41cf-87b7-7d97d51ecb82";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
@@ -477,27 +477,27 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("[*].ReadResult.Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("[*].ReadResult.Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date not equal to updated date for first item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[0].ReadResult.Item.CreatedDate"),
-                            Is.Not.EqualTo(fieldOption.Field<DateTime>("[0].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.Not.EqualTo(fieldOption.Field<DateTimeOffset>("[0].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify created date not equal to updated date for second item
                         Assert.That(
-                            fieldOption.Field<DateTime>("[1].ReadResult.Item.CreatedDate"),
-                            Is.Not.EqualTo(fieldOption.Field<DateTime>("[1].ReadResult.Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.CreatedDateTimeOffset"),
+                            Is.Not.EqualTo(fieldOption.Field<DateTimeOffset>("[1].ReadResult.Item.UpdatedDateTimeOffset")));
 
                         // Verify ETags are present
                         Assert.That(
@@ -516,7 +516,7 @@ public abstract class CommandProviderTests
         var partitionKey = "90eabddb-a71a-4ccb-aa1a-062590597fb2";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
         var createCommand1 = _commandProvider.Create(
@@ -611,27 +611,27 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.CreatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.CreatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated dates are within expected time range
                         Assert.That(
-                            fieldOption.Fields<DateTime>("read.[*].Item.UpdatedDate"),
-                            Has.All.InRange(startDateTime, currentDateTime));
+                            fieldOption.Fields<DateTimeOffset>("read.[*].Item.UpdatedDateTimeOffset"),
+                            Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date for the first item (not updated)
                         Assert.That(
-                            fieldOption.Field<DateTime>("read.[0].Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("read.[0].Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("read.[0].Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("read.[0].Item.UpdatedDateTimeOffset")));
 
                         // Verify created date not equal to updated date for the second item (was updated)
                         Assert.That(
-                            fieldOption.Field<DateTime>("read.[1].Item.CreatedDate"),
-                            Is.Not.EqualTo(fieldOption.Field<DateTime>("read.[1].Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("read.[1].Item.CreatedDateTimeOffset"),
+                            Is.Not.EqualTo(fieldOption.Field<DateTimeOffset>("read.[1].Item.UpdatedDateTimeOffset")));
 
                         // Verify ETags are present
                         Assert.That(
@@ -649,7 +649,7 @@ public abstract class CommandProviderTests
         var partitionKey = "52fe466c-52aa-4daf-8e16-a93b26680510";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand1 = _commandProvider.Create(
@@ -698,7 +698,7 @@ public abstract class CommandProviderTests
         var partitionKey = "b297ff5b-2ab5-4b8d-9dfd-57d2e1d8c3d2";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -722,22 +722,22 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset")));
 
                         // Verify ETag is present
                         Assert.That(
@@ -755,7 +755,7 @@ public abstract class CommandProviderTests
         var partitionKey = "fbc8502a-38ee-4edb-8a2d-485888af5bd3";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -791,27 +791,27 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset")));
 
                         // Verify deleted date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime?>("Item.DeletedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.DeletedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify ETag is present
                         Assert.That(
@@ -829,7 +829,7 @@ public abstract class CommandProviderTests
         var partitionKey = "a3791462-fe7c-487a-83fa-2c9b587582ca";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -892,7 +892,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -931,8 +931,8 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -947,7 +947,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -986,8 +986,8 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -1002,7 +1002,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -1041,8 +1041,8 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -1057,7 +1057,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -1096,8 +1096,8 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -1112,7 +1112,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -1151,8 +1151,8 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -1167,7 +1167,7 @@ public abstract class CommandProviderTests
         var partitionKey2 = "e36f287e-188d-4a74-9db7-dab74282b5dd";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
         var createCommand1 = _commandProvider.Create(
@@ -1203,8 +1203,8 @@ public abstract class CommandProviderTests
         Snapshot.Match(
             read,
             matchOptions => matchOptions
-                .IgnoreField("**.CreatedDate")
-                .IgnoreField("**.UpdatedDate")
+                .IgnoreField("**.CreatedDateTimeOffset")
+                .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
     }
 
@@ -1216,7 +1216,7 @@ public abstract class CommandProviderTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -1260,7 +1260,7 @@ public abstract class CommandProviderTests
         var partitionKey = "2b541bfd-4605-48f9-b1bc-5aba5f64cd24";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -1289,22 +1289,22 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date equals updated date
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.EqualTo(fieldOption.Field<DateTime>("Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset")));
 
                         // Verify ETag is present
                         Assert.That(
@@ -1338,7 +1338,7 @@ public abstract class CommandProviderTests
         var partitionKey = "48953713-d269-42c1-b803-593f8c027aef";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(
@@ -1377,22 +1377,22 @@ public abstract class CommandProviderTests
                 {
                     Assert.Multiple(() =>
                     {
-                        var currentDateTime = DateTime.UtcNow;
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
                         // Verify created date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify updated date is within expected time range
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.UpdatedDate"),
-                            Is.InRange(startDateTime, currentDateTime));
+                            fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
 
                         // Verify created date not equal to updated date
                         Assert.That(
-                            fieldOption.Field<DateTime>("Item.CreatedDate"),
-                            Is.Not.EqualTo(fieldOption.Field<DateTime>("Item.UpdatedDate")));
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.Not.EqualTo(fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset")));
 
                         // Verify ETag is present
                         Assert.That(
@@ -1410,7 +1410,7 @@ public abstract class CommandProviderTests
         var partitionKey = "2d723fdc-99f7-4c4b-a7ee-683b4e5bd2a7";
 
         // Track start time for timing assertions
-        var startDateTime = DateTime.UtcNow;
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
         var createCommand = _commandProvider.Create(

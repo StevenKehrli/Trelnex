@@ -36,6 +36,27 @@ public static class ValidatorExtensions
     }
 
     /// <summary>
+    /// Validates that a DateTimeOffset property is not the default value.
+    /// </summary>
+    /// <typeparam name="T">The type being validated.</typeparam>
+    /// <param name="validator">The rule builder being extended.</param>
+    /// <returns>Options builder for configuring the validation rule.</returns>
+    /// <remarks>
+    /// Ensures that a DateTimeOffset field has been explicitly set.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// RuleFor(x => x.CreatedDate).NotDefault();
+    /// </code>
+    /// </example>
+    public static IRuleBuilderOptions<T, DateTimeOffset> NotDefault<T>(
+        this IRuleBuilder<T, DateTimeOffset> validator)
+    {
+        // Use Must to define the validation logic.
+        return validator.Must(k => k != default);
+    }
+
+    /// <summary>
     /// Validates that a Guid property is not the default (empty) value.
     /// </summary>
     /// <typeparam name="T">The type being validated.</typeparam>

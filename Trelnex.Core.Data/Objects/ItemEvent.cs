@@ -85,7 +85,7 @@ public sealed class ItemEvent<TItem>
         SaveAction saveAction,
         PropertyChange[]? changes)
     {
-        var dateTimeUtcNow = DateTime.UtcNow;
+        var dateTimeOffsetUtcNow = DateTimeOffset.UtcNow;
 
         return new ItemEvent<TItem>
         {
@@ -94,8 +94,8 @@ public sealed class ItemEvent<TItem>
 
             TypeName = ReservedTypeNames.Event,
 
-            CreatedDate = dateTimeUtcNow,
-            UpdatedDate = dateTimeUtcNow,
+            CreatedDateTimeOffset = dateTimeOffsetUtcNow,
+            UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
 
             SaveAction = saveAction,
             RelatedId = related.Id,

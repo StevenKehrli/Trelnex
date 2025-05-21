@@ -21,17 +21,17 @@
         }
       }
     ],
-    "TraceContext": "00-36c226f18ea7adad7c911c1e0cddc3bd-e06333dfccb2472d-01",
-    "TraceId": "36c226f18ea7adad7c911c1e0cddc3bd",
-    "SpanId": "e06333dfccb2472d",
-    "Id": "82657576-64ff-4d80-a365-03ec53f49bc8",
+    "TraceContext": "00-25a13aa765905d990a8b883a77520407-5a14a3b66d3cbec4-01",
+    "TraceId": "25a13aa765905d990a8b883a77520407",
+    "SpanId": "5a14a3b66d3cbec4",
+    "Id": "87d023a3-f484-4872-a066-0fd6493e279a",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
-    "CreatedDate": "2025-01-19T22:19:55.348821Z",
-    "UpdatedDate": "2025-01-19T22:19:55.348821Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T04:56:31.972684+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.972684+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "e95d734c-7dbd-4e7e-bdae-a2b449b27754"
+    "ETag": "7322f051-bda0-4b84-9ac0-a7fe4f4a4ec1"
   },
   {
     "SaveAction": "UPDATED",
@@ -57,16 +57,16 @@
         }
       }
     ],
-    "TraceContext": "00-36c226f18ea7adad7c911c1e0cddc3bd-e06333dfccb2472d-01",
-    "TraceId": "36c226f18ea7adad7c911c1e0cddc3bd",
-    "SpanId": "e06333dfccb2472d",
-    "Id": "6a95f35d-141c-4f44-b0d8-7fe8aabff534",
+    "TraceContext": "00-25a13aa765905d990a8b883a77520407-5a14a3b66d3cbec4-01",
+    "TraceId": "25a13aa765905d990a8b883a77520407",
+    "SpanId": "5a14a3b66d3cbec4",
+    "Id": "85886f6f-6fee-4e71-82e9-674cdf1391a8",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
-    "CreatedDate": "2025-01-19T22:19:55.349383Z",
-    "UpdatedDate": "2025-01-19T22:19:55.349383Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T04:56:31.973464+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.973464+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "9f464ef4-a2ad-474b-a6f9-794b4957d493"
+    "ETag": "131ef884-cb0e-4613-877a-81dede44835b"
   }
 ]

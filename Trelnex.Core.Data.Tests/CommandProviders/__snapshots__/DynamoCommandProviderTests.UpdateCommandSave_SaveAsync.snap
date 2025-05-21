@@ -3,10 +3,8 @@
     "Id": "7dded065-d204-4913-97ad-591e382baba5",
     "PartitionKey": "48953713-d269-42c1-b803-593f8c027aef",
     "TypeName": "test-item",
-    "CreatedDate": "2025-02-13T17:29:33.307258Z",
-    "UpdatedDate": "2025-02-13T17:29:33.380201Z",
-    "DeletedDate": null,
-    "IsDeleted": null,
+    "CreatedDateTimeOffset": "2025-02-13T17:29:33.307258Z",
+    "UpdatedDateTimeOffset": "2025-02-13T17:29:33.380201Z",
     "ETag": "e3048fc9-a011-4dc3-b817-1bc6ece90a99",
     "Message": "Message #2"
   }

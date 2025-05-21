@@ -3,9 +3,9 @@
     "Id": "f8829dac-56f6-4448-829a-fac886aefb1b",
     "PartitionKey": "fbc8502a-38ee-4edb-8a2d-485888af5bd3",
     "TypeName": "test-item",
-    "CreatedDate": "2025-01-19T22:30:28.785291Z",
-    "UpdatedDate": "2025-01-19T22:30:28.785291Z",
-    "DeletedDate": "2025-01-19T22:30:29.614549Z",
+    "CreatedDateTimeOffset": "2025-01-19T22:30:28.785291Z",
+    "UpdatedDateTimeOffset": "2025-01-19T22:30:28.785291Z",
+    "DeletedDateTimeOffset": "2025-01-19T22:30:29.614549Z",
     "IsDeleted": true,
     "ETag": "54C93AA6-2755-4929-9A9E-E323698AED0F",
     "Message": "Message #1"

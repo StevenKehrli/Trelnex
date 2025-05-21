@@ -102,10 +102,6 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         // Add the metadata reader to handle JSON property name attributes
         mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
 
-        // Set up date/time converters for consistent UTC handling
-        mappingSchema.SetConverter<DateTime, DateTimeOffset>(dt => new DateTimeOffset(dt));
-        mappingSchema.SetConverter<DateTimeOffset, DateTime>(dto => dto.UtcDateTime);
-
         var fmBuilder = new FluentMappingBuilder(mappingSchema);
 
         // Map the item to its table ("<tableName>")
