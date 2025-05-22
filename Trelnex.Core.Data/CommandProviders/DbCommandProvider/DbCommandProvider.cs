@@ -71,7 +71,7 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
             // Query item by id and partition key
             var item = dataConnection
                 .GetTable<TItem>()
-                .Where(i => i.Id == id && i.PartitionKey == partitionKey)
+                .Where(i => i.Id == id && i.PartitionKey == partitionKey && i.TypeName == TypeName)
                 .FirstOrDefault();
 
             return await Task.FromResult(item);

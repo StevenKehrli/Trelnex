@@ -158,7 +158,11 @@ internal class DynamoCommandProvider<TInterface, TItem>(
         var json = document.ToJson();
 
         // deserialize the item
-        return JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions);
+        var item = JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions);
+
+        return item?.TypeName == TypeName
+            ? item
+            : null;
     }
 
     /// <summary>

@@ -91,10 +91,14 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         try
         {
             // Attempt to read the item from Cosmos DB.
-            return await container.ReadItemAsync<TItem>(
+            var itemResponse = await container.ReadItemAsync<TItem>(
                 id: id,
                 partitionKey: new PartitionKey(partitionKey),
                 cancellationToken: cancellationToken);
+
+            return itemResponse?.Resource.TypeName == TypeName
+                ? itemResponse.Resource
+                : null;
         }
         catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
         {
