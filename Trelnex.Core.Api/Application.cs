@@ -1,4 +1,6 @@
 using System.Configuration;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -122,14 +124,12 @@ public static class Application
             options.KnownProxies.Clear();
         });
 
+        // Inject our security provider.
+        var securityProvider = new SecurityProvider();
+        builder.Services.AddSingleton<ISecurityProvider>(securityProvider);
+
         // Register application-specific services.
         addApplication(builder.Services, builder.Configuration, bootstrapLogger);
-
-        // Validate that authentication was properly configured.
-        builder.Services.ThrowIfAuthenticationNotAdded();
-
-        // Add the user context as a scoped service.
-        builder.Services.AddUserContext();
 
         // Add health check services.
         builder.Services.AddIdentityHealthChecks();
@@ -164,8 +164,18 @@ public static class Application
 
         // Configure standard HTTP pipeline middleware.
         app.UseHttpsRedirection();
-        app.UseAuthentication();
-        app.UseAuthorization();
+
+        // Check if authentication is configured.
+        if (app.Services.GetService<IAuthenticationService>() is not null)
+        {
+            app.UseAuthentication();
+
+            // Check if authorization is configured.
+            if (app.Services.GetService<IAuthorizationService>() is not null)
+            {
+                app.UseAuthorization();
+            }
+        }
 
         // Configure application-specific endpoints and middleware.
         useApplication(app);

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,53 +35,15 @@ public static class AuthenticationExtensions
 
         services.AddSingleton<IAuthorizationHandler, PermissionRequirementAuthorizationHandler>();
 
-        // Inject our security provider.
-        var securityProvider = new SecurityProvider();
-        services.AddSingleton<ISecurityProvider>(securityProvider);
+        // Add the user context as a scoped service.
+        services.AddUserContext();
+
+        // Get our security provider.
+        var serviceDescriptor = services.First(sd => sd.ServiceType == typeof(ISecurityProvider));
+        var securityProvider = (serviceDescriptor.ImplementationInstance as SecurityProvider)!;
 
         // Add the permissions to the security provider and return the builder for further configuration.
         return new PermissionsBuilder(services, configuration, securityProvider);
-    }
-
-    /// <summary>
-    /// Configures the application with no authentication, suitable for development or testing.
-    /// </summary>
-    /// <param name="services">The service collection to configure with no authentication.</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if authentication services were already configured.
-    /// </exception>
-    public static void AnonymousAuthentication(
-        this IServiceCollection services)
-    {
-        services.ThrowIfSecurityProviderAdded();
-
-        services.AddHttpContextAccessor();
-
-        services.AddAuthentication();
-        services.AddAuthorization();
-
-        // Inject an empty security provider for scenarios where authentication is not required.
-        var securityProvider = new SecurityProvider();
-        services.AddSingleton<ISecurityProvider>(securityProvider);
-    }
-
-    /// <summary>
-    /// Verifies that authentication has been configured for the application.
-    /// </summary>
-    /// <param name="services">The service collection to check for authentication configuration.</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if authentication has not been configured.
-    /// </exception>
-    public static void ThrowIfAuthenticationNotAdded(
-        this IServiceCollection services)
-    {
-        // Check if the security provider was added.
-        var added = services.Any(sd => sd.ServiceType == typeof(IAuthenticationService));
-
-        if (added is false)
-        {
-            throw new InvalidOperationException("Authentication has not been configured.");
-        }
     }
 
     #endregion
@@ -104,7 +65,7 @@ public static class AuthenticationExtensions
 
         if (added is true)
         {
-            throw new InvalidOperationException($"{nameof(AddAuthentication)} or {nameof(AnonymousAuthentication)} has already been configured.");
+            throw new InvalidOperationException($"{nameof(AddAuthentication)} has already been configured.");
         }
     }
 

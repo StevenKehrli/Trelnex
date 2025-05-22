@@ -111,11 +111,11 @@ app.MapPost("/data", (Data data) => "Data saved")
     .RequirePermission<WriteDataPolicy>();
 
 // Multiple policies (OR condition - any policy can grant access)
-app.MapGet("/data/multi", (IUserContext context) => 
+app.MapGet("/data/multi", (IUserContext context) =>
 {
     bool hasReadAccess = context.HasPermission<ReadDataPolicy>();
     bool hasWriteAccess = context.HasPermission<WriteDataPolicy>();
-    
+
     if (hasReadAccess && hasWriteAccess)
     {
         return "User has both read and write access";
@@ -128,7 +128,7 @@ app.MapGet("/data/multi", (IUserContext context) =>
     {
         return "User has write-only access";
     }
-    
+
     // This code won't execute since authorization would fail if neither policy passes
     return "User has no access";
 })
@@ -142,7 +142,7 @@ app.MapGet("/admin-or-user", (IUserContext context) =>
     {
         return "You have admin access with elevated privileges";
     }
-    
+
     return "You have regular user access";
 })
     .RequirePermission<AdminPolicy>()
