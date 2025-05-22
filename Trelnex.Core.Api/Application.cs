@@ -33,7 +33,6 @@ public static class Application
     /// <param name="args">Command line arguments passed to the application.</param>
     /// <param name="addApplication">Delegate to register application-specific services.</param>
     /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
-    /// <param name="addHealthChecks">Optional delegate to register additional health checks.</param>
     /// <exception cref="ConfigurationErrorsException">
     /// Thrown when the required ServiceConfiguration section is missing.
     /// </exception>
@@ -43,15 +42,13 @@ public static class Application
     public static void Run(
         string[] args,
         Action<IServiceCollection, IConfiguration, ILogger> addApplication,
-        Action<WebApplication> useApplication,
-        Action<IHealthChecksBuilder, IConfiguration>? addHealthChecks = null)
+        Action<WebApplication> useApplication)
     {
         // Create the web application using the standardized configuration.
         var app = CreateWebApplication(
             args,
             addApplication,
-            useApplication,
-            addHealthChecks);
+            useApplication);
 
         // Run the application.
         app.Run();
@@ -67,7 +64,6 @@ public static class Application
     /// <param name="args">Command line arguments passed to the application.</param>
     /// <param name="addApplication">Delegate to register application-specific services.</param>
     /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
-    /// <param name="addHealthChecks">Optional delegate to register additional health checks.</param>
     /// <returns>A configured <see cref="WebApplication"/> instance ready to run.</returns>
     /// <exception cref="ConfigurationErrorsException">
     /// Thrown when the required ServiceConfiguration section is missing.
@@ -78,8 +74,7 @@ public static class Application
     internal static WebApplication CreateWebApplication(
         string[] args,
         Action<IServiceCollection, IConfiguration, ILogger> addApplication,
-        Action<WebApplication> useApplication,
-        Action<IHealthChecksBuilder, IConfiguration>? addHealthChecks = null)
+        Action<WebApplication> useApplication)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -134,11 +129,7 @@ public static class Application
         // Add health check services.
         builder.Services.AddIdentityHealthChecks();
         builder.Services.AddCommandProviderHealthChecks();
-        builder.Services.AddHealthChecks(healthChecksBuilder =>
-        {
-            // Add application-specific health checks.
-            addHealthChecks?.Invoke(healthChecksBuilder, builder.Configuration);
-        });
+        builder.Services.AddDefaultHealthChecks();
 
         var app = builder.Build();
 
@@ -166,7 +157,7 @@ public static class Application
         app.UseHttpsRedirection();
 
         // Check if authentication is configured.
-        if (app.Services.GetService<IAuthenticationService>() is not null)
+        if (app.Services.GetService<IAuthenticationSchemeProvider>() is not null)
         {
             app.UseAuthentication();
 

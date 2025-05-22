@@ -49,16 +49,6 @@ Application.Run(args,
 
         app.MapGet("/data", () => "Hello World")
             .RequirePermission<ReadDataPolicy>();
-    },
-    // Add custom health checks
-    (healthChecks, configuration) =>
-    {
-        // Add custom health check
-        healthChecks.AddCheck("CustomCheck", () =>
-        {
-            // Perform custom health verification
-            return HealthCheckResult.Healthy("All systems operational");
-        });
     });
 ```
 
@@ -195,16 +185,6 @@ Application.Run(args,
 
         app.MapGet("/data", () => "Secured data")
             .RequirePermission<ReadDataPolicy>();
-    },
-    // Add custom health checks
-    (healthChecks, configuration) =>
-    {
-        // Add custom health check
-        healthChecks.AddCheck("CustomCheck", () =>
-        {
-            // Perform custom health verification
-            return HealthCheckResult.Healthy("All systems operational");
-        });
     });
 ```
 
@@ -261,7 +241,6 @@ public class YourService
 ## Extension Points
 
 - **Custom Authentication**: Extend `JwtBearerPermission` or `MicrosoftIdentityPermission`
-- **Health Checks**: Implement custom health checks for application-specific components
 - **Typed HTTP Clients**: Implement `IClientFactory<T>` for custom client creation logic
 - **Command Providers**: Register custom command provider factories for data access
 

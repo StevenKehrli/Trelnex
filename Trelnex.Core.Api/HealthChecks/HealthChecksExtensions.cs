@@ -21,17 +21,12 @@ public static class HealthChecksExtensions
     /// Registers health check services with customizable health checks.
     /// </summary>
     /// <param name="services">The service collection to add health checks to.</param>
-    /// <param name="addHealthChecks">Optional delegate to register application-specific health checks.</param>
     /// <returns>The service collection for method chaining.</returns>
-    public static IServiceCollection AddHealthChecks(
-        this IServiceCollection services,
-        Action<IHealthChecksBuilder>? addHealthChecks)
+    public static IServiceCollection AddDefaultHealthChecks(
+        this IServiceCollection services)
     {
         // Register health check services.
         var healthChecksBuilder = services.AddHealthChecks();
-
-        // Allow application to register custom health checks.
-        addHealthChecks?.Invoke(healthChecksBuilder);
 
         // Add a default health check that always returns healthy.
         // This ensures the /healthz endpoint works even without custom checks.
