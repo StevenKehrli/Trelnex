@@ -61,7 +61,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services)
     {
         // Check if the security provider was added.
-        var added = services.Any(sd => sd.ServiceType == typeof(ISecurityProvider));
+        var added = services.Any(sd => sd.ServiceType == typeof(IAuthorizationHandler));
 
         if (added is true)
         {
