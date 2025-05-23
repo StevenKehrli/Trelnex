@@ -51,11 +51,11 @@ public static class CosmosCommandProvidersExtensions
 
         // Create our factory
         var cosmosClientOptions = GetCosmosClientOptions(credentialProvider, providerOptions);
-        var keyResolverOptions = GetKeyResolverOptions(credentialProvider, providerOptions);
 
-        var providerFactory = CosmosCommandProviderFactory.Create(
-            cosmosClientOptions,
-            keyResolverOptions).GetAwaiter().GetResult();
+        var providerFactory = CosmosCommandProviderFactory
+            .Create(cosmosClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
         // Inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);
@@ -112,31 +112,6 @@ public static class CosmosCommandProvidersExtensions
             TokenCredential: tokenCredential,
             DatabaseId: providerOptions.DatabaseId,
             ContainerIds: providerOptions.GetContainerIds());
-    }
-
-    /// <summary>
-    /// Creates Key Vault key resolver options with properly configured authentication.
-    /// </summary>
-    /// <param name="credentialProvider">Provider for token-based authentication.</param>
-    /// <param name="providerOptions">Configuration options with tenant information.</param>
-    /// <returns>Fully configured key resolver options.</returns>
-    /// <remarks>Initializes an access token for Azure Key Vault with the standard scope.</remarks>
-    private static KeyResolverOptions GetKeyResolverOptions(
-        ICredentialProvider<TokenCredential> credentialProvider,
-        CosmosCommandProviderOptions providerOptions)
-    {
-        // Get the token credential and initialize
-        var tokenCredential = credentialProvider.GetCredential();
-
-        var tokenRequestContext = new TokenRequestContext(
-            scopes: ["https://vault.azure.net/.default"],
-            tenantId: providerOptions.TenantId);
-
-        // Warm-up this token
-        tokenCredential.GetToken(tokenRequestContext, default);
-
-        return new KeyResolverOptions(
-            TokenCredential: tokenCredential);
     }
 
     #endregion

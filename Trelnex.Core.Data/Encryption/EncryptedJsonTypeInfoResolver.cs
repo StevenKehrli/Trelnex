@@ -9,7 +9,7 @@ namespace Trelnex.Core.Data.Encryption;
 /// for properties decorated with the <see cref="EncryptAttribute"/>.
 /// </summary>
 /// <param name="encryptionService">The <see cref="IEncryptionService"/> to use for encryption and decryption.</param>
-internal class EncryptedJsonTypeInfoResolver(
+public class EncryptedJsonTypeInfoResolver(
     IEncryptionService encryptionService)
     : IJsonTypeInfoResolver
 {

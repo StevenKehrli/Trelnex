@@ -31,20 +31,16 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
         TestSetup();
 
         // Create the command provider using direct factory instantiation.
-        var cosmosClientOptions = new Azure.CommandProviders.CosmosClientOptions(
+        var cosmosClientOptions = new CosmosClientOptions(
             TokenCredential: _tokenCredential,
             AccountEndpoint: _endpointUri,
             DatabaseId: _databaseId,
             ContainerIds: [ _containerId ]
         );
 
-        var keyResolverOptions = new KeyResolverOptions(
-            TokenCredential: _tokenCredential);
-
         // Create the CosmosCommandProviderFactory.
         var factory = await CosmosCommandProviderFactory.Create(
-            cosmosClientOptions,
-            keyResolverOptions);
+            cosmosClientOptions);
 
         // Create the command provider instance.
         _commandProvider = factory.Create<ITestItem, TestItem>(

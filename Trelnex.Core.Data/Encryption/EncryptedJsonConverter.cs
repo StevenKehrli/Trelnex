@@ -23,27 +23,26 @@ internal class EncryptedJsonConverter<TProperty>(
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        // Check for null token
+        // Check for null token. If the token is null, return the default value for the type.
         if (reader.TokenType == JsonTokenType.Null)
         {
             return default!;
         }
 
-        // Read the encrypted string
+        // Read the encrypted string from the JSON.
         var encryptedString = reader.GetString()!;
 
-        // Convert the encrypted string to a byte array
-        var encryptedBytes = System.Text.Encoding.UTF8.GetBytes(encryptedString);
+        // Convert the encrypted string from Base64 to a byte array.
+        var encryptedBytes = Convert.FromBase64String(encryptedString);
 
-        // Decrypt the byte array
+        // Decrypt the byte array using the encryption service.
         var jsonBytes = encryptionService.Decrypt(encryptedBytes);
 
-        // Convert the decrypted byte array back to a JSON string
+        // Convert the decrypted byte array back to a JSON string.
         var jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
 
-        return typeof(TProperty) == typeof(string)
-            ? (TProperty)(jsonString as object)
-            : JsonSerializer.Deserialize<TProperty>(jsonString, options)!;
+        // Deserialize the JSON string into an object of type TProperty.
+        return JsonSerializer.Deserialize<TProperty>(jsonString)!;
     }
 
     /// <summary>
@@ -57,33 +56,26 @@ internal class EncryptedJsonConverter<TProperty>(
         TProperty value,
         JsonSerializerOptions options)
     {
-        // Check if the value is null
+        // Check if the value is null. If so, write a null value and return.
         if (value is null)
         {
             writer.WriteNullValue();
             return;
         }
 
-        // Serialize the value to a JSON string
-        using var jsonDocument = JsonSerializer.SerializeToDocument(new { Value = value }, options);
-        var jsonElement = jsonDocument.RootElement.GetProperty("Value");
+        // Serialize the object of type TProperty to a JSON string.
+        var jsonString = JsonSerializer.Serialize(value);
 
-        var jsonString = jsonElement.ValueKind switch
-        {
-            JsonValueKind.String => jsonElement.GetString()!,
-            _ => jsonElement.GetRawText()
-        };
-
-        // Convert the JSON string to a byte array
+        // Convert the JSON string to a byte array.
         var jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
 
-        // Encrypt the byte array
+        // Encrypt the byte array using the encryption service.
         var encryptedBytes = encryptionService.Encrypt(jsonBytes);
 
-        // Convert the encrypted byte array back to a JSON string
-        var encryptedString = System.Text.Encoding.UTF8.GetString(encryptedBytes);
+        // Convert the encrypted byte array to a Base64 string.
+        var encryptedString = Convert.ToBase64String(encryptedBytes);
 
-        // Write the encrypted string to the JSON writer
+        // Write the encrypted string to the JSON writer.
         writer.WriteStringValue(encryptedString);
     }
 }

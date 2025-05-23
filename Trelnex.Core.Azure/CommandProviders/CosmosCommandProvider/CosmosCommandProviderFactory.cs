@@ -2,10 +2,8 @@ using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Security.KeyVault.Keys.Cryptography;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Encryption;
 using Microsoft.Azure.Cosmos.Fluent;
 using Trelnex.Core.Data;
 
@@ -62,13 +60,11 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// Creates and initializes a new instance of the <see cref="CosmosCommandProviderFactory"/>.
     /// </summary>
     /// <param name="cosmosClientOptions">Options for CosmosDB client configuration.</param>
-    /// <param name="keyResolverOptions">Options for Key Vault encryption key resolution.</param>
     /// <returns>A fully initialized <see cref="CosmosCommandProviderFactory"/> instance.</returns>
     /// <exception cref="CommandException">When the CosmosDB connection cannot be established or required containers are missing.</exception>
     /// <remarks>Configures JSON serialization, initializes the CosmosDB client, sets up encryption, and validates database health.</remarks>
     public static async Task<CosmosCommandProviderFactory> Create(
-        CosmosClientOptions cosmosClientOptions,
-        KeyResolverOptions keyResolverOptions)
+        CosmosClientOptions cosmosClientOptions)
     {
         // Configure JSON serialization settings
         var jsonSerializerOptions = new JsonSerializerOptions
@@ -94,11 +90,6 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
                 containers,
                 CancellationToken.None
             );
-
-        // Add encryption
-        cosmosClient = cosmosClient.WithEncryption(
-            new KeyResolver(keyResolverOptions.TokenCredential),
-            KeyEncryptionKeyResolverName.AzureKeyVault);
 
         // Function to retrieve the current operational status.
         CommandProviderFactoryStatus getStatus()
