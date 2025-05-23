@@ -40,14 +40,34 @@ public static class CosmosCommandProvidersExtensions
         // Retrieve the token credential provider.
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        // Load the Cosmos DB provider configuration.
-        var providerConfiguration = configuration
-            .GetSection("Azure.CosmosCommandProviders")
-            .Get<CosmosCommandProviderConfiguration>()
+        // Get the database and table configurations from the configuration
+        var endpointUri = configuration.GetSection("Azure.CosmosCommandProviders:EndpointUri").Get<string>()
             ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
 
+        var databaseId = configuration.GetSection("Azure.CosmosCommandProviders:DatabaseId").Get<string>()
+            ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+
+        var containers = configuration.GetSection("Azure.CosmosCommandProviders:Containers").GetChildren();
+        var containerConfigurations = containers
+            .Select(c =>
+            {
+                var containerId = c.GetValue<string>("ContainerId")
+                    ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+
+                var encryptionSecret = c.GetValue<string?>("EncryptionSecret");
+
+                return new ContainerConfiguration(
+                    TypeName: c.Key,
+                    ContainerId: containerId,
+                    EncryptionSecret: encryptionSecret);
+            })
+            .ToArray();
+
         // Parse the cosmos options
-        var providerOptions = CosmosCommandProviderOptions.Parse(providerConfiguration);
+        var providerOptions = CosmosCommandProviderOptions.Parse(
+            endpointUri: endpointUri,
+            databaseId: databaseId,
+            containerConfigurations: containerConfigurations);
 
         // Create our factory
         var cosmosClientOptions = GetCosmosClientOptions(credentialProvider, providerOptions);
@@ -151,10 +171,10 @@ public static class CosmosCommandProvidersExtensions
             where TItem : BaseItem, TInterface, new()
         {
             // Get the container for the specified item type
-            var containerId = providerOptions.GetContainerId(typeName);
+            var containerConfiguration = providerOptions.GetContainerConfiguration(typeName);
 
             // If the container is not found, then throw an exception
-            if (containerId is null)
+            if (containerConfiguration is null)
             {
                 throw new ArgumentException(
                     $"The Container for TypeName '{typeName}' is not found.",
@@ -170,7 +190,7 @@ public static class CosmosCommandProvidersExtensions
 
             // Create the command provider and inject
             var commandProvider = providerFactory.Create<TInterface, TItem>(
-                containerId: containerId,
+                containerId: containerConfiguration.ContainerId,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations);
@@ -185,7 +205,7 @@ public static class CosmosCommandProvidersExtensions
                 typeof(TItem), // TItem,
                 providerOptions.EndpointUri, // account
                 providerOptions.DatabaseId, // database,
-                containerId, // container
+                containerConfiguration.ContainerId, // container
             ];
 
             // Log - the :l format parameter (l = literal) to avoid the quotes
@@ -208,41 +228,12 @@ public static class CosmosCommandProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="ContainerId">The container ID in Cosmos DB.</param>
+    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
     /// <remarks>Defines the mapping between logical type names and physical containers.</remarks>
     private record ContainerConfiguration(
         string TypeName,
-        string ContainerId);
-
-    /// <summary>
-    /// Configuration properties for Cosmos DB command providers.
-    /// </summary>
-    /// <remarks>Reads from the "Azure.CosmosCommandProviders" section in application configuration.</remarks>
-    private record CosmosCommandProviderConfiguration
-    {
-        /// <summary>
-        /// The Azure tenant ID (organization).
-        /// </summary>
-        /// <remarks>Used for authentication to Key Vault.</remarks>
-        public required string TenantId { get; init; }
-
-        /// <summary>
-        /// The URI to the Cosmos DB account.
-        /// </summary>
-        /// <remarks>Used to establish connection and derive authentication scope.</remarks>
-        public required string EndpointUri { get; init; }
-
-        /// <summary>
-        /// The database name to use.
-        /// </summary>
-        /// <remarks>All containers must be within this database.</remarks>
-        public required string DatabaseId { get; init; }
-
-        /// <summary>
-        /// The collection of container mappings by item type.
-        /// </summary>
-        /// <remarks>Maps logical type names to physical container IDs.</remarks>
-        public required ContainerConfiguration[] Containers { get; init; }
-    }
+        string ContainerId,
+        string? EncryptionSecret);
 
     #endregion
 
@@ -251,21 +242,19 @@ public static class CosmosCommandProvidersExtensions
     /// <summary>
     /// Runtime options for Cosmos DB command providers.
     /// </summary>
-    /// <param name="tenantId">The Azure tenant ID.</param>
     /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
     /// <param name="databaseId">The database ID.</param>
     /// <remarks>Provides validated, parsed configuration with container-to-type mappings.</remarks>
     private class CosmosCommandProviderOptions(
-        string tenantId,
         string endpointUri,
         string databaseId)
     {
         #region Private Fields
 
         /// <summary>
-        /// The mappings from type names to container IDs.
+        /// The mappings from type names to container configurations.
         /// </summary>
-        private readonly Dictionary<string, string> _containerIdsByTypeName = [];
+        private readonly Dictionary<string, ContainerConfiguration> _containerConfigurationsByTypeName = [];
 
         #endregion
 
@@ -279,17 +268,17 @@ public static class CosmosCommandProvidersExtensions
         /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
         /// <remarks>Validates that no type name is mapped to multiple containers.</remarks>
         public static CosmosCommandProviderOptions Parse(
-            CosmosCommandProviderConfiguration providerConfiguration)
+            string endpointUri,
+            string databaseId,
+            ContainerConfiguration[] containerConfigurations)
         {
             // Get the tenant, endpoint, and database
             var providerOptions = new CosmosCommandProviderOptions(
-                tenantId: providerConfiguration.TenantId,
-                endpointUri: providerConfiguration.EndpointUri,
-                databaseId: providerConfiguration.DatabaseId);
+                endpointUri: endpointUri,
+                databaseId: databaseId);
 
             // Group the containers by item type
-            var groups = providerConfiguration
-                .Containers
+            var groups = containerConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
@@ -311,11 +300,11 @@ public static class CosmosCommandProvidersExtensions
             }
 
             // After validating that no type name is mapped to multiple containers,
-            // populate the dictionary that maps each type name to its corresponding container ID.
+            // populate the dictionary that maps each type name to its corresponding container configuration.
             Array.ForEach(groups, group =>
             {
-                // Extract the single container ID for this type name and add it to the lookup dictionary.
-                providerOptions._containerIdsByTypeName[group.Key] = group.Single().ContainerId;
+                // Extract the single container configuration for this type name and add it to the lookup dictionary.
+                providerOptions._containerConfigurationsByTypeName[group.Key] = group.Single();
             });
 
             // Return the fully initialized and validated options object for use in creating providers.
@@ -336,26 +325,21 @@ public static class CosmosCommandProvidersExtensions
         /// </summary>
         public string EndpointUri => endpointUri;
 
-        /// <summary>
-        /// Gets the Azure tenant ID.
-        /// </summary>
-        public string TenantId => tenantId;
-
         #endregion
 
         #region Public Methods
 
         /// <summary>
-        /// Gets the container ID for a specified type name.
+        /// Gets the container configuration for a specified type name.
         /// </summary>
         /// <param name="typeName">The type name to look up.</param>
-        /// <returns>The container ID if found, or <see langword="null"/> if no mapping exists.</returns>
-        public string? GetContainerId(
+        /// <returns>The container configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        public ContainerConfiguration? GetContainerConfiguration(
             string typeName)
         {
             // Try to find the container ID corresponding to the provided type name in our lookup dictionary.
-            return _containerIdsByTypeName.TryGetValue(typeName, out var containerId)
-                ? containerId
+            return _containerConfigurationsByTypeName.TryGetValue(typeName, out var containerConfiguration)
+                ? containerConfiguration
                 : null;
         }
 
@@ -366,8 +350,8 @@ public static class CosmosCommandProvidersExtensions
         public string[] GetContainerIds()
         {
             // Extract all container IDs from the dictionary's values, ensuring no duplicates.
-            return _containerIdsByTypeName
-                .Values
+            return _containerConfigurationsByTypeName
+                .Select(c => c.Value.ContainerId)
                 .OrderBy(c => c)
                 .ToArray();
         }

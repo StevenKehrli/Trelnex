@@ -67,7 +67,9 @@ public static class DynamoCommandProvidersExtensions
             .ToArray();
 
         // Parse the DynamoDB options from the configuration
-        var providerOptions = DynamoCommandProviderOptions.Parse(region, tableConfigurations);
+        var providerOptions = DynamoCommandProviderOptions.Parse(
+            region: region,
+            tableConfigurations: tableConfigurations);
 
         // Create DynamoDB client options with authentication
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
@@ -261,8 +263,8 @@ public static class DynamoCommandProvidersExtensions
         public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
-            return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableName)
-                ? tableName
+            return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableConfiguration)
+                ? tableConfiguration
                 : null;
         }
 

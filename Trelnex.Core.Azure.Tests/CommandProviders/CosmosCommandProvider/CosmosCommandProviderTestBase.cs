@@ -24,6 +24,11 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
     protected Container _container = null!;
 
     /// <summary>
+    /// The CosmosDB container used for encryption testing.
+    /// </summary>
+    protected Container _encryptedContainer = null!;
+
+    /// <summary>
     /// The endpoint URI for the Cosmos DB account.
     /// </summary>
     /// <example>https://cosmosdb-account.documents.azure.com:443/</example>
@@ -36,10 +41,19 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
     protected string _databaseId = null!;
 
     /// <summary>
-    /// The container ID for the Cosmos DB container.
+    /// The container id used for testing.
     /// </summary>
-    /// <example>test-items</example>
     protected string _containerId = null!;
+
+    /// <summary>
+    /// The container id used for encryption testing.
+    /// </summary>
+    protected string _encryptedContainerId = null!;
+
+    /// <summary>
+    /// The encryption secret used for encryption testing.
+    /// </summary>
+    protected string _encryptionSecret = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -86,7 +100,19 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
         // Get the container ID from the configuration.
         // Example: "test-items"
         _containerId = configuration
-            .GetSection("Azure.CosmosCommandProviders:Containers:0:ContainerId")
+            .GetSection("Azure.CosmosCommandProviders:Containers:test-item:ContainerId")
+            .Value!;
+
+        // Get the encypted container ID from the configuration.
+        // Example: "test-items"
+        _encryptedContainerId = configuration
+            .GetSection("Azure.CosmosCommandProviders:Containers:encrypted-test-item:ContainerId")
+            .Value!;
+
+        // Get the encryption secret from the configuration.
+        // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        _encryptionSecret = configuration
+            .GetSection("Azure.CosmosCommandProviders:Containers:encrypted-test-item:EncryptionSecret")
             .Value!;
 
         // Create a token credential for authentication.
@@ -102,6 +128,10 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
             databaseId: _databaseId,
             containerId: _containerId);
 
+        _encryptedContainer = cosmosClient.GetContainer(
+            databaseId: _databaseId,
+            containerId: _encryptedContainerId);
+
         return configuration;
     }
 
@@ -115,8 +145,15 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public async Task TearDown()
     {
+        await ContainerCleanup(_container);
+        await ContainerCleanup(_encryptedContainer);
+    }
+
+    private static async Task ContainerCleanup(
+        Container container)
+    {
         // Query all items in the container.
-        var feedIterator = _container
+        var feedIterator = container
             .GetItemLinqQueryable<CosmosItem>()
             .ToFeedIterator();
 
@@ -128,7 +165,7 @@ public abstract class CosmosCommandProviderTestBase : CommandProviderTests
             // Delete each item individually.
             foreach (var item in feedResponse)
             {
-                await _container.DeleteItemAsync<CosmosItem>(
+                await container.DeleteItemAsync<CosmosItem>(
                     id: item.id,
                     partitionKey: new PartitionKey(item.partitionKey));
             }
