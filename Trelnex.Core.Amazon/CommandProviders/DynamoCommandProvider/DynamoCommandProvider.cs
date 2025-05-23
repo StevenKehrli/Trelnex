@@ -8,26 +8,24 @@ using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
 /// DynamoDB implementation of <see cref="CommandProvider{TInterface, TItem}"/>.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-/// <remarks>
-/// Provides DynamoDB-specific implementations for data storage and retrieval.
-/// </remarks>
-/// <param name="table">The DynamoDB table object.</param>
-/// <param name="typeName">Type name to filter items by.</param>
-/// <param name="validator">Optional validator for items.</param>
-/// <param name="commandOperations">Operations allowed for this provider.</param>
+/// <param name="table">The DynamoDB table to interact with.</param>
+/// <param name="typeName">The type name used to filter items.</param>
+/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
+/// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
 internal class DynamoCommandProvider<TInterface, TItem>(
     Table table,
     string typeName,
     IValidator<TItem>? validator = null,
-    CommandOperations? commandOperations = null)
+    CommandOperations? commandOperations = null,
+    IEncryptionService? encryptionService = null)
     : CommandProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -42,13 +40,20 @@ internal class DynamoCommandProvider<TInterface, TItem>(
             nameof(BaseItem.ETag),
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
 
+    #endregion
+
+    #region Private Fields
+
     /// <summary>
     /// JSON serializer options for DynamoDB.
     /// </summary>
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        TypeInfoResolver = encryptionService is not null
+            ? new EncryptedJsonTypeInfoResolver(encryptionService)
+            : null
     };
 
     #endregion

@@ -157,14 +157,11 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// Initializes a new instance of the <see cref="CommandProvider{TInterface, TItem}"/> class.
     /// </summary>
     /// <param name="typeName">The type name of the item.</param>
-    /// <param name="validator">The optional validator.</param>
+    /// <param name="validator">Optional validator for items before they are saved.</param>
     /// <param name="commandOperations">The operations allowed (default: Read only).</param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="typeName"/> is invalid.
     /// </exception>
-    /// <remarks>
-    /// The constructor sets up validators and verifies the type name.
-    /// </remarks>
     protected CommandProvider(
         string typeName,
         IValidator<TItem>? validator,

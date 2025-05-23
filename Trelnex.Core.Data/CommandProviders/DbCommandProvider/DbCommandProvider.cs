@@ -9,13 +9,17 @@ namespace Trelnex.Core.Data;
 /// <summary>
 /// Abstract base implementation of <see cref="ICommandProvider{TInterface}"/> that uses a relational database.
 /// </summary>
-/// <typeparam name="TInterface">The interface type that defines the item contract.</typeparam>
-/// <typeparam name="TItem">The concrete item type that implements the interface.</typeparam>
-/// <remarks>
-/// This provider implements database-specific operations for command handling, functioning as a bridge between
-/// the command pattern abstraction and actual database operations.
-/// </remarks>
-public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TInterface, TItem>
+/// <param name="dataOptions">The data connection options.</param>
+/// <param name="typeName">The type name used for filtering items.</param>
+/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="commandOperations">The operations that this command provider supports (Read/Create/Update/Delete). Defaults to <see cref="CommandOperations.Read"/> if <see langword="null"/>.</param>
+/// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+public abstract class DbCommandProvider<TInterface, TItem>(
+    DataOptions dataOptions,
+    string typeName,
+    IValidator<TItem>? validator = null,
+    CommandOperations? commandOperations = null)
+    : CommandProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
@@ -24,34 +28,7 @@ public abstract class DbCommandProvider<TInterface, TItem> : CommandProvider<TIn
     /// <summary>
     /// The database connection options.
     /// </summary>
-    private readonly DataOptions _dataOptions;
-
-    #endregion
-
-    #region Constructors
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DbCommandProvider{TInterface, TItem}"/> class.
-    /// </summary>
-    /// <param name="dataOptions">The data connection options.</param>
-    /// <param name="typeName">The type name used for filtering items.</param>
-    /// <param name="validator">Optional domain-specific validator.</param>
-    /// <param name="commandOperations">The operations that this command provider supports (Read/Create/Update/Delete). Defaults to <see cref="CommandOperations.Read"/> if <see langword="null"/>.</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the <paramref name="typeName"/> does not follow naming conventions or is a reserved name.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown when <paramref name="dataOptions"/> is <see langword="null"/>.
-    /// </exception>
-    protected DbCommandProvider(
-        DataOptions dataOptions,
-        string typeName,
-        IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
-        : base(typeName, validator, commandOperations)
-    {
-        _dataOptions = dataOptions;
-    }
+    private readonly DataOptions _dataOptions = dataOptions;
 
     #endregion
 

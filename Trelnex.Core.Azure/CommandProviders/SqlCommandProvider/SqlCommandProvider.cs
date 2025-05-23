@@ -9,35 +9,19 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <summary>
 /// SQL Server implementation of <see cref="DbCommandProvider{TInterface, TItem}"/>.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-/// <remarks>Provides SQL-specific implementations for database exception handling.</remarks>
-internal partial class SqlCommandProvider<TInterface, TItem>
-    : DbCommandProvider<TInterface, TItem>
+/// <param name="dataOptions">The data connection options for SQL Server.</param>
+/// <param name="typeName">The type name used to filter items.</param>
+/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
+internal partial class SqlCommandProvider<TInterface, TItem>(
+    DataOptions dataOptions,
+    string typeName,
+    IValidator<TItem>? validator = null,
+    CommandOperations? commandOperations = null)
+    : DbCommandProvider<TInterface, TItem>(dataOptions, typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
-    #region Constructors
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SqlCommandProvider{TInterface, TItem}"/> class.
-    /// </summary>
-    /// <param name="dataOptions">The data connection options for SQL Server.</param>
-    /// <param name="typeName">Type name to filter items by.</param>
-    /// <param name="validator">Optional validator for items.</param>
-    /// <param name="commandOperations">Operations allowed for this provider.</param>
-    /// <remarks>Configures the provider with SQL Server connectivity and filtering.</remarks>
-    public SqlCommandProvider(
-        DataOptions dataOptions,
-        string typeName,
-        IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
-        : base(dataOptions, typeName, validator, commandOperations)
-    {
-    }
-
-    #endregion
-
     #region Protected Methods
 
     /// <inheritdoc />

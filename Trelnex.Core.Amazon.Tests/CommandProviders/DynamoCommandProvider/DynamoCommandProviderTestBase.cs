@@ -47,9 +47,24 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
     protected string _tableName = null!;
 
     /// <summary>
+    /// The name of the table used for encryption testing.
+    /// </summary>
+    protected string _encryptedTableName = null!;
+
+    /// <summary>
+    /// The encryption secret used for encryption testing.
+    /// </summary>
+    protected string _encryptionSecret = null!;
+
+    /// <summary>
     /// The DynamoDB table used for testing.
     /// </summary>
     protected Table _table = null!;
+
+    /// <summary>
+    /// The DynamoDB table used for encryption testing.
+    /// </summary>
+    protected Table _encryptedTable = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for DynamoDB command provider tests.
@@ -77,7 +92,19 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("Amazon.DynamoCommandProviders:Tables:0:TableName")
+            .GetSection("Amazon.DynamoCommandProviders:Tables:test-item:TableName")
+            .Value!;
+
+        // Get the encrypted table name from the configuration.
+        // Example: "test-items"
+        _encryptedTableName = configuration
+            .GetSection("Amazon.DynamoCommandProviders:Tables:encrypted-test-item:TableName")
+            .Value!;
+
+        // Get the encryption secret from the configuration.
+        // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        _encryptionSecret = configuration
+            .GetSection("Amazon.DynamoCommandProviders:Tables:encrypted-test-item:EncryptionSecret")
             .Value!;
 
         // Create AWS credentials
@@ -89,6 +116,7 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
             RegionEndpoint.GetBySystemName(_region));
 
         _table = dynamoClient.GetTable(_tableName);
+        _encryptedTable = dynamoClient.GetTable(_encryptedTableName);
 
         return configuration;
     }
@@ -103,9 +131,16 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public async Task TestCleanup()
     {
+        await TableCleanup(_table);
+        await TableCleanup(_encryptedTable);
+    }
+
+    private static async Task TableCleanup(
+        Table table)
+    {
         // Create a scan filter to find all documents in the table.
         var scanFilter = new ScanFilter();
-        var search = _table.Scan(scanFilter);
+        var search = table.Scan(scanFilter);
 
         // Iterate through the results in batches.
         do
@@ -115,7 +150,7 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
             // Delete each document individually.
             foreach (var document in documents)
             {
-                await _table.DeleteItemAsync(document);
+                await table.DeleteItemAsync(document);
             }
         } while (search.IsDone is false);
     }

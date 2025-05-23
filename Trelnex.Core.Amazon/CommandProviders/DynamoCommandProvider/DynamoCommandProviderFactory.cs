@@ -4,6 +4,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
 
@@ -161,6 +162,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
     /// <param name="typeName">Type name to filter items by.</param>
     /// <param name="validator">Optional validator for items.</param>
     /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
     /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
     /// <remarks>
     /// Creates a <see cref="DynamoCommandProvider{TInterface, TItem}"/> that operates on the specified DynamoDB table.
@@ -169,7 +171,8 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
         string tableName,
         string typeName,
         IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        CommandOperations? commandOperations = null,
+        IEncryptionService? encryptionService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -181,7 +184,8 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
             table,
             typeName,
             validator,
-            commandOperations);
+            commandOperations,
+            encryptionService);
     }
 
     /// <summary>

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
@@ -45,13 +46,28 @@ public static class DynamoCommandProvidersExtensions
         // Retrieve the Amazon identity provider for AWS credentials
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
-        var providerConfiguration = configuration
-            .GetSection("Amazon.DynamoCommandProviders")
-            .Get<DynamoCommandProviderConfiguration>()
+        // Get the region and table configurations from the configuration
+        var region = configuration.GetSection("Amazon.DynamoCommandProviders:Region").Get<string>()
             ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
 
+        var tables = configuration.GetSection("Amazon.DynamoCommandProviders:Tables").GetChildren();
+        var tableConfigurations = tables
+            .Select(t =>
+            {
+                var tableName = t.GetValue<string>("TableName")
+                    ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
+
+                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+
+                return new TableConfiguration(
+                    TypeName: t.Key,
+                    TableName: tableName,
+                    EncryptionSecret: encryptionSecret);
+            })
+            .ToArray();
+
         // Parse the DynamoDB options from the configuration
-        var providerOptions = DynamoCommandProviderOptions.Parse(providerConfiguration);
+        var providerOptions = DynamoCommandProviderOptions.Parse(region, tableConfigurations);
 
         // Create DynamoDB client options with authentication
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
@@ -141,10 +157,10 @@ public static class DynamoCommandProvidersExtensions
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // Retrieve the table name for the specified item type
-            var tableName = providerOptions.GetTableName(typeName);
+            // Retrieve the table configuration for the specified item type
+            var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
-            if (tableName is null)
+            if (tableConfiguration is null)
             {
                 throw new ArgumentException(
                     $"The Table for TypeName '{typeName}' is not found.",
@@ -157,12 +173,18 @@ public static class DynamoCommandProvidersExtensions
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
+            // Create the encryption service if a secret is provided
+            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
+                : null;
+
             // Create the command provider and inject it into the service collection
             var commandProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableName,
+                tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
             services.AddSingleton(commandProvider);
 
@@ -171,7 +193,7 @@ public static class DynamoCommandProvidersExtensions
                 typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.Region, // region
-                tableName // tableName
+                tableConfiguration.TableName // tableName
             ];
 
             // Log the registration of the command provider
@@ -194,25 +216,11 @@ public static class DynamoCommandProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in DynamoDB.</param>
+    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName);
-
-    /// <summary>
-    /// Configuration properties for DynamoDB command providers.
-    /// </summary>
-    private record DynamoCommandProviderConfiguration
-    {
-        /// <summary>
-        /// The AWS region where the DynamoDB tables are located.
-        /// </summary>
-        public required string Region { get; init; }
-
-        /// <summary>
-        /// The collection of table mappings by item type.
-        /// </summary>
-        public required TableConfiguration[] Tables { get; init; }
-    }
+        string TableName,
+        string? EncryptionSecret);
 
     #endregion
 
@@ -228,9 +236,9 @@ public static class DynamoCommandProvidersExtensions
         #region Private Fields
 
         /// <summary>
-        /// The mappings from type names to table names.
+        /// The mappings from type names to table configurations.
         /// </summary>
-        private readonly Dictionary<string, string> _tableNamesByTypeName = [];
+        private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
 
         #endregion
 
@@ -246,14 +254,14 @@ public static class DynamoCommandProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Gets the table name for a specified type name.
+        /// Gets the table configuration for a specified type name.
         /// </summary>
         /// <param name="typeName">The type name to look up.</param>
-        /// <returns>The table name if found, or <see langword="null"/> if no mapping exists.</returns>
-        public string? GetTableName(
+        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
-            return _tableNamesByTypeName.TryGetValue(typeName, out var tableName)
+            return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableName)
                 ? tableName
                 : null;
         }
@@ -264,8 +272,8 @@ public static class DynamoCommandProvidersExtensions
         /// <returns>Array of distinct table names sorted alphabetically.</returns>
         public string[] GetTableNames()
         {
-            return _tableNamesByTypeName
-                .Values
+            return _tableConfigurationsByTypeName
+                .Select(kvp => kvp.Value.TableName)
                 .OrderBy(tn => tn)
                 .ToArray();
         }
@@ -277,21 +285,22 @@ public static class DynamoCommandProvidersExtensions
         /// <summary>
         /// Parses configuration into a validated options object.
         /// </summary>
-        /// <param name="providerConfiguration">Raw configuration data.</param>
+        /// <param name="region">The AWS region.</param>
+        /// <param name="tables">Array of table configurations.</param>
         /// <returns>Validated options with type-to-table mappings.</returns>
         /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
         /// <remarks>
         /// Validates that no type name is mapped to multiple tables.
         /// </remarks>
         internal static DynamoCommandProviderOptions Parse(
-            DynamoCommandProviderConfiguration providerConfiguration)
+            string region,
+            TableConfiguration[] tableConfigurations)
         {
             var options = new DynamoCommandProviderOptions(
-                region: providerConfiguration.Region);
+                region: region);
 
             // Group the tables by item type
-            var groups = providerConfiguration
-                .Tables
+            var groups = tableConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
@@ -315,7 +324,7 @@ public static class DynamoCommandProvidersExtensions
             // Populate the type-to-table mapping
             Array.ForEach(groups, group =>
             {
-                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
+                options._tableConfigurationsByTypeName[group.Key] = group.Single();
             });
 
             return options;

@@ -104,4 +104,36 @@ public class PropertyChangesTests
         // verify that no properties were changed since they were reset to original values
         Assert.That(propertyChanges, Is.Null);
     }
+
+    [Test]
+    [Description("Tests that encrypted properties (marked with Encrypt attribute) are not included in property changes tracking")]
+    public async Task PropertyChanges_WithEncrypt()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // create our command provider
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        var commandProvider = factory.Create<IEncryptTestItem, EncryptTestItem>(
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
+
+        var createCommand = commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // set properties to new values that should be tracked
+        createCommand.Item.PublicId = 1;
+        createCommand.Item.PublicMessage = "Public #1";
+
+        // this is intentional - PrivateMessage is encrypt (not tracked) and should not be in the property changes
+        createCommand.Item.PrivateMessage = "Private #1";
+
+        // get the property changes from the proxy manager
+        var propertyChanges = (createCommand as ProxyManager<IEncryptTestItem, EncryptTestItem>)!.GetPropertyChanges();
+
+        // use Snapshooter to match the property changes with the expected output
+        Snapshot.Match(propertyChanges);
+    }
 }

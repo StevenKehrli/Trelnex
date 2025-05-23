@@ -24,14 +24,16 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
         var batchCommand = _commandProvider.Batch();
@@ -99,7 +101,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the initial item
         await createCommand1.SaveAsync(
@@ -111,7 +114,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set values on the new item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create another command with the same id as the initial item (will conflict)
         var createCommand3 = _commandProvider.Create(
@@ -119,7 +123,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set values on the conflicting item
-        createCommand3.Item.Message = "Message #3";
+        createCommand3.Item.PublicMessage = "Public Message #3";
+        createCommand3.Item.PrivateMessage = "Private Message #3";
 
         // Create a batch command and add our create commands to it
         var batchCommand = _commandProvider.Batch();
@@ -195,14 +200,16 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
         var batchCommand1 = _commandProvider.Batch();
@@ -299,14 +306,16 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
         var batchCommand1 = _commandProvider.Batch();
@@ -419,14 +428,16 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
         var batchCommand1 = _commandProvider.Batch();
@@ -446,7 +457,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand1!.Item, Is.Not.Null);
 
         // Update message on first item
-        updateCommand1.Item.Message = "Message #3";
+        updateCommand1.Item.PublicMessage = "Public Message #3";
+        updateCommand1.Item.PrivateMessage = "Private Message #3";
 
         var updateCommand2 = await _commandProvider.UpdateAsync(
             id: id2,
@@ -456,7 +468,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand2!.Item, Is.Not.Null);
 
         // Update message on second item
-        updateCommand2.Item.Message = "Message #4";
+        updateCommand2.Item.PublicMessage = "Public Message #4";
+        updateCommand2.Item.PrivateMessage = "Private Message #4";
 
         // Create a batch command for update operations
         var batchCommand2 = _commandProvider.Batch();
@@ -524,14 +537,16 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
         var batchCommand1 = _commandProvider.Batch();
@@ -551,7 +566,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand1!.Item, Is.Not.Null);
 
         // Update message on the second item
-        updateCommand1.Item.Message = "Message #0";
+        updateCommand1.Item.PublicMessage = "Public Message #0";
+        updateCommand1.Item.PrivateMessage = "Private Message #0";
 
         // Create a update command for the first item
         var updateCommand2 = await _commandProvider.UpdateAsync(
@@ -562,7 +578,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand2!.Item, Is.Not.Null);
 
         // Update message on the first item
-        updateCommand2.Item.Message = "Message #3";
+        updateCommand2.Item.PublicMessage = "Public Message #3";
+        updateCommand2.Item.PrivateMessage = "Private Message #3";
 
         // Create another update command for the second item (will conflict)
         var updateCommand3 = await _commandProvider.UpdateAsync(
@@ -573,7 +590,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand3!.Item, Is.Not.Null);
 
         // Update message on the second item again (will conflict with updateCommand1)
-        updateCommand3.Item.Message = "Message #4";
+        updateCommand3.Item.PublicMessage = "Public Message #4";
+        updateCommand3.Item.PrivateMessage = "Private Message #4";
 
         // Save the first update command for the second item
         await updateCommand1.SaveAsync(
@@ -657,7 +675,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the command and capture the result
         var created1 = await createCommand1.SaveAsync(
@@ -671,7 +690,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set the same message on the second command
-        createCommand2.Item.Message = "Message #1";
+        createCommand2.Item.PublicMessage = "Public Message #1";
+        createCommand2.Item.PrivateMessage = "Private Message #1";
 
         // Attempt to save the second command (should throw a CommandException)
         var ex = Assert.ThrowsAsync<CommandException>(
@@ -706,7 +726,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the command and capture the result
         var created = await createCommand.SaveAsync(
@@ -763,7 +784,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command
         await createCommand.SaveAsync(
@@ -837,7 +859,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command
         await createCommand.SaveAsync(
@@ -900,7 +923,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -912,7 +936,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -920,7 +945,7 @@ public abstract class CommandProviderTests
 
         // Create a query command with ordering
         var queryCommand = _commandProvider.Query();
-        queryCommand.OrderBy(i => i.Message);
+        queryCommand.OrderBy(i => i.PublicMessage);
 
         // Execute query and get results (should return items in ascending order)
         var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
@@ -955,7 +980,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -967,7 +993,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -975,7 +1002,7 @@ public abstract class CommandProviderTests
 
         // Create a query command with descending order
         var queryCommand = _commandProvider.Query();
-        queryCommand.OrderByDescending(i => i.Message);
+        queryCommand.OrderByDescending(i => i.PublicMessage);
 
         // Execute query and get results (should return second item first)
         var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
@@ -1010,7 +1037,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -1022,7 +1050,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -1030,7 +1059,7 @@ public abstract class CommandProviderTests
 
         // Create a query command with skip operation
         var queryCommand = _commandProvider.Query();
-        queryCommand.OrderBy(i => i.Message).Skip(1);
+        queryCommand.OrderBy(i => i.PublicMessage).Skip(1);
 
         // Execute query and get results (should return only the second item)
         var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
@@ -1065,7 +1094,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -1077,7 +1107,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -1085,7 +1116,7 @@ public abstract class CommandProviderTests
 
         // Create a query command with take limit
         var queryCommand = _commandProvider.Query();
-        queryCommand.OrderBy(i => i.Message).Take(1);
+        queryCommand.OrderBy(i => i.PublicMessage).Take(1);
 
         // Execute query and get results (should return only the first item)
         var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
@@ -1120,7 +1151,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -1132,7 +1164,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -1140,7 +1173,7 @@ public abstract class CommandProviderTests
 
         // Create a query command with filtering
         var queryCommand = _commandProvider.Query();
-        queryCommand.Where(i => i.Message == "Message #1");
+        queryCommand.Where(i => i.PublicMessage == "Public Message #1");
 
         // Execute query and get results (should return only the first item)
         var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
@@ -1175,7 +1208,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey1);
 
         // Set initial values on the first test item
-        createCommand1.Item.Message = "Message #1";
+        createCommand1.Item.PublicMessage = "Public Message #1";
+        createCommand1.Item.PrivateMessage = "Private Message #1";
 
         // Save the first create command
         await createCommand1.SaveAsync(
@@ -1187,7 +1221,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey2);
 
         // Set initial values on the second test item
-        createCommand2.Item.Message = "Message #2";
+        createCommand2.Item.PublicMessage = "Public Message #2";
+        createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the second create command
         await createCommand2.SaveAsync(
@@ -1224,7 +1259,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command and capture the result
         var created = await createCommand.SaveAsync(
@@ -1268,7 +1304,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command
         await createCommand.SaveAsync(
@@ -1346,7 +1383,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command
         await createCommand.SaveAsync(
@@ -1361,7 +1399,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
         // Update message on the item
-        updateCommand.Item.Message = "Message #2";
+        updateCommand.Item.PublicMessage = "Public Message #2";
+        updateCommand.Item.PrivateMessage = "Private Message #2";
 
         // Save the update command and capture the result
         var updated = await updateCommand.SaveAsync(
@@ -1418,7 +1457,8 @@ public abstract class CommandProviderTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
 
         // Save the create command
         await createCommand.SaveAsync(
@@ -1433,7 +1473,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand1!.Item, Is.Not.Null);
 
         // Update message on the first update command
-        updateCommand1.Item.Message = "Message #2";
+        updateCommand1.Item.PublicMessage = "Public Message #2";
+        updateCommand1.Item.PrivateMessage = "Private Message #2";
 
         var updateCommand2 = await _commandProvider.UpdateAsync(
             id: id,
@@ -1443,7 +1484,8 @@ public abstract class CommandProviderTests
         Assert.That(updateCommand2!.Item, Is.Not.Null);
 
         // Update message on the second update command
-        updateCommand2.Item.Message = "Message #2";
+        updateCommand2.Item.PublicMessage = "Public Message #2";
+        updateCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Save the first update command and capture the result
         var updated = await updateCommand1.SaveAsync(

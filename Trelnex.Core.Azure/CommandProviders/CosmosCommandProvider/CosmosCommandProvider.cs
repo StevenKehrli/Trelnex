@@ -7,11 +7,12 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// SQL Server implementation of <see cref="DbCommandProvider{TInterface, TItem}"/>.
+/// Cosmos DB implementation of <see cref="CommandProvider{TInterface, TItem}"/>.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-/// <remarks>Provides Cosmos DB-specific implementations of the abstract methods.</remarks>
+/// <param name="container">The Cosmos DB container to interact with.</param>
+/// <param name="typeName">The type name used to filter items.</param>
+/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
 internal class CosmosCommandProvider<TInterface, TItem>(
     Container container,
     string typeName,
