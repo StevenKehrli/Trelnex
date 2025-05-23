@@ -75,6 +75,16 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
     protected string _tableName = null!;
 
     /// <summary>
+    /// The name of the encrypted table used for testing.
+    /// </summary>
+    protected string _encryptedTableName = null!;
+
+    /// <summary>
+    /// The encryption secret used for encryption testing.
+    /// </summary>
+    protected string _encryptionSecret = null!;
+
+    /// <summary>
     /// Sets up the common test infrastructure for PostgreSQL command provider tests.
     /// </summary>
     /// <returns>The loaded configuration.</returns>
@@ -95,7 +105,7 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
         // Example: "instanceName.uniqueId.region.rds.amazonaws.com"
         _host = configuration
             .GetSection("Amazon.PostgresCommandProviders:Host")
-            .Value!;
+            .Get<string>()!;
 
         // Get the region from the host.
         // Example: "us-west-2"
@@ -104,28 +114,39 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
 
         // Get the port from the configuration.
         // Example: 5432
-        _port = int.Parse(
-            configuration
-                .GetSection("Amazon.PostgresCommandProviders:Port")
-                .Value!);
+        _port = configuration
+            .GetSection("Amazon.PostgresCommandProviders:Port")
+            .Get<int?>() ?? 5432;
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
         _database = configuration
             .GetSection("Amazon.PostgresCommandProviders:Database")
-            .Value!;
+            .Get<string>()!;
 
         // Get the database user from the configuration.
         // Example: "admin"
         _dbUser = configuration
             .GetSection("Amazon.PostgresCommandProviders:DbUser")
-            .Value!;
+            .Get<string>()!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("Amazon.PostgresCommandProviders:Tables:0:TableName")
-            .Value!;
+            .GetSection("Amazon.PostgresCommandProviders:Tables:test-item:TableName")
+            .Get<string>()!;
+
+        // Get the encrypted table name from the configuration.
+        // Example: "test-items"
+        _encryptedTableName = configuration
+            .GetSection("Amazon.PostgresCommandProviders:Tables:encrypted-test-item:TableName")
+            .Get<string>()!;
+
+        // Get the encryption secret from the configuration.
+        // Example: "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
+        _encryptionSecret = configuration
+            .GetSection("Amazon.PostgresCommandProviders:Tables:encrypted-test-item:EncryptionSecret")
+            .Get<string>()!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
@@ -165,13 +186,39 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public void TestCleanup()
     {
+        TableCleanup(_awsCredentials, _region, _host, _port, _dbUser, _connectionString, _tableName);
+        TableCleanup(_awsCredentials, _region, _host, _port, _dbUser, _connectionString, _encryptedTableName);
+    }
+
+    private static void TableCleanup(
+        AWSCredentials awsCredentials,
+        RegionEndpoint region,
+        string host,
+        int port,
+        string dbUser,
+        string connectionString,
+        string tableName)
+    {
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: awsCredentials,
+            region: region,
+            hostname: host,
+            port: port,
+            dbUser: dbUser);
+
+        var csb = new NpgsqlConnectionStringBuilder(connectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
         // Establish a SQL connection using the connection string.
-        using var sqlConnection = new NpgsqlConnection(_connectionString);
+        using var sqlConnection = new NpgsqlConnection(csb.ConnectionString);
 
         sqlConnection.Open();
 
         // Define the SQL command to delete all rows from the main table and its events table.
-        var cmdText = $"DELETE FROM \"{_tableName}-events\"; DELETE FROM \"{_tableName}\";";
+        var cmdText = $"DELETE FROM \"{tableName}-events\"; DELETE FROM \"{tableName}\";";
         var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
 
         // Execute the SQL command.

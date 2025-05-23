@@ -48,10 +48,34 @@ public static partial class PostgresCommandProvidersExtensions
         // get the token credential identity provider
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
-        var providerConfiguration = configuration
-            .GetSection("Amazon.PostgresCommandProviders")
-            .Get<PostgresCommandProviderConfiguration>()
-            ?? throw new ConfigurationErrorsException("The PostgresCommandProviders configuration is not found.");
+        // Get the database and table configurations from the configuration
+        var host = configuration.GetSection("Amazon.PostgresCommandProviders:Host").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresCommandProviders configuration is not found.");
+
+        var port = configuration.GetSection("Amazon.PostgresCommandProviders:Port").Get<int?>()
+            ?? 5432;
+
+        var database = configuration.GetSection("Amazon.PostgresCommandProviders:Database").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresCommandProviders configuration is not found.");
+
+        var dbUser = configuration.GetSection("Amazon.PostgresCommandProviders:DbUser").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresCommandProviders configuration is not found.");
+
+        var tables = configuration.GetSection("Amazon.PostgresCommandProviders:Tables").GetChildren();
+        var tableConfigurations = tables
+            .Select(t =>
+            {
+                var tableName = t.GetValue<string>("TableName")
+                    ?? throw new ConfigurationErrorsException("The Amazon.PostgresCommandProviders configuration is not found.");
+
+                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+
+                return new TableConfiguration(
+                    TypeName: t.Key,
+                    TableName: tableName,
+                    EncryptionSecret: encryptionSecret);
+            })
+            .ToArray();
 
         // get the service configuration
         var serviceDescriptor = services
@@ -61,7 +85,12 @@ public static partial class PostgresCommandProvidersExtensions
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
         // parse the postgres options
-        var providerOptions = PostgresCommandProviderOptions.Parse(providerConfiguration);
+        var providerOptions = PostgresCommandProviderOptions.Parse(
+            host: host,
+            port: port,
+            database: database,
+            dbUser: dbUser,
+            tableConfigurations: tableConfigurations);
 
         // create our factory
         var postgresClientOptions = GetPostgresClientOptions(credentialProvider, providerOptions);
@@ -154,10 +183,10 @@ public static partial class PostgresCommandProvidersExtensions
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // get the table for the specified item type
-            var tableName = providerOptions.GetTableName(typeName);
+            // get the table configuration for the specified item type
+            var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
-            if (tableName is null)
+            if (tableConfiguration is null)
             {
                 throw new ArgumentException(
                     $"The Table for TypeName '{typeName}' is not found.",
@@ -172,7 +201,7 @@ public static partial class PostgresCommandProvidersExtensions
 
             // create the command provider and inject
             var commandProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableName,
+                tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations);
@@ -188,7 +217,7 @@ public static partial class PostgresCommandProvidersExtensions
                 providerOptions.Port, // port
                 providerOptions.Database, // database
                 providerOptions.DbUser, // dbUser
-                tableName, // table
+                tableConfiguration.TableName, // table
             ];
 
             // log - the :l format parameter (l = literal) to avoid the quotes
@@ -209,40 +238,11 @@ public static partial class PostgresCommandProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in PostgreSQL.</param>
+    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName);
-
-    /// <summary>
-    /// Configuration properties for Postgres command providers.
-    /// </summary>
-    private record PostgresCommandProviderConfiguration
-    {
-        /// <summary>
-        /// The hostname of the PostgreSQL server.
-        /// </summary>
-        public required string Host { get; init; }
-
-        /// <summary>
-        /// The port number of the PostgreSQL server.
-        /// </summary>
-        public required int Port { get; init; } = 5432;
-
-        /// <summary>
-        /// The name of the PostgreSQL database.
-        /// </summary>
-        public required string Database { get; init; }
-
-        /// <summary>
-        /// The database username.
-        /// </summary>
-        public required string DbUser { get; init; }
-
-        /// <summary>
-        /// The collection of tables mapped to item types.
-        /// </summary>
-        public required TableConfiguration[] Tables { get; init; }
-    }
+        string TableName,
+        string? EncryptionSecret);
 
     #endregion
 
@@ -290,24 +290,24 @@ public static partial class PostgresCommandProvidersExtensions
         #region Private Fields
 
         /// <summary>
-        /// The collection of tables by item type.
+        /// The collection of table configurations by item type.
         /// </summary>
-        private readonly Dictionary<string, string> _tableNamesByTypeName = [];
+        private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
 
         #endregion
 
         #region Public Methods
 
         /// <summary>
-        /// Gets the table name for the specified item type.
+        /// Gets the table configuration for the specified item type.
         /// </summary>
         /// <param name="typeName">The logical type name.</param>
-        /// <returns>The corresponding table name, or <see langword="null"/> if no mapping exists.</returns>
-        public string? GetTableName(
+        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
-            return _tableNamesByTypeName.TryGetValue(typeName, out var tableName)
-                ? tableName
+            return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableConfiguration)
+                ? tableConfiguration
                 : null;
         }
 
@@ -317,9 +317,9 @@ public static partial class PostgresCommandProvidersExtensions
         /// <returns>An array containing all table names, sorted alphabetically.</returns>
         public string[] GetTableNames()
         {
-            return _tableNamesByTypeName
-                .Values
-                .OrderBy(tn => tn)
+            return _tableConfigurationsByTypeName
+                .Select(tc => tc.Value.TableName)
+                .OrderBy(tableName => tableName)
                 .ToArray();
         }
 
@@ -330,38 +330,45 @@ public static partial class PostgresCommandProvidersExtensions
         /// <summary>
         /// Parses configuration settings into a validated <see cref="PostgresCommandProviderOptions"/> instance.
         /// </summary>
-        /// <param name="providerConfiguration">The PostgreSQL command providers configuration.</param>
+        /// <param name="host">The PostgreSQL server host.</param>
+        /// <param name="port">The PostgreSQL server port.</param>
+        /// <param name="database">The PostgreSQL database name.</param>
+        /// <param name="dbUser">The PostgreSQL database username.</param>
+        /// <param name="tableConfigurations">An array of table configurations.</param>
         /// <returns>A configured and validated <see cref="PostgresCommandProviderOptions"/> instance.</returns>
         /// <exception cref="AggregateException">Thrown when one or more configuration errors are detected.</exception>
         /// <remarks>
         /// Validates that each type name is mapped to exactly one table name.
         /// </remarks>
         internal static PostgresCommandProviderOptions Parse(
-            PostgresCommandProviderConfiguration providerConfiguration)
+            string host,
+            int port,
+            string database,
+            string dbUser,
+            TableConfiguration[] tableConfigurations)
         {
             // Apply regex pattern matching to extract components.
-            var match = HostRegex().Match(providerConfiguration.Host);
+            var match = HostRegex().Match(host);
             if (match.Success is false)
             {
-                throw new ConfigurationErrorsException($"The Host '{providerConfiguration.Host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
+                throw new ConfigurationErrorsException($"The Host '{host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
             }
 
             // Get the region from the regex match.
             var regionSystemName = match.Groups["region"].Value;
             var region = RegionEndpoint.GetBySystemName(regionSystemName)
-                ?? throw new ConfigurationErrorsException($"The Host '{providerConfiguration.Host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
+                ?? throw new ConfigurationErrorsException($"The Host '{host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
 
             // get the server and database
             var options = new PostgresCommandProviderOptions(
                 region: region,
-                host: providerConfiguration.Host,
-                port: providerConfiguration.Port,
-                database: providerConfiguration.Database,
-                dbUser: providerConfiguration.DbUser);
+                host: host,
+                port: port,
+                database: database,
+                dbUser: dbUser);
 
             // group the tables by item type
-            var groups = providerConfiguration
-                .Tables
+            var groups = tableConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
@@ -385,7 +392,7 @@ public static partial class PostgresCommandProvidersExtensions
             // enumerate each group and set the table (value) for each item type (key)
             Array.ForEach(groups, group =>
             {
-                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
+                options._tableConfigurationsByTypeName[group.Key] = group.Single();
             });
 
             return options;

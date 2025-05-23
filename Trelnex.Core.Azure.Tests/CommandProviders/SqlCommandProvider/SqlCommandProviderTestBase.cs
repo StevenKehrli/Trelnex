@@ -86,31 +86,31 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
         // Example: "sqlcommandprovider-tests.database.windows.net"
         _dataSource = configuration
             .GetSection("Azure.SqlCommandProviders:DataSource")
-            .Value!;
+            .Get<string>()!;
 
         // Get the initial catalog from the configuration.
         // Example: "trelnex-core-data-tests"
         _initialCatalog = configuration
             .GetSection("Azure.SqlCommandProviders:InitialCatalog")
-            .Value!;
+            .Get<string>()!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
             .GetSection("Azure.SqlCommandProviders:Tables:test-item:TableName")
-            .Value!;
+            .Get<string>()!;
 
         // Get the encrypted table name from the configuration.
         // Example: "test-items"
         _encryptedTableName = configuration
             .GetSection("Azure.SqlCommandProviders:Tables:encrypted-test-item:TableName")
-            .Value!;
+            .Get<string>()!;
 
         // Get the encryption secret from the configuration.
-        // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        // Example: "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
         _encryptionSecret = configuration
             .GetSection("Azure.SqlCommandProviders:Tables:encrypted-test-item:EncryptionSecret")
-            .Value!;
+            .Get<string>()!;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()

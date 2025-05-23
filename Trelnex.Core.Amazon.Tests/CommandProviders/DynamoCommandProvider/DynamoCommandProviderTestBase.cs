@@ -87,25 +87,25 @@ public abstract class DynamoCommandProviderTestBase : CommandProviderTests
         // Example: "us-west-2"
         _region = configuration
             .GetSection("Amazon.DynamoCommandProviders:Region")
-            .Value!;
+            .Get<string>()!;
 
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
             .GetSection("Amazon.DynamoCommandProviders:Tables:test-item:TableName")
-            .Value!;
+            .Get<string>()!;
 
         // Get the encrypted table name from the configuration.
         // Example: "test-items"
         _encryptedTableName = configuration
             .GetSection("Amazon.DynamoCommandProviders:Tables:encrypted-test-item:TableName")
-            .Value!;
+            .Get<string>()!;
 
         // Get the encryption secret from the configuration.
         // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
         _encryptionSecret = configuration
             .GetSection("Amazon.DynamoCommandProviders:Tables:encrypted-test-item:EncryptionSecret")
-            .Value!;
+            .Get<string>()!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();

@@ -34,7 +34,7 @@ public class RBACRepositoryTests
         // Get the AWS region from configuration to ensure we connect to the correct DynamoDB endpoint.
         var region = configuration
             .GetSection("RBAC:Region")
-            .Value!;
+            .Get<string>()!;
 
         // Convert the region string to an AWS RegionEndpoint object required by the AWS SDK.
         var regionEndpoint = RegionEndpoint.GetBySystemName(region);
@@ -42,7 +42,7 @@ public class RBACRepositoryTests
         // Get the DynamoDB table name that stores the RBAC data.
         var tableName = configuration
             .GetSection("RBAC:TableName")
-            .Value!;
+            .Get<string>()!;
 
         // Initialize the DynamoDB client with credentials and region.
         _client = new AmazonDynamoDBClient(credentials, regionEndpoint);
