@@ -80,14 +80,19 @@ The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>`
 ```json
   "Amazon.DynamoCommandProviders": {
     "Region": "FROM_ENV",
-    "Tables": [
-      {
-        "TypeName": "test-item",
+    "Tables": {
+      "test-item": {
         "TableName": "test-items"
+      },
+      "encrypted-test-item": {
+        "TableName": "test-items",
+        "EncryptionSecret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
       }
-    ]
+    }
   }
 ```
+
+The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### DynamoCommandProvider - Table Schema
 
@@ -177,19 +182,22 @@ The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions
 
 ```json
   "Amazon.PostgresCommandProviders": {
-    "Region": "FROM_ENV",
     "Host": "FROM_ENV",
-    "Port": 5432,
     "Database": "trelnex-core-data-tests",
     "DbUser": "FROM_ENV",
-    "Tables": [
-      {
-        "TypeName": "test-item",
+    "Tables": {
+      "test-item": {
         "TableName": "test-items"
+      },
+      "encrypted-test-item": {
+        "TableName": "test-items",
+        "EncryptionSecret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
       }
-    ]
+    }
   }
 ```
+
+The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### PostgresCommandProvider - Item Schema
 

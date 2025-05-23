@@ -15,6 +15,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores
 - **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute
+- **Property encryption** - Securely encrypt sensitive data with the `Encrypt` attribute
 - **Event logging** - Generate audit events for all data modifications with property change history
 - **Validation** - Built-in validation support via FluentValidation
 - **Batch operations** - Perform multiple operations atomically with transaction-like semantics
@@ -377,17 +378,56 @@ public interface ITestItem : IBaseItem
 
 public class TestItem : BaseItem, ITestItem
 {
-    [JsonInclude]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = string.Empty;
 
-    [JsonInclude]
     [JsonPropertyName("privateMessage")]
     public string PrivateMessage { get; set; } = string.Empty;
 }
 ```
 
 When a property decorated with `[TrackChange]` is modified through the proxy system, the old and new values are captured and included in the item event. This provides a detailed audit trail of changes.
+
+## Encrypting Properties with the EncryptAttribute
+
+To encrypt sensitive data properties, decorate them with the `EncryptAttribute`:
+
+```csharp
+public interface ICustomerItem : IBaseItem
+{
+    string Name { get; set; }
+
+    string SocialSecurityNumber { get; set; }
+
+    string CreditCardNumber { get; set; }
+}
+
+public class CustomerItem : BaseItem, ICustomerItem
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [Encrypt]
+    [JsonPropertyName("ssn")]
+    public string SocialSecurityNumber { get; set; } = string.Empty;
+
+    [Encrypt]
+    [JsonPropertyName("creditCard")]
+    public string CreditCardNumber { get; set; } = string.Empty;
+}
+```
+
+Properties marked with `[Encrypt]` are automatically encrypted before storage and decrypted when retrieved. This ensures that sensitive data remains protected at rest in the data store.
+
+**Note:** Property change tracking is automatically disabled for properties that have the `[Encrypt]` attribute. This prevents sensitive data from being included in change history logs.
+
+The `EncryptionService` uses:
+- Authenticated encryption with AES-GCM
+- HKDF for secure key derivation
+- Random salt and IV generation for each encryption operation
+- 256-bit encryption keys
+
+This provides transparent encryption for sensitive data without requiring changes to your application's business logic.
 
 ## Optimistic Concurrency Control
 

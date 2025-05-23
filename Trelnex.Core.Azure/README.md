@@ -78,17 +78,21 @@ The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>`
 
 ```json
   "Azure.CosmosCommandProviders": {
-    "TenantId": "FROM_ENV",
     "EndpointUri": "FROM_ENV",
     "DatabaseId": "trelnex-core-data-tests",
-    "Containers": [
-      {
-        "TypeName": "test-item",
+    "Containers": {
+      "test-item": {
         "ContainerId": "test-items"
+      },
+      "encrypted-test-item": {
+        "ContainerId": "test-items",
+        "EncryptionSecret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
       }
-    ]
+    }
   }
 ```
+
+The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### CosmosCommandProvider - Container Schema
 
@@ -156,14 +160,19 @@ The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `c
   "Azure.SqlCommandProviders": {
     "DataSource": "FROM_ENV",
     "InitialCatalog": "trelnex-core-data-tests",
-    "Tables": [
-      {
-        "TypeName": "test-item",
+    "Tables": {
+      "test-item": {
         "TableName": "test-items"
+      },
+      "encrypted-test-item": {
+        "TableName": "test-items",
+        "EncryptionSecret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
       }
-    ]
+    }
   }
 ```
+
+The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### SqlCommandProvider - Item Schema
 
