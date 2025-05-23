@@ -56,6 +56,10 @@ internal class TrackProperties<TItem>
             var trackChangeAttribute = propertyInfo.GetCustomAttribute<TrackChangeAttribute>();
             if (trackChangeAttribute is null) continue;
 
+            // Skip if the property is marked for encryption
+            var encryptAttribute = propertyInfo.GetCustomAttribute<EncryptAttribute>();
+            if (encryptAttribute is not null) continue;
+
             // Get the JsonPropertyNameAttribute for this property
             var jsonPropertyNameAttribute = propertyInfo.GetCustomAttribute<JsonPropertyNameAttribute>();
             if (jsonPropertyNameAttribute is null) continue;

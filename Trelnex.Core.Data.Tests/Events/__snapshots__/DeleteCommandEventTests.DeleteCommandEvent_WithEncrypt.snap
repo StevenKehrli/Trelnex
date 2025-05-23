@@ -1,0 +1,53 @@
+﻿[
+  {
+    "SaveAction": "CREATED",
+    "RelatedId": "323bfc10-59b3-4199-afa0-1928897b88f3",
+    "RelatedTypeName": "encrypt-test-item",
+    "Changes": [
+      {
+        "PropertyName": "publicId",
+        "OldValue": {
+          "ValueKind": "Number"
+        },
+        "NewValue": {
+          "ValueKind": "Number"
+        }
+      },
+      {
+        "PropertyName": "publicMessage",
+        "OldValue": null,
+        "NewValue": {
+          "ValueKind": "String"
+        }
+      }
+    ],
+    "TraceContext": "00-c2fe8d3fbb69da0c4f6529e1ab36b544-8ea0968c1419b60a-01",
+    "TraceId": "c2fe8d3fbb69da0c4f6529e1ab36b544",
+    "SpanId": "8ea0968c1419b60a",
+    "Id": "600db2af-3b02-458d-8996-edfb5896861c",
+    "PartitionKey": "5ffaec75-c4b4-4ada-ba94-917ac30e121e",
+    "TypeName": "event",
+    "CreatedDateTimeOffset": "2025-05-21T22:48:05.466185+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T22:48:05.466185+00:00",
+    "DeletedDateTimeOffset": null,
+    "IsDeleted": null,
+    "ETag": "2750e53f-0a06-49a9-aba1-d186b3e7cc51"
+  },
+  {
+    "SaveAction": "DELETED",
+    "RelatedId": "323bfc10-59b3-4199-afa0-1928897b88f3",
+    "RelatedTypeName": "encrypt-test-item",
+    "Changes": null,
+    "TraceContext": "00-c2fe8d3fbb69da0c4f6529e1ab36b544-8ea0968c1419b60a-01",
+    "TraceId": "c2fe8d3fbb69da0c4f6529e1ab36b544",
+    "SpanId": "8ea0968c1419b60a",
+    "Id": "38123393-dfc7-4ef7-ade9-bf602b4af537",
+    "PartitionKey": "5ffaec75-c4b4-4ada-ba94-917ac30e121e",
+    "TypeName": "event",
+    "CreatedDateTimeOffset": "2025-05-21T22:48:05.502358+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T22:48:05.502358+00:00",
+    "DeletedDateTimeOffset": null,
+    "IsDeleted": null,
+    "ETag": "74c55507-2015-44a6-98e7-a781252d7f54"
+  }
+]

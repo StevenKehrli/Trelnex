@@ -1,0 +1,14 @@
+﻿{
+  "publicMessage": "public message",
+  "encryptMessage": "egassem tpyrcne",
+  "encryptInt": "01",
+  "encryptGuid": "7672072d4636-c66b-4134-7a07-a60627e1",
+  "encryptDateTimeOffset": "00:00+50:40:30T20-10-5202",
+  "encryptNestedTestItem": {
+    "nestedPublicMessage": "nested public message",
+    "nestedEncryptMessage": "egassem tpyrcne detsen",
+    "nestedEncryptInt": "02",
+    "nestedEncryptGuid": "101bbdc8c8c9-52d9-7a64-2838-37a4eeb5",
+    "nestedEncryptDateTimeOffset": "00:00+60:50:40T30-20-6202"
+  }
+}
