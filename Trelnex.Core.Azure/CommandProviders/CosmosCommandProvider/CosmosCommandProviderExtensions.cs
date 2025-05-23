@@ -40,19 +40,19 @@ public static class CosmosCommandProvidersExtensions
         // Retrieve the token credential provider.
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        // Get the database and table configurations from the configuration
+        // Get the database and container configurations from the configuration
         var endpointUri = configuration.GetSection("Azure.CosmosCommandProviders:EndpointUri").Get<string>()
-            ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
 
         var databaseId = configuration.GetSection("Azure.CosmosCommandProviders:DatabaseId").Get<string>()
-            ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
 
         var containers = configuration.GetSection("Azure.CosmosCommandProviders:Containers").GetChildren();
         var containerConfigurations = containers
             .Select(c =>
             {
                 var containerId = c.GetValue<string>("ContainerId")
-                    ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+                    ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
 
                 var encryptionSecret = c.GetValue<string?>("EncryptionSecret");
 
@@ -263,7 +263,9 @@ public static class CosmosCommandProvidersExtensions
         /// <summary>
         /// Parses configuration into a validated options object.
         /// </summary>
-        /// <param name="providerConfiguration">Raw configuration data.</param>
+        /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
+        /// <param name="databaseId">The database ID.</param>
+        /// <param name="containerConfigurations">Array of container configurations.</param>
         /// <returns>Validated options with type-to-container mappings.</returns>
         /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
         /// <remarks>Validates that no type name is mapped to multiple containers.</remarks>
@@ -352,7 +354,7 @@ public static class CosmosCommandProvidersExtensions
             // Extract all container IDs from the dictionary's values, ensuring no duplicates.
             return _containerConfigurationsByTypeName
                 .Select(c => c.Value.ContainerId)
-                .OrderBy(c => c)
+                .OrderBy(containerId => containerId)
                 .ToArray();
         }
 

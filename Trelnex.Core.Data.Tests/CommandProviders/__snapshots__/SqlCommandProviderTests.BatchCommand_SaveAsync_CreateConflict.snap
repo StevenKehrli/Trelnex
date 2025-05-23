@@ -15,12 +15,13 @@
         "Id": "a0ac8a58-2d76-40d2-9f14-1dd5543e8429",
         "PartitionKey": "ae9d5360-1e01-480a-9465-4da82ee882b7",
         "TypeName": "test-item",
-        "CreatedDateTimeOffset": "2025-05-21T05:24:53.667634+00:00",
-        "UpdatedDateTimeOffset": "2025-05-21T05:24:53.667634+00:00",
+        "CreatedDateTimeOffset": "2025-05-23T19:28:39.100362+00:00",
+        "UpdatedDateTimeOffset": "2025-05-23T19:28:39.100362+00:00",
         "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "1D0BBD9B-A4AB-4508-851C-4046E97044D3",
-        "Message": "Message #1"
+        "ETag": "050E7EA3-FB4B-4DA2-8EC5-ACD89DFBD2AA",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1"
       }
     }
   ]

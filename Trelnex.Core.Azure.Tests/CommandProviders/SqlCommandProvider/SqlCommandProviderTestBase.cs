@@ -55,6 +55,16 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
     protected string _tableName = null!;
 
     /// <summary>
+    /// The name of the encrypted table used for testing.
+    /// </summary>
+    protected string _encryptedTableName = null!;
+
+    /// <summary>
+    /// The encryption secret used for encryption testing.
+    /// </summary>
+    protected string _encryptionSecret = null!;
+
+    /// <summary>
     /// The token credential used to authenticate with Azure.
     /// </summary>
     protected TokenCredential _tokenCredential = null!;
@@ -87,7 +97,19 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
         // Get the table name from the configuration.
         // Example: "test-items"
         _tableName = configuration
-            .GetSection("Azure.SqlCommandProviders:Tables:0:TableName")
+            .GetSection("Azure.SqlCommandProviders:Tables:test-item:TableName")
+            .Value!;
+
+        // Get the encrypted table name from the configuration.
+        // Example: "test-items"
+        _encryptedTableName = configuration
+            .GetSection("Azure.SqlCommandProviders:Tables:encrypted-test-item:TableName")
+            .Value!;
+
+        // Get the encryption secret from the configuration.
+        // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        _encryptionSecret = configuration
+            .GetSection("Azure.SqlCommandProviders:Tables:encrypted-test-item:EncryptionSecret")
             .Value!;
 
         // Create the SQL connection string.
@@ -117,16 +139,26 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public void TestCleanup()
     {
-        // Establish a SQL connection using token authentication.
-        using var sqlConnection = new SqlConnection(_connectionString);
+        TableCleanup(_tokenCredential, _scope, _connectionString, _tableName);
+        TableCleanup(_tokenCredential, _scope, _connectionString, _encryptedTableName);
+    }
 
-        var tokenRequestContext = new TokenRequestContext([ _scope ]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
+    private static void TableCleanup(
+        TokenCredential tokenCredential,
+        string scope,
+        string connectionString,
+        string tableName)
+    {
+        // Establish a SQL connection using token authentication.
+        using var sqlConnection = new SqlConnection(connectionString);
+
+        var tokenRequestContext = new TokenRequestContext([scope]);
+        sqlConnection.AccessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
 
         sqlConnection.Open();
 
         // Define the SQL command to delete all rows from the main table and its events table.
-        var cmdText = $"DELETE FROM [{_tableName}-events]; DELETE FROM [{_tableName}];";
+        var cmdText = $"DELETE FROM [{tableName}-events]; DELETE FROM [{tableName}];";
         var sqlCommand = new SqlCommand(cmdText, sqlConnection);
 
         // Execute the SQL command.

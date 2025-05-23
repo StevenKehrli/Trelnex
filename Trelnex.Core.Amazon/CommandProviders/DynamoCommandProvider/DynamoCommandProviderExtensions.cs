@@ -48,14 +48,14 @@ public static class DynamoCommandProvidersExtensions
 
         // Get the region and table configurations from the configuration
         var region = configuration.GetSection("Amazon.DynamoCommandProviders:Region").Get<string>()
-            ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.DynamoCommandProviders configuration is not found.");
 
         var tables = configuration.GetSection("Amazon.DynamoCommandProviders:Tables").GetChildren();
         var tableConfigurations = tables
             .Select(t =>
             {
                 var tableName = t.GetValue<string>("TableName")
-                    ?? throw new ConfigurationErrorsException("The DynamoCommandProviders configuration is not found.");
+                    ?? throw new ConfigurationErrorsException("The Amazon.DynamoCommandProviders configuration is not found.");
 
                 var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
 
@@ -276,7 +276,7 @@ public static class DynamoCommandProvidersExtensions
         {
             return _tableConfigurationsByTypeName
                 .Select(kvp => kvp.Value.TableName)
-                .OrderBy(tn => tn)
+                .OrderBy(tableName => tableName)
                 .ToArray();
         }
 
@@ -288,7 +288,7 @@ public static class DynamoCommandProvidersExtensions
         /// Parses configuration into a validated options object.
         /// </summary>
         /// <param name="region">The AWS region.</param>
-        /// <param name="tables">Array of table configurations.</param>
+        /// <param name="tableConfigurations">Array of table configurations.</param>
         /// <returns>Validated options with type-to-table mappings.</returns>
         /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
         /// <remarks>
