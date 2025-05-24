@@ -95,9 +95,10 @@ public static partial class PostgresCommandProvidersExtensions
         // create our factory
         var postgresClientOptions = GetPostgresClientOptions(credentialProvider, providerOptions);
 
-        var providerFactory = PostgresCommandProviderFactory.Create(
-            serviceConfiguration,
-            postgresClientOptions);
+        var providerFactory = PostgresCommandProviderFactory
+            .Create(serviceConfiguration, postgresClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
         // inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);

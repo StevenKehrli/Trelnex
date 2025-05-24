@@ -25,7 +25,7 @@ public class PostgresCommandProviderTests : PostgresCommandProviderTestBase
     /// Sets up the PostgresCommandProvider for testing using the direct factory instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
@@ -42,7 +42,7 @@ public class PostgresCommandProviderTests : PostgresCommandProviderTestBase
         );
 
         // Create the PostgresCommandProviderFactory.
-        var factory = PostgresCommandProviderFactory.Create(
+        var factory = await PostgresCommandProviderFactory.Create(
             _serviceConfiguration,
             postgresClientOptions);
 

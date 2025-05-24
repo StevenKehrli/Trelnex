@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Net;
 using Amazon.RDS.Util;
 using FluentValidation;
 using LinqToDB;
@@ -18,16 +19,24 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
 {
     #region Private Fields
 
+    /// <summary>
+    /// The options used to configure the PostgreSQL client.
+    /// </summary>
     private readonly PostgresClientOptions _postgresClientOptions;
 
     #endregion
 
     #region Constructors
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PostgresCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="dataOptions">The data options to use.</param>
+    /// <param name="postgresClientOptions">The PostgreSQL client options.</param>
     private PostgresCommandProviderFactory(
         DataOptions dataOptions,
         PostgresClientOptions postgresClientOptions)
-        : base(dataOptions)
+        : base(dataOptions, postgresClientOptions.TableNames)
     {
         _postgresClientOptions = postgresClientOptions;
     }
@@ -45,11 +54,11 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
     /// <remarks>
     /// Configures a new factory and performs a health check to verify database connectivity.
     /// </remarks>
-    public static PostgresCommandProviderFactory Create(
+    public static async Task<PostgresCommandProviderFactory> Create(
         ServiceConfiguration serviceConfiguration,
         PostgresClientOptions postgresClientOptions)
     {
-        // build the connection string
+        // Build the connection string.
         var csb = new NpgsqlConnectionStringBuilder
         {
             ApplicationName = serviceConfiguration.FullName,
@@ -60,36 +69,44 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
             SslMode = SslMode.Require
         };
 
-        // bootstrap the data options
+        // Bootstrap the data options.
         var dataOptions = new DataOptions().UsePostgreSQL(csb.ConnectionString);
 
-        // build the factory
+        // Build the factory.
         var factory = new PostgresCommandProviderFactory(
             dataOptions,
             postgresClientOptions);
 
-        // assert the factory is healthy
-        factory.IsHealthyOrThrow();
+        // Get the operational status of the factory.
+        var factoryStatus = await factory.GetStatusAsync();
 
-        return factory;
+        // Return the factory if it is healthy; otherwise, throw an exception.
+        return factoryStatus.IsHealthy
+            ? factory
+            : throw new CommandException(
+                HttpStatusCode.ServiceUnavailable,
+                factoryStatus.Data["error"] as string);
     }
+
+    #endregion
+
+    #region Protected Properties
+
+    /// <inheritdoc/>
+    protected override string VersionQueryString => "SELECT version();";
 
     #endregion
 
     #region Protected Methods
 
-    /// <summary>
-    /// Sets the password for the PostgreSQL connection string using AWS IAM authentication.
-    /// </summary>
-    /// <param name="dbConnection">The database connection to configure.</param>
-    /// <remarks>
-    /// Generates and sets a fresh IAM authentication token before each connection is opened.
-    /// </remarks>
+    /// <inheritdoc />
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
+        // Ensure the connection is an NpgsqlConnection.
         if (dbConnection is not NpgsqlConnection connection) return;
 
+        // Generate the authentication token for the PostgreSQL database.
         var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
             credentials: _postgresClientOptions.AWSCredentials,
             region: _postgresClientOptions.Region,
@@ -97,32 +114,25 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
             port: _postgresClientOptions.Port,
             dbUser: _postgresClientOptions.DbUser);
 
+        // Update the connection string with the generated password and SSL mode.
         var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
         {
             Password = pwd,
             SslMode = SslMode.Require
         };
 
+        // Set the connection string to the updated connection string.
         connection.ConnectionString = csb.ConnectionString;
     }
 
     /// <inheritdoc />
-    /// <summary>
-    /// Creates a command provider for the specified item type.
-    /// </summary>
-    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-    /// <param name="dataOptions">Data access options.</param>
-    /// <param name="typeName">Type name to filter items by in the database.</param>
-    /// <param name="validator">Optional validator for items of type TItem.</param>
-    /// <param name="commandOperations">Operations allowed for this provider.</param>
-    /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
     protected override ICommandProvider<TInterface> CreateCommandProvider<TInterface, TItem>(
         DataOptions dataOptions,
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
     {
+        // Create and return a new PostgresCommandProvider instance.
         return new PostgresCommandProvider<TInterface, TItem>(
             dataOptions,
             typeName,
@@ -130,39 +140,20 @@ internal class PostgresCommandProviderFactory : DbCommandProviderFactory
             commandOperations);
     }
 
-    /// <summary>
-    /// Gets diagnostic data about the PostgreSQL command provider factory status.
-    /// </summary>
-    protected override IReadOnlyDictionary<string, object> StatusData
+    /// <inheritdoc />
+    protected override IReadOnlyDictionary<string, object> GetStatusData()
     {
-        get
+        // Return a dictionary containing the status data.
+        return new Dictionary<string, object>
         {
-            return new Dictionary<string, object>
-            {
-                { "region", _postgresClientOptions.Region },
-                { "host", _postgresClientOptions.Host },
-                { "port", _postgresClientOptions.Port },
-                { "database", _postgresClientOptions.Database },
-                { "dbUser", _postgresClientOptions.DbUser },
-                { "tableNames", _postgresClientOptions.TableNames }
-            };
-        }
+            { "region", _postgresClientOptions.Region },
+            { "host", _postgresClientOptions.Host },
+            { "port", _postgresClientOptions.Port },
+            { "database", _postgresClientOptions.Database },
+            { "dbUser", _postgresClientOptions.DbUser },
+            { "tableNames", _postgresClientOptions.TableNames }
+        };
     }
-
-    #endregion
-
-    #region Protected Properties
-
-    /// <summary>
-    /// Gets the list of table names managed by this factory.
-    /// </summary>
-    protected override string[] TableNames => _postgresClientOptions.TableNames;
-
-    /// <inheritdoc/>
-    /// <summary>
-    /// Gets the SQL query used to check database connectivity and version.
-    /// </summary>
-    protected override string VersionQueryString => "SELECT version();";
 
     #endregion
 }

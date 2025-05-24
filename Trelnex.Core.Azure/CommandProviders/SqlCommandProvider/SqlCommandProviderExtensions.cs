@@ -82,9 +82,10 @@ public static class SqlCommandProvidersExtensions
         var sqlClientOptions = GetSqlClientOptions(credentialProvider, providerOptions);
 
         // Create and initialize the SQL command provider factory.
-        var providerFactory = SqlCommandProviderFactory.Create(
-            serviceConfiguration,
-            sqlClientOptions);
+        var providerFactory = SqlCommandProviderFactory
+            .Create(serviceConfiguration, sqlClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
         // Register the factory in the DI container as an implementation of ICommandProviderFactory.
         services.AddCommandProviderFactory(providerFactory);

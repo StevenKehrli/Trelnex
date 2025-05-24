@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Net;
 using Azure.Core;
 using FluentValidation;
 using LinqToDB;
@@ -36,7 +37,7 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
     private SqlCommandProviderFactory(
         DataOptions dataOptions,
         SqlClientOptions sqlClientOptions)
-        : base(dataOptions)
+        : base(dataOptions, sqlClientOptions.TableNames)
     {
         _sqlClientOptions = sqlClientOptions;
     }
@@ -53,12 +54,12 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
     /// <returns>A fully initialized <see cref="SqlCommandProviderFactory"/> instance.</returns>
     /// <exception cref="CommandException">When the SQL Server connection cannot be established or required tables are missing.</exception>
     /// <remarks>Verifies connectivity and table existence.</remarks>
-    public static SqlCommandProviderFactory Create(
+    public static async Task<SqlCommandProviderFactory> Create(
         ServiceConfiguration serviceConfiguration,
         SqlClientOptions sqlClientOptions)
     {
         // Build a connection string.
-        var connectionStringBuilder = new SqlConnectionStringBuilder()
+        var connectionStringBuilder = new SqlConnectionStringBuilder
         {
             ApplicationName = serviceConfiguration.FullName,
             DataSource = sqlClientOptions.DataSource,
@@ -70,15 +71,27 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         var dataOptions = new DataOptions().UseSqlServer(connectionStringBuilder.ConnectionString);
 
         // Instantiate the factory. Authentication via AAD tokens in BeforeConnectionOpened.
-        var commandProviderFactory = new SqlCommandProviderFactory(
+        var factory = new SqlCommandProviderFactory(
             dataOptions,
             sqlClientOptions);
 
-        // Verify connectivity and table existence.
-        commandProviderFactory.IsHealthyOrThrow();
+        // Get the operational status of the factory.
+        var factoryStatus = await factory.GetStatusAsync();
 
-        return commandProviderFactory;
+        // Return the factory if it is healthy; otherwise, throw an exception.
+        return factoryStatus.IsHealthy
+            ? factory
+            : throw new CommandException(
+                HttpStatusCode.ServiceUnavailable,
+                factoryStatus.Data["error"] as string);
     }
+
+    #endregion
+
+    #region Protected Properties
+
+    /// <inheritdoc />
+    protected override string VersionQueryString => "SELECT @@VERSION;";
 
     #endregion
 
@@ -91,6 +104,7 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
     {
+        // Create and return a new SqlCommandProvider instance.
         return new SqlCommandProvider<TInterface, TItem>(
             dataOptions,
             typeName,
@@ -98,11 +112,7 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
             commandOperations);
     }
 
-    /// <summary>
-    /// Sets the access token on the database connection before use.
-    /// </summary>
-    /// <param name="dbConnection">The database connection to configure.</param>
-    /// <remarks>Assigns an access token to the SQL connection for AAD authentication.</remarks>
+    /// <inheritdoc />
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
@@ -111,36 +121,24 @@ internal class SqlCommandProviderFactory : DbCommandProviderFactory
 
         // Get the access token.
         var tokenCredential = _sqlClientOptions.TokenCredential;
-        var tokenRequestContext = new TokenRequestContext([ _sqlClientOptions.Scope ]);
+        var tokenRequestContext = new TokenRequestContext([_sqlClientOptions.Scope]);
         var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
 
         // Assign an access token to the SQL connection for AAD authentication.
         sqlConnection.AccessToken = accessToken;
     }
 
-    #endregion
-
-    #region Protected Properties
-
     /// <inheritdoc />
-    protected override IReadOnlyDictionary<string, object> StatusData
+    protected override IReadOnlyDictionary<string, object> GetStatusData()
     {
-        get
+        // Return a dictionary containing the status data.
+        return new Dictionary<string, object>
         {
-            return new Dictionary<string, object>
-            {
-                { "dataSource", _sqlClientOptions.DataSource },
-                { "initialCatalog", _sqlClientOptions.InitialCatalog },
-                { "tableNames", _sqlClientOptions.TableNames },
-            };
-        }
+            { "dataSource", _sqlClientOptions.DataSource },
+            { "initialCatalog", _sqlClientOptions.InitialCatalog },
+            { "tableNames", _sqlClientOptions.TableNames },
+        };
     }
-
-    /// <inheritdoc />
-    protected override string[] TableNames => _sqlClientOptions.TableNames;
-
-    /// <inheritdoc />
-    protected override string VersionQueryString => "SELECT @@VERSION;";
 
     #endregion
 }

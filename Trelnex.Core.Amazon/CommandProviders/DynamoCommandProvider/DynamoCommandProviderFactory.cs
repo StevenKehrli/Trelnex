@@ -23,6 +23,9 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     private readonly AmazonDynamoDBClient _dynamoClient;
 
+    /// <summary>
+    /// The options used to configure the DynamoDB client.
+    /// </summary>
     private readonly DynamoClientOptions _dynamoClientOptions;
 
     #endregion
@@ -33,7 +36,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
     /// Initializes a new instance of the <see cref="DynamoCommandProviderFactory"/> class.
     /// </summary>
     /// <param name="dynamoClient">The configured DynamoDB client.</param>
-    /// <param name="getStatus">Function that provides operational status information.</param>
+    /// <param name="dynamoClientOptions">The options used to configure the DynamoDB client.</param>
     private DynamoCommandProviderFactory(
         AmazonDynamoDBClient dynamoClient,
         DynamoClientOptions dynamoClientOptions)
@@ -68,7 +71,10 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
             dynamoClient,
             dynamoClientOptions);
 
+        // Get the operational status of the factory.
         var status = await factory.GetStatusAsync();
+
+        // Return the factory if it is healthy; otherwise, throw an exception.
         return (status.IsHealthy is true)
             ? factory
             : throw new CommandException(
@@ -132,6 +138,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
     public async Task<CommandProviderFactoryStatus> GetStatusAsync(
         CancellationToken cancellationToken = default)
     {
+        // Initialize a dictionary to hold status data.
         var data = new Dictionary<string, object>
         {
             { "region", _dynamoClientOptions.Region },
@@ -140,6 +147,7 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
         try
         {
+            // Retrieve the table names from DynamoDB.
             var tableNames = await GetTableNames(
                 _dynamoClient,
                 cancellationToken);
@@ -148,25 +156,31 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
             var missingTableNames = new List<string>();
             foreach (var tableName in _dynamoClientOptions.TableNames.OrderBy(tableName => tableName))
             {
+                // Check if the table exists in DynamoDB.
                 if (tableNames.Any(tn => tn == tableName) is false)
                 {
+                    // Add the missing table name to the list.
                     missingTableNames.Add(tableName);
                 }
             }
 
+            // If there are any missing table names, add an error message to the status data.
             if (0 != missingTableNames.Count)
             {
                 data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
             }
 
+            // Return a healthy status if there are no missing table names.
             return new CommandProviderFactoryStatus(
                 IsHealthy: 0 == missingTableNames.Count,
                 Data: data);
         }
         catch (Exception ex)
         {
+            // If an exception occurs, add the error message to the status data.
             data["error"] = ex.Message;
 
+            // Return an unhealthy status with the error data.
             return new CommandProviderFactoryStatus(
                 IsHealthy: false,
                 Data: data);
@@ -177,16 +191,23 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
     #region Private Static Methods
 
-    #endregion
-
+    /// <summary>
+    /// Retrieves an array of table names from DynamoDB.
+    /// </summary>
+    /// <param name="dynamoClient">The DynamoDB client.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>An array of table names.</returns>
     private static async Task<string[]> GetTableNames(
         AmazonDynamoDBClient dynamoClient,
         CancellationToken cancellationToken)
     {
+        // Initialize a list to hold the table names.
         var tableNames = new List<string>();
 
+        // Initialize the last evaluated table name to null.
         string? lastEvaluatedTableName = null;
 
+        // Paginate through the table names.
         do
         {
             // Get the next batch of table names.
@@ -197,11 +218,16 @@ internal class DynamoCommandProviderFactory : ICommandProviderFactory
 
             var response = await dynamoClient.ListTablesAsync(request);
 
+            // Add the table names to the list.
             tableNames.AddRange(response.TableNames);
 
+            // Update the last evaluated table name.
             lastEvaluatedTableName = response.LastEvaluatedTableName;
-        } while (lastEvaluatedTableName is not null);
+        } while (lastEvaluatedTableName is not null); // Continue while there are more tables to retrieve.
 
+        // Return the table names as an array.
         return tableNames.ToArray();
     }
+
+    #endregion
 }

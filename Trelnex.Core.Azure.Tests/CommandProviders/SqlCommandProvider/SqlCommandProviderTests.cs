@@ -25,7 +25,7 @@ public class SqlCommandProviderTests : SqlCommandProviderTestBase
     /// Sets up the SqlCommandProvider for testing using the direct factory instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
@@ -40,7 +40,7 @@ public class SqlCommandProviderTests : SqlCommandProviderTestBase
         );
 
         // Create the SqlCommandProviderFactory.
-        var factory = SqlCommandProviderFactory.Create(
+        var factory = await SqlCommandProviderFactory.Create(
             _serviceConfiguration,
             sqlClientOptions);
 

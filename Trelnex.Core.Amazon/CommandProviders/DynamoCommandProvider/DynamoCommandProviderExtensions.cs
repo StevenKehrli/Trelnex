@@ -75,8 +75,10 @@ public static class DynamoCommandProvidersExtensions
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
 
         // Create the DynamoDB command provider factory
-        var providerFactory = DynamoCommandProviderFactory.Create(
-            dynamoClientOptions).GetAwaiter().GetResult();
+        var providerFactory = DynamoCommandProviderFactory
+            .Create(dynamoClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
         // Register the factory as the command provider interface
         services.AddCommandProviderFactory(providerFactory);

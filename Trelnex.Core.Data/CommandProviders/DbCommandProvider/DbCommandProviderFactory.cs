@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -38,6 +37,8 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     private readonly DataOptions _dataOptions;
 
+    private readonly string[] _tableNames;
+
     #endregion
 
     #region Constructors
@@ -47,25 +48,18 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     /// <param name="dataOptions">Database connection options.</param>
     protected DbCommandProviderFactory(
-        DataOptions dataOptions)
+        DataOptions dataOptions,
+        string[] tableNames)
     {
         _dataOptions = CloneDataOptions(dataOptions)
             .UseBeforeConnectionOpened(BeforeConnectionOpened);
+
+        _tableNames = tableNames;
     }
 
     #endregion
 
     #region Protected Properties
-
-    /// <summary>
-    /// Metadata.
-    /// </summary>
-    protected abstract IReadOnlyDictionary<string, object> StatusData { get; }
-
-    /// <summary>
-    /// Table names.
-    /// </summary>
-    protected abstract string[] TableNames { get; }
 
     /// <summary>
     /// SQL query to retrieve database version.
@@ -136,14 +130,25 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Gets current operational status.
+    /// Gets the current operational status of the factory.
     /// </summary>
-    /// <returns>Status object with health information.</returns>
-    /// <inheritdoc/>
+    /// <returns>Status information including connectivity and container availability.</returns>
     public CommandProviderFactoryStatus GetStatus()
     {
+        return GetStatusAsync().GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Asynchronously gets the current operational status of the factory.
+    /// </summary>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>Status information including connectivity and container availability.</returns>
+    public async Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
         // Create a copy of the status data to avoid modification of the original
-        var data = new Dictionary<string, object>(StatusData);
+        var statusData = GetStatusData();
+        var data = new Dictionary<string, object>(statusData);
 
         try
         {
@@ -155,7 +160,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
             // Split the version into each line, cleaning up whitespace
             var versionArray = version
                 .FirstOrDefault()?
-                .Split([ '\r', '\n', '\t' ], StringSplitOptions.RemoveEmptyEntries)
+                .Split(['\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim())
                 .ToArray();
 
@@ -165,7 +170,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
 
             // Check for any tables missing from the database schema
             var missingTableNames = new List<string>();
-            foreach (var tableName in TableNames.OrderBy(tableName => tableName))
+            foreach (var tableName in _tableNames.OrderBy(tableName => tableName))
             {
                 // Check main table existence
                 if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == tableName) is false)
@@ -193,9 +198,11 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
                 data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
             }
 
-            return new CommandProviderFactoryStatus(
+            var status = new CommandProviderFactoryStatus(
                 IsHealthy: missingTableNames.Count == 0,
                 Data: data);
+
+            return await Task.FromResult(status);
         }
         catch (Exception ex)
         {
@@ -237,23 +244,8 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();
 
-    /// <summary>
-    /// Verifies factory health or throws exception.
-    /// </summary>
-    /// <exception cref="CommandException">
-    /// Thrown when factory is unhealthy.
-    /// </exception>
-    protected void IsHealthyOrThrow()
-    {
-        // Perform a health check
-        var status = GetStatus();
-        if (status.IsHealthy is false)
-        {
-            throw new CommandException(
-                HttpStatusCode.ServiceUnavailable,
-                status.Data["error"] as string);
-        }
-    }
+
+    protected abstract IReadOnlyDictionary<string, object> GetStatusData();
 
     #endregion
 

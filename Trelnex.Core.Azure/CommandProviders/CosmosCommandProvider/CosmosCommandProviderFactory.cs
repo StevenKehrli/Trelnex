@@ -168,14 +168,14 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
 
         try
         {
-            // Compare the requested container IDs against the actual containers in the database.
-            var missingContainerIds = new List<string>();
-
             // Retrieve the container properties from the Cosmos DB.
             var containers = await GetContainers(
                 _cosmosClient,
                 _cosmosClientOptions.DatabaseId,
                 cancellationToken);
+
+            // Compare the requested container IDs against the actual containers in the database.
+            var missingContainerIds = new List<string>();
 
             // Sort the container IDs to ensure consistent ordering in error messages.
             foreach (var containerId in _cosmosClientOptions.ContainerIds.OrderBy(containerId => containerId))
