@@ -10,27 +10,24 @@ using Trelnex.Core.Data;
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// Factory for creating CosmosDB command providers.
+/// Factory for creating Cosmos DB command providers.
 /// </summary>
-/// <remarks>Manages CosmosDB client initialization, connection, encryption setup, and provider creation.</remarks>
+/// <remarks>
+/// Manages Cosmos DB client initialization, connection, and provider creation.
+/// </remarks>
 internal class CosmosCommandProviderFactory : ICommandProviderFactory
 {
     #region Private Fields
 
     /// <summary>
-    /// The configured Cosmos DB client.
+    /// The configured Cosmos DB client instance.
     /// </summary>
     private readonly CosmosClient _cosmosClient;
 
     /// <summary>
-    /// The database ID to use for all command providers.
+    /// The options used to configure the Cosmos DB client.
     /// </summary>
-    private readonly string _databaseId;
-
-    /// <summary>
-    /// Function to retrieve the current operational status.
-    /// </summary>
-    private readonly Func<CommandProviderFactoryStatus> _getStatus;
+    private readonly CosmosClientOptions _cosmosClientOptions;
 
     #endregion
 
@@ -39,17 +36,14 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// <summary>
     /// Initializes a new instance of the <see cref="CosmosCommandProviderFactory"/> class.
     /// </summary>
-    /// <param name="cosmosClient">The configured CosmosDB client.</param>
-    /// <param name="databaseId">The database ID to use.</param>
-    /// <param name="getStatus">Function that provides operational status information.</param>
+    /// <param name="cosmosClient">The configured Cosmos DB client.</param>
+    /// <param name="cosmosClientOptions">The options used to configure the Cosmos DB client.</param>
     private CosmosCommandProviderFactory(
         CosmosClient cosmosClient,
-        string databaseId,
-        Func<CommandProviderFactoryStatus> getStatus)
+        CosmosClientOptions cosmosClientOptions)
     {
         _cosmosClient = cosmosClient;
-        _databaseId = databaseId;
-        _getStatus = getStatus;
+        _cosmosClientOptions = cosmosClientOptions;
     }
 
     #endregion
@@ -59,27 +53,31 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// <summary>
     /// Creates and initializes a new instance of the <see cref="CosmosCommandProviderFactory"/>.
     /// </summary>
-    /// <param name="cosmosClientOptions">Options for CosmosDB client configuration.</param>
+    /// <param name="cosmosClientOptions">Options for configuring the Cosmos DB client.</param>
     /// <returns>A fully initialized <see cref="CosmosCommandProviderFactory"/> instance.</returns>
-    /// <exception cref="CommandException">When the CosmosDB connection cannot be established or required containers are missing.</exception>
-    /// <remarks>Configures JSON serialization, initializes the CosmosDB client, sets up encryption, and validates database health.</remarks>
+    /// <exception cref="CommandException">
+    /// Thrown when the Cosmos DB connection cannot be established or required containers are missing.
+    /// </exception>
+    /// <remarks>
+    /// Configures JSON serialization, initializes the Cosmos DB client, and validates database health.
+    /// </remarks>
     public static async Task<CosmosCommandProviderFactory> Create(
         CosmosClientOptions cosmosClientOptions)
     {
-        // Configure JSON serialization settings
+        // Configure JSON serialization settings to ignore null values and use relaxed JSON escaping.
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        // Build the list of ( database, container ) tuples
+        // Build the list of (database, container) tuples from the provided container IDs.
         var containers = cosmosClientOptions.ContainerIds
             .Select(container => (cosmosClientOptions.DatabaseId, container))
             .ToList()
             .AsReadOnly();
 
-        // Create the cosmos client
+        // Create and initialize the Cosmos DB client.
         var cosmosClient = await
             new CosmosClientBuilder(
                 cosmosClientOptions.AccountEndpoint,
@@ -91,94 +89,20 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
                 CancellationToken.None
             );
 
-        // Function to retrieve the current operational status.
-        CommandProviderFactoryStatus getStatus()
-        {
-            var data = new Dictionary<string, object>
-            {
-                { "accountEndpoint", cosmosClientOptions.AccountEndpoint },
-                { "databaseId", cosmosClientOptions.DatabaseId },
-                { "containerIds", cosmosClientOptions.ContainerIds },
-            };
+        // Create a new instance of the CosmosCommandProviderFactory.
+        var factory = new CosmosCommandProviderFactory(
+            cosmosClient,
+            cosmosClientOptions);
 
-            try
-            {
-                // Get the database
-                var database = cosmosClient.GetDatabase(cosmosClientOptions.DatabaseId);
+        // Get the operational status of the factory.
+        var factoryStatus = await factory.GetStatusAsync();
 
-                // Get the containers
-                ContainerProperties[] getContainers()
-                {
-                    // Initialize a collection to hold all container properties from the database.
-                    var containers = new List<ContainerProperties>();
-
-                    // Create a query iterator to retrieve all containers in the database.
-                    var feedIterator = database.GetContainerQueryIterator<ContainerProperties>();
-
-                    // Process all pages of results until we've exhausted the feed.
-                    while (feedIterator.HasMoreResults)
-                    {
-                        // Synchronously read the next page of results.
-                        var feedResponse = feedIterator.ReadNextAsync().GetAwaiter().GetResult();
-
-                        // Add each container from this page to our collection.
-                        foreach (var container in feedResponse)
-                        {
-                            containers.Add(container);
-                        }
-                    }
-
-                    // Return an array for immutability and to match the expected return type.
-                    return containers.ToArray();
-                }
-
-                var containers = getContainers();
-
-                // Compare the requested container IDs against the actual containers in the database.
-                var missingContainerIds = new List<string>();
-
-                // Sort the container IDs to ensure consistent ordering in error messages.
-                foreach (var containerId in cosmosClientOptions.ContainerIds.OrderBy(containerId => containerId))
-                {
-                    // Check if this container ID exists in the retrieved containers.
-                    if (containers.Any(containerProperties => containerProperties.Id == containerId) is false)
-                    {
-                        // Track any missing containers that will need to be created.
-                        missingContainerIds.Add(containerId);
-                    }
-                }
-
-                if (0 != missingContainerIds.Count)
-                {
-                    data["error"] = $"Missing ContainerIds: {string.Join(", ", missingContainerIds)}";
-                }
-
-                return new CommandProviderFactoryStatus(
-                    IsHealthy: 0 == missingContainerIds.Count,
-                    Data: data);
-            }
-            catch (Exception exception)
-            {
-                data["error"] = exception.Message;
-
-                return new CommandProviderFactoryStatus(
-                    IsHealthy: false,
-                    Data: data);
-            }
-        }
-
-        var factoryStatus = getStatus();
-        if (factoryStatus.IsHealthy is false)
-        {
-            throw new CommandException(
+        // Return the factory if it is healthy; otherwise, throw an exception.
+        return factoryStatus.IsHealthy
+            ? factory
+            : throw new CommandException(
                 HttpStatusCode.ServiceUnavailable,
                 factoryStatus.Data["error"] as string);
-        }
-
-        return new CosmosCommandProviderFactory(
-            cosmosClient,
-            cosmosClientOptions.DatabaseId,
-            getStatus);
     }
 
     #endregion
@@ -188,12 +112,12 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// <summary>
     /// Creates a command provider for a specific item type.
     /// </summary>
-    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-    /// <param name="containerId">ID of the CosmosDB container to use.</param>
-    /// <param name="typeName">Type name to filter items by.</param>
-    /// <param name="validator">Optional validator for items.</param>
-    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <typeparam name="TInterface">The interface type for the items.</typeparam>
+    /// <typeparam name="TItem">The concrete implementation type for the items.</typeparam>
+    /// <param name="containerId">The ID of the Cosmos DB container to use.</param>
+    /// <param name="typeName">The type name to filter items by.</param>
+    /// <param name="validator">An optional validator for items.</param>
+    /// <param name="commandOperations">The operations allowed for this provider.</param>
     /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
     /// <remarks>Uses the specified container for all operations on the given type.</remarks>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
@@ -206,7 +130,7 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     {
         // Retrieve the specific Cosmos DB container instance.
         var container = _cosmosClient.GetContainer(
-            _databaseId,
+            _cosmosClientOptions.DatabaseId,
             containerId);
 
         // Instantiate a new command provider.
@@ -221,7 +145,113 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// Gets the current operational status of the factory.
     /// </summary>
     /// <returns>Status information including connectivity and container availability.</returns>
-    public CommandProviderFactoryStatus GetStatus() => _getStatus();
+    public CommandProviderFactoryStatus GetStatus()
+    {
+        return GetStatusAsync().GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Asynchronously gets the current operational status of the factory.
+    /// </summary>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>Status information including connectivity and container availability.</returns>
+    public async Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        // Initialize a dictionary to hold status data.
+        var data = new Dictionary<string, object>
+        {
+            { "accountEndpoint", _cosmosClientOptions.AccountEndpoint },
+            { "databaseId", _cosmosClientOptions.DatabaseId },
+            { "containerIds", _cosmosClientOptions.ContainerIds },
+        };
+
+        try
+        {
+            // Compare the requested container IDs against the actual containers in the database.
+            var missingContainerIds = new List<string>();
+
+            // Retrieve the container properties from the Cosmos DB.
+            var containers = await GetContainers(
+                _cosmosClient,
+                _cosmosClientOptions.DatabaseId,
+                cancellationToken);
+
+            // Sort the container IDs to ensure consistent ordering in error messages.
+            foreach (var containerId in _cosmosClientOptions.ContainerIds.OrderBy(containerId => containerId))
+            {
+                // Check if this container ID exists in the retrieved containers.
+                if (containers.Any(cp => cp.Id == containerId) is false)
+                {
+                    // Track any missing containers.
+                    missingContainerIds.Add(containerId);
+                }
+            }
+
+            // If there are any missing container IDs, add an error message to the status data.
+            if (0 != missingContainerIds.Count)
+            {
+                data["error"] = $"Missing ContainerIds: {string.Join(", ", missingContainerIds)}";
+            }
+
+            // Return a healthy status if there are no missing container IDs.
+            return new CommandProviderFactoryStatus(
+                IsHealthy: 0 == missingContainerIds.Count,
+                Data: data);
+        }
+        catch (Exception exception)
+        {
+            // If an exception occurs, add the error message to the status data.
+            data["error"] = exception.Message;
+
+            // Return an unhealthy status with the error data.
+            return new CommandProviderFactoryStatus(
+                IsHealthy: false,
+                Data: data);
+        }
+    }
+
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Retrieves an array of container properties from the Cosmos DB.
+    /// </summary>
+    /// <param name="cosmosClient">The Cosmos DB client.</param>
+    /// <param name="databaseId">The ID of the database.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>An array of container properties.</returns>
+    private static async Task<ContainerProperties[]> GetContainers(
+        CosmosClient cosmosClient,
+        string databaseId,
+        CancellationToken cancellationToken)
+    {
+        // Get the database
+        var database = cosmosClient.GetDatabase(databaseId);
+
+        // Initialize a collection to hold all container properties from the database.
+        var containers = new List<ContainerProperties>();
+
+        // Create a query iterator to retrieve all containers in the database.
+        var feedIterator = database.GetContainerQueryIterator<ContainerProperties>();
+
+        // Process all pages of results until we've exhausted the feed.
+        while (feedIterator.HasMoreResults)
+        {
+            // Synchronously read the next page of results.
+            var feedResponse = await feedIterator.ReadNextAsync(cancellationToken);
+
+            // Add each container from this page to our collection.
+            foreach (var container in feedResponse)
+            {
+                containers.Add(container);
+            }
+        }
+
+        // Return an array for immutability and to match the expected return type.
+        return containers.ToArray();
+    }
 
     #endregion
 }
