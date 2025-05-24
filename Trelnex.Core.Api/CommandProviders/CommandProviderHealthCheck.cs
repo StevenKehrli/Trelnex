@@ -23,12 +23,12 @@ internal class CommandProviderHealthCheck(
     /// <returns>
     /// A task that represents the asynchronous health check operation.
     /// </returns>
-    public Task<HealthCheckResult> CheckHealthAsync(
+    public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
         // Get the current status from the command provider factory.
-        var status = providerFactory.GetStatus();
+        var status = await providerFactory.GetStatusAsync(cancellationToken);
 
         // Convert the provider status to a health check result.
         // If the provider is healthy, return a healthy status; otherwise, return an unhealthy status.
@@ -36,7 +36,7 @@ internal class CommandProviderHealthCheck(
             status: status.IsHealthy ? HealthStatus.Healthy : HealthStatus.Unhealthy,
             data: status.Data);
 
-        return Task.FromResult(healthCheckResult);
+        return healthCheckResult;
     }
 
     #endregion

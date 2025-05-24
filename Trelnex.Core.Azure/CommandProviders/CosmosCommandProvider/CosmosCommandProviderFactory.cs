@@ -142,15 +142,6 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <summary>
-    /// Gets the current operational status of the factory.
-    /// </summary>
-    /// <returns>Status information including connectivity and container availability.</returns>
-    public CommandProviderFactoryStatus GetStatus()
-    {
-        return GetStatusAsync().GetAwaiter().GetResult();
-    }
-
-    /// <summary>
     /// Asynchronously gets the current operational status of the factory.
     /// </summary>
     /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>

@@ -9,11 +9,10 @@ namespace Trelnex.Core.Data;
 public interface ICommandProviderFactory
 {
     /// <summary>
-    /// Gets current operational status.
+    /// Asynchronously gets the current operational status of the factory.
     /// </summary>
-    /// <returns>Status object with health information.</returns>
-    /// <remarks>
-    /// Provides snapshot of health and connectivity.
-    /// </remarks>
-    CommandProviderFactoryStatus GetStatus();
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>Status information including connectivity and container availability.</returns>
+    Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default);
 }

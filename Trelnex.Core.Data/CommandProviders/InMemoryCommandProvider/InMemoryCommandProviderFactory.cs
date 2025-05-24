@@ -10,25 +10,13 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 public class InMemoryCommandProviderFactory : ICommandProviderFactory
 {
-    #region Private Fields
-
-    /// <summary>
-    /// Status provider function.
-    /// </summary>
-    private readonly Func<CommandProviderFactoryStatus> _getStatus;
-
-    #endregion
-
     #region Constructors
 
     /// <summary>
     /// Initializes factory instance.
     /// </summary>
-    /// <param name="getStatus">Status provider function.</param>
-    private InMemoryCommandProviderFactory(
-        Func<CommandProviderFactoryStatus> getStatus)
+    private InMemoryCommandProviderFactory()
     {
-        _getStatus = getStatus;
     }
 
     #endregion
@@ -44,15 +32,7 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
     /// </remarks>
     public static async Task<InMemoryCommandProviderFactory> Create()
     {
-        CommandProviderFactoryStatus getStatus()
-        {
-            return new CommandProviderFactoryStatus(
-                IsHealthy: true,
-                Data: new Dictionary<string, object>());
-        }
-
-        var factory = new InMemoryCommandProviderFactory(
-            getStatus);
+        var factory = new InMemoryCommandProviderFactory();
 
         return await Task.FromResult(factory);
     }
@@ -76,7 +56,15 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <inheritdoc/>
-    public CommandProviderFactoryStatus GetStatus() => _getStatus();
+    public async Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var status = new CommandProviderFactoryStatus(
+            IsHealthy: true,
+            Data: new Dictionary<string, object>());
+
+        return await Task.FromResult(status);
+    }
 
     #endregion
 }
