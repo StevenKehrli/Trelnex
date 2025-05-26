@@ -1,6 +1,8 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
@@ -20,8 +22,10 @@ namespace Trelnex.Core.Azure.Tests.CommandProviders;
 /// </remarks>
 // [Ignore("Requires a CosmosDB instance.")]
 [Category("CosmosCommandProvider")]
-public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
+public class EncryptedCosmosCommandProviderTests : CosmosCommandProviderTestBase
 {
+    private EncryptionService _encryptionService = null!;
+
     /// <summary>
     /// Sets up the CosmosCommandProvider for testing using the direct factory instantiation approach.
     /// </summary>
@@ -36,24 +40,27 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
             TokenCredential: _tokenCredential,
             AccountEndpoint: _endpointUri,
             DatabaseId: _databaseId,
-            ContainerIds: [ _containerId ]
+            ContainerIds: [ _encryptedContainerId ]
         );
 
         // Create the CosmosCommandProviderFactory.
         var factory = await CosmosCommandProviderFactory.Create(
             cosmosClientOptions);
 
+        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
+
         // Create the command provider instance.
         _commandProvider = factory.Create<ITestItem, TestItem>(
             _containerId,
-            "test-item",
+            "encrypted-test-item",
             TestItem.Validator,
-            CommandOperations.All);
+            CommandOperations.All,
+            _encryptionService);
     }
 
     [Test]
-    [Description("Tests CosmosCommandProvider without encryption to ensure data is properly stored and retrieved.")]
-    public async Task CosmosCommandProvider_WithoutEncryption()
+    [Description("Tests CosmosCommandProvider with encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task CosmosCommandProvider_WithEncryption()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -80,7 +87,13 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
             cancellationToken: default);
 
         Assert.That(item, Is.Not.Null);
-        Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+
+        // Decrypt the private message
+        var privateMessageEncryptedBytes = Convert.FromBase64String(item.Resource.PrivateMessage);
+        var privateMessageBytes = _encryptionService.Decrypt(privateMessageEncryptedBytes);
+        var privateMessage = Encoding.UTF8.GetString(privateMessageBytes);
+
+        Assert.That(privateMessage, Is.EqualTo("\"Private Message #1\""));
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

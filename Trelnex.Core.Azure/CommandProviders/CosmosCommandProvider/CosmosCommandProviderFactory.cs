@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Azure.CommandProviders;
 
@@ -118,13 +119,15 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
     /// <param name="typeName">The type name to filter items by.</param>
     /// <param name="validator">An optional validator for items.</param>
     /// <param name="commandOperations">The operations allowed for this provider.</param>
+    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
     /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
     /// <remarks>Uses the specified container for all operations on the given type.</remarks>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string containerId,
         string typeName,
         IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        CommandOperations? commandOperations = null,
+        IEncryptionService? encryptionService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -138,7 +141,8 @@ internal class CosmosCommandProviderFactory : ICommandProviderFactory
             container,
             typeName,
             validator,
-            commandOperations);
+            commandOperations,
+            encryptionService);
     }
 
     /// <summary>

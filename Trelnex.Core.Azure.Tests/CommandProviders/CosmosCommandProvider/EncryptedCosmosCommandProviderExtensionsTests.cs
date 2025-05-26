@@ -1,9 +1,11 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Azure.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
@@ -25,7 +27,7 @@ namespace Trelnex.Core.Azure.Tests.CommandProviders;
 /// </remarks>
 // [Ignore("Requires a CosmosDB instance.")]
 [Category("CosmosCommandProvider")]
-public class CosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBase
+public class EncryptedCosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBase
 {
     /// <summary>
     /// Sets up the CosmosCommandProvider for testing using the dependency injection approach.
@@ -54,7 +56,7 @@ public class CosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBas
                 configuration,
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
-                    typeName: "test-item",
+                    typeName: "encrypted-test-item",
                     validator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
@@ -64,48 +66,12 @@ public class CosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBas
         _commandProvider = serviceProvider.GetRequiredService<ICommandProvider<ITestItem>>();
     }
 
-    /// <summary>
-    /// Tests that registering the same type with the CosmosCommandProvider twice results in an exception.
-    /// </summary>
     [Test]
-    [Description("Tests that registering the same type with the CosmosCommandProvider twice results in an exception.")]
-    public void CosmosCommandProvider_AlreadyRegistered()
+    [Description("Tests CosmosCommandProvider with encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task CosmosCommandProvider_WithEncryption()
     {
-        // Create the service collection.
-        var services = new ServiceCollection();
+        var encryptionService = EncryptionService.Create(_encryptionSecret);
 
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
-
-        services.AddSingleton(_serviceConfiguration);
-
-        // Configure Serilog
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
-
-        // Attempt to register the same type twice, which should throw an InvalidOperationException.
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            services.AddCosmosCommandProviders(
-                configuration,
-                bootstrapLogger,
-                options => options
-                    .Add<ITestItem, TestItem>(
-                        typeName: "test-item",
-                        validator: TestItem.Validator,
-                        commandOperations: CommandOperations.All)
-                    .Add<ITestItem, TestItem>(
-                        typeName: "test-item",
-                        validator: TestItem.Validator,
-                        commandOperations: CommandOperations.All));
-        });
-    }
-
-    [Test]
-    [Description("Tests CosmosCommandProvider without encryption to ensure data is properly stored and retrieved.")]
-    public async Task CosmosCommandProvider_WithoutEncryption()
-    {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -131,7 +97,13 @@ public class CosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBas
             cancellationToken: default);
 
         Assert.That(item, Is.Not.Null);
-        Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+
+        // Decrypt the private message
+        var privateMessageEncryptedBytes = Convert.FromBase64String(item.Resource.PrivateMessage);
+        var privateMessageBytes = encryptionService.Decrypt(privateMessageEncryptedBytes);
+        var privateMessage = Encoding.UTF8.GetString(privateMessageBytes);
+
+        Assert.That(privateMessage, Is.EqualTo("\"Private Message #1\""));
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

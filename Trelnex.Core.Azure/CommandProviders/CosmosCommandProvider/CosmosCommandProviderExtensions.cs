@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Azure.CommandProviders;
@@ -188,12 +189,18 @@ public static class CosmosCommandProvidersExtensions
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
+            // Create the encryption service if a secret is provided
+            var encryptionService = (containerConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(containerConfiguration.EncryptionSecret)
+                : null;
+
             // Create the command provider and inject
             var commandProvider = providerFactory.Create<TInterface, TItem>(
                 containerId: containerConfiguration.ContainerId,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
             // Register the command provider
             services.AddSingleton(commandProvider);
