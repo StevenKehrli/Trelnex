@@ -1,4 +1,7 @@
 using System.Net;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -9,10 +12,13 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <summary>
 /// Cosmos DB implementation of <see cref="CommandProvider{TInterface, TItem}"/>.
 /// </summary>
-/// <param name="container">The Cosmos DB container to interact with.</param>
-/// <param name="typeName">The type name used to filter items.</param>
-/// <param name="validator">Optional validator for items before they are saved.</param>
-/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
+/// <typeparam name="TInterface">The interface that the item implements.</typeparam>
+/// <typeparam name="TItem">The type of the item to store in Cosmos DB.</typeparam>
+/// <param name="container">The Cosmos DB container to interact with.  Must not be null.</param>
+/// <param name="typeName">The type name used to filter items.  Must not be null or empty.</param>
+/// <param name="validator">Optional validator for items before they are saved.  Can be null.</param>
+/// <param name="commandOperations">Optional command operations to override default behaviors. Can be null.</param>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="container"/> or <paramref name="typeName"/> is null.</exception>
 internal class CosmosCommandProvider<TInterface, TItem>(
     Container container,
     string typeName,
@@ -22,16 +28,29 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Private Fields
+
+    /// <summary>
+    /// JSON serializer options for Cosmos DB.
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    #endregion
+
     #region Protected Methods
 
     /// <summary>
     /// Creates a queryable for Cosmos DB that filters by type name and deleted status.
     /// </summary>
     /// <returns>An <see cref="IQueryable{TItem}"/> for the container.</returns>
-    /// <remarks>Adds standard predicate filters.</remarks>
+    /// <remarks>Adds standard predicate filters to exclude deleted items and filter by type name.</remarks>
     protected override IQueryable<TItem> CreateQueryable()
     {
-        // Add typeName and isDeleted predicates
+        // Add typeName and isDeleted predicates to filter items
         return container
             .GetItemLinqQueryable<TItem>()
             .Where(item => item.TypeName == TypeName)
@@ -50,27 +69,46 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
-        // Get the feed iterator
-        var feedIterator = queryable.ToFeedIterator();
+        // Convert the LINQ queryable to a SQL query definition for Cosmos DB
+        var queryDefinition = queryable.ToQueryDefinition();
 
-        // Iterate through results
+        // Get the stream-based feed iterator
+        using var feedIterator = container.GetItemQueryStreamIterator(queryDefinition);
+
+        // Iterate through results using the feed iterator
         while (feedIterator.HasMoreResults)
         {
-            FeedResponse<TItem>? feedResponse = null;
+            ResponseMessage? responseMessage = null;
 
             try
             {
-                // This is where cosmos will throw
-                feedResponse = feedIterator.ReadNextAsync(cancellationToken).GetAwaiter().GetResult();
+                // Execute the query and get the next page of stream results
+                // This is where cosmos will throw exceptions if there are issues with the query or connection
+                responseMessage = feedIterator
+                    .ReadNextAsync(cancellationToken)
+                    .GetAwaiter()
+                    .GetResult();
+
+                // Check if the response is successful.  If not, throw an exception.
+                if (responseMessage.IsSuccessStatusCode is false)
+                {
+                    throw new CommandException(responseMessage.StatusCode, responseMessage.ErrorMessage);
+                }
             }
             catch (CosmosException exception)
             {
                 throw new CommandException(exception.StatusCode);
             }
 
-            // Yield each item
-            foreach (var item in feedResponse)
+            // Parse the JSON response from the stream
+            using var jsonDocument = JsonDocument.Parse(responseMessage.Content);
+
+            // Enumerate the elements in the response and deserialize them into TItem objects
+            foreach (var jsonElement in jsonDocument.RootElement.GetProperty("Documents").EnumerateArray())
             {
+                var item = jsonElement.Deserialize<TItem>(_jsonSerializerOptions);
+                if (item is null) continue;
+
                 yield return item;
             }
         }
@@ -91,18 +129,35 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     {
         try
         {
-            // Attempt to read the item from Cosmos DB.
-            var itemResponse = await container.ReadItemAsync<TItem>(
+            // Attempt to read the item as a stream from Cosmos DB.
+            using var responseMessage = await container.ReadItemStreamAsync(
                 id: id,
                 partitionKey: new PartitionKey(partitionKey),
                 cancellationToken: cancellationToken);
 
-            return itemResponse?.Resource.TypeName == TypeName
-                ? itemResponse.Resource
+            // Check if the response is successful.
+            if (responseMessage.IsSuccessStatusCode is false)
+            {
+                // If the item is not found, return null. Otherwise, throw an exception.
+                return responseMessage.StatusCode == HttpStatusCode.NotFound
+                    ? null
+                    : throw new CommandException(responseMessage.StatusCode, responseMessage.ErrorMessage);
+            }
+
+            // Deserialize the item from the response stream.
+            using var sr = new StreamReader(responseMessage.Content);
+            var item = JsonSerializer.Deserialize<TItem>(
+                utf8Json: sr.BaseStream,
+                options: _jsonSerializerOptions);
+
+            // Ensure the item is of the expected type.
+            return item?.TypeName == TypeName
+                ? item
                 : null;
         }
         catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
         {
+            // Return default if the item is not found.
             return default;
         }
         catch (CosmosException cosmosException)
@@ -118,7 +173,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
     /// <returns>Array of save results with status codes and saved items.</returns>
     /// <exception cref="CommandException">When a Cosmos DB exception occurs during the batch operation.</exception>
-    /// <remarks>Uses the Cosmos DB transactional batch API.</remarks>
+    /// <remarks>Uses the Cosmos DB transactional batch API to ensure atomicity.</remarks>
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
@@ -126,7 +181,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         // Initialize an array to hold the results of each save operation in the batch.
         var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
 
-        // Extract the partition key from the first request.
+        // Extract the partition key from the first request.  All items in a batch must have the same partition key.
         var partitionKey = requests.First().Item.PartitionKey;
 
         // Create a transactional batch for the specified partition key.
@@ -134,17 +189,26 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             new PartitionKey(partitionKey));
 
         // Add each item and its corresponding event to the batch.
+        var requestStreams = new SaveRequestStream[requests.Length];
         for (var index = 0; index < requests.Length; index++)
         {
-            AddItem(batch, requests[index]);
+            // Create a stream for the item and event to be saved
+            requestStreams[index] = SaveRequestStream.Create(
+                saveRequest: requests[index],
+                jsonSerializerOptions: _jsonSerializerOptions);
+
+            // Add the item and event to the transactional batch
+            AddItem(
+                batch: batch,
+                saveRequestStream: requestStreams[index]);
         }
 
         try
         {
-            // Execute the batch
+            // Execute the batch as an atomic transaction
             using var response = await batch.ExecuteAsync(cancellationToken);
 
-            // Process the results
+            // Process the results of each operation in the batch
             for (var index = 0; index < requests.Length; index++)
             {
                 // Get the returned item
@@ -152,27 +216,26 @@ internal class CosmosCommandProvider<TInterface, TItem>(
                 //   request 0 item is at index 0 and its event is at index 1
                 //   request 1 item is at index 2 and its event is at index 3
                 //   etc
-                var itemResponse = response.GetOperationResultAtIndex<TItem>(index * 2);
+                var itemResult = response[index * 2];
 
-                // Check the status code and build the result
-                var httpStatusCode = itemResponse.IsSuccessStatusCode
-                    ? HttpStatusCode.OK
-                    : itemResponse.StatusCode;
-
-                var item = itemResponse.IsSuccessStatusCode
-                    ? itemResponse.Resource
-                    : null;
-
-                saveResults[index] = new SaveResult<TInterface, TItem>(
-                    httpStatusCode,
-                    item);
+                // Parse the item response to get the HTTP status code and item
+                saveResults[index] = ParseSaveResult(itemResult);
             }
 
+            // Return the array of save results
             return saveResults;
         }
         catch (CosmosException cosmosException)
         {
             throw new CommandException(cosmosException.StatusCode, cosmosException.Message);
+        }
+        finally
+        {
+            // Ensure all streams are disposed of to prevent memory leaks
+            Array.ForEach(requestStreams, requestStream =>
+            {
+                requestStream.Dispose();
+            });
         }
     }
 
@@ -184,30 +247,217 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// Adds an item and its event to a transactional batch.
     /// </summary>
     /// <param name="batch">The batch to add operations to.</param>
-    /// <param name="saveRequest">The save request containing the item and event.</param>
+    /// <param name="saveRequestStream">The save request stream containing the item and event.</param>
     /// <returns>The transactional batch with operations added.</returns>
-    /// <exception cref="InvalidOperationException">When the <paramref name="saveRequest"/> has an unrecognized <see cref="SaveAction"/>.</exception>
+    /// <exception cref="InvalidOperationException">When the <paramref name="saveRequestStream"/> has an unrecognized <see cref="SaveAction"/>.</exception>
     /// <remarks>Handles different operations based on the save action.</remarks>
     private static TransactionalBatch AddItem(
         TransactionalBatch batch,
-        SaveRequest<TInterface, TItem> saveRequest) => saveRequest.SaveAction switch
+        SaveRequestStream saveRequestStream) => saveRequestStream.SaveAction switch
+        {
+            // If the item is being created, create both the item and the event
+            SaveAction.CREATED => batch
+                .CreateItemStream(
+                    streamPayload: saveRequestStream.ItemStream)
+                .CreateItemStream(
+                    streamPayload: saveRequestStream.EventStream),
+
+            // If the item is being updated or deleted, replace the item and create the event
+            SaveAction.UPDATED or SaveAction.DELETED => batch
+                .ReplaceItemStream(
+                    id: saveRequestStream.Id,
+                    streamPayload: saveRequestStream.ItemStream,
+                    requestOptions: new TransactionalBatchItemRequestOptions
+                    {
+                        IfMatchEtag = saveRequestStream.ETag
+                    })
+                .CreateItemStream(
+                    streamPayload: saveRequestStream.EventStream),
+
+            // If the SaveAction is not recognized, throw an exception
+            _ => throw new InvalidOperationException($"Unknown SaveAction: {saveRequestStream.SaveAction}")
+        };
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Parses the result of a transactional batch operation and returns a SaveResult.
+    /// </summary>
+    /// <param name="itemResult">The result of the transactional batch operation.</param>
+    /// <returns>A SaveResult containing the status code and the deserialized item, or null if the operation was not successful.</returns>
+    private SaveResult<TInterface, TItem> ParseSaveResult(
+        TransactionalBatchOperationResult itemResult)
     {
-        SaveAction.CREATED => batch
-            .CreateItem(
-                item: saveRequest.Item)
-            .CreateItem(
-                item: saveRequest.Event),
+        // If the operation was not successful, return the status code and null item
+        if (itemResult.IsSuccessStatusCode is false)
+        {
+            return new SaveResult<TInterface, TItem>(
+                itemResult.StatusCode,
+                null);
+        }
 
-        SaveAction.UPDATED or SaveAction.DELETED => batch
-            .ReplaceItem(
+        // Deserialize the item from the response stream
+        using var sr = new StreamReader(itemResult.ResourceStream);
+        var item = JsonSerializer.Deserialize<TItem>(
+            utf8Json: sr.BaseStream,
+            options: _jsonSerializerOptions);
+
+        // Return the OK status code and the deserialized item
+        return new SaveResult<TInterface, TItem>(
+            HttpStatusCode.OK,
+            item);
+    }
+
+    #endregion
+
+    #region Nested Types
+
+    /// <summary>
+    /// A helper class to manage the streams for the item and event being saved.
+    /// Implements the <see cref="IDisposable"/> interface to ensure resources are released.
+    /// </summary>
+    private class SaveRequestStream : IDisposable
+    {
+        #region Private Fields
+
+        private readonly string _id;
+        private readonly string? _eTag;
+        private readonly SaveAction _saveAction;
+        private Stream? _itemStream = null;
+        private Stream? _eventStream = null;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SaveRequestStream"/> class.
+        /// </summary>
+        /// <param name="id">The ID of the item.</param>
+        /// <param name="eTag">The ETag of the item.</param>
+        /// <param name="saveAction">The save action being performed.</param>
+        /// <param name="itemStream">The stream containing the item data.</param>
+        /// <param name="eventStream">The stream containing the event data.</param>
+        public SaveRequestStream(
+            string id,
+            string? eTag,
+            SaveAction saveAction,
+            Stream itemStream,
+            Stream eventStream)
+        {
+            _id = id;
+            _eTag = eTag;
+            _saveAction = saveAction;
+            _itemStream = itemStream;
+            _eventStream = eventStream;
+        }
+
+        #endregion
+
+        #region Public Static Methods
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="SaveRequestStream"/> class from a <see cref="SaveRequest{TInterface, TItem}"/> object.
+        /// </summary>
+        /// <param name="saveRequest">The save request containing the item and event data.</param>
+        /// <param name="jsonSerializerOptions">The JSON serializer options to use.</param>
+        /// <returns>A new instance of the <see cref="SaveRequestStream"/> class.</returns>
+        public static SaveRequestStream Create(
+            SaveRequest<TInterface, TItem> saveRequest,
+            JsonSerializerOptions jsonSerializerOptions)
+        {
+            // Serialize the item to a stream
+            var itemStream = new MemoryStream();
+            JsonSerializer.Serialize(
+                utf8Json: itemStream,
+                value: saveRequest.Item,
+                options: jsonSerializerOptions);
+            itemStream.Position = 0;
+
+            // Serialize the event to a stream
+            var eventStream = new MemoryStream();
+            JsonSerializer.Serialize(
+                utf8Json: eventStream,
+                value: saveRequest.Event,
+                options: jsonSerializerOptions);
+            eventStream.Position = 0;
+
+            // Create and return a new SaveRequestStream instance
+            return new SaveRequestStream(
                 id: saveRequest.Item.Id,
-                item: saveRequest.Item,
-                requestOptions: new TransactionalBatchItemRequestOptions { IfMatchEtag = saveRequest.Item.ETag })
-            .CreateItem(
-                item: saveRequest.Event),
+                eTag: saveRequest.Item.ETag,
+                saveAction: saveRequest.SaveAction,
+                itemStream: itemStream,
+                eventStream: eventStream);
+        }
 
-        _ => throw new InvalidOperationException($"Unrecognized SaveAction: {saveRequest.SaveAction}")
-    };
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the ID of the item.
+        /// </summary>
+        public string Id => _id;
+
+        /// <summary>
+        /// Gets the ETag of the item.
+        /// </summary>
+        public string? ETag => _eTag;
+
+        /// <summary>
+        /// Gets the save action being performed.
+        /// </summary>
+        public SaveAction SaveAction => _saveAction;
+
+        /// <summary>
+        /// Gets the stream containing the item data.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the stream is null.</exception>
+        public Stream ItemStream => _itemStream ?? throw new InvalidOperationException();
+
+        /// <summary>
+        /// Gets the stream containing the event data.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the stream is null.</exception>
+        public Stream EventStream => _eventStream ?? throw new InvalidOperationException();
+
+        #endregion
+
+        #region IDisposable
+
+        /// <summary>
+        /// Disposes of the resources held by this instance.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes of the resources held by this instance.
+        /// </summary>
+        /// <param name="disposing">True if called from the <see cref="Dispose()"/> method; otherwise, false.</param>
+        protected virtual void Dispose(
+            bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose of the item stream if it is not null
+                _itemStream?.Dispose();
+                _itemStream = null;
+
+                // Dispose of the event stream if it is not null
+                _eventStream?.Dispose();
+                _eventStream = null;
+            }
+        }
+
+        #endregion
+    }
 
     #endregion
 }
