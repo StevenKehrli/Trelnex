@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Azure.CommandProviders;
 
@@ -18,12 +19,14 @@ namespace Trelnex.Core.Azure.CommandProviders;
 /// <param name="typeName">The type name used to filter items.  Must not be null or empty.</param>
 /// <param name="validator">Optional validator for items before they are saved.  Can be null.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors. Can be null.</param>
+/// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
 /// <exception cref="ArgumentNullException">Thrown when <paramref name="container"/> or <paramref name="typeName"/> is null.</exception>
 internal class CosmosCommandProvider<TInterface, TItem>(
     Container container,
     string typeName,
     IValidator<TItem>? validator = null,
-    CommandOperations? commandOperations = null)
+    CommandOperations? commandOperations = null,
+    IEncryptionService? encryptionService = null)
     : CommandProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -36,7 +39,10 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        TypeInfoResolver = encryptionService is not null
+            ? new EncryptedJsonTypeInfoResolver(encryptionService)
+            : null
     };
 
     #endregion
@@ -107,6 +113,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             foreach (var jsonElement in jsonDocument.RootElement.GetProperty("Documents").EnumerateArray())
             {
                 var item = jsonElement.Deserialize<TItem>(_jsonSerializerOptions);
+
                 if (item is null) continue;
 
                 yield return item;
@@ -193,9 +200,8 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         for (var index = 0; index < requests.Length; index++)
         {
             // Create a stream for the item and event to be saved
-            requestStreams[index] = SaveRequestStream.Create(
-                saveRequest: requests[index],
-                jsonSerializerOptions: _jsonSerializerOptions);
+            requestStreams[index] = ConvertSaveRequestToStream(
+                saveRequest: requests[index]);
 
             // Add the item and event to the transactional batch
             AddItem(
@@ -283,6 +289,39 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     #region Private Methods
 
     /// <summary>
+    /// Converts a SaveRequest to a SaveRequestStream.
+    /// </summary>
+    /// <param name="saveRequest">The save request to convert.</param>
+    /// <returns>A SaveRequestStream containing the serialized item and event streams.</returns>
+    private SaveRequestStream ConvertSaveRequestToStream(
+        SaveRequest<TInterface, TItem> saveRequest)
+    {
+        // Serialize the item to a stream
+        var itemStream = new MemoryStream();
+        JsonSerializer.Serialize(
+            utf8Json: itemStream,
+            value: saveRequest.Item,
+            options: _jsonSerializerOptions);
+        itemStream.Position = 0;
+
+        // Serialize the event to a stream
+        var eventStream = new MemoryStream();
+        JsonSerializer.Serialize(
+            utf8Json: eventStream,
+            value: saveRequest.Event,
+            options: _jsonSerializerOptions);
+        eventStream.Position = 0;
+
+        // Create and return a new SaveRequestStream instance
+        return new SaveRequestStream(
+            Id: saveRequest.Item.Id,
+            ETag: saveRequest.Item.ETag,
+            SaveAction: saveRequest.SaveAction,
+            ItemStream: itemStream,
+            EventStream: eventStream);
+    }
+
+    /// <summary>
     /// Parses the result of a transactional batch operation and returns a SaveResult.
     /// </summary>
     /// <param name="itemResult">The result of the transactional batch operation.</param>
@@ -318,114 +357,18 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// A helper class to manage the streams for the item and event being saved.
     /// Implements the <see cref="IDisposable"/> interface to ensure resources are released.
     /// </summary>
-    private class SaveRequestStream : IDisposable
+    /// <param name="Id">The ID of the item.</param>
+    /// <param name="ETag">The ETag of the item.</param>
+    /// <param name="SaveAction">The save action being performed.</param>
+    /// <param name="ItemStream">The stream containing the item data.</param>
+    /// <param name="EventStream">The stream containing the event data.</param>
+    private record SaveRequestStream(
+        string Id,
+        string? ETag,
+        SaveAction SaveAction,
+        Stream ItemStream,
+        Stream EventStream) : IDisposable
     {
-        #region Private Fields
-
-        private readonly string _id;
-        private readonly string? _eTag;
-        private readonly SaveAction _saveAction;
-        private Stream? _itemStream = null;
-        private Stream? _eventStream = null;
-
-        #endregion
-
-        #region Constructor
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SaveRequestStream"/> class.
-        /// </summary>
-        /// <param name="id">The ID of the item.</param>
-        /// <param name="eTag">The ETag of the item.</param>
-        /// <param name="saveAction">The save action being performed.</param>
-        /// <param name="itemStream">The stream containing the item data.</param>
-        /// <param name="eventStream">The stream containing the event data.</param>
-        public SaveRequestStream(
-            string id,
-            string? eTag,
-            SaveAction saveAction,
-            Stream itemStream,
-            Stream eventStream)
-        {
-            _id = id;
-            _eTag = eTag;
-            _saveAction = saveAction;
-            _itemStream = itemStream;
-            _eventStream = eventStream;
-        }
-
-        #endregion
-
-        #region Public Static Methods
-
-        /// <summary>
-        /// Creates a new instance of the <see cref="SaveRequestStream"/> class from a <see cref="SaveRequest{TInterface, TItem}"/> object.
-        /// </summary>
-        /// <param name="saveRequest">The save request containing the item and event data.</param>
-        /// <param name="jsonSerializerOptions">The JSON serializer options to use.</param>
-        /// <returns>A new instance of the <see cref="SaveRequestStream"/> class.</returns>
-        public static SaveRequestStream Create(
-            SaveRequest<TInterface, TItem> saveRequest,
-            JsonSerializerOptions jsonSerializerOptions)
-        {
-            // Serialize the item to a stream
-            var itemStream = new MemoryStream();
-            JsonSerializer.Serialize(
-                utf8Json: itemStream,
-                value: saveRequest.Item,
-                options: jsonSerializerOptions);
-            itemStream.Position = 0;
-
-            // Serialize the event to a stream
-            var eventStream = new MemoryStream();
-            JsonSerializer.Serialize(
-                utf8Json: eventStream,
-                value: saveRequest.Event,
-                options: jsonSerializerOptions);
-            eventStream.Position = 0;
-
-            // Create and return a new SaveRequestStream instance
-            return new SaveRequestStream(
-                id: saveRequest.Item.Id,
-                eTag: saveRequest.Item.ETag,
-                saveAction: saveRequest.SaveAction,
-                itemStream: itemStream,
-                eventStream: eventStream);
-        }
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        /// Gets the ID of the item.
-        /// </summary>
-        public string Id => _id;
-
-        /// <summary>
-        /// Gets the ETag of the item.
-        /// </summary>
-        public string? ETag => _eTag;
-
-        /// <summary>
-        /// Gets the save action being performed.
-        /// </summary>
-        public SaveAction SaveAction => _saveAction;
-
-        /// <summary>
-        /// Gets the stream containing the item data.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if the stream is null.</exception>
-        public Stream ItemStream => _itemStream ?? throw new InvalidOperationException();
-
-        /// <summary>
-        /// Gets the stream containing the event data.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if the stream is null.</exception>
-        public Stream EventStream => _eventStream ?? throw new InvalidOperationException();
-
-        #endregion
-
         #region IDisposable
 
         /// <summary>
@@ -446,13 +389,8 @@ internal class CosmosCommandProvider<TInterface, TItem>(
         {
             if (disposing)
             {
-                // Dispose of the item stream if it is not null
-                _itemStream?.Dispose();
-                _itemStream = null;
-
-                // Dispose of the event stream if it is not null
-                _eventStream?.Dispose();
-                _eventStream = null;
+                ItemStream?.Dispose();
+                EventStream?.Dispose();
             }
         }
 
