@@ -86,7 +86,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
     /// <remarks>
     /// Translates the LINQ expression into a DynamoDB scan operation.
     /// </remarks>
-    protected override IEnumerable<TItem> ExecuteQueryable(
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
@@ -103,7 +103,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
             try
             {
                 // get the next batch of documents
-                var documents = search.GetNextSetAsync(cancellationToken).GetAwaiter().GetResult();
+                var documents = await search.GetNextSetAsync(cancellationToken);
 
                 // convert each documnent to the TItem
                 documents.ForEach(document =>
@@ -129,7 +129,12 @@ internal class DynamoCommandProvider<TInterface, TItem>(
         } while (search.IsDone is false);
 
         // apply the remaining LINQ filter expressions
-        return queryHelper.Filter(items);
+        foreach (var item in queryHelper.Filter(items))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            yield return item;
+        }
     }
 
     /// <summary>

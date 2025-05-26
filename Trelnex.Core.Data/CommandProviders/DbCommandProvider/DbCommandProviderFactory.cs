@@ -134,6 +134,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
     /// <returns>Status information including connectivity and container availability.</returns>
+#pragma warning disable CS1998
     public async Task<CommandProviderFactoryStatus> GetStatusAsync(
         CancellationToken cancellationToken = default)
     {
@@ -193,7 +194,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
                 IsHealthy: missingTableNames.Count == 0,
                 Data: data);
 
-            return await Task.FromResult(status);
+            return status;
         }
         catch (Exception ex)
         {
@@ -205,6 +206,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
                 Data: data);
         }
     }
+#pragma warning restore CS1998
 
     #endregion
 

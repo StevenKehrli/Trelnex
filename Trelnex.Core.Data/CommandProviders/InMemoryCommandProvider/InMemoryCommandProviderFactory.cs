@@ -30,12 +30,14 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
     /// <remarks>
     /// Always created in healthy state.
     /// </remarks>
+#pragma warning disable CS1998
     public static async Task<InMemoryCommandProviderFactory> Create()
     {
         var factory = new InMemoryCommandProviderFactory();
 
-        return await Task.FromResult(factory);
+        return factory;
     }
+#pragma warning restore CS1998
 
     #endregion
 
@@ -56,6 +58,7 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
     }
 
     /// <inheritdoc/>
+#pragma warning disable CS1998
     public async Task<CommandProviderFactoryStatus> GetStatusAsync(
         CancellationToken cancellationToken = default)
     {
@@ -63,8 +66,9 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
             IsHealthy: true,
             Data: new Dictionary<string, object>());
 
-        return await Task.FromResult(status);
+        return status;
     }
+#pragma warning restore CS1998
 
     #endregion
 }

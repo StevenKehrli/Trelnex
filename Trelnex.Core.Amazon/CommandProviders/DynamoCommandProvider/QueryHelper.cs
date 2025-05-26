@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2;
@@ -26,16 +25,6 @@ public class QueryHelper<T>
     /// The DynamoDB WHERE expression.
     /// </summary>
     private readonly DynamoExpression? _dynamoWhereExpression;
-
-    /// <summary>
-    /// JSON serializer options for debugging and logging.
-    /// </summary>
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        WriteIndented = true
-    };
 
     /// <summary>
     /// Stack of LINQ method call expressions.
@@ -192,7 +181,8 @@ public class QueryHelper<T>
     /// <remarks>
     /// Used for logging and debugging query translation.
     /// </remarks>
-    public string ToJson()
+    public string ToJson(
+        JsonSerializerOptions jsonSerializerOptions)
     {
         // Convert the expression attribute values.
         var expressionAttributeValues = _dynamoWhereExpression?.ExpressionAttributeValues
@@ -210,7 +200,7 @@ public class QueryHelper<T>
             MethodCallExpressions = _methodCallExpressions.Select(mce => mce.ToString()).ToArray()
         };
 
-        return JsonSerializer.Serialize(o, _jsonSerializerOptions);
+        return JsonSerializer.Serialize(o, jsonSerializerOptions);
     }
 
     #endregion

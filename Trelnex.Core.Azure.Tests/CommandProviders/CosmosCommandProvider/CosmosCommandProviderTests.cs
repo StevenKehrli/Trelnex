@@ -18,7 +18,7 @@ namespace Trelnex.Core.Azure.Tests.CommandProviders;
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-// [Ignore("Requires a CosmosDB instance.")]
+[Ignore("Requires a CosmosDB instance.")]
 [Category("CosmosCommandProvider")]
 public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
 {

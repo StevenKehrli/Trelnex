@@ -252,7 +252,10 @@ internal class ManagedCredential(
             try
             {
                 // Attempt to get a new token.
-                var accessToken = _awsCredentialsManager.GetAccessToken(_scope).GetAwaiter().GetResult();
+                var accessToken = _awsCredentialsManager
+                    .GetAccessToken(_scope)
+                    .GetAwaiter()
+                    .GetResult();
 
                 // Store the new token.
                 SetAccessToken(accessToken);

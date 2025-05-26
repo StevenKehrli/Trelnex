@@ -50,13 +50,16 @@ public class Program
                         AccessTokenClient: clientConfiguration);
 
                     // Create the AWS credentials manager.
-                    var credentialsManager = AWSCredentialsManager.Create(
-                        logger: logger,
-                        options: credentialOptions).GetAwaiter().GetResult();
+                    var credentialsManager = AWSCredentialsManager
+                        .Create(logger: logger, options: credentialOptions)
+                        .GetAwaiter()
+                        .GetResult();
 
                     // Request an access token using the client credentials flow.
-                    var accessToken = credentialsManager.GetAccessToken(
-                        scope: o.Scope).GetAwaiter().GetResult();
+                    var accessToken = credentialsManager
+                        .GetAccessToken(scope: o.Scope)
+                        .GetAwaiter()
+                        .GetResult();
 
                     // Serialize the access token to JSON and write to the console.
                     var json = JsonSerializer.Serialize(accessToken, jsonSerializerOptions);

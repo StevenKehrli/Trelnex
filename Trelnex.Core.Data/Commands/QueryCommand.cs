@@ -89,7 +89,7 @@ public interface IQueryCommand<TInterface>
 internal class QueryCommand<TInterface, TItem>(
     ExpressionConverter<TInterface, TItem> expressionConverter,
     IQueryable<TItem> queryable,
-    Func<IQueryable<TItem>, CancellationToken, IEnumerable<TItem>> executeQueryable,
+    QueryAsyncDelegate<TInterface, TItem> queryAsyncDelegate,
     Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
     : IQueryCommand<TInterface>
     where TInterface : class, IBaseItem
@@ -157,13 +157,10 @@ internal class QueryCommand<TInterface, TItem>(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // Execute the query and process each result
-        foreach (var item in executeQueryable(queryable, cancellationToken))
+        await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
         {
-            // Check for cancellation before yielding each item
-            cancellationToken.ThrowIfCancellationRequested();
-
             // Convert the TItem to an IQueryResult<TInterface> and yield it
-            yield return await Task.FromResult(convertToQueryResult(item));
+            yield return convertToQueryResult(item);
         }
     }
 

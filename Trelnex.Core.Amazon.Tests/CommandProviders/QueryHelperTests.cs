@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Snapshooter.NUnit;
 using Trelnex.Core.Amazon.CommandProviders;
@@ -8,6 +10,16 @@ namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 [Category("QueryHelper")]
 public class QueryHelperTests
 {
+    /// <summary>
+    /// JSON serializer options for debugging and logging.
+    /// </summary>
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented = true
+    };
+
     [Test]
     [Description("Tests QueryHelper with a Where clause where Id equals a constant value.")]
     public void QueryHelper_Where_Id_Equal_Constant()
@@ -22,7 +34,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -39,7 +51,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -56,7 +68,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -73,7 +85,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -90,7 +102,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -107,7 +119,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -124,7 +136,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -141,7 +153,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -158,7 +170,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -175,7 +187,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -192,7 +204,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -209,7 +221,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -226,7 +238,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -243,7 +255,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -260,7 +272,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -277,7 +289,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -294,7 +306,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -311,7 +323,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -328,7 +340,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     [Test]
@@ -345,7 +357,7 @@ public class QueryHelperTests
         var queryHelper = QueryHelper<TestItem>.FromLinqExpression(q.Expression);
 
         // Match the QueryHelper's JSON representation against a snapshot.
-        Snapshot.Match(queryHelper.ToJson());
+        Snapshot.Match(queryHelper.ToJson(_jsonSerializerOptions));
     }
 
     /// <summary>

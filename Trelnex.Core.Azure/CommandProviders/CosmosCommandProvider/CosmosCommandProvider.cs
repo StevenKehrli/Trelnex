@@ -71,7 +71,8 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <returns>An enumerable of items matching the query.</returns>
     /// <exception cref="CommandException">When a Cosmos DB exception occurs during query execution.</exception>
     /// <remarks>Uses the Cosmos DB feed iterator to page through results.</remarks>
-    protected override IEnumerable<TItem> ExecuteQueryable(
+#pragma warning disable CS8425
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
@@ -90,10 +91,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             {
                 // Execute the query and get the next page of stream results
                 // This is where cosmos will throw exceptions if there are issues with the query or connection
-                responseMessage = feedIterator
-                    .ReadNextAsync(cancellationToken)
-                    .GetAwaiter()
-                    .GetResult();
+                responseMessage = await feedIterator.ReadNextAsync(cancellationToken);
 
                 // Check if the response is successful.  If not, throw an exception.
                 if (responseMessage.IsSuccessStatusCode is false)
@@ -112,6 +110,8 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             // Enumerate the elements in the response and deserialize them into TItem objects
             foreach (var jsonElement in jsonDocument.RootElement.GetProperty("Documents").EnumerateArray())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var item = jsonElement.Deserialize<TItem>(_jsonSerializerOptions);
 
                 if (item is null) continue;
@@ -120,6 +120,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
             }
         }
     }
+#pragma warning restore CS8425
 
     /// <summary>
     /// Reads an item from the Cosmos DB container.

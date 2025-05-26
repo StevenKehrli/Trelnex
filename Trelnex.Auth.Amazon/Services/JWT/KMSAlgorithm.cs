@@ -203,7 +203,10 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
             };
 
             // Call KMS to sign the bytes.
-            var response = _client.SignAsync(request).GetAwaiter().GetResult();
+            var response = _client
+                .SignAsync(request)
+                .GetAwaiter()
+                .GetResult();
 
             // The signature returned by KMS is a DER-encoded object.
             // Convert it to ECDSA signature format (concatenated R and S values) for JWT.
@@ -243,7 +246,10 @@ internal class KMSAlgorithm : IAsymmetricAlgorithm
             };
 
             // Call KMS to verify the signature.
-            var response = _client.VerifyAsync(request).GetAwaiter().GetResult();
+            var response = _client
+                .VerifyAsync(request)
+                .GetAwaiter()
+                .GetResult();
 
             // Return whether the signature is valid.
             return response.SignatureValid ?? false;

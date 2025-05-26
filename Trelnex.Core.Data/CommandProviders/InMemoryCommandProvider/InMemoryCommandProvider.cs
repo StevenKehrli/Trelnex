@@ -53,7 +53,8 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
     }
 
     /// <inheritdoc/>
-    protected override IEnumerable<TItem> ExecuteQueryable(
+#pragma warning disable CS1998, CS8425
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
@@ -84,7 +85,6 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             // Yield each matching item
             foreach (var item in queryableFromExpression.AsEnumerable())
             {
-                // Check for cancellation before yielding each item
                 cancellationToken.ThrowIfCancellationRequested();
 
                 yield return item;
@@ -96,8 +96,10 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             _lock.ExitReadLock();
         }
     }
+#pragma warning restore CS1998, CS8425
 
     /// <inheritdoc/>
+#pragma warning disable CS1998
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -112,7 +114,7 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             var read = _store.ReadItem(id, partitionKey);
 
             // Return the result
-            return await Task.FromResult<TItem?>(read);
+            return read;
         }
         finally
         {
@@ -120,8 +122,10 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
             _lock.ExitReadLock();
         }
     }
+#pragma warning restore CS1998
 
     /// <inheritdoc/>
+#pragma warning disable CS1998
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
@@ -196,8 +200,9 @@ internal class InMemoryCommandProvider<TInterface, TItem>(
         // Always release the write lock
         _lock.ExitWriteLock();
 
-        return await Task.FromResult(saveResults);
+        return saveResults;
     }
+#pragma warning restore CS1998
 
     #endregion
 

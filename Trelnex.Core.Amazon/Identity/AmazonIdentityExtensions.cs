@@ -44,9 +44,10 @@ public static class AmazonIdentityExtensions
             ?? throw new ConfigurationErrorsException("The Amazon.Credentials configuration is not found.");
 
         // Create the credential provider using the extracted options
-        var credentialProvider = AmazonCredentialProvider.Create(
-            bootstrapLogger,
-            options).GetAwaiter().GetResult();
+        var credentialProvider = AmazonCredentialProvider
+            .Create(bootstrapLogger, options)
+            .GetAwaiter()
+            .GetResult();
 
         // Register the credential provider for dependency injection
         services.AddCredentialProvider(credentialProvider);

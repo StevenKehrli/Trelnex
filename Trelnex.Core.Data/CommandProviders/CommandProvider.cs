@@ -269,7 +269,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
         return new QueryCommand<TInterface, TItem>(
             expressionConverter: _expressionConverter,
             queryable: queryable,
-            executeQueryable: ExecuteQueryable,
+            queryAsyncDelegate: ExecuteQueryableAsync,
             convertToQueryResult: convertToQueryResult);
     }
 
@@ -335,7 +335,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
     /// <exception cref="OperationCanceledException">
     /// Thrown when the operation is canceled.
     /// </exception>
-    protected abstract IEnumerable<TItem> ExecuteQueryable(
+    protected abstract IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default);
 

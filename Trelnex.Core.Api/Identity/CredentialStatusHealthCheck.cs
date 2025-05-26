@@ -18,7 +18,8 @@ internal class CredentialStatusHealthCheck(
     #region Public Methods
 
     /// <inheritdoc />
-    public Task<HealthCheckResult> CheckHealthAsync(
+#pragma warning disable CS1998
+    public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
@@ -40,8 +41,9 @@ internal class CredentialStatusHealthCheck(
             description: credentialProvider.Name,
             data: data.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value as object));
 
-        return Task.FromResult(healthCheckResult);
+        return healthCheckResult;
     }
+#pragma warning restore CS1998
 
     #endregion
 

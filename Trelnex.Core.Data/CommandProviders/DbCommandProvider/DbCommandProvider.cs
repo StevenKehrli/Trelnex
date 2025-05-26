@@ -35,6 +35,7 @@ public abstract class DbCommandProvider<TInterface, TItem>(
     #region Protected Methods
 
     /// <inheritdoc/>
+#pragma warning disable CS1998
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -51,7 +52,7 @@ public abstract class DbCommandProvider<TInterface, TItem>(
                 .Where(i => i.Id == id && i.PartitionKey == partitionKey && i.TypeName == TypeName)
                 .FirstOrDefault();
 
-            return await Task.FromResult(item);
+            return item;
         }
         catch (Exception ex) when (IsDatabaseException(ex))
         {
@@ -59,6 +60,7 @@ public abstract class DbCommandProvider<TInterface, TItem>(
             throw new CommandException(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
+#pragma warning restore CS1998
 
     /// <summary>
     /// Saves a batch of items in the backing data store as an atomic transaction.
@@ -164,7 +166,7 @@ public abstract class DbCommandProvider<TInterface, TItem>(
         }
 
         // Return results
-        return await Task.FromResult(saveResults);
+        return saveResults;
     }
 
     /// <inheritdoc/>
@@ -178,7 +180,8 @@ public abstract class DbCommandProvider<TInterface, TItem>(
     }
 
     /// <inheritdoc/>
-    protected override IEnumerable<TItem> ExecuteQueryable(
+#pragma warning disable CS1998, CS8425
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
@@ -192,11 +195,14 @@ public abstract class DbCommandProvider<TInterface, TItem>(
             .CreateQuery<TItem>(queryable.Expression);
 
         // Execute query and stream results
-        foreach (var item in queryableFromExpression.AsEnumerable())
+        foreach (var item in queryableFromExpression)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             yield return item;
         }
     }
+#pragma warning restore CS1998, CS8425
 
     /// <summary>
     /// Saves an item to the database and creates an associated audit event record.
