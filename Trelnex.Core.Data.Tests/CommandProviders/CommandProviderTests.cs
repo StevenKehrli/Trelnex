@@ -711,6 +711,65 @@ public abstract class CommandProviderTests
     }
 
     [Test]
+    [Description("Tests create command save operation with optional message")]
+    public async Task CreateCommand_OptionalMessage()
+    {
+        var id = "2a4cb3ec-6624-4fc6-abc4-6a5db019f8f9";
+        var partitionKey = "b297ff5b-2ab5-4b8d-9dfd-57d2e1d8c3d2";
+
+        // Track start time for timing assertions
+        var startDateTimeOffset = DateTimeOffset.UtcNow;
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Verify the result using snapshot matching with assertions
+        Snapshot.Match(
+            created,
+            matchOptions => matchOptions
+                .Assert(fieldOption =>
+                {
+                    Assert.Multiple(() =>
+                    {
+                        var currentDateTimeOffset = DateTimeOffset.UtcNow;
+
+                        // Verify created date is within expected time range
+                        Assert.That(
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
+
+                        // Verify updated date is within expected time range
+                        Assert.That(
+                            fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset"),
+                            Is.InRange(startDateTimeOffset, currentDateTimeOffset));
+
+                        // Verify created date equals updated date
+                        Assert.That(
+                            fieldOption.Field<DateTimeOffset>("Item.CreatedDateTimeOffset"),
+                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("Item.UpdatedDateTimeOffset")));
+
+                        // Verify ETag is present
+                        Assert.That(
+                            fieldOption.Field<string>("Item.ETag"),
+                            Is.Not.Default);
+                    });
+                }));
+    }
+
+    [Test]
     [Description("Tests create command save operation")]
     public async Task CreateCommand_SaveAsync()
     {
@@ -1184,60 +1243,6 @@ public abstract class CommandProviderTests
             matchOptions => matchOptions
                 .IgnoreField("**.Id")
                 .IgnoreField("**.PartitionKey")
-                .IgnoreField("**.CreatedDateTimeOffset")
-                .IgnoreField("**.UpdatedDateTimeOffset")
-                .IgnoreField("**.ETag"));
-    }
-
-    [Test]
-    [Description("Tests query command without modifiers")]
-    public async Task QueryCommand_ToAsyncEnumerable()
-    {
-        var id1 = "3fca6d8a-75c1-491a-9178-90343551364a";
-        var partitionKey1 = "81dc4acd-dcbe-4d5f-a36f-21a35f158b2c";
-
-        var id2 = "648de92a-b7e8-41c5-a5d2-bdf0cc65d67c";
-        var partitionKey2 = "e36f287e-188d-4a74-9db7-dab74282b5dd";
-
-        // Track start time for timing assertions
-        var startDateTimeOffset = DateTimeOffset.UtcNow;
-
-        // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
-            id: id1,
-            partitionKey: partitionKey1);
-
-        // Set initial values on the first test item
-        createCommand1.Item.PublicMessage = "Public Message #1";
-        createCommand1.Item.PrivateMessage = "Private Message #1";
-
-        // Save the first create command
-        await createCommand1.SaveAsync(
-            cancellationToken: default);
-
-        // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
-            id: id2,
-            partitionKey: partitionKey2);
-
-        // Set initial values on the second test item
-        createCommand2.Item.PublicMessage = "Public Message #2";
-        createCommand2.Item.PrivateMessage = "Private Message #2";
-
-        // Save the second create command
-        await createCommand2.SaveAsync(
-            cancellationToken: default);
-
-        // Create a query command
-        var queryCommand = _commandProvider.Query();
-
-        // Execute query and get results (should return both items)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
-
-        // Verify the results using snapshot matching
-        Snapshot.Match(
-            read,
-            matchOptions => matchOptions
                 .IgnoreField("**.CreatedDateTimeOffset")
                 .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));

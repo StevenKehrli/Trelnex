@@ -1,30 +1,32 @@
 ﻿[
   {
     "Item": {
-      "Id": "da6a2adf-a4a9-4ad8-85ee-a7ae7004a8c6",
-      "PartitionKey": "eac5dd28-ae3e-4945-86de-6d0f0510e3d3",
+      "Id": "2003f0a6-8dd0-4f33-bec8-10ce25074b4c",
+      "PartitionKey": "e3480bd7-1531-48c6-ac5c-46f25e7da365",
       "TypeName": "test-item",
-      "CreatedDateTimeOffset": "2025-05-23T20:09:06.786373+00:00",
-      "UpdatedDateTimeOffset": "2025-05-23T20:09:06.786373+00:00",
+      "CreatedDateTimeOffset": "2025-05-27T00:49:57.766803+00:00",
+      "UpdatedDateTimeOffset": "2025-05-27T00:49:57.766803+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "05a725bb-77c2-4aa6-8153-219519764994",
+      "ETag": "dedbda8e-002f-41af-a366-662c69024034",
       "PublicMessage": "Public Message #1",
-      "PrivateMessage": "Private Message #1"
+      "PrivateMessage": "Private Message #1",
+      "OptionalMessage": null
     }
   },
   {
     "Item": {
-      "Id": "4fd6ec78-fd57-43ab-a1d8-424df4911689",
-      "PartitionKey": "f7e903d9-9baa-4a2e-a04a-5a2a16ede55d",
+      "Id": "463aa617-38e4-4666-8b96-44d59d00d0e2",
+      "PartitionKey": "e1508466-3269-4266-92db-b8daadaf0e89",
       "TypeName": "test-item",
-      "CreatedDateTimeOffset": "2025-05-23T20:09:06.854489+00:00",
-      "UpdatedDateTimeOffset": "2025-05-23T20:09:06.854489+00:00",
+      "CreatedDateTimeOffset": "2025-05-27T00:49:57.828751+00:00",
+      "UpdatedDateTimeOffset": "2025-05-27T00:49:57.828751+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "8a5fd524-7a07-4b11-93b7-2b49e0bc4142",
+      "ETag": "53a4aa47-680c-4edf-be2d-e8663527f836",
       "PublicMessage": "Public Message #2",
-      "PrivateMessage": "Private Message #2"
+      "PrivateMessage": "Private Message #2",
+      "OptionalMessage": null
     }
   }
 ]

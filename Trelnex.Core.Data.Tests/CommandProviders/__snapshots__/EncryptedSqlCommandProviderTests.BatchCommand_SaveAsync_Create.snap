@@ -1,0 +1,38 @@
+﻿[
+  {
+    "HttpStatusCode": "OK",
+    "ReadResult": {
+      "Item": {
+        "Id": "267e3d9e-55be-4030-be5a-793bd5f59147",
+        "PartitionKey": "355bff90-f0b6-4a50-8b49-ba9882820390",
+        "TypeName": "encrypted-test-item",
+        "CreatedDateTimeOffset": "2025-05-27T02:14:18.000339+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T02:14:18.000339+00:00",
+        "DeletedDateTimeOffset": null,
+        "IsDeleted": null,
+        "ETag": "665A4744-712D-4ECF-B52F-E85C3ECD1513",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null
+      }
+    }
+  },
+  {
+    "HttpStatusCode": "OK",
+    "ReadResult": {
+      "Item": {
+        "Id": "a18c881a-2268-4651-b4c2-2c5ac992f0f3",
+        "PartitionKey": "355bff90-f0b6-4a50-8b49-ba9882820390",
+        "TypeName": "encrypted-test-item",
+        "CreatedDateTimeOffset": "2025-05-27T02:14:18.025158+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T02:14:18.025158+00:00",
+        "DeletedDateTimeOffset": null,
+        "IsDeleted": null,
+        "ETag": "236F224D-7839-418E-9A7A-FA875EA0D933",
+        "PublicMessage": "Public Message #2",
+        "PrivateMessage": "Private Message #2",
+        "OptionalMessage": null
+      }
+    }
+  }
+]

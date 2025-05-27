@@ -52,6 +52,44 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
     }
 
     [Test]
+    [Description("Tests CosmosCommandProvider with optional message and without encryption to ensure data is properly stored and retrieved.")]
+    public async Task CosmosCommandProvider_OptionalMessage_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Get the item
+        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+            id: id,
+            partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
+            cancellationToken: default);
+
+        Assert.That(item, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.Resource.OptionalMessage, Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
     [Description("Tests CosmosCommandProvider without encryption to ensure data is properly stored and retrieved.")]
     public async Task CosmosCommandProvider_WithoutEncryption()
     {
@@ -80,7 +118,12 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
             cancellationToken: default);
 
         Assert.That(item, Is.Not.Null);
-        Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.Resource.OptionalMessage, Is.Null);
+        });
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
@@ -90,5 +133,8 @@ public class CosmosCommandProviderTests : CosmosCommandProviderTestBase
 
         [JsonPropertyName("privateMessage")]
         public string PrivateMessage { get; set; } = null!;
+
+        [JsonPropertyName("optionalMessage")]
+        public string? OptionalMessage { get; set; }
     }
 }

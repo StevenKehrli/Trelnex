@@ -243,7 +243,6 @@ public class BatchCommandValidateTests
         Snapshot.Match(o);
     }
 
-
     [Test]
     [Description("Tests validation exception with wrong partition key for batch command during save")]
     public async Task BatchCommandValidate_SaveAsync_WrongPartitionKey()
@@ -602,7 +601,6 @@ public class BatchCommandValidateTests
 
         Snapshot.Match(validationResult);
     }
-
 
     [Test]
     [Description("Tests validation result with wrong partition key for batch command")]

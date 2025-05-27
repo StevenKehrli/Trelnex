@@ -282,7 +282,6 @@ internal class BatchCommand<TInterface, TItem>(
         return batchResults;
     }
 
-
     /// <summary>
     /// Internal validation implementation.
     /// </summary>

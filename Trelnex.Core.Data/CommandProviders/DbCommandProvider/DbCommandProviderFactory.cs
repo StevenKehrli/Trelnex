@@ -1,11 +1,15 @@
 using System.Data.Common;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Data;
 
@@ -37,6 +41,9 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// </summary>
     private readonly DataOptions _dataOptions;
 
+    /// <summary>
+    /// Table names associated with this factory.
+    /// </summary>
     private readonly string[] _tableNames;
 
     #endregion
@@ -47,13 +54,16 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// Initializes a new instance of the <see cref="DbCommandProviderFactory"/> class.
     /// </summary>
     /// <param name="dataOptions">Database connection options.</param>
+    /// <param name="tableNames">Table names associated with this factory.</param>
     protected DbCommandProviderFactory(
         DataOptions dataOptions,
         string[] tableNames)
     {
+        // Clone the data options and configure the connection opening event
         _dataOptions = CloneDataOptions(dataOptions)
             .UseBeforeConnectionOpened(BeforeConnectionOpened);
 
+        // Assign the table names
         _tableNames = tableNames;
     }
 
@@ -79,6 +89,7 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
     /// <param name="typeName">Type name identifier.</param>
     /// <param name="validator">Optional validator.</param>
     /// <param name="commandOperations">Optional allowed operation flags.</param>
+    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
     /// <returns>Configured command provider.</returns>
     /// <exception cref="ArgumentException">When typeName is invalid or reserved.</exception>
     /// <inheritdoc/>
@@ -86,7 +97,8 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         string tableName,
         string typeName,
         IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        CommandOperations? commandOperations = null,
+        IEncryptionService? encryptionService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -99,18 +111,22 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         var fmBuilder = new FluentMappingBuilder(mappingSchema);
 
         // Map the item to its table ("<tableName>")
-        fmBuilder.Entity<TItem>()
-            .HasTableName(tableName)
-            .Property(e => e.Id).IsPrimaryKey()
-            .Property(e => e.PartitionKey).IsPrimaryKey();
+        var builder = fmBuilder.Entity<TItem>()
+            .HasTableName(tableName);
+
+        builder
+            .Property(item => item.Id).IsPrimaryKey()
+            .Property(item => item.PartitionKey).IsPrimaryKey();
+
+        MapItemProperties<TInterface, TItem>(builder, encryptionService);
 
         // Map the event to its table ("<tableName>-events")
         var eventsTableName = GetEventsTableName(tableName);
         fmBuilder.Entity<ItemEvent<TItem>>()
             .HasTableName(eventsTableName)
-            .Property(e => e.Id).IsPrimaryKey()
-            .Property(e => e.PartitionKey).IsPrimaryKey()
-            .Property(e => e.Changes).HasConversion(
+            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.Changes).HasConversion(
                 changes => JsonSerializer.Serialize(changes, _jsonSerializerOptions),
                 s => JsonSerializer.Deserialize<PropertyChange[]>(s, _jsonSerializerOptions));
 
@@ -237,7 +253,6 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();
 
-
     protected abstract IReadOnlyDictionary<string, object> GetStatusData();
 
     #endregion
@@ -264,6 +279,116 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         string tableName)
     {
         return $"{tableName}-events";
+    }
+
+    /// <summary>
+    /// Maps the properties of an item to the database table.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface type.</typeparam>
+    /// <typeparam name="TItem">The item type implementing the interface.</typeparam>
+    /// <param name="builder">The entity mapping builder.</param>
+    /// <param name="encryptionService">The encryption service.</param>
+    private static void MapItemProperties<TInterface, TItem>(
+        EntityMappingBuilder<TItem> builder,
+        IEncryptionService? encryptionService)
+        where TInterface : class, IBaseItem
+        where TItem : BaseItem, TInterface, new()
+    {
+        // Get all public instance properties of the item type
+        var itemProperties = typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        // Iterate through each property
+        foreach (var itemProperty in itemProperties)
+        {
+            // Get the MapItemProperty method using reflection
+            var mapItemPropertyMethod = typeof(DbCommandProviderFactory)
+                .GetMethod(nameof(MapItemProperty), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(typeof(TInterface), typeof(TItem), itemProperty.PropertyType);
+
+            // Invoke the MapItemProperty method for the current property
+            mapItemPropertyMethod.Invoke(
+                null,
+                [builder, itemProperty, encryptionService]);
+        }
+    }
+
+    /// <summary>
+    /// Maps a single property of an item to the database table.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface type.</typeparam>
+    /// <typeparam name="TItem">The item type implementing the interface.</typeparam>
+    /// <typeparam name="TProperty">The property type.</typeparam>
+    /// <param name="builder">The entity mapping builder.</param>
+    /// <param name="propertyInfo">The property information.</param>
+    /// <param name="encryptionService">The encryption service.</param>
+    private static void MapItemProperty<TInterface, TItem, TProperty>(
+        EntityMappingBuilder<TItem> builder,
+        PropertyInfo propertyInfo,
+        IEncryptionService? encryptionService)
+        where TInterface : class, IBaseItem
+        where TItem : BaseItem, TInterface, new()
+    {
+        // Skip properties without JsonPropertyNameAttribute
+        if (propertyInfo.GetCustomAttribute<JsonPropertyNameAttribute>() is null) return;
+
+        // Skip properties with JsonIgnoreAttribute
+        if (propertyInfo.GetCustomAttribute<JsonIgnoreAttribute>() is not null) return;
+
+        // Create an expression to access the property
+        var parameter = Expression.Parameter(typeof(TItem));
+        var property = Expression.Property(parameter, propertyInfo.Name);
+        var lambda = Expression.Lambda<Func<TItem, TProperty>>(property, parameter);
+
+        // If encryption service is available and the property should be encrypted
+        if (encryptionService is not null && IsEncryptProperty(propertyInfo))
+        {
+            // Configure the property to use encryption and decryption converters
+            builder
+                .Property(lambda)
+                .HasConversion(
+                    value => EncryptedJsonService.EncryptToBase64(value, encryptionService),
+                    encryptedValue => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedValue, encryptionService)!);
+        }
+        // If the property is a complex type
+        else if (IsComplexProperty(propertyInfo))
+        {
+            // Configure the property to use JSON serialization and deserialization converters
+            builder
+                .Property(lambda)
+                .HasConversion(
+                    value => JsonSerializer.Serialize(value, _jsonSerializerOptions),
+                    encryptedValue => JsonSerializer.Deserialize<TProperty>(encryptedValue, _jsonSerializerOptions)!);
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the property is a complex type.
+    /// </summary>
+    /// <param name="propertyInfo">The property information.</param>
+    /// <returns>True if the property is a complex type; otherwise, false.</returns>
+    private static bool IsComplexProperty(
+        PropertyInfo propertyInfo)
+    {
+        // Get the underlying type if the property is nullable; otherwise, get the property type
+        var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
+
+        // Create JSON type information for the property type
+        var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(propertyType, _jsonSerializerOptions);
+
+        // Return true if the property is a complex type; otherwise, false
+        return jsonTypeInfo?.Kind != JsonTypeInfoKind.None;
+    }
+
+    /// <summary>
+    /// Determines whether the property should be encrypted.
+    /// </summary>
+    /// <param name="propertyInfo">The property information.</param>
+    /// <returns>True if the property should be encrypted; otherwise, false.</returns>
+    private static bool IsEncryptProperty(
+        PropertyInfo propertyInfo)
+    {
+        // Check if the property has the EncryptAttribute
+        return propertyInfo.GetCustomAttribute<EncryptAttribute>() is not null;
     }
 
     #endregion

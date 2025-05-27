@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
@@ -58,6 +57,64 @@ public class EncryptedDynamoCommandProviderTests : DynamoCommandProviderTestBase
     }
 
     [Test]
+    [Description("Tests DynamoCommandProvider with optional message and encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task DynamoCommandProvider_OptionalMessage_WithEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Get the document
+        var key = new Dictionary<string, DynamoDBEntry>
+        {
+            { "partitionKey", partitionKey },
+            { "id", id }
+        };
+
+        var document = await _encryptedTable.GetItemAsync(key, default);
+
+        // Convert to json
+        var json = document.ToJson();
+
+        // Deserialize the item
+        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+
+        Assert.That(item, Is.Not.Null);
+
+        // Decrypt the private message
+        var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
+            item.PrivateMessage,
+            _encryptionService);
+
+        Assert.That(item.OptionalMessage, Is.Not.Null);
+
+        var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
+            item.OptionalMessage,
+            _encryptionService);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
     [Description("Tests DynamoCommandProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task DynamoCommandProvider_WithEncryption()
     {
@@ -97,11 +154,15 @@ public class EncryptedDynamoCommandProviderTests : DynamoCommandProviderTestBase
         Assert.That(item, Is.Not.Null);
 
         // Decrypt the private message
-        var privateMessageEncryptedBytes = Convert.FromBase64String(item.PrivateMessage);
-        var privateMessageBytes = _encryptionService.Decrypt(privateMessageEncryptedBytes);
-        var privateMessage = Encoding.UTF8.GetString(privateMessageBytes);
+        var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
+            item.PrivateMessage,
+            _encryptionService);
 
-        Assert.That(privateMessage, Is.EqualTo("\"Private Message #1\""));
+        Assert.Multiple(() =>
+        {
+            Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.Null);
+        });
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
@@ -111,5 +172,8 @@ public class EncryptedDynamoCommandProviderTests : DynamoCommandProviderTestBase
 
         [JsonPropertyName("privateMessage")]
         public string PrivateMessage { get; set; } = null!;
+
+        [JsonPropertyName("optionalMessage")]
+        public string? OptionalMessage { get; set; }
     }
 }

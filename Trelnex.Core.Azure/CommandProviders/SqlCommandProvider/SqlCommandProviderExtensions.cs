@@ -8,6 +8,7 @@ using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Azure.CommandProviders;
@@ -196,12 +197,18 @@ public static class SqlCommandProvidersExtensions
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
+            // Create the encryption service if a secret is provided
+            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
+                : null;
+
             // Create a new command provider instance for this entity type via the factory.
             var commandProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
             // Register the provider in the DI container as a singleton.
             services.AddSingleton(commandProvider);

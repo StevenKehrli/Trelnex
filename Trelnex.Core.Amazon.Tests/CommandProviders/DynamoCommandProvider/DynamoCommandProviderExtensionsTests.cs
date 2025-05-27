@@ -109,6 +109,53 @@ public class DynamoCommandProviderExtensionsTests : DynamoCommandProviderTestBas
     }
 
     [Test]
+    [Description("Tests DynamoCommandProvider with optional message and without encryption to ensure data is properly stored and retrieved.")]
+    public async Task DynamoCommandProvider_OptionalMessage_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Get the document
+        var key = new Dictionary<string, DynamoDBEntry>
+        {
+            { "partitionKey", partitionKey },
+            { "id", id }
+        };
+
+        var document = await _table.GetItemAsync(key, default);
+
+        // Convert to json
+        var json = document.ToJson();
+
+        // Deserialize the item
+        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+
+        Assert.That(item, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
     [Description("Tests DynamoCommandProvider without encryption to ensure data is properly stored and retrieved.")]
     public async Task DynamoCommandProvider_WithoutEncryption()
     {
@@ -146,7 +193,13 @@ public class DynamoCommandProviderExtensionsTests : DynamoCommandProviderTestBas
         var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
 
         Assert.That(item, Is.Not.Null);
-        Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.Null);
+        });
+
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
@@ -156,5 +209,8 @@ public class DynamoCommandProviderExtensionsTests : DynamoCommandProviderTestBas
 
         [JsonPropertyName("privateMessage")]
         public string PrivateMessage { get; set; } = null!;
+
+        [JsonPropertyName("optionalMessage")]
+        public string? OptionalMessage { get; set; }
     }
 }

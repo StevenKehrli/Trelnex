@@ -1,0 +1,17 @@
+﻿[
+  {
+    "Item": {
+      "Id": "98254362-0174-40bc-bf36-0ea7e08e4222",
+      "PartitionKey": "7a4cb32e-f040-4cd6-a176-7a9aa0fc9a0e",
+      "TypeName": "encrypted-test-item",
+      "CreatedDateTimeOffset": "2025-05-27T02:14:54.040584+00:00",
+      "UpdatedDateTimeOffset": "2025-05-27T02:14:54.040584+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "CDFE4781-F5BA-4505-96CF-8E516214CAF9",
+      "PublicMessage": "Public Message #1",
+      "PrivateMessage": "Private Message #1",
+      "OptionalMessage": null
+    }
+  }
+]

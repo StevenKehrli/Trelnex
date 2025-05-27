@@ -86,6 +86,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
     /// <remarks>
     /// Translates the LINQ expression into a DynamoDB scan operation.
     /// </remarks>
+#pragma warning disable CS8425
     protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
@@ -136,6 +137,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
             yield return item;
         }
     }
+#pragma warning restore CS8425
 
     /// <summary>
     /// Reads an item from the DynamoDB table.

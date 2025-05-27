@@ -29,20 +29,13 @@ internal class EncryptedJsonConverter<TProperty>(
             return default!;
         }
 
-        // Read the encrypted string from the JSON.
+        // Read the encrypted Base64 string from the JSON.
         var encryptedString = reader.GetString()!;
 
-        // Convert the encrypted string from Base64 to a byte array.
-        var encryptedBytes = Convert.FromBase64String(encryptedString);
-
-        // Decrypt the byte array using the encryption service.
-        var jsonBytes = encryptionService.Decrypt(encryptedBytes);
-
-        // Convert the decrypted byte array back to a JSON string.
-        var jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
-
-        // Deserialize the JSON string into an object of type TProperty.
-        return JsonSerializer.Deserialize<TProperty>(jsonString)!;
+        // Decrypt and deserialize the value using the encrypted JSON service.
+        return EncryptedJsonService.DecryptFromBase64<TProperty>(
+            encryptedString,
+            encryptionService)!;
     }
 
     /// <summary>
@@ -63,19 +56,12 @@ internal class EncryptedJsonConverter<TProperty>(
             return;
         }
 
-        // Serialize the object of type TProperty to a JSON string.
-        var jsonString = JsonSerializer.Serialize(value);
+        // Serialize and encrypt the value to a Base64 string using the encrypted JSON service.
+        var encryptedString = EncryptedJsonService.EncryptToBase64(
+            value,
+            encryptionService);
 
-        // Convert the JSON string to a byte array.
-        var jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
-
-        // Encrypt the byte array using the encryption service.
-        var encryptedBytes = encryptionService.Encrypt(jsonBytes);
-
-        // Convert the encrypted byte array to a Base64 string.
-        var encryptedString = Convert.ToBase64String(encryptedBytes);
-
-        // Write the encrypted string to the JSON writer.
+        // Write the encrypted Base64 string to the JSON writer.
         writer.WriteStringValue(encryptedString);
     }
 }

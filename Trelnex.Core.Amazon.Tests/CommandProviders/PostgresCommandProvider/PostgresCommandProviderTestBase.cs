@@ -186,36 +186,21 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public void TestCleanup()
     {
-        TableCleanup(_awsCredentials, _region, _host, _port, _dbUser, _connectionString, _tableName);
-        TableCleanup(_awsCredentials, _region, _host, _port, _dbUser, _connectionString, _encryptedTableName);
+        TableCleanup(_tableName);
+        TableCleanup(_encryptedTableName);
     }
 
-    private static void TableCleanup(
-        AWSCredentials awsCredentials,
-        RegionEndpoint region,
-        string host,
-        int port,
-        string dbUser,
-        string connectionString,
+    [OneTimeTearDown]
+    public void TestFixtureTearDown()
+    {
+        LinqToDB.Mapping.MappingSchema.ClearCache();
+    }
+
+    private void TableCleanup(
         string tableName)
     {
-        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
-            credentials: awsCredentials,
-            region: region,
-            hostname: host,
-            port: port,
-            dbUser: dbUser);
-
-        var csb = new NpgsqlConnectionStringBuilder(connectionString)
-        {
-            Password = pwd,
-            SslMode = SslMode.Require
-        };
-
         // Establish a SQL connection using the connection string.
-        using var sqlConnection = new NpgsqlConnection(csb.ConnectionString);
-
-        sqlConnection.Open();
+        using var sqlConnection = GetConnection();
 
         // Define the SQL command to delete all rows from the main table and its events table.
         var cmdText = $"DELETE FROM \"{tableName}-events\"; DELETE FROM \"{tableName}\";";
@@ -223,5 +208,43 @@ public abstract class PostgresCommandProviderTestBase : CommandProviderTests
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
+    }
+
+    protected NpgsqlConnection GetConnection()
+    {
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
+
+        var csb = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        // Establish a SQL connection using the connection string.
+        var sqlConnection = new NpgsqlConnection(csb.ConnectionString);
+
+        sqlConnection.Open();
+
+        return sqlConnection;
+    }
+
+    protected async Task<NpgsqlDataReader> GetReader(
+        NpgsqlConnection sqlConnection,
+        string id,
+        string partitionKey)
+    {
+        // Define the SQL command to get the private message and optional message.
+        var cmdText = $"SELECT \"privateMessage\", \"optionalMessage\" FROM \"{_encryptedTableName}\" WHERE \"id\" = @id AND \"partitionKey\" = @partitionKey;";
+
+        var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
+        sqlCommand.Parameters.AddWithValue("@id", id);
+        sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
+
+        return await sqlCommand.ExecuteReaderAsync();
     }
 }

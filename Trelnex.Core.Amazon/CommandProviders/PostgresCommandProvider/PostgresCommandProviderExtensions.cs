@@ -10,6 +10,7 @@ using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
@@ -200,12 +201,18 @@ public static partial class PostgresCommandProvidersExtensions
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
+            // Create the encryption service if a secret is provided
+            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
+                : null;
+
             // create the command provider and inject
             var commandProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
             services.AddSingleton(commandProvider);
 

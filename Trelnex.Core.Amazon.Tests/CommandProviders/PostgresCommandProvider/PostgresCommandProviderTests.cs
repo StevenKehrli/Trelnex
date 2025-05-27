@@ -38,7 +38,7 @@ public class PostgresCommandProviderTests : PostgresCommandProviderTestBase
             Port: _port,
             Database: _database,
             DbUser: _dbUser,
-            TableNames: [ _tableName ]
+            TableNames: [_tableName]
         );
 
         // Create the PostgresCommandProviderFactory.
@@ -52,5 +52,84 @@ public class PostgresCommandProviderTests : PostgresCommandProviderTestBase
             "test-item",
             TestItem.Validator,
             CommandOperations.All);
+    }
+
+    [Test]
+    [Description("Tests PostgresCommandProvider with an optional message and without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task PostgresCommandProvider_OptionalMessage_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader["optionalMessage"], Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
+    [Description("Tests PostgresCommandProvider without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task PostgresCommandProvider_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader.IsDBNull(1), Is.True);
+        });
     }
 }

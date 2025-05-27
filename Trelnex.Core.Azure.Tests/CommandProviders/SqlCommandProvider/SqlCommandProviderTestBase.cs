@@ -139,23 +139,21 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
     [TearDown]
     public void TestCleanup()
     {
-        TableCleanup(_tokenCredential, _scope, _connectionString, _tableName);
-        TableCleanup(_tokenCredential, _scope, _connectionString, _encryptedTableName);
+        TableCleanup(_tableName);
+        TableCleanup(_encryptedTableName);
     }
 
-    private static void TableCleanup(
-        TokenCredential tokenCredential,
-        string scope,
-        string connectionString,
+    [OneTimeTearDown]
+    public void TestFixtureTearDown()
+    {
+        LinqToDB.Mapping.MappingSchema.ClearCache();
+    }
+
+    private void TableCleanup(
         string tableName)
     {
         // Establish a SQL connection using token authentication.
-        using var sqlConnection = new SqlConnection(connectionString);
-
-        var tokenRequestContext = new TokenRequestContext([scope]);
-        sqlConnection.AccessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
-
-        sqlConnection.Open();
+        using var sqlConnection = GetConnection();
 
         // Define the SQL command to delete all rows from the main table and its events table.
         var cmdText = $"DELETE FROM [{tableName}-events]; DELETE FROM [{tableName}];";
@@ -163,5 +161,33 @@ public abstract class SqlCommandProviderTestBase : CommandProviderTests
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
+    }
+
+    protected SqlConnection GetConnection()
+    {
+        // Establish a SQL connection using token authentication.
+        var sqlConnection = new SqlConnection(_connectionString);
+
+        var tokenRequestContext = new TokenRequestContext([_scope]);
+        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
+
+        sqlConnection.Open();
+
+        return sqlConnection;
+    }
+
+    protected async Task<SqlDataReader> GetReader(
+        SqlConnection sqlConnection,
+        string id,
+        string partitionKey)
+    {
+        // Define the SQL command to get the private message and optional message.
+        var cmdText = $"SELECT [privateMessage], [optionalMessage] FROM [{_encryptedTableName}] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
+
+        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
+        sqlCommand.Parameters.AddWithValue("@id", id);
+        sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
+
+        return await sqlCommand.ExecuteReaderAsync();
     }
 }
