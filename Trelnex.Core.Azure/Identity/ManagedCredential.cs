@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
@@ -524,6 +525,9 @@ internal class ManagedCredential(
         private void Refresh(
             object? state)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             // Log the refresh attempt.
             _logger.LogInformation(
                 "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
@@ -585,6 +589,15 @@ internal class ManagedCredential(
             _timer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
+
+            stopwatch.Stop();
+            _logger.LogInformation(
+                "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                string.Join(", ", _tokenRequestContextKey.Scopes),
+                _tokenRequestContextKey.TenantId,
+                _tokenRequestContextKey.Claims,
+                _tokenRequestContextKey.IsCaeEnabled,
+                stopwatch.ElapsedMilliseconds);
         }
 
         /// <summary>

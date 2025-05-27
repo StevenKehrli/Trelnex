@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using Amazon;
 using Amazon.Runtime;
@@ -343,6 +344,13 @@ public class AWSCredentialsManager
         /// <param name="state">The state object passed by the Timer (not used).</param>
         private void Refresh(object? state)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // Log the refresh attempt.
+            _logger.LogInformation(
+                "AWSCredentialsManager.Refresh");
+
             // Force a refresh by setting expiration to minimum value
             var currentState = _currentStateField.GetValue(_refreshingAWSCredentials);
             if (currentState is not null)
@@ -368,6 +376,11 @@ public class AWSCredentialsManager
             _refreshTimer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
+
+            stopwatch.Stop();
+            _logger.LogInformation(
+                "AWSCredentialsManager.Refresh: elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                stopwatch.ElapsedMilliseconds);
         }
 
         #endregion

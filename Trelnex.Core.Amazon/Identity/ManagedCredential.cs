@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Amazon.Runtime;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Identity;
@@ -241,6 +242,9 @@ internal class ManagedCredential(
         private void Refresh(
             object? state)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             // Log the refresh attempt.
             _logger.LogInformation(
                 "AmazonTokenItem.Refresh: scope = '{scope:l}'",
@@ -296,6 +300,12 @@ internal class ManagedCredential(
             _timer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
+
+            stopwatch.Stop();
+            _logger.LogInformation(
+                "AmazonTokenItem.Refresh: scope = '{scope:l}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                _scope,
+                stopwatch.ElapsedMilliseconds);
         }
 
         /// <summary>

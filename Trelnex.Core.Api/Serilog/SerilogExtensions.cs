@@ -73,7 +73,6 @@ public static class SerilogExtensions
 
             // Configure standard outputs.
             .WriteTo.Console(formatter)
-            .WriteTo.Debug(formatter)
 
             // Configure OpenTelemetry integration.
             .WriteTo.OpenTelemetry(telemetryOptions =>
