@@ -9,6 +9,7 @@ using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
 
@@ -87,6 +88,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
     /// Translates the LINQ expression into a DynamoDB scan operation.
     /// </remarks>
 #pragma warning disable CS8425
+    [TraceMethod]
     protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
@@ -150,6 +152,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
     /// <remarks>
     /// Uses the DynamoDB GetItem operation with a composite key.
     /// </remarks>
+    [TraceMethod]
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -187,6 +190,7 @@ internal class DynamoCommandProvider<TInterface, TItem>(
     /// <remarks>
     /// Uses the DynamoDB TransactWriteItems operation to ensure all-or-nothing consistency.
     /// </remarks>
+    [TraceMethod]
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)

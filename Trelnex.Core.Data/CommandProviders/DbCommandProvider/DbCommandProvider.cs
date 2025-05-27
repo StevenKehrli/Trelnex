@@ -3,6 +3,7 @@ using System.Transactions;
 using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
+using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Data;
 
@@ -35,7 +36,44 @@ public abstract class DbCommandProvider<TInterface, TItem>(
     #region Protected Methods
 
     /// <inheritdoc/>
+    protected override IQueryable<TItem> CreateQueryable()
+    {
+        // Add typeName and isDeleted filters
+        return Enumerable.Empty<TItem>()
+            .AsQueryable()
+            .Where(i => i.TypeName == TypeName)
+            .Where(i => i.IsDeleted == null || i.IsDeleted == false);
+    }
+
+    /// <inheritdoc/>
+#pragma warning disable CS1998, CS8425
+    [TraceMethod]
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default)
+    {
+        // Get database connection
+        using var dataConnection = new DataConnection(_dataOptions);
+
+        // Transform queryable into database-specific query
+        var queryableFromExpression = dataConnection
+            .GetTable<TItem>()
+            .Provider
+            .CreateQuery<TItem>(queryable.Expression);
+
+        // Execute query and stream results
+        foreach (var item in queryableFromExpression)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            yield return item;
+        }
+    }
+#pragma warning restore CS1998, CS8425
+
+    /// <inheritdoc/>
 #pragma warning disable CS1998
+    [TraceMethod]
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -73,6 +111,7 @@ public abstract class DbCommandProvider<TInterface, TItem>(
     /// <remarks>
     /// Uses a transaction to ensure atomicity.
     /// </remarks>
+    [TraceMethod]
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
@@ -168,41 +207,6 @@ public abstract class DbCommandProvider<TInterface, TItem>(
         // Return results
         return saveResults;
     }
-
-    /// <inheritdoc/>
-    protected override IQueryable<TItem> CreateQueryable()
-    {
-        // Add typeName and isDeleted filters
-        return Enumerable.Empty<TItem>()
-            .AsQueryable()
-            .Where(i => i.TypeName == TypeName)
-            .Where(i => i.IsDeleted == null || i.IsDeleted == false);
-    }
-
-    /// <inheritdoc/>
-#pragma warning disable CS1998, CS8425
-    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
-        IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
-    {
-        // Get database connection
-        using var dataConnection = new DataConnection(_dataOptions);
-
-        // Transform queryable into database-specific query
-        var queryableFromExpression = dataConnection
-            .GetTable<TItem>()
-            .Provider
-            .CreateQuery<TItem>(queryable.Expression);
-
-        // Execute query and stream results
-        foreach (var item in queryableFromExpression)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            yield return item;
-        }
-    }
-#pragma warning restore CS1998, CS8425
 
     /// <summary>
     /// Saves an item to the database and creates an associated audit event record.

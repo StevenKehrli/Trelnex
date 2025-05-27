@@ -73,8 +73,6 @@ internal static class ObservabilityExtensions
                         .AddAspNetCoreInstrumentation()
                         // Trace outgoing HTTP requests
                         .AddHttpClientInstrumentation()
-                        // Trace Trelnex library activity
-                        .AddSource("Trelnex.*")
                         // Custom activity sources
                         .AddSource(observabilityConfiguration.OpenTelemetry.Sources)
                         // Export to OpenTelemetry Protocol endpoint

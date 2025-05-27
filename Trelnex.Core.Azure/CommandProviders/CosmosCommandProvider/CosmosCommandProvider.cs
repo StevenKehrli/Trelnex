@@ -7,6 +7,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Azure.CommandProviders;
 
@@ -72,6 +73,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <exception cref="CommandException">When a Cosmos DB exception occurs during query execution.</exception>
     /// <remarks>Uses the Cosmos DB feed iterator to page through results.</remarks>
 #pragma warning disable CS8425
+    [TraceMethod]
     protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
@@ -130,6 +132,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
     /// <returns>The item if found, or <see langword="null"/> if the item does not exist.</returns>
     /// <exception cref="CommandException">When a Cosmos DB exception occurs during the read operation.</exception>
+    [TraceMethod]
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
@@ -182,6 +185,7 @@ internal class CosmosCommandProvider<TInterface, TItem>(
     /// <returns>Array of save results with status codes and saved items.</returns>
     /// <exception cref="CommandException">When a Cosmos DB exception occurs during the batch operation.</exception>
     /// <remarks>Uses the Cosmos DB transactional batch API to ensure atomicity.</remarks>
+    [TraceMethod]
     protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default)
