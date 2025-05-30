@@ -40,7 +40,7 @@ public interface IScopeNameValidator
     /// </returns>
     /// <remarks>
     /// This method checks that scope names adhere to the format requirements defined by
-    /// the RBAC system (e.g., "production" or ".default"). If validation passes, the normalized
+    /// the RBAC system (e.g., "rbac" or ".default"). If validation passes, the normalized
     /// form of the scope name is returned for further processing.
     /// </remarks>
     (ValidationResult validationResult, string? scopeName) Validate(
@@ -61,9 +61,9 @@ public interface IScopeNameValidator
 ///
 /// Examples of valid scope names:
 /// - .default (the standard default scope)
+/// - rbac
+/// - development
 /// - production
-/// - us-west
-/// - finance.reports
 ///
 /// Scopes are essential in the RBAC system as they define the authorization boundaries
 /// within which roles are valid. For example, a user might have "admin" permissions, but
@@ -173,7 +173,7 @@ internal partial class ScopeNameValidator : BaseValidator, IScopeNameValidator
     /// <returns>A compiled regular expression matching valid scope name patterns.</returns>
     /// <remarks>
     /// This method provides a regular expression that matches valid scope name patterns
-    /// such as ".default" or "production". The pattern is anchored with start (^) and
+    /// such as ".default" or "rbac". The pattern is anchored with start (^) and
     /// end ($) markers to ensure the entire string matches the pattern.
     ///
     /// This is implemented using C# source generators to create an efficient compiled regex.

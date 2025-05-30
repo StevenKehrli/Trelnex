@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
 
@@ -19,6 +18,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class DeleteResourceEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(DeleteResourceRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -45,7 +54,7 @@ internal static class DeleteResourceEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("DeletesResource")
+            .WithName("DeleteResource")
             .WithDescription("Deletes the specified resource")
             .WithTags("Resources");
     }
@@ -72,42 +81,18 @@ internal static class DeleteResourceEndpoint
     /// </remarks>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] DeleteResourceRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<DeleteResourceRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
 
         // Delete the resource.
         await rbacRepository.DeleteResourceAsync(
-            resourceName: resourceName!);
+            resourceName: request.ResourceName);
 
         // Return an Ok result.
         return Results.Ok();
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Contains the parameters for the Delete Resource request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used to bind the request body to a strongly-typed object
-    /// when the endpoint is invoked.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets the deserialized request body containing the resource name to delete.
-        /// </summary>
-        [FromBody]
-        public DeleteResourceRequest? Request { get; init; }
     }
 
     #endregion

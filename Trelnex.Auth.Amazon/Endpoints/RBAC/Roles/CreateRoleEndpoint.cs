@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
 
@@ -27,6 +26,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class CreateRoleEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(CreateRoleRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -82,59 +91,24 @@ internal static class CreateRoleEndpoint
     /// </exception>
     public static async Task<CreateRoleResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IRoleNameValidator roleNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] CreateRoleRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<CreateRoleRequest>();
-
-        // Validate the role name.
-        (var vrRoleName, var roleName) =
-            roleNameValidator.Validate(
-                parameters.Request?.RoleName);
-
-        vrRoleName.ValidateOrThrow<CreateRoleRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.RoleName is null) throw _validationException;
 
         // Create the role.
         await rbacRepository.CreateRoleAsync(
-            resourceName: resourceName!,
-            roleName: roleName!);
+            resourceName: request.ResourceName,
+            roleName: request.RoleName!);
 
         // Return the role.
         return new CreateRoleResponse
         {
-            ResourceName = resourceName!,
-            RoleName = roleName!
+            ResourceName = request.ResourceName,
+            RoleName = request.RoleName
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Encapsulates the parameters for a role creation request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used as a parameter binding model for the API endpoint,
-    /// allowing ASP.NET Core to bind the incoming request body to the request model.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets or initializes the request details for role creation.
-        /// </summary>
-        /// <remarks>
-        /// This property contains the details required for creating a new role,
-        /// including the resource name and role name.
-        /// </remarks>
-        [FromBody]
-        public CreateRoleRequest? Request { get; init; }
     }
 
     #endregion

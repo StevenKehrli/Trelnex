@@ -1,0 +1,36 @@
+﻿{
+  "roleAfterFirst": {
+    "ResourceName": "urn://resource-createrole-alreadyexists",
+    "RoleName": "role-createrole-alreadyexists"
+  },
+  "itemsAfterFirst": [
+    {
+      "_resourceName": "urn://resource-createrole-alreadyexists",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-createrole-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createrole-alreadyexists",
+      "_roleName": "role-createrole-alreadyexists",
+      "entityName": "#RESOURCE#urn://resource-createrole-alreadyexists",
+      "subjectName": "#ROLE#role-createrole-alreadyexists"
+    }
+  ],
+  "roleAfterSecond": {
+    "ResourceName": "urn://resource-createrole-alreadyexists",
+    "RoleName": "role-createrole-alreadyexists"
+  },
+  "itemsAfterSecond": [
+    {
+      "_resourceName": "urn://resource-createrole-alreadyexists",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-createrole-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createrole-alreadyexists",
+      "_roleName": "role-createrole-alreadyexists",
+      "entityName": "#RESOURCE#urn://resource-createrole-alreadyexists",
+      "subjectName": "#ROLE#role-createrole-alreadyexists"
+    }
+  ]
+}

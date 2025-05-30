@@ -21,18 +21,10 @@ internal static class DeletePrincipalEndpoint
     #region Private Static Fields
 
     /// <summary>
-    /// Pre-configured validation exception for when the principal ID is missing or invalid.
+    /// Pre-configured validation exception for the request is not valid.
     /// </summary>
-    /// <remarks>
-    /// Using a static exception improves performance by avoiding creation of new exception
-    /// instances for common validation errors.
-    /// </remarks>
     private static readonly ValidationException _validationException = new(
-        $"The '{typeof(DeletePrincipalRequest).Name}' is not valid.",
-        new Dictionary<string, string[]>
-        {
-            { nameof(DeletePrincipalRequest.PrincipalId), new[] { "principalId is not valid." } }
-        });
+        $"The '{typeof(DeletePrincipalRequest).Name}' is not valid.");
 
     #endregion
 
@@ -52,7 +44,7 @@ internal static class DeletePrincipalEndpoint
     {
         // Map the DELETE endpoint for deleting a principal to "/principals".
         erb.MapDelete(
-                "/principals",
+                "/assignments/principals",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACDeletePolicy>()
             .Accepts<DeletePrincipalRequest>(MediaTypeNames.Application.Json)
@@ -84,37 +76,18 @@ internal static class DeletePrincipalEndpoint
     /// </remarks>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] DeletePrincipalRequest? request)
     {
-        // Validate the principal id.
-        if (parameters.Request?.PrincipalId is null) throw _validationException;
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.PrincipalId is null) throw _validationException;
 
         // Delete the principal.
         await rbacRepository.DeletePrincipalAsync(
-            principalId: parameters.Request!.PrincipalId);
+            principalId: request.PrincipalId);
 
         // Return an Ok result.
         return Results.Ok();
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Contains the parameters for the Delete Principal request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used to bind the request body to a strongly-typed object
-    /// when the endpoint is invoked.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets the deserialized request body containing the principal ID to delete.
-        /// </summary>
-        [FromBody]
-        public DeletePrincipalRequest? Request { get; init; }
     }
 
     #endregion

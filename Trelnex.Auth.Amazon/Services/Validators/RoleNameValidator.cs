@@ -45,9 +45,10 @@ public interface IRoleNameValidator
 /// 2. Then, additional validation rules confirm the content meets all requirements
 ///
 /// Examples of valid role names:
-/// - service.read
-/// - admin.full-access
-/// - reporting.view-only
+/// - rbac.create
+/// - rbac.read
+/// - rbac.update
+/// - rbac.delete
 ///
 /// Role names are critical in the RBAC system as they define the permission sets that
 /// can be assigned to principals for specific resources. Consistent naming conventions

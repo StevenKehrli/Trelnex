@@ -52,9 +52,6 @@ internal static class ServicesExtensions
         // Get the AWS credentials provider from the service collection.
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
-        // Register validators.
-        RegisterValidators(services);
-
         // Register JWT provider registry.
         RegisterJwtProviderRegistry(services, configuration, bootstrapLogger, credentialProvider);
 
@@ -70,29 +67,6 @@ internal static class ServicesExtensions
     #endregion
 
     #region Private Static Methods
-
-    /// <summary>
-    /// Registers all validators required for the RBAC system.
-    /// </summary>
-    /// <param name="services">The service collection to register validators with.</param>
-    private static void RegisterValidators(IServiceCollection services)
-    {
-        // Create and inject the scope validator.
-        var scopeValidator = new ScopeValidator();
-        services.AddSingleton<IScopeValidator>(scopeValidator);
-
-        // Create and inject the resource name validator.
-        var resourceNameValidator = new ResourceNameValidator();
-        services.AddSingleton<IResourceNameValidator>(resourceNameValidator);
-
-        // Create and inject the scope name validator.
-        var scopeNameValidator = new ScopeNameValidator();
-        services.AddSingleton<IScopeNameValidator>(scopeNameValidator);
-
-        // Create and inject the role name validator.
-        var roleNameValidator = new RoleNameValidator();
-        services.AddSingleton<IRoleNameValidator>(roleNameValidator);
-    }
 
     /// <summary>
     /// Registers the JWT provider registry for token management.
@@ -128,13 +102,17 @@ internal static class ServicesExtensions
         IConfiguration configuration,
         ICredentialProvider<AWSCredentials> credentialProvider)
     {
-        // Get the scope name validator from services (already registered).
-        var scopeNameValidator = services.BuildServiceProvider().GetRequiredService<IScopeNameValidator>();
+        // Create the validators.
+        var resourceNameValidator = new ResourceNameValidator();
+        var scopeNameValidator = new ScopeNameValidator();
+        var roleNameValidator = new RoleNameValidator();
 
         // Create the RBAC repository with required dependencies.
         var rbacRepository = RBACRepository.Create(
             configuration,
+            resourceNameValidator,
             scopeNameValidator,
+            roleNameValidator,
             credentialProvider);
 
         // Inject the RBAC repository into the DI container.

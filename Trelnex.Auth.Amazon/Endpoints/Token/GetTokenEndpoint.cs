@@ -23,6 +23,18 @@ namespace Trelnex.Auth.Amazon.Endpoints.Token;
 /// </remarks>
 internal static class GetTokenEndpoint
 {
+    #region Private Static Fields
+
+    private static readonly IScopeValidator _scopeValidator = new ScopeValidator();
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(GetTokenForm).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -78,7 +90,6 @@ internal static class GetTokenEndpoint
     /// 6. Generate a JWT token with appropriate claims based on the principal's permissions
     /// </remarks>
     internal static async Task<AccessToken> HandleRequest(
-        [FromServices] IScopeValidator scopeValidator,
         [FromServices] ICallerIdentityProvider callerIdentityProvider,
         [FromServices] IRBACRepository rbacRepository,
         [FromServices] IJwtProviderRegistry jwtProviderRegistry,
@@ -88,7 +99,7 @@ internal static class GetTokenEndpoint
         form.Validate().ValidateOrThrow<GetTokenForm>();
 
         // Parse and validate the requested scope (format: "resource/scope").
-        var (validationResult, resourceName, scopeName) = scopeValidator.Validate(form.Scope);
+        var (validationResult, resourceName, scopeName) = _scopeValidator.Validate(form.Scope);
         validationResult.ValidateOrThrow("scope");
 
         // Decode the client secret to retrieve the AWS request signature.
@@ -105,8 +116,8 @@ internal static class GetTokenEndpoint
             throw new HttpStatusCodeException(HttpStatusCode.Unauthorized);
         }
 
-        // Retrieve the principal's role memberships for the requested resource/scope.
-        var principalMembership = await rbacRepository.GetPrincipalMembershipAsync(
+        // Retrieve the principal's role memberships for the requested resource and scope.
+        var principalAccess = await rbacRepository.GetPrincipalAccessAsync(
             principalId: principalId,
             resourceName: resourceName,
             scopeName: scopeName,
@@ -118,10 +129,10 @@ internal static class GetTokenEndpoint
 
         // Generate the JWT token with appropriate claims.
         var accessToken = jwtProvider.Encode(
-            audience: resourceName,                  // The resource is used as the audience claim.
-            principalId: principalId,                // The principal ID is used for 'sub' and 'oid' claims.
-            scopes: principalMembership.ScopeNames,  // The scopes are added as the 'scp' claim.
-            roles: principalMembership.RoleNames);   // The roles are added as the 'roles' claim.
+            audience: resourceName,              // The resource is used as the audience claim.
+            principalId: principalId,            // The principal ID is used for 'sub' and 'oid' claims.
+            scopes: principalAccess.ScopeNames,  // The scopes are added as the 'scp' claim.
+            roles: principalAccess.RoleNames);   // The roles are added as the 'roles' claim.
 
         // Return the access token.
         return accessToken;

@@ -1,0 +1,23 @@
+﻿{
+  "resourcesBefore": [
+    "urn://resource-deleteresource-frommultiple-delete",
+    "urn://resource-deleteresource-frommultiple-keep1",
+    "urn://resource-deleteresource-frommultiple-keep2"
+  ],
+  "resourcesAfter": [
+    "urn://resource-deleteresource-frommultiple-keep1",
+    "urn://resource-deleteresource-frommultiple-keep2"
+  ],
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteresource-frommultiple-keep1",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-keep1"
+    },
+    {
+      "_resourceName": "urn://resource-deleteresource-frommultiple-keep2",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-keep2"
+    }
+  ]
+}

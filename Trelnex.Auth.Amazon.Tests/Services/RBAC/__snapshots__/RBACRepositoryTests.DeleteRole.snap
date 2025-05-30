@@ -1,0 +1,10 @@
+﻿{
+  "roleAfter": null,
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleterole",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-deleterole"
+    }
+  ]
+}

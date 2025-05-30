@@ -36,7 +36,7 @@ internal abstract class BaseValidator
     ///
     /// This named capture group pattern extracts the resourceName portion for validation.
     /// </remarks>
-    protected const string _regexResourceName = @"(?<resourceName>(api|http|urn):\/\/[a-z0-9\.\/-]*[a-z0-9]+)";
+    protected const string _regexResourceName = @"(?<resourceName>(api|http|https|urn):\/\/[a-z0-9\.\/-]*[a-z0-9]+)";
 
     /// <summary>
     /// The regular expression pattern for validating role names.

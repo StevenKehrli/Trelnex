@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
 
@@ -19,6 +18,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class CreateResourceEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(CreateResourceRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -69,45 +78,21 @@ internal static class CreateResourceEndpoint
     /// </remarks>
     public static async Task<CreateResourceResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] CreateResourceRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<CreateResourceRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
 
         // Create the resource.
         await rbacRepository.CreateResourceAsync(
-            resourceName: resourceName!);
+            resourceName: request.ResourceName);
 
         // Return the resource.
         return new CreateResourceResponse
         {
-            ResourceName = resourceName!
+            ResourceName = request.ResourceName
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Contains the parameters for the Create Resource request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used to bind the request body to a strongly-typed object
-    /// when the endpoint is invoked.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets the deserialized request body containing the resource creation parameters.
-        /// </summary>
-        [FromBody]
-        public CreateResourceRequest? Request { get; init; }
     }
 
     #endregion

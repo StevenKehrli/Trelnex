@@ -1,0 +1,21 @@
+﻿{
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withroleandscopeassignments",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-deleteprincipal-withroleandscopeassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withroleandscopeassignments",
+      "_roleName": "role-deleteprincipal-withroleandscopeassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withroleandscopeassignments",
+      "subjectName": "#ROLE#role-deleteprincipal-withroleandscopeassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withroleandscopeassignments",
+      "_scopeName": "scope-deleteprincipal-withroleandscopeassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withroleandscopeassignments",
+      "subjectName": "#SCOPE#scope-deleteprincipal-withroleandscopeassignments"
+    }
+  ]
+}

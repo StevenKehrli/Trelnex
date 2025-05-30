@@ -19,7 +19,7 @@ Trelnex.Auth.Amazon is an OAuth 2.0 authorization server implementation that int
 - **AWS Security Token Service (STS)** integration for caller identity verification
 - **OpenID Connect** standard endpoints for discovery and JWT validation
 
-The service allows applications to securely authenticate users and services, issue signed JWT tokens, and enforce fine-grained authorization rules through a resource-role-scope permission model.
+The service allows applications to securely authenticate users and services, issue signed JWT tokens, and enforce fine-grained authorization rules through a resource-scope-role permission model.
 
 ## Architecture
 
@@ -50,14 +50,22 @@ The service implements the OAuth 2.0 client credentials flow with AWS STS caller
 The permission model is built around four core entities:
 
 1. **Resources** - Protected assets or services requiring access control
-2. **Roles** - Collections of permissions that can be granted for a resource
-3. **Scopes** - Authorization boundaries (e.g., environments, regions) for a resource
+   - Example: `"api://amazon.auth.trelnex.com"`
+2. **Scopes** - Authorization boundaries (e.g., environments, regions) for a resource
+   - Example: `"rbac"`, `"production"`, `".default"`
+3. **Roles** - Collections of permissions that can be granted for a resource
+   - Examples: `"rbac.create"`, `"rbac.read"`, `"rbac.update"`, `"rbac.delete"`
 4. **Principals** - Users or services that are granted access through role assignments
+   - Example: `"arn:aws:iam::123456789012:user/john"`
+
+### Permission Model Features
 
 The system supports:
-- Associating multiple roles with a principal for a specific resource
-- Limiting role permissions to specific scopes
-- Hierarchical permission management and auditability
+- **Dual assignment model**: Both role assignments and scope assignments for fine-grained control
+- **Conditional role access**: Roles are only accessible if the principal has scope assignments
+- **Cascade deletion**: Deleting resources, roles, or scopes automatically removes all associated assignments
+- **Efficient querying**: Optimized DynamoDB schema for both principal-centric and resource-centric queries
+- **Hierarchical permission management** and comprehensive auditability
 
 ## API Endpoints
 
@@ -71,30 +79,62 @@ The service exposes the following endpoints:
 ### RBAC Management Endpoints
 
 #### Resources
-- `POST /api/resources` - Create a new resource
-- `GET /api/resources/{resourceName}` - Get a resource's details
-- `DELETE /api/resources/{resourceName}` - Delete a resource
-
-#### Roles
-- `POST /api/resources/{resourceName}/roles` - Create a new role for a resource
-- `GET /api/resources/{resourceName}/roles/{roleName}` - Get a role's details
-- `DELETE /api/resources/{resourceName}/roles/{roleName}` - Delete a role
+- `POST /resources` - Create a new resource
+- `GET /resources` - Get a resource's details
+- `DELETE /resources` - Delete a resource and all associated roles, scopes, and assignments
 
 #### Scopes
-- `POST /api/resources/{resourceName}/scopes` - Create a new scope for a resource
-- `GET /api/resources/{resourceName}/scopes/{scopeName}` - Get a scope's details
-- `DELETE /api/resources/{resourceName}/scopes/{scopeName}` - Delete a scope
+- `POST /scopes` - Create a new scope for a resource
+- `GET /scopes` - Get a scope's details
+- `DELETE /scopes` - Delete a scope and all associated assignments
 
-#### Principal Memberships
-- `GET /api/principals/{principalId}/memberships/{resourceName}` - Get a principal's roles for a resource
-- `POST /api/principals/{principalId}/memberships/{resourceName}/roles/{roleName}` - Grant a role to a principal
-- `DELETE /api/principals/{principalId}/memberships/{resourceName}/roles/{roleName}` - Revoke a role from a principal
+#### Scope Assignments
+- `POST /assignments/scopes` - Assign a scope to a principal for a resource
+- `GET /assignments/scopes` - Get all principals assigned to a specific scope
+- `DELETE /assignments/scopes` - Remove a scope assignment from a principal
+
+#### Roles
+- `POST /roles` - Create a new role for a resource
+- `GET /roles` - Get a role's details
+- `DELETE /roles` - Delete a role and all associated assignments
 
 #### Role Assignments
-- `GET /api/resources/{resourceName}/roles/{roleName}/assignments` - Get principals assigned to a role
+- `POST /assignments/roles` - Assign a role to a principal for a resource
+- `GET /assignments/roles` - Get all principals assigned to a specific role
+- `DELETE /assignments/roles` - Remove a role assignment from a principal
 
-#### Principals
-- `DELETE /api/principals/{principalId}` - Delete a principal and all its role assignments
+#### Principal Access
+- `GET /assignments/principals` - Get a principal's access permissions (roles and scopes) for a resource
+- `DELETE /assignments/principals` - Delete a principal and all its assignments
+
+### Request/Response Format
+
+All RBAC endpoints use JSON request bodies for parameters rather than URL path parameters. For example:
+
+**Create Resource Request**:
+```json
+{
+  "resourceName": "api://amazon.auth.trelnex.com"
+}
+```
+
+**Create Role Assignment Request**:
+```json
+{
+  "resourceName": "api://amazon.auth.trelnex.com",
+  "roleName": "rbac.create",
+  "principalId": "arn:aws:iam::123456789012:user/john"
+}
+```
+
+**Principal Access Response**:
+```json
+{
+  "resourceName": "api://amazon.auth.trelnex.com",
+  "scopes": ["rbac"],
+  "roles": ["rbac.create", "rbac.read"]
+}
+```
 
 ## Configuration
 
@@ -110,23 +150,23 @@ The service is configured through `appsettings.json` with the following sections
   },
   "Auth": {
     "trelnex-api-rbac": {
-      "Audience": "https://api.example.com",
-      "Authority": "https://auth.example.com",
-      "MetadataAddress": "https://auth.example.com/.well-known/openid-configuration",
+      "Audience": "api://amazon.auth.trelnex.com",
+      "Authority": "https://amazon.auth.trelnex.com",
+      "MetadataAddress": "https://amazon.auth.trelnex.com/.well-known/openid-configuration",
       "Scope": "rbac"
     }
   },
   "Amazon.Credentials": {
     "Region": "us-west-2",
     "AccessTokenClientConfiguration": {
-      "BaseAddress": "https://auth.example.com/"
+      "BaseAddress": "https://amazon.auth.trelnex.com/"
     }
   },
   "JWT": {
     "openid-configuration": {
-      "issuer": "https://auth.example.com",
-      "token_endpoint": "https://auth.example.com/token",
-      "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
+      "issuer": "https://amazon.auth.trelnex.com",
+      "token_endpoint": "https://amazon.auth.trelnex.com/token",
+      "jwks_uri": "https://amazon.auth.trelnex.com/.well-known/jwks.json",
       "response_types_supported": [ "id_token" ],
       "subject_types_supported": [ "public" ],
       "id_token_signing_alg_values_supported": [ "ES256" ]
@@ -145,112 +185,49 @@ The service is configured through `appsettings.json` with the following sections
 
 ## DynamoDB Schema
 
-The RBAC system uses a single DynamoDB table with a composite key structure:
+The RBAC system uses a single DynamoDB table with a composite key structure optimized for efficient querying:
 
-- **Partition Key**: `resourceName` (String) - The name of the resource
+- **Partition Key**: `entityName` (String) - Varies by entity type for optimal data distribution
 - **Sort Key**: `subjectName` (String) - A composite identifier containing the entity type and name
 
-### Item Types and Subject Name Patterns
+### Item Types and Key Patterns
 
 1. **Resources**:
-   - `subjectName`: `"RESOURCE#"`
+   - `entityName`: `"#RESOURCE#"`
+   - `subjectName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
 
-2. **Roles**:
-   - `subjectName`: `"ROLE#{roleName}"`
-   - Example: `"ROLE#admin"`
+2. **Scopes**:
+   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"#SCOPE#rbac"`
 
-3. **Scopes**:
-   - `subjectName`: `"SCOPE#{scopeName}"`
-   - Example: `"SCOPE#production"`
+3. **Scope Assignments (By Principal)**:
+   - `entityName`: `"#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `subjectName`: `"#SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#SCOPE#rbac"`
 
-4. **Principal Roles**:
-   - `subjectName`: `"PRINCIPAL#{principalId}#ROLE#{roleName}"`
-   - Example: `"PRINCIPAL#arn:aws:iam::123456789012:user/john#ROLE#admin"`
+4. **Scope Assignments (By Scope)**:
+   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"#SCOPEASSIGNMENT##SCOPE#rbac#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
 
-## Bootstrap Data
+5. **Roles**:
+   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"#ROLE#rbac.create"`
 
-To bootstrap the system with basic permissions for self-management, you'll need to set up the following entities:
+6. **Role Assignments (By Principal)**:
+   - `entityName`: `"#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `subjectName`: `"#ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#ROLE#rbac.create"`
 
-### 1. Create the `api://amazon.auth.trelnex.com` Resource
+7. **Role Assignments (By Role)**:
+   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"#ROLEASSIGNMENT##ROLE#rbac.create#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
 
-```json
-{
-  "resourceName": "api://amazon.auth.trelnex.com",
-  "subjectName": "RESOURCE#"
-}
-```
+This dual storage pattern enables efficient queries both by principal (to get all assignments for a user) and by role/scope (to get all principals with a specific permission).
 
-### 2. Create Standard RBAC Roles
+### Key Design Benefits
 
-```json
-[
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "ROLE#rbac.create",
-    "roleName": "rbac.create"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "ROLE#rbac.read",
-    "roleName": "rbac.read"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "ROLE#rbac.update",
-    "roleName": "rbac.update"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "ROLE#rbac.delete",
-    "roleName": "rbac.delete"
-  }
-]
-```
-
-### 3. Create Standard Scopes
-
-```json
-[
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "SCOPE#rbac",
-    "scopeName": "rbac"
-  }
-]
-```
-
-### 4. Grant Admin Access to Initial Admin Principal
-
-Replace `{ADMIN_PRINCIPAL_ARN}` with your admin user or role ARN (e.g., `arn:aws:iam::123456789012:user/admin`):
-
-```json
-[
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "PRINCIPAL#{ADMIN_PRINCIPAL_ARN}#ROLE#rbac.create",
-    "principalId": "{ADMIN_PRINCIPAL_ARN}",
-    "roleName": "rbac.create"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "PRINCIPAL#{ADMIN_PRINCIPAL_ARN}#ROLE#rbac.read",
-    "principalId": "{ADMIN_PRINCIPAL_ARN}",
-    "roleName": "rbac.read"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "PRINCIPAL#{ADMIN_PRINCIPAL_ARN}#ROLE#rbac.update",
-    "principalId": "{ADMIN_PRINCIPAL_ARN}",
-    "roleName": "rbac.update"
-  },
-  {
-    "resourceName": "api://amazon.auth.trelnex.com",
-    "subjectName": "PRINCIPAL#{ADMIN_PRINCIPAL_ARN}#ROLE#rbac.delete",
-    "principalId": "{ADMIN_PRINCIPAL_ARN}",
-    "roleName": "rbac.delete"
-  }
-]
-```
+- **Optimized queries**: The dual storage approach allows efficient lookups in both directions
+- **Standardized formatting**: All keys use consistent marker prefixes (`#RESOURCE#`, `#ROLE#`, `#SCOPE#`, etc.)
+- **Hierarchical structure**: Complex subject names enable prefix-based queries
+- **Data locality**: Related items are stored near each other for efficient range queries
 
 ## References
 

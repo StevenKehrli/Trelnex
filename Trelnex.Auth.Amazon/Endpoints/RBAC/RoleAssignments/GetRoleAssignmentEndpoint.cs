@@ -1,8 +1,6 @@
-using System.Net;
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
@@ -21,6 +19,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class GetRoleAssignmentEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(GetRoleAssignmentRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -37,7 +45,7 @@ internal static class GetRoleAssignmentEndpoint
     {
         // Map the GET endpoint for retrieving role assignment information to "/roleassignments".
         erb.MapGet(
-                "/roleassignments",
+                "/assignments/roles",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
             .Accepts<GetRoleAssignmentRequest>(MediaTypeNames.Application.Json)
@@ -47,7 +55,7 @@ internal static class GetRoleAssignmentEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("GetsRoleAssignment")
+            .WithName("GetRoleAssignment")
             .WithDescription("Gets the specified role assignment")
             .WithTags("Role Assignments");
     }
@@ -75,56 +83,25 @@ internal static class GetRoleAssignmentEndpoint
     /// </remarks>
     public static async Task<GetRoleAssignmentResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IRoleNameValidator roleNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] GetRoleAssignmentRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.RoleName is null) throw _validationException;
 
-        vrResourceName.ValidateOrThrow<GetRoleAssignmentRequest>();
+        // Retrieve all principals assigned to the specified role for the resource.
+        var principalIds = await rbacRepository.GetPrincipalsForRoleAsync(
+            resourceName: request.ResourceName,
+            roleName: request.RoleName!);
 
-        // Validate the role name.
-        (var vrRoleName, var roleName) =
-            roleNameValidator.Validate(
-                parameters.Request?.RoleName);
-
-        vrRoleName.ValidateOrThrow<GetRoleAssignmentRequest>();
-
-        // Get the roleAssignment.
-        var roleAssignment = await rbacRepository.GetRoleAssignmentAsync(
-            resourceName: resourceName!,
-            roleName: roleName!) ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound); // If the role assignment is not found, throw a 404 Not Found exception.
-
-        // Return the roleassignment.
+        // Return the role assignment information with all assigned principals.
         return new GetRoleAssignmentResponse
         {
-            ResourceName = roleAssignment.ResourceName,
-            RoleName = roleAssignment.RoleName,
-            PrincipalIds = roleAssignment.PrincipalIds
+            ResourceName = request.ResourceName,
+            RoleName = request.RoleName!,
+            PrincipalIds = principalIds
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Contains the parameters for the Get Role Assignment request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used to bind the request body to a strongly-typed object
-    /// when the endpoint is invoked.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets the deserialized request body containing resource and role information.
-        /// </summary>
-        [FromBody]
-        public GetRoleAssignmentRequest? Request { get; init; }
     }
 
     #endregion

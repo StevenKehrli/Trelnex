@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
@@ -28,6 +27,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class GetRoleEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(GetRoleRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -55,7 +64,7 @@ internal static class GetRoleEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("GetsRole")
+            .WithName("GetRole")
             .WithDescription("Gets the specified role")
             .WithTags("Roles");
     }
@@ -87,28 +96,18 @@ internal static class GetRoleEndpoint
     /// </exception>
     public static async Task<GetRoleResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IRoleNameValidator roleNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] GetRoleRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<GetRoleRequest>();
-
-        // Validate the role name.
-        (var vrRoleName, var roleName) =
-            roleNameValidator.Validate(
-                parameters.Request?.RoleName);
-
-        vrRoleName.ValidateOrThrow<GetRoleRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.RoleName is null) throw _validationException;
 
         // Get the role.
         var role = await rbacRepository.GetRoleAsync(
-            resourceName: resourceName!,
-            roleName: roleName!) ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound); // If the role is not found, throw a 404 Not Found exception.
+            resourceName: request.ResourceName,
+            roleName: request.RoleName!)
+            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound);
 
         // Return the role.
         return new GetRoleResponse
@@ -116,30 +115,6 @@ internal static class GetRoleEndpoint
             ResourceName = role.ResourceName,
             RoleName = role.RoleName
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Encapsulates the parameters for a role information retrieval request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used as a parameter binding model for the API endpoint,
-    /// allowing ASP.NET Core to bind the incoming request body to the request model.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets or initializes the request details for role information retrieval.
-        /// </summary>
-        /// <remarks>
-        /// This property contains the details required for identifying the role to retrieve,
-        /// including the resource name and role name.
-        /// </remarks>
-        [FromBody]
-        public GetRoleRequest? Request { get; init; }
     }
 
     #endregion

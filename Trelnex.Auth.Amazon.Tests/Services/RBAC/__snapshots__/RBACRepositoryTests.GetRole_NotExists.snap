@@ -1,0 +1,10 @@
+﻿{
+  "roleAfter": null,
+  "items": [
+    {
+      "_resourceName": "urn://resource-getrole-notexists",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-getrole-notexists"
+    }
+  ]
+}

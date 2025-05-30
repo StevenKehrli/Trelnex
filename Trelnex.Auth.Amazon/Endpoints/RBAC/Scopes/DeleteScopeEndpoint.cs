@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
 
@@ -28,6 +27,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class DeleteScopeEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(DeleteScopeRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -55,7 +64,7 @@ internal static class DeleteScopeEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("DeletesScope")
+            .WithName("DeleteScope")
             .WithDescription("Deletes the specified scope")
             .WithTags("Scopes");
     }
@@ -82,55 +91,20 @@ internal static class DeleteScopeEndpoint
     /// </exception>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IScopeNameValidator scopeNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] DeleteScopeRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<CreateScopeRequest>();
-
-        // Validate the scope name.
-        (var vrScopeName, var scopeName) =
-            scopeNameValidator.Validate(
-                parameters.Request?.ScopeName);
-
-        vrScopeName.ValidateOrThrow<DeleteScopeRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.ScopeName is null) throw _validationException;
 
         // Delete the scope.
         await rbacRepository.DeleteScopeAsync(
-            resourceName: resourceName!,
-            scopeName: scopeName!);
+            resourceName: request.ResourceName,
+            scopeName: request.ScopeName);
 
         // Return a 200 OK result.
         return Results.Ok();
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Encapsulates the parameters for a scope deletion request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used as a parameter binding model for the API endpoint,
-    /// allowing ASP.NET Core to bind the incoming request body to the request model.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets or initializes the request details for scope deletion.
-        /// </summary>
-        /// <remarks>
-        /// This property contains the details required for identifying the scope to delete,
-        /// including the resource name and scope name.
-        /// </remarks>
-        [FromBody]
-        public DeleteScopeRequest? Request { get; init; }
     }
 
     #endregion

@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
@@ -28,6 +27,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class GetScopeEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(GetScopeRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -55,7 +64,7 @@ internal static class GetScopeEndpoint
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("GetsScope")
+            .WithName("GetScope")
             .WithDescription("Gets the specified scope")
             .WithTags("Scopes");
     }
@@ -87,28 +96,18 @@ internal static class GetScopeEndpoint
     /// </exception>
     public static async Task<GetScopeResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IScopeNameValidator scopeNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] GetScopeRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<GetScopeRequest>();
-
-        // Validate the scope name.
-        (var vrScopeName, var scopeName) =
-            scopeNameValidator.Validate(
-                parameters.Request?.ScopeName);
-
-        vrScopeName.ValidateOrThrow<GetScopeRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.ScopeName is null) throw _validationException;
 
         // Get the scope.
         var scope = await rbacRepository.GetScopeAsync(
-            resourceName: resourceName!,
-            scopeName: scopeName!) ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound); // If the scope is not found, return a 404 Not Found.
+            resourceName: request.ResourceName,
+            scopeName: request.ScopeName)
+            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound); // If the scope is not found, return a 404 Not Found.
 
         // Return the scope.
         return new GetScopeResponse
@@ -116,30 +115,6 @@ internal static class GetScopeEndpoint
             ResourceName = scope.ResourceName,
             ScopeName = scope.ScopeName
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Encapsulates the parameters for a scope information retrieval request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used as a parameter binding model for the API endpoint,
-    /// allowing ASP.NET Core to bind the incoming request body to the request model.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets or initializes the request details for scope information retrieval.
-        /// </summary>
-        /// <remarks>
-        /// This property contains the details required for identifying the scope to retrieve,
-        /// including the resource name and scope name.
-        /// </remarks>
-        [FromBody]
-        public GetScopeRequest? Request { get; init; }
     }
 
     #endregion

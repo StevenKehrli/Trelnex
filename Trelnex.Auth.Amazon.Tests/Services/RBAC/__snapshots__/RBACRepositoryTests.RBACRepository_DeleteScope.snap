@@ -1,9 +1,0 @@
-﻿{
-  "scopeAfter": null,
-  "items": [
-    {
-      "resourceName": "testResource_RBACRepository_DeleteScope",
-      "subjectName": "RESOURCE#"
-    }
-  ]
-}

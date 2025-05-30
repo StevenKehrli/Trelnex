@@ -46,7 +46,8 @@ public interface IResourceNameValidator
 ///
 /// Examples of valid resource names:
 /// - api://amazon.auth.trelnex.com
-/// - http://example.com/resources/reports
+/// - http://example.com/resources
+/// - https://example.com/resources
 /// - urn://authenticated-service.example
 ///
 /// This class leverages FluentValidation for clear, composable validation rules.

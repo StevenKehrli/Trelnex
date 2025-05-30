@@ -3,26 +3,12 @@ using System.Text.Json.Serialization;
 namespace Trelnex.Auth.Amazon.Services.RBAC.Models;
 
 /// <summary>
-/// Represents an authorization boundary (scope) for a specific resource in the RBAC system.
+/// Represents a scope definition for a specific resource in the RBAC system.
 /// </summary>
 /// <remarks>
-/// In Role-Based Access Control (RBAC), a scope defines a context or boundary within which
-/// access permissions are valid. Scopes add an additional dimension to the RBAC model, allowing
-/// permissions to be limited to specific environments, regions, or domains.
-///
-/// Scopes serve several important purposes in the RBAC system:
-///
-/// - They enable fine-grained control by limiting where roles can be exercised
-/// - They support multi-tenancy and isolation between different environments
-/// - They allow for progressive deployment of permissions across different contexts
-///
-/// Common examples of scopes include:
-/// - Environment tiers (development, testing, production)
-/// - Geographical regions (us-east, eu-west)
-/// - Logical domains or business units
-///
-/// Each scope is defined in the context of a specific resource and can be assigned
-/// to principals when granting them roles for that resource.
+/// A scope defines an authorization boundary within a resource that can be assigned to principals.
+/// Scopes allow for fine-grained access control by limiting role assignments to specific contexts
+/// or functional areas within a resource.
 /// </remarks>
 internal class Scope
 {
@@ -31,29 +17,25 @@ internal class Scope
     /// <summary>
     /// Gets the name of the resource to which this scope applies.
     /// </summary>
+    /// <value>
+    /// The resource name, such as "api://amazon.auth.trelnex.com".
+    /// </value>
     /// <remarks>
-    /// The resource name identifies the protected asset (API, service, data, etc.) for which
-    /// this scope is defined. Scopes are resource-specific, meaning they are only valid within
-    /// the context of the specified resource.
-    ///
-    /// Together with the scope name, the resource name forms a composite key that uniquely
-    /// identifies this scope within the RBAC system.
+    /// The resource name provides the context for this scope definition.
+    /// Scopes are always defined within the scope of a specific resource.
     /// </remarks>
     [JsonPropertyName("resourceName")]
     public string ResourceName { get; init; } = null!;
 
     /// <summary>
-    /// Gets the unique name of the scope within the resource context.
+    /// Gets the name of the scope within the resource.
     /// </summary>
+    /// <value>
+    /// The scope name, such as "rbac".
+    /// </value>
     /// <remarks>
-    /// The scope name identifies a specific authorization boundary for the resource.
-    /// Scope names should be descriptive of the context they represent, following
-    /// a consistent naming convention across the system.
-    ///
-    /// When a principal is granted roles for a resource, the assignment includes specific
-    /// scopes to define the boundaries within which those roles can be exercised. If a
-    /// principal attempts to access a resource outside of their assigned scopes, the
-    /// access will be denied even if they have the appropriate roles.
+    /// The scope name uniquely identifies the authorization boundary within the resource.
+    /// Scope names define the specific context or functional area where access control applies.
     /// </remarks>
     [JsonPropertyName("scopeName")]
     public string ScopeName { get; init; } = null!;

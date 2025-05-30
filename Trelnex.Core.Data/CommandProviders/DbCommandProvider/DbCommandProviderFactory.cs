@@ -302,8 +302,13 @@ public abstract class DbCommandProviderFactory : ICommandProviderFactory
         {
             // Get the MapItemProperty method using reflection
             var mapItemPropertyMethod = typeof(DbCommandProviderFactory)
-                .GetMethod(nameof(MapItemProperty), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(typeof(TInterface), typeof(TItem), itemProperty.PropertyType);
+                .GetMethod(
+                    name: nameof(MapItemProperty),
+                    bindingAttr: BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(
+                    typeof(TInterface),
+                    typeof(TItem),
+                    itemProperty.PropertyType);
 
             // Invoke the MapItemProperty method for the current property
             mapItemPropertyMethod.Invoke(

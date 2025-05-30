@@ -1,0 +1,32 @@
+﻿{
+  "principals": [
+    "principal-getprincipalsforscope"
+  ],
+  "items": [
+    {
+      "_resourceName": "urn://resource-getprincipalsforscope",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforscope"
+    },
+    {
+      "_principalId": "principal-getprincipalsforscope",
+      "_resourceName": "urn://resource-getprincipalsforscope",
+      "_scopeName": "scope-getprincipalsforscope",
+      "entityName": "#PRINCIPAL#principal-getprincipalsforscope",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforscope#SCOPE#scope-getprincipalsforscope"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforscope",
+      "_scopeName": "scope-getprincipalsforscope",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforscope",
+      "subjectName": "#SCOPE#scope-getprincipalsforscope"
+    },
+    {
+      "_principalId": "principal-getprincipalsforscope",
+      "_resourceName": "urn://resource-getprincipalsforscope",
+      "_scopeName": "scope-getprincipalsforscope",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforscope",
+      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope#PRINCIPAL#principal-getprincipalsforscope"
+    }
+  ]
+}

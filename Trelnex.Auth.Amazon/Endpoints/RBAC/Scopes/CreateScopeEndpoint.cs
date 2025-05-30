@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Auth.Amazon.Services.Validators;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Validation;
 
@@ -27,6 +26,16 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// </remarks>
 internal static class CreateScopeEndpoint
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Pre-configured validation exception for the request is not valid.
+    /// </summary>
+    private static readonly ValidationException _validationException = new(
+        $"The '{typeof(CreateScopeRequest).Name}' is not valid.");
+
+    #endregion
+
     #region Public Static Methods
 
     /// <summary>
@@ -82,59 +91,24 @@ internal static class CreateScopeEndpoint
     /// </exception>
     public static async Task<CreateScopeResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromServices] IResourceNameValidator resourceNameValidator,
-        [FromServices] IScopeNameValidator scopeNameValidator,
-        [AsParameters] RequestParameters parameters)
+        [FromBody] CreateScopeRequest? request)
     {
-        // Validate the resource name.
-        (var vrResourceName, var resourceName) =
-            resourceNameValidator.Validate(
-                parameters.Request?.ResourceName);
-
-        vrResourceName.ValidateOrThrow<CreateScopeRequest>();
-
-        // Validate the scope name.
-        (var vrScopeName, var scopeName) =
-            scopeNameValidator.Validate(
-                parameters.Request?.ScopeName);
-
-        vrScopeName.ValidateOrThrow<CreateScopeRequest>();
+        // Validate the request.
+        if (request is null) throw _validationException;
+        if (request.ResourceName is null) throw _validationException;
+        if (request.ScopeName is null) throw _validationException;
 
         // Create the scope.
         await rbacRepository.CreateScopeAsync(
-            resourceName: resourceName!,
-            scopeName: scopeName!);
+            resourceName: request.ResourceName,
+            scopeName: request.ScopeName);
 
         // Return the scope.
         return new CreateScopeResponse
         {
-            ResourceName = resourceName!,
-            ScopeName = scopeName!
+            ResourceName = request.ResourceName,
+            ScopeName = request.ScopeName
         };
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Encapsulates the parameters for a scope creation request.
-    /// </summary>
-    /// <remarks>
-    /// This class is used as a parameter binding model for the API endpoint,
-    /// allowing ASP.NET Core to bind the incoming request body to the request model.
-    /// </remarks>
-    public class RequestParameters
-    {
-        /// <summary>
-        /// Gets or initializes the request details for scope creation.
-        /// </summary>
-        /// <remarks>
-        /// This property contains the details required for creating a new scope,
-        /// including the resource name and scope name.
-        /// </remarks>
-        [FromBody]
-        public CreateScopeRequest? Request { get; init; }
     }
 
     #endregion

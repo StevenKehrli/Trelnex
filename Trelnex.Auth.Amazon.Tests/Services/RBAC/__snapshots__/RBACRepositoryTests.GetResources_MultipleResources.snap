@@ -1,0 +1,24 @@
+﻿{
+  "resourcesAfter": [
+    "urn://resource-1-getresources-multipleresources",
+    "urn://resource-2-getresources-multipleresources",
+    "urn://resource-3-getresources-multipleresources"
+  ],
+  "items": [
+    {
+      "_resourceName": "urn://resource-1-getresources-multipleresources",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-1-getresources-multipleresources"
+    },
+    {
+      "_resourceName": "urn://resource-2-getresources-multipleresources",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-2-getresources-multipleresources"
+    },
+    {
+      "_resourceName": "urn://resource-3-getresources-multipleresources",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-3-getresources-multipleresources"
+    }
+  ]
+}

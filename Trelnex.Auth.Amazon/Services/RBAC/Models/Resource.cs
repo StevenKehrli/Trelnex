@@ -6,16 +6,8 @@ namespace Trelnex.Auth.Amazon.Services.RBAC.Models;
 /// Represents a protected resource in the RBAC system with its associated roles and scopes.
 /// </summary>
 /// <remarks>
-/// In Role-Based Access Control (RBAC), a resource is an asset, API, service, or data
-/// that requires access control. Each resource is configured with:
-///
-/// - A unique identifying name
-/// - A set of scopes (authorization boundaries) in which access can be granted
-/// - A set of roles defining the different permission levels available for the resource
-///
-/// Resources serve as the foundation of the RBAC system, defining what is being protected
-/// and the available permission structures. Resources must be defined before roles can be
-/// created or principals can be granted access to them.
+/// A resource represents any protected asset that requires access control, such as "api://amazon.auth.trelnex.com".
+/// Resources define the available scopes and roles that can be assigned to principals for access control.
 /// </remarks>
 internal class Resource
 {
@@ -24,11 +16,12 @@ internal class Resource
     /// <summary>
     /// Gets the unique name of the resource.
     /// </summary>
+    /// <value>
+    /// The resource name, such as "api://amazon.auth.trelnex.com".
+    /// </value>
     /// <remarks>
-    /// The resource name serves as the primary identifier for a protected asset within the RBAC system.
-    /// This is typically an API name, service identifier, or other unique string that identifies
-    /// what is being protected. The name should be concise, descriptive, and follow a consistent
-    /// naming convention across the organization.
+    /// The resource name serves as a unique identifier for the protected asset
+    /// and is used as the context for all role and scope assignments.
     /// </remarks>
     [JsonPropertyName("resourceName")]
     public string ResourceName { get; init; } = null!;
@@ -36,14 +29,12 @@ internal class Resource
     /// <summary>
     /// Gets the collection of all available scopes defined for this resource.
     /// </summary>
+    /// <value>
+    /// An array of scope names, such as ["rbac"].
+    /// </value>
     /// <remarks>
-    /// Scopes represent the authorization boundaries or contexts in which access to the resource
-    /// can be granted. Common examples include environments (dev, test, prod), geographical regions,
-    /// or logical domains.
-    ///
-    /// Each scope represents a distinct authorization boundary within which role assignments can be made.
-    /// When a principal is granted access to a resource, specific scopes must be selected to define
-    /// the contexts in which that access is valid.
+    /// Scopes define authorization boundaries that can be assigned to principals.
+    /// These are the available scope options for this specific resource.
     /// </remarks>
     [JsonPropertyName("scopeNames")]
     public string[] ScopeNames { get; init; } = null!;
@@ -51,16 +42,14 @@ internal class Resource
     /// <summary>
     /// Gets the collection of all available roles defined for this resource.
     /// </summary>
+    /// <value>
+    /// An array of role names, such as ["rbac.create", "rbac.read", "rbac.update", "rbac.delete"].
+    /// </value>
     /// <remarks>
-    /// Roles represent distinct permission sets that can be assigned to principals for this resource.
-    /// Each role typically corresponds to a specific function or permission level (e.g., "Reader",
-    /// "Contributor", "Administrator").
-    ///
-    /// Roles are defined at the resource level, meaning each resource can have its own set of
-    /// roles tailored to its specific access control requirements. When granting access to principals,
-    /// one or more of these roles can be assigned within the context of selected scopes.
+    /// Roles define specific permissions that can be assigned to principals.
+    /// These are the available role options for this specific resource.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [JsonPropertyName("roleNames")]
     public string[] RoleNames { get; init; } = null!;
 
     #endregion

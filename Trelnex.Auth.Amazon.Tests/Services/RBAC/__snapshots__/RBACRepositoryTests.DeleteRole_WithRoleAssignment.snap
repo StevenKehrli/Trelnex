@@ -1,0 +1,15 @@
+﻿{
+  "principalAccessAfter": {
+    "PrincipalId": "principal-deleterole-withroleassignment",
+    "ResourceName": "urn://resource-deleterole-withroleassignment",
+    "ScopeNames": [],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleterole-withroleassignment",
+      "entityName": "#RESOURCE#",
+      "subjectName": "#RESOURCE#urn://resource-deleterole-withroleassignment"
+    }
+  ]
+}

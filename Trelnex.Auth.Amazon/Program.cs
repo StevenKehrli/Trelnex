@@ -130,13 +130,9 @@ internal static class AuthApplication
         GetJsonWebKeySetEndpoint.Map(erb);
         GetOpenIdConfigurationEndpoint.Map(erb);
 
-        // RBAC - principal memberships.
-        GetPrincipalMembershipEndpoint.Map(erb);
-        GrantPrincipalMembershipEndpoint.Map(erb);
-        RevokePrincipalMembershipEndpoint.Map(erb);
-
         // RBAC - principals.
         DeletePrincipalEndpoint.Map(erb);
+        GetPrincipalAccessEndpoint.Map(erb);
 
         // RBAC - resources.
         CreateResourceEndpoint.Map(erb);
@@ -144,12 +140,19 @@ internal static class AuthApplication
         GetResourceEndpoint.Map(erb);
 
         // RBAC - role assignments.
+        CreateRoleAssignmentEndpoint.Map(erb);
+        DeleteRoleAssignmentEndpoint.Map(erb);
         GetRoleAssignmentEndpoint.Map(erb);
 
         // RBAC - roles.
         CreateRoleEndpoint.Map(erb);
         DeleteRoleEndpoint.Map(erb);
         GetRoleEndpoint.Map(erb);
+
+        // RBAC - scope assignments.
+        CreateScopeAssignmentEndpoint.Map(erb);
+        DeleteScopeAssignmentEndpoint.Map(erb);
+        GetRoleAssignmentEndpoint.Map(erb);
 
         // RBAC - scopes.
         CreateScopeEndpoint.Map(erb);
