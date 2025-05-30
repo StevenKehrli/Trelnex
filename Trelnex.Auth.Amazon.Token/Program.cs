@@ -21,11 +21,40 @@ public class Program
     /// <param name="args">Command-line arguments.</param>
     public static void Main(string[] args)
     {
+        // Process command-line arguments using CommandLineParser library.
+        Parser.Default
+            .ParseArguments<Options>(args)
+            .WithParsed(o =>
+            {
+                try
+                {
+                    HandleOptions(o);
+                }
+                catch (Exception ex)
+                {
+                    // Log any exceptions that occur during token acquisition.
+                    Console.WriteLine($"Error obtaining the access token: {ex.Message}");
+
+                    // Exit with non-zero status code to indicate failure to the caller.
+                    Environment.Exit(1);
+                }
+            });
+    }
+
+    /// <summary>
+    /// Handles the command-line options by obtaining an access token from the OAuth 2.0 server.
+    /// </summary>
+    /// <param name="options">The parsed command-line options containing authentication configuration.</param>
+    /// <returns>A task representing the asynchronous token acquisition operation.</returns>
+    private static void HandleOptions(
+        Options options)
+    {
         // Create the ILogger for logging console output and diagnostic information.
         using var factory = LoggerFactory.Create(builder => builder.AddConsole());
         var logger = factory.CreateLogger<Program>();
 
-        // Configure JSON serializer options for token output formatting.
+        // Configure JSON serializer options for consistent token output formatting.
+        // This ensures the access token is displayed in a readable, properly indented format.
         var jsonSerializerOptions = new JsonSerializerOptions()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -33,57 +62,45 @@ public class Program
             WriteIndented = true
         };
 
-        // Process command-line arguments using CommandLineParser library.
-        Parser.Default
-            .ParseArguments<Options>(args)
-            .WithParsed<Options>(o =>
-            {
-                try
-                {
-                    // Create the access token client configuration with the specified server URI.
-                    var clientConfiguration = new AccessTokenClientConfiguration(
-                        BaseAddress: o.Uri);
+        // Create the access token client configuration with the specified OAuth 2.0 server URI.
+        // This tells the credentials manager where to send token requests.
+        var clientConfiguration = new AccessTokenClientConfiguration(
+            BaseAddress: options.Uri);
 
-                    // Set up AWS credential options with the specified region and client configuration.
-                    var credentialOptions = new AmazonCredentialOptions(
-                        Region: o.Region,
-                        AccessTokenClient: clientConfiguration);
+        // Set up AWS credential options combining the AWS region and OAuth 2.0 client configuration.
+        // The region is used for STS operations to get caller identity and sign requests.
+        var credentialOptions = new AmazonCredentialOptions(
+            Region: options.Region,
+            AccessTokenClient: clientConfiguration);
 
-                    // Create the AWS credentials manager.
-                    var credentialsManager = AWSCredentialsManager
-                        .Create(logger: logger, options: credentialOptions)
-                        .GetAwaiter()
-                        .GetResult();
+        // Create the AWS credentials manager using the default AWS credential chain.
+        // This handles the integration between AWS credentials and OAuth 2.0 token acquisition.
+        var credentialsManager = AWSCredentialsManager
+            .Create(logger: logger, options: credentialOptions)
+            .GetAwaiter()
+            .GetResult();
 
-                    // Request an access token using the client credentials flow.
-                    var accessToken = credentialsManager
-                        .GetAccessToken(scope: o.Scope)
-                        .GetAwaiter()
-                        .GetResult();
+        // Request an access token using the client credentials OAuth 2.0 flow.
+        // The scope determines what resources and permissions the token will grant access to.
+        var accessToken = credentialsManager
+            .GetAccessToken(scope: options.Scope)
+            .GetAwaiter()
+            .GetResult();
 
-                    // Serialize the access token to JSON and write to the console.
-                    var json = JsonSerializer.Serialize(accessToken, jsonSerializerOptions);
-                    Console.WriteLine(json);
-                }
-                catch (Exception ex)
-                {
-                    // Log any exceptions that occur during token acquisition.
-                    logger.LogError(ex, "Error obtaining access token: {Message}", ex.Message);
-
-                    // Exit with non-zero status code to indicate failure to the caller.
-                    Environment.Exit(1);
-                }
-            });
+        // Serialize the access token response to formatted JSON and output to console.
+        // This allows the token to be easily consumed by other tools or scripts.
+        var json = JsonSerializer.Serialize(accessToken, jsonSerializerOptions);
+        Console.WriteLine(json);
     }
 }
 
 /// <summary>
-/// Defines the command-line options.
+/// Defines the command-line options for token acquisition.
 /// </summary>
 public class Options
 {
     /// <summary>
-    /// Gets or sets the AWS region name.
+    /// Gets or sets the AWS region name for the SecurityTokenService.
     /// </summary>
     [Option('r', "region", Required = true, HelpText = "The AWS region name of the SecurityTokenService to sign and validate the request.")]
     public required string Region { get; set; } = null!;

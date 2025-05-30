@@ -152,7 +152,7 @@ internal static class AuthApplication
         // RBAC - scope assignments.
         CreateScopeAssignmentEndpoint.Map(erb);
         DeleteScopeAssignmentEndpoint.Map(erb);
-        GetRoleAssignmentEndpoint.Map(erb);
+        GetScopeAssignmentEndpoint.Map(erb);
 
         // RBAC - scopes.
         CreateScopeEndpoint.Map(erb);

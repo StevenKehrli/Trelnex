@@ -47,7 +47,6 @@ public partial class RBACRepositoryTests
         _tableName = tableName;
 
         // Create the RBAC repository with the validator, client, and table name.
-        // The ScopeNameValidator ensures scope names adhere to required format rules.
         _repository = new RBACRepository(
             new ResourceNameValidator(),
             new ScopeNameValidator(),
