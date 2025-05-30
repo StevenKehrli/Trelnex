@@ -22,11 +22,6 @@
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope"
-    },
-    {
-      "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "subjectName": "#ROLE#role-getprincipalaccesswithscope-nomatchingscope"
@@ -56,6 +51,11 @@
       "_scopeName": "scope-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccesswithscope-nomatchingscope#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope"
     }
   ]
 }

@@ -4,9 +4,11 @@
   ],
   "itemsAfterFirst": [
     {
+      "_principalId": "principal-createscopeassignment-alreadyexists",
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
+      "_scopeName": "scope-createscopeassignment-alreadyexists",
+      "entityName": "#PRINCIPAL#principal-createscopeassignment-alreadyexists",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-alreadyexists#SCOPE#scope-createscopeassignment-alreadyexists"
     },
     {
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
@@ -22,11 +24,9 @@
       "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment-alreadyexists#PRINCIPAL#principal-createscopeassignment-alreadyexists"
     },
     {
-      "_principalId": "principal-createscopeassignment-alreadyexists",
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "_scopeName": "scope-createscopeassignment-alreadyexists",
-      "entityName": "#PRINCIPAL#principal-createscopeassignment-alreadyexists",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-alreadyexists#SCOPE#scope-createscopeassignment-alreadyexists"
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
     }
   ],
   "principalsAfterSecond": [
@@ -34,9 +34,11 @@
   ],
   "itemsAfterSecond": [
     {
+      "_principalId": "principal-createscopeassignment-alreadyexists",
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
+      "_scopeName": "scope-createscopeassignment-alreadyexists",
+      "entityName": "#PRINCIPAL#principal-createscopeassignment-alreadyexists",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-alreadyexists#SCOPE#scope-createscopeassignment-alreadyexists"
     },
     {
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
@@ -52,11 +54,9 @@
       "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment-alreadyexists#PRINCIPAL#principal-createscopeassignment-alreadyexists"
     },
     {
-      "_principalId": "principal-createscopeassignment-alreadyexists",
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "_scopeName": "scope-createscopeassignment-alreadyexists",
-      "entityName": "#PRINCIPAL#principal-createscopeassignment-alreadyexists",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-alreadyexists#SCOPE#scope-createscopeassignment-alreadyexists"
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
     }
   ]
 }

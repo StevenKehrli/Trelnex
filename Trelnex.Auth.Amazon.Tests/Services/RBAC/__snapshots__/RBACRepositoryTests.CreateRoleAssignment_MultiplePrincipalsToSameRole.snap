@@ -6,10 +6,10 @@
   ],
   "items": [
     {
-      "_principalId": "principal-3-createroleassignment-multipleprincipalstosamerole",
+      "_principalId": "principal-1-createroleassignment-multipleprincipalstosamerole",
       "_resourceName": "urn://resource-createroleassignment-multipleprincipalstosamerole",
       "_roleName": "role-createroleassignment-multipleprincipalstosamerole",
-      "entityName": "#PRINCIPAL#principal-3-createroleassignment-multipleprincipalstosamerole",
+      "entityName": "#PRINCIPAL#principal-1-createroleassignment-multipleprincipalstosamerole",
       "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole#ROLE#role-createroleassignment-multipleprincipalstosamerole"
     },
     {
@@ -20,16 +20,11 @@
       "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole#ROLE#role-createroleassignment-multipleprincipalstosamerole"
     },
     {
-      "_principalId": "principal-1-createroleassignment-multipleprincipalstosamerole",
+      "_principalId": "principal-3-createroleassignment-multipleprincipalstosamerole",
       "_resourceName": "urn://resource-createroleassignment-multipleprincipalstosamerole",
       "_roleName": "role-createroleassignment-multipleprincipalstosamerole",
-      "entityName": "#PRINCIPAL#principal-1-createroleassignment-multipleprincipalstosamerole",
+      "entityName": "#PRINCIPAL#principal-3-createroleassignment-multipleprincipalstosamerole",
       "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole#ROLE#role-createroleassignment-multipleprincipalstosamerole"
-    },
-    {
-      "_resourceName": "urn://resource-createroleassignment-multipleprincipalstosamerole",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole"
     },
     {
       "_resourceName": "urn://resource-createroleassignment-multipleprincipalstosamerole",
@@ -57,6 +52,11 @@
       "_roleName": "role-createroleassignment-multipleprincipalstosamerole",
       "entityName": "#RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole",
       "subjectName": "#ROLEASSIGNMENT##ROLE#role-createroleassignment-multipleprincipalstosamerole#PRINCIPAL#principal-3-createroleassignment-multipleprincipalstosamerole"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment-multipleprincipalstosamerole",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createroleassignment-multipleprincipalstosamerole"
     }
   ]
 }

@@ -12,11 +12,6 @@
     },
     {
       "_resourceName": "urn://resource-getprincipalsforscope",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalsforscope"
-    },
-    {
-      "_resourceName": "urn://resource-getprincipalsforscope",
       "_scopeName": "scope-getprincipalsforscope",
       "entityName": "#RESOURCE#urn://resource-getprincipalsforscope",
       "subjectName": "#SCOPE#scope-getprincipalsforscope"
@@ -27,6 +22,11 @@
       "_scopeName": "scope-getprincipalsforscope",
       "entityName": "#RESOURCE#urn://resource-getprincipalsforscope",
       "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope#PRINCIPAL#principal-getprincipalsforscope"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforscope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforscope"
     }
   ]
 }
