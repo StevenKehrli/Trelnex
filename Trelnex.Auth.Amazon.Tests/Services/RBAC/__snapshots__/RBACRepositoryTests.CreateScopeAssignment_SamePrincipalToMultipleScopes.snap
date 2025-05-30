@@ -10,11 +10,6 @@
   ],
   "items": [
     {
-      "_resourceName": "urn://resource-createscopeassignment-sameprincipaltomultiplescopes",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-sameprincipaltomultiplescopes"
-    },
-    {
       "_principalId": "principal-createscopeassignment-sameprincipaltomultiplescopes",
       "_resourceName": "urn://resource-createscopeassignment-sameprincipaltomultiplescopes",
       "_scopeName": "scope-1-createscopeassignment-sameprincipaltomultiplescopes",
@@ -73,6 +68,11 @@
       "_scopeName": "scope-3-createscopeassignment-sameprincipaltomultiplescopes",
       "entityName": "#RESOURCE#urn://resource-createscopeassignment-sameprincipaltomultiplescopes",
       "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-3-createscopeassignment-sameprincipaltomultiplescopes#PRINCIPAL#principal-createscopeassignment-sameprincipaltomultiplescopes"
+    },
+    {
+      "_resourceName": "urn://resource-createscopeassignment-sameprincipaltomultiplescopes",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-sameprincipaltomultiplescopes"
     }
   ]
 }

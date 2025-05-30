@@ -12,11 +12,6 @@
   "items": [
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope"
-    },
-    {
-      "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_roleName": "role-getprincipalaccesswithscope-defaultscope",
       "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
       "subjectName": "#ROLE#role-getprincipalaccesswithscope-defaultscope"
@@ -54,6 +49,11 @@
       "_scopeName": "scope-getprincipalaccesswithscope-defaultscope",
       "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope",
       "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope#SCOPE#scope-getprincipalaccesswithscope-defaultscope"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope"
     }
   ]
 }

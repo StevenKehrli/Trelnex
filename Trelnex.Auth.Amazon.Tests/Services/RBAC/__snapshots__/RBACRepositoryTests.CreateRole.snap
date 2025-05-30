@@ -6,7 +6,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-createrole",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-createrole"
     },
     {

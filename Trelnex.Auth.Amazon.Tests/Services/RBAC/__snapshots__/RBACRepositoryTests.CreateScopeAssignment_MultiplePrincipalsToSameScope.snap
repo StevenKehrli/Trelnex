@@ -7,11 +7,6 @@
   "items": [
     {
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope"
-    },
-    {
-      "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "subjectName": "#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
@@ -57,6 +52,11 @@
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "#PRINCIPAL#principal-3-createscopeassignment-multipleprincipalstosamescope",
       "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
+    },
+    {
+      "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope"
     }
   ]
 }

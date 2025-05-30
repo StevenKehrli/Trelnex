@@ -8,7 +8,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-getprincipalaccess-withnoassignments",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-getprincipalaccess-withnoassignments"
     }
   ]

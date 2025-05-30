@@ -37,10 +37,10 @@ internal class ResourceItem(
     #region Public Properties
 
     /// <inheritdoc/>
-    public override string EntityName => RBACFormatter.RESOURCE_MARKER;
+    public override string EntityName => ItemName.ROOT_MARKER;
 
     /// <inheritdoc/>
-    public override string SubjectName => RBACFormatter.FormatResourceName(resourceName);
+    public override string SubjectName => ItemName.FormatResource(resourceName);
 
     /// <summary>
     /// Gets the name of the resource.
@@ -66,7 +66,8 @@ internal class ResourceItem(
     {
         return new QueryRequestBuilder()
             .WithTableName(tableName)
-            .EntityNameEquals(RBACFormatter.RESOURCE_MARKER)
+            .EntityNameEquals(ItemName.ROOT_MARKER)
+            .SubjectNameBeginsWith(ItemName.RESOURCE_MARKER)
             .Build();
     }
 

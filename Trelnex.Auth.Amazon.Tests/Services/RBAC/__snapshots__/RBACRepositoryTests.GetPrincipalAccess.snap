@@ -12,11 +12,6 @@
   "items": [
     {
       "_resourceName": "urn://resource-getprincipalaccess",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess"
-    },
-    {
-      "_resourceName": "urn://resource-getprincipalaccess",
       "_roleName": "role-getprincipalaccess",
       "entityName": "#RESOURCE#urn://resource-getprincipalaccess",
       "subjectName": "#ROLE#role-getprincipalaccess"
@@ -54,6 +49,11 @@
       "_scopeName": "scope-getprincipalaccess",
       "entityName": "#PRINCIPAL#principal-getprincipalaccess",
       "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess#SCOPE#scope-getprincipalaccess"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess"
     }
   ]
 }

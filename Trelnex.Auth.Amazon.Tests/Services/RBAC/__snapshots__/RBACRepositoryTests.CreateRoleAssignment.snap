@@ -4,11 +4,6 @@
   ],
   "items": [
     {
-      "_resourceName": "urn://resource-createroleassignment",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-createroleassignment"
-    },
-    {
       "_principalId": "principal-createroleassignment",
       "_resourceName": "urn://resource-createroleassignment",
       "_roleName": "role-createroleassignment",
@@ -27,6 +22,11 @@
       "_roleName": "role-createroleassignment",
       "entityName": "#RESOURCE#urn://resource-createroleassignment",
       "subjectName": "#ROLEASSIGNMENT##ROLE#role-createroleassignment#PRINCIPAL#principal-createroleassignment"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createroleassignment"
     }
   ]
 }

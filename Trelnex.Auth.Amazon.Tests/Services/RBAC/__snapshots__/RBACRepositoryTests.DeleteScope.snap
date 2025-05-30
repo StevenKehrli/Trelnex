@@ -3,7 +3,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-deletescope",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-deletescope"
     }
   ]

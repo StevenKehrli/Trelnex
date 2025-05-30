@@ -5,7 +5,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-getresources-oneresource",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-getresources-oneresource"
     }
   ]

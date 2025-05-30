@@ -3,14 +3,14 @@
   "items": [
     {
       "_resourceName": "urn://resource-getprincipalsforrole-noprincipals",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalsforrole-noprincipals"
-    },
-    {
-      "_resourceName": "urn://resource-getprincipalsforrole-noprincipals",
       "_roleName": "role-getprincipalsforrole-noprincipals",
       "entityName": "#RESOURCE#urn://resource-getprincipalsforrole-noprincipals",
       "subjectName": "#ROLE#role-getprincipalsforrole-noprincipals"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforrole-noprincipals",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforrole-noprincipals"
     }
   ]
 }

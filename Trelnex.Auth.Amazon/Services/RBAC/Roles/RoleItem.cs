@@ -45,10 +45,10 @@ internal class RoleItem(
     #region Public Properties
 
     /// <inheritdoc/>
-    public override string EntityName => RBACFormatter.FormatResourceName(resourceName);
+    public override string EntityName => ItemName.FormatResource(resourceName);
 
     /// <inheritdoc/>
-    public override string SubjectName => RBACFormatter.FormatRoleName(roleName);
+    public override string SubjectName => ItemName.FormatRole(roleName);
 
     /// <summary>
     /// Gets the name of the resource that owns this role.
@@ -82,12 +82,12 @@ internal class RoleItem(
         string tableName,
         string resourceName)
     {
-        var entityName = RBACFormatter.FormatResourceName(resourceName);
+        var entityName = ItemName.FormatResource(resourceName);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)
             .EntityNameEquals(entityName)
-            .SubjectNameBeginsWith(RBACFormatter.ROLE_MARKER)
+            .SubjectNameBeginsWith(ItemName.ROLE_MARKER)
             .Build();
     }
 

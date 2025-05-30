@@ -54,10 +54,10 @@ internal class ByPrincipalItem(
     #region Public Properties
 
     /// <inheritdoc/>
-    public override string EntityName => RBACFormatter.FormatPrincipalName(principalId);
+    public override string EntityName => ItemName.FormatPrincipal(principalId);
 
     /// <inheritdoc/>
-    public override string SubjectName => RBACFormatter.FormatRoleAssignmentNameByRole(
+    public override string SubjectName => ItemName.FormatRoleAssignmentByRole(
         resourceName: resourceName,
         roleName: roleName);
 
@@ -101,12 +101,12 @@ internal class ByPrincipalItem(
         string tableName,
         string principalId)
     {
-        var entityName = RBACFormatter.FormatPrincipalName(principalId);
+        var entityName = ItemName.FormatPrincipal(principalId);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)
             .EntityNameEquals(entityName)
-            .SubjectNameBeginsWith(RBACFormatter.ROLEASSIGNMENT_MARKER)
+            .SubjectNameBeginsWith(ItemName.ROLEASSIGNMENT_MARKER)
             .Build();
     }
 
@@ -115,8 +115,8 @@ internal class ByPrincipalItem(
         string principalId,
         string resourceName)
     {
-        var entityName = RBACFormatter.FormatPrincipalName(principalId);
-        var subjectNameBeginsWith = RBACFormatter.FormatRoleAssignmentNameByRole(resourceName);
+        var entityName = ItemName.FormatPrincipal(principalId);
+        var subjectNameBeginsWith = ItemName.FormatRoleAssignmentByRole(resourceName);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)

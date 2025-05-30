@@ -5,7 +5,7 @@
   "itemsAfterFirst": [
     {
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
     },
     {
@@ -35,7 +35,7 @@
   "itemsAfterSecond": [
     {
       "_resourceName": "urn://resource-createscopeassignment-alreadyexists",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-createscopeassignment-alreadyexists"
     },
     {

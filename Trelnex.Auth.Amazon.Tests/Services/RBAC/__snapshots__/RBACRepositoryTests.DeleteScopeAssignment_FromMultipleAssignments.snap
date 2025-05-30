@@ -5,16 +5,16 @@
   ],
   "items": [
     {
-      "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments"
-    },
-    {
       "_principalId": "principal-1-deletescopeassignment-frommultipleassignments",
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
       "_scopeName": "scope-deletescopeassignment-frommultipleassignments",
       "entityName": "#PRINCIPAL#principal-1-deletescopeassignment-frommultipleassignments",
       "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments#SCOPE#scope-deletescopeassignment-frommultipleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments"
     },
     {
       "_principalId": "principal-3-deletescopeassignment-frommultipleassignments",

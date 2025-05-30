@@ -8,7 +8,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleterole-withroleassignment",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-deleterole-withroleassignment"
     }
   ]

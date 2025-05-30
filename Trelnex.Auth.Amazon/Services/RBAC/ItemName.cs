@@ -8,7 +8,7 @@ namespace Trelnex.Auth.Amazon.Services.RBAC;
 /// It ensures consistent naming patterns across all RBAC entities including principals, resources, roles, scopes,
 /// and their assignments.
 /// </remarks>
-public static class RBACFormatter
+internal static class ItemName
 {
     /// <summary>
     /// The marker prefix used to identify principal-related entries.
@@ -31,6 +31,11 @@ public static class RBACFormatter
     public const string ROLE_MARKER = "#ROLE#";
 
     /// <summary>
+    /// The marker prefix used to identify root-level entries.
+    /// </summary>
+    public const string ROOT_MARKER = "#ROOT#";
+
+    /// <summary>
     /// The marker prefix used to identify scope assignment entries.
     /// </summary>
     public const string SCOPEASSIGNMENT_MARKER = "#SCOPEASSIGNMENT#";
@@ -48,7 +53,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
-    public static string FormatPrincipalName(
+    public static string FormatPrincipal(
         string principalId)
     {
         return $"{PRINCIPAL_MARKER}{principalId}";
@@ -62,7 +67,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#RESOURCE#api://amazon.auth.trelnex.com"
     /// </example>
-    public static string FormatResourceName(
+    public static string FormatResource(
         string resourceName)
     {
         return $"{RESOURCE_MARKER}{resourceName}";
@@ -77,7 +82,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#ROLEASSIGNMENT##ROLE#rbac.create#PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
-    public static string FormatRoleAssignmentNameByPrincipal(
+    public static string FormatRoleAssignmentByPrincipal(
         string roleName,
         string? principalId = null)
     {
@@ -93,7 +98,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#ROLE#rbac.create"
     /// </example>
-    public static string FormatRoleAssignmentNameByRole(
+    public static string FormatRoleAssignmentByRole(
         string resourceName,
         string? roleName = null)
     {
@@ -108,7 +113,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#ROLE#rbac.create"
     /// </example>
-    public static string FormatRoleName(
+    public static string FormatRole(
         string roleName)
     {
         return $"{ROLE_MARKER}{roleName}";
@@ -123,7 +128,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#SCOPEASSIGNMENT##SCOPE#rbac#PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
-    public static string FormatScopeAssignmentNameByPrincipal(
+    public static string FormatScopeAssignmentByPrincipal(
         string scopeName,
         string? principalId = null)
     {
@@ -139,7 +144,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#SCOPE#rbac"
     /// </example>
-    public static string FormatScopeAssignmentNameByScope(
+    public static string FormatScopeAssignmentByScope(
         string resourceName,
         string? scopeName = null)
     {
@@ -154,7 +159,7 @@ public static class RBACFormatter
     /// <example>
     /// Returns: "#SCOPE#rbac"
     /// </example>
-    public static string FormatScopeName(
+    public static string FormatScope(
         string scopeName)
     {
         return $"{SCOPE_MARKER}{scopeName}";

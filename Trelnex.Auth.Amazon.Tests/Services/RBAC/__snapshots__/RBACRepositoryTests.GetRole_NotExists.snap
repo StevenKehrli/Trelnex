@@ -3,7 +3,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-getrole-notexists",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-getrole-notexists"
     }
   ]

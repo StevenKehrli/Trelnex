@@ -54,10 +54,10 @@ internal class ByScopeItem(
     #region Public Properties
 
     /// <inheritdoc/>
-    public override string EntityName => RBACFormatter.FormatResourceName(resourceName);
+    public override string EntityName => ItemName.FormatResource(resourceName);
 
     /// <inheritdoc/>
-    public override string SubjectName => RBACFormatter.FormatScopeAssignmentNameByPrincipal(
+    public override string SubjectName => ItemName.FormatScopeAssignmentByPrincipal(
         scopeName: scopeName,
         principalId: principalId);
 
@@ -101,12 +101,12 @@ internal class ByScopeItem(
         string tableName,
         string resourceName)
     {
-        var entityName = RBACFormatter.FormatResourceName(resourceName);
+        var entityName = ItemName.FormatResource(resourceName);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)
             .EntityNameEquals(entityName)
-            .SubjectNameBeginsWith(RBACFormatter.SCOPEASSIGNMENT_MARKER)
+            .SubjectNameBeginsWith(ItemName.SCOPEASSIGNMENT_MARKER)
             .Build();
     }
 
@@ -124,8 +124,8 @@ internal class ByScopeItem(
         string resourceName,
         string scopeName)
     {
-        var entityName = RBACFormatter.FormatResourceName(resourceName);
-        var subjectName = RBACFormatter.FormatScopeAssignmentNameByPrincipal(scopeName);
+        var entityName = ItemName.FormatResource(resourceName);
+        var subjectName = ItemName.FormatScopeAssignmentByPrincipal(scopeName);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)

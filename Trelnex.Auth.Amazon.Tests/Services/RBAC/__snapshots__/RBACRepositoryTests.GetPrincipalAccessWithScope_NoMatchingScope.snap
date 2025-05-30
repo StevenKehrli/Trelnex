@@ -7,11 +7,6 @@
   },
   "items": [
     {
-      "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope"
-    },
-    {
       "_principalId": "principal-getprincipalaccesswithscope-nomatchingscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingscope",
@@ -24,6 +19,11 @@
       "_scopeName": "scope-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope",
       "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope#SCOPE#scope-getprincipalaccesswithscope-nomatchingscope"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",

@@ -3,7 +3,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleterole",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-deleterole"
     }
   ]

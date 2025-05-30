@@ -2,7 +2,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleteprincipal-withroleandscopeassignments",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-deleteprincipal-withroleandscopeassignments"
     },
     {

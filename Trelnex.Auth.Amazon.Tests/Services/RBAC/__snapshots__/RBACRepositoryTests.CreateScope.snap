@@ -12,7 +12,7 @@
     },
     {
       "_resourceName": "urn://resource-createscope",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-createscope"
     }
   ]

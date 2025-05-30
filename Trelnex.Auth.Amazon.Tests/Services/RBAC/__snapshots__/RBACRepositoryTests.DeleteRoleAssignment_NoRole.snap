@@ -2,7 +2,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleteroleassignment-norole",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-deleteroleassignment-norole"
     }
   ]

@@ -45,10 +45,10 @@ internal class ScopeItem(
     #region Public Properties
 
     /// <inheritdoc/>
-    public override string EntityName => RBACFormatter.FormatResourceName(resourceName);
+    public override string EntityName => ItemName.FormatResource(resourceName);
 
     /// <inheritdoc/>
-    public override string SubjectName => RBACFormatter.FormatScopeName(scopeName);
+    public override string SubjectName => ItemName.FormatScope(scopeName);
 
     /// <summary>
     /// Gets the name of the resource that owns this scope.
@@ -82,12 +82,12 @@ internal class ScopeItem(
         string tableName,
         string resourceName)
     {
-        var entityName = RBACFormatter.FormatResourceName(resourceName);
+        var entityName = ItemName.FormatResource(resourceName);
 
         return new QueryRequestBuilder()
             .WithTableName(tableName)
             .EntityNameEquals(entityName)
-            .SubjectNameBeginsWith(RBACFormatter.SCOPE_MARKER)
+            .SubjectNameBeginsWith(ItemName.SCOPE_MARKER)
             .Build();
     }
 

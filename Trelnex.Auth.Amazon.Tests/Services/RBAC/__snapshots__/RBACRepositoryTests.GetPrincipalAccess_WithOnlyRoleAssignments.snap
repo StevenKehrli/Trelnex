@@ -7,16 +7,16 @@
   },
   "items": [
     {
-      "_resourceName": "urn://resource-getprincipalaccess-withonlyroleassignments",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess-withonlyroleassignments"
-    },
-    {
       "_principalId": "principal-getprincipalaccess-withonlyroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withonlyroleassignments",
       "_roleName": "role-getprincipalaccess-withonlyroleassignments",
       "entityName": "#PRINCIPAL#principal-getprincipalaccess-withonlyroleassignments",
       "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withonlyroleassignments#ROLE#role-getprincipalaccess-withonlyroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withonlyroleassignments",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess-withonlyroleassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withonlyroleassignments",

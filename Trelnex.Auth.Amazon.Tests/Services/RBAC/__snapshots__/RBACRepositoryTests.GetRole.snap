@@ -6,14 +6,14 @@
   "items": [
     {
       "_resourceName": "urn://resource-getrole",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getrole"
-    },
-    {
-      "_resourceName": "urn://resource-getrole",
       "_roleName": "role-getrole",
       "entityName": "#RESOURCE#urn://resource-getrole",
       "subjectName": "#ROLE#role-getrole"
+    },
+    {
+      "_resourceName": "urn://resource-getrole",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getrole"
     }
   ]
 }

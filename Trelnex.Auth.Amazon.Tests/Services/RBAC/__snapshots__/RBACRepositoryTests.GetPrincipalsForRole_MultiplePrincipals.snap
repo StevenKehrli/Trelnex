@@ -6,11 +6,6 @@
   ],
   "items": [
     {
-      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
-      "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals"
-    },
-    {
       "_principalId": "principal-3-getprincipalsforrole-multipleprincipals",
       "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
       "_roleName": "role-getprincipalsforrole-multipleprincipals",
@@ -57,6 +52,11 @@
       "_roleName": "role-getprincipalsforrole-multipleprincipals",
       "entityName": "#PRINCIPAL#principal-2-getprincipalsforrole-multipleprincipals",
       "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals#ROLE#role-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals"
     }
   ]
 }

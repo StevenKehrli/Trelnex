@@ -3,7 +3,7 @@
   "items": [
     {
       "_resourceName": "urn://resource-getscope-notexists",
-      "entityName": "#RESOURCE#",
+      "entityName": "#ROOT#",
       "subjectName": "#RESOURCE#urn://resource-getscope-notexists"
     }
   ]
