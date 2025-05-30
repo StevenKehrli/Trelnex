@@ -5,7 +5,7 @@ using CommandLine;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Amazon.Identity;
 
-namespace Trelnex.Auth.Amazon.Client;
+namespace Trelnex.Auth.Amazon.Token;
 
 /// <summary>
 /// Command-line client for obtaining JWT tokens from the Trelnex.Auth.Amazon OAuth 2.0 server.
@@ -16,7 +16,7 @@ namespace Trelnex.Auth.Amazon.Client;
 public class Program
 {
     /// <summary>
-    /// Entry point for the Trelnex.Auth.Amazon.Client application.
+    /// Entry point for the Trelnex.Auth.Amazon.Token application.
     /// </summary>
     /// <param name="args">Command-line arguments.</param>
     public static void Main(string[] args)

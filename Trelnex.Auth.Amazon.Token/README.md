@@ -1,10 +1,10 @@
-# Trelnex.Auth.Amazon.Client
+# Trelnex.Auth.Amazon.Token
 
 A command-line client for obtaining OAuth 2.0 access tokens from a Trelnex.Auth.Amazon authorization server using AWS credentials.
 
 ## Overview
 
-Trelnex.Auth.Amazon.Client is a console application that obtains OAuth 2.0 / JWT Bearer tokens from the Trelnex.Auth.Amazon service. These tokens can then be used in API requests to services that use JWT authentication from the Trelnex.Auth.Amazon service. It uses the OAuth 2.0 client credentials flow and AWS Security Token Service (STS) for caller identity verification.
+Trelnex.Auth.Amazon.Token is a console application that obtains OAuth 2.0 / JWT Bearer tokens from the Trelnex.Auth.Amazon service. These tokens can then be used in API requests to services that use JWT authentication from the Trelnex.Auth.Amazon service. It uses the OAuth 2.0 client credentials flow and AWS Security Token Service (STS) for caller identity verification.
 
 Key features:
 - Uses AWS Signature Version 4 (SigV4) for secure request signing

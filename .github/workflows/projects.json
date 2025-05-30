@@ -11,11 +11,11 @@
       ]
     },
     {
-      "name": "Trelnex.Auth.Amazon.Client",
+      "name": "Trelnex.Auth.Amazon.Token",
       "dotnet_version": "9.0.x",
       "workflows": [ "build" ],
       "paths": [
-          "Trelnex.Auth.Amazon.Client/**"
+          "Trelnex.Auth.Amazon.Token/**"
       ]
     },
     {

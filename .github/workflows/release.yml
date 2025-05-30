@@ -15,7 +15,7 @@ on:
         type: choice
         options:
           - Trelnex.Auth.Amazon
-          - Trelnex.Auth.Amazon.Client
+          - Trelnex.Auth.Amazon.Token
           - Trelnex.Core
           - Trelnex.Core.Amazon
           - Trelnex.Core.Api

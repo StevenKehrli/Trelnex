@@ -5,6 +5,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Trelnex.Auth.Amazon.Token</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
