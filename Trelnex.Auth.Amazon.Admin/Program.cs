@@ -6,6 +6,8 @@ using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
 using CommandLine;
 using CommandLine.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Auth.Amazon.Services.Validators;
 
@@ -26,6 +28,16 @@ public class Program
     /// <param name="args">Command-line arguments.</param>
     public static void Main(string[] args)
     {
+        // Create the ILogger for logging console output and diagnostic information.
+        using var factory = LoggerFactory.Create(builder => builder
+            .AddConsole(options =>
+            {
+                options.FormatterName = nameof(LogFormatter);
+            })
+            .AddConsoleFormatter<LogFormatter, ConsoleFormatterOptions>());
+
+        var logger = factory.CreateLogger<Program>();
+
         // Process command-line arguments using CommandLineParser library.
         Parser.Default
             .ParseArguments<Options>(args)
@@ -33,12 +45,12 @@ public class Program
             {
                 try
                 {
-                    HandleOptions(o);
+                    HandleOptions(o, logger);
                 }
                 catch (Exception ex)
                 {
                     // Log any exceptions that occur during RBAC provisioning.
-                    Console.WriteLine($"Error provisioning the RBAC resource: {ex.Message}");
+                    logger.LogError("Error provisioning the RBAC resource: {message}", ex.Message);
 
                     // Exit with non-zero status code to indicate failure to the caller.
                     Environment.Exit(1);
@@ -83,7 +95,8 @@ public class Program
     /// <param name="logger">Logger instance for outputting diagnostic information.</param>
     /// <returns>A task representing the asynchronous provisioning operation.</returns>
     private static void HandleOptions(
-        Options options)
+        Options options,
+        ILogger logger)
     {
         // Retrieve AWS credentials using the default credentials provider chain.
         // This will check environment variables, AWS profiles, IAM roles, etc.
@@ -99,13 +112,13 @@ public class Program
             ?? GetPrincipalId(credentials, regionEndpoint);
 
         // Log the configuration values being used for the provisioning operation.
-        Console.WriteLine($"Region: {options.Region}");
-        Console.WriteLine($"TableName: {options.TableName}");
-        Console.WriteLine($"ResourceName: {options.ResourceName}");
-        Console.WriteLine($"Scopes: {string.Join(", ", options.ScopeNames)}");
-        Console.WriteLine($"Roles: {string.Join(", ", options.RoleNames)}");
-        Console.WriteLine($"PrincipalId: {principalId}");
-        Console.WriteLine();
+        logger.LogInformation("Region: {region}", options.Region);
+        logger.LogInformation("TableName: {tableName}", options.TableName);
+        logger.LogInformation("ResourceName: {resourceName}", options.ResourceName);
+        logger.LogInformation("Scopes: {scopes}", string.Join(", ", options.ScopeNames));
+        logger.LogInformation("Roles: {roles}", string.Join(", ", options.RoleNames));
+        logger.LogInformation("PrincipalId: {principalId}", principalId);
+        logger.LogInformation("");
 
         // Initialize the DynamoDB client with credentials and region for RBAC data storage.
         var client = new AmazonDynamoDBClient(
@@ -122,20 +135,20 @@ public class Program
             options.TableName);
 
         // Create the main resource that will contain all scopes and roles.
-        Console.WriteLine($"Creating resource: {options.ResourceName}");
+        logger.LogInformation("Creating resource: {resourceName}", options.ResourceName);
 
         repository
             .CreateResourceAsync(resourceName: options.ResourceName)
             .GetAwaiter()
             .GetResult();
 
-        Console.WriteLine();
+        logger.LogInformation("");
 
         // Create each scope and assign it to the specified principal.
         foreach (var scopeName in options.ScopeNames)
         {
             // Create the scope within the resource.
-            Console.WriteLine($"Creating scope: {scopeName}");
+            logger.LogInformation("Creating scope: {scopeName}", scopeName);
 
             repository
                 .CreateScopeAsync(resourceName: options.ResourceName, scopeName: scopeName)
@@ -143,12 +156,12 @@ public class Program
                 .GetResult();
         }
 
-        Console.WriteLine();
+        logger.LogInformation("");
 
         foreach (var scopeName in options.ScopeNames)
         {
             // Assign the scope to the principal, granting them access to this scope.
-            Console.WriteLine($"Creating scope assignment: {scopeName} -> {principalId}");
+            logger.LogInformation("Creating scope assignment: {scopeName} -> {principalId}", scopeName, principalId);
 
             repository
                 .CreateScopeAssignmentAsync(
@@ -159,13 +172,13 @@ public class Program
                 .GetResult();
         }
 
-        Console.WriteLine();
+        logger.LogInformation("");
 
         // Create each role and assign it to the specified principal.
         foreach (var roleName in options.RoleNames)
         {
             // Create the role within the resource.
-            Console.WriteLine($"Creating role: {roleName}");
+            logger.LogInformation("Creating role: {roleName}", roleName);
 
             repository
                 .CreateRoleAsync(
@@ -175,13 +188,13 @@ public class Program
                 .GetResult();
         }
 
-        Console.WriteLine();
+        logger.LogInformation("");
 
         foreach (var roleName in options.RoleNames)
         {
 
             // Assign the role to the principal, granting them this role's permissions.
-            Console.WriteLine($"Creating role assignment: {roleName} -> {principalId}");
+            logger.LogInformation("Creating role assignment: {roleName} -> {principalId}", roleName, principalId);
 
             repository
                 .CreateRoleAssignmentAsync(
@@ -192,10 +205,10 @@ public class Program
                 .GetResult();
         }
 
-        Console.WriteLine();
+        logger.LogInformation("");
 
-        Console.WriteLine($"Successfully provisioned RBAC resource: {options.ResourceName}");
-        Console.WriteLine();
+        logger.LogInformation("Successfully provisioned RBAC resource: {resourceName}", options.ResourceName);
+        logger.LogInformation("");
     }
 }
 

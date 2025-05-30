@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommandLine;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Trelnex.Core.Amazon.Identity;
 
 namespace Trelnex.Auth.Amazon.Token;
@@ -21,6 +22,16 @@ public class Program
     /// <param name="args">Command-line arguments.</param>
     public static void Main(string[] args)
     {
+        // Create the ILogger for logging console output and diagnostic information.
+        using var factory = LoggerFactory.Create(builder => builder
+            .AddConsole(options =>
+            {
+                options.FormatterName = nameof(LogFormatter);
+            })
+            .AddConsoleFormatter<LogFormatter, ConsoleFormatterOptions>());
+
+        var logger = factory.CreateLogger<Program>();
+
         // Process command-line arguments using CommandLineParser library.
         Parser.Default
             .ParseArguments<Options>(args)
@@ -28,12 +39,12 @@ public class Program
             {
                 try
                 {
-                    HandleOptions(o);
+                    HandleOptions(o, logger);
                 }
                 catch (Exception ex)
                 {
                     // Log any exceptions that occur during token acquisition.
-                    Console.WriteLine($"Error obtaining the access token: {ex.Message}");
+                    logger.LogError(ex, "Error obtaining the access token: {message}", ex.Message);
 
                     // Exit with non-zero status code to indicate failure to the caller.
                     Environment.Exit(1);
@@ -45,14 +56,12 @@ public class Program
     /// Handles the command-line options by obtaining an access token from the OAuth 2.0 server.
     /// </summary>
     /// <param name="options">The parsed command-line options containing authentication configuration.</param>
+    /// <param name="logger">Logger instance for outputting diagnostic information.</param>
     /// <returns>A task representing the asynchronous token acquisition operation.</returns>
     private static void HandleOptions(
-        Options options)
+        Options options,
+        ILogger logger)
     {
-        // Create the ILogger for logging console output and diagnostic information.
-        using var factory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = factory.CreateLogger<Program>();
-
         // Configure JSON serializer options for consistent token output formatting.
         // This ensures the access token is displayed in a readable, properly indented format.
         var jsonSerializerOptions = new JsonSerializerOptions()
