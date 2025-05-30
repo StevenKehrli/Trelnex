@@ -11,7 +11,9 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment()
     {
         // Generate unique test names for resource, scope, and principal.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment));
+        var resourceName = "urn://resource-createscopeassignment";
+        var scopeName = "scope-createscopeassignment";
+        var principalId = "principal-createscopeassignment";
 
         // Create prerequisites: resource and scope.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -19,17 +21,12 @@ public partial class RBACRepositoryTests
 
         // Create the scope assignment.
         // This is the primary operation being tested.
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
 
         // Verify the assignment was created correctly.
         var o = new
         {
-            principalsAfter = await _repository.GetPrincipalsForScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName),
+            principalsAfter = await _repository.GetPrincipalsForScopeAsync(resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -42,7 +39,9 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_AlreadyExists()
     {
         // Generate unique test names for resource, scope, and principal.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_AlreadyExists));
+        var resourceName = "urn://resource-createscopeassignment-alreadyexists";
+        var scopeName = "scope-createscopeassignment-alreadyexists";
+        var principalId = "principal-createscopeassignment-alreadyexists";
 
         // Create prerequisites and initial assignment.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -74,7 +73,8 @@ public partial class RBACRepositoryTests
     public void CreateScopeAssignment_EmptyResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_EmptyResourceName));
+        var scopeName = "scope-createscopeassignment-emptyresourcename";
+        var principalId = "principal-createscopeassignment-emptyresourcename";
 
         // Attempt to create assignment with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -94,7 +94,8 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_EmptyScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(CreateScopeAssignment_EmptyScopeName));
+        var resourceName = "urn://resource-createscopeassignment-emptyscopename";
+        var principalId = "principal-createscopeassignment-emptyscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -117,7 +118,8 @@ public partial class RBACRepositoryTests
     public void CreateScopeAssignment_InvalidResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_InvalidResourceName));
+        var scopeName = "scope-createscopeassignment-invalidresourcename";
+        var principalId = "principal-createscopeassignment-invalidresourcename";
 
         // Attempt to create assignment with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -137,7 +139,8 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_InvalidScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(CreateScopeAssignment_InvalidScopeName));
+        var resourceName = "urn://resource-createscopeassignment-invalidscopename";
+        var principalId = "principal-createscopeassignment-invalidscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -160,11 +163,12 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_MultiplePrincipalsToSameScope()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(CreateScopeAssignment_MultiplePrincipalsToSameScope));
+        var resourceName = "urn://resource-createscopeassignment-multipleprincipalstosamescope";
+        var scopeName = "scope-createscopeassignment-multipleprincipalstosamescope";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(CreateScopeAssignment_MultiplePrincipalsToSameScope)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(CreateScopeAssignment_MultiplePrincipalsToSameScope)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(CreateScopeAssignment_MultiplePrincipalsToSameScope)}");
+        var principalId1 = "principal-1-createscopeassignment-multipleprincipalstosamescope";
+        var principalId2 = "principal-2-createscopeassignment-multipleprincipalstosamescope";
+        var principalId3 = "principal-3-createscopeassignment-multipleprincipalstosamescope";
 
         // Create prerequisites and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -189,19 +193,23 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_SamePrincipalToMultipleScopes()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(CreateScopeAssignment_SamePrincipalToMultipleScopes));
+        var resourceName = "urn://resource-createscopeassignment-sameprincipaltomultiplescopes";
+        var principalId = "principal-createscopeassignment-sameprincipaltomultiplescopes";
 
-        var (_, scopeName1, _, _) = FormatNames($"1_{nameof(CreateScopeAssignment_SamePrincipalToMultipleScopes)}");
-        var (_, scopeName2, _, _) = FormatNames($"2_{nameof(CreateScopeAssignment_SamePrincipalToMultipleScopes)}");
-        var (_, scopeName3, _, _) = FormatNames($"3_{nameof(CreateScopeAssignment_SamePrincipalToMultipleScopes)}");
+        var scopeName1 = "scope-1-createscopeassignment-sameprincipaltomultiplescopes";
+        var scopeName2 = "scope-2-createscopeassignment-sameprincipaltomultiplescopes";
+        var scopeName3 = "scope-3-createscopeassignment-sameprincipaltomultiplescopes";
 
         // Create prerequisites and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
+
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName1);
-        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName2);
-        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName3);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName1, principalId: principalId);
+
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName2);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName2, principalId: principalId);
+
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName3);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName3, principalId: principalId);
 
         // Verify the principal is assigned to all scopes.
@@ -222,16 +230,15 @@ public partial class RBACRepositoryTests
     public void CreateScopeAssignment_NoResource()
     {
         // Generate unique test names for a non-existent resource.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_NoResource));
+        var resourceName = "urn://resource-createscopeassignment-noresource";
+        var scopeName = "scope-createscopeassignment-noresource";
+        var principalId = "principal-createscopeassignment-noresource";
 
         // Attempt to grant a scope within a non-existent resource.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.CreateScopeAssignmentAsync(
-                resourceName: resourceName,
-                scopeName: scopeName,
-                principalId: principalId);
+            await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
         });
 
         // Verify the exception details match expected values.
@@ -250,20 +257,18 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_NoScope()
     {
         // Generate unique test names for resource and a non-existent scope.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_NoScope));
+        var resourceName = "urn://resource-createscopeassignment-noscope";
+        var scopeName = "scope-createscopeassignment-noscope";
+        var principalId = "principal-createscopeassignment-noscope";
 
         // Create a resource but not the scope we'll try to grant.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Attempt to grant a non-existent scope to a principal.
         // This should throw an HttpStatusCodeException.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.CreateScopeAssignmentAsync(
-                resourceName: resourceName,
-                scopeName: scopeName,
-                principalId: principalId);
+            await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
         });
 
         // Verify the exception details match expected values.
@@ -282,7 +287,8 @@ public partial class RBACRepositoryTests
     public void CreateScopeAssignment_NullResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(CreateScopeAssignment_NullResourceName));
+        var scopeName = "scope-createscopeassignment-nullresourcename";
+        var principalId = "principal-createscopeassignment-nullresourcename";
 
         // Attempt to create assignment with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -302,7 +308,8 @@ public partial class RBACRepositoryTests
     public async Task CreateScopeAssignment_NullScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(CreateScopeAssignment_NullScopeName));
+        var resourceName = "urn://resource-createscopeassignment-nullscopename";
+        var principalId = "principal-createscopeassignment-nullscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -325,42 +332,27 @@ public partial class RBACRepositoryTests
     public async Task DeleteScopeAssignment()
     {
         // Generate unique test names for resource, scope, role, and principal.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(DeleteScopeAssignment));
+        var resourceName = "urn://resource-deletescopeassignment";
+        var scopeName = "scope-deletescopeassignment";
+        var roleName = "role-deletescopeassignment";
+        var principalId = "principal-deletescopeassignment";
 
         // Create prerequisites: resource, scope, role, and grant the scope to a principal.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        var principalIdsBefore = await _repository.GetPrincipalsForScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
-
-        var principalIdsBefore = await _repository.GetPrincipalsForScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _repository.DeleteScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
+        await _repository.DeleteScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
 
         // Revoke the scope from the principal.
         // This is the primary operation being tested.
         var o = new
         {
             principalIdsBefore,
-            principalIdsAfter = await _repository.GetPrincipalsForScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName),
+            principalIdsAfter = await _repository.GetPrincipalsForScopeAsync(resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -373,7 +365,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_EmptyResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_EmptyResourceName));
+        var scopeName = "scope-deletescopeassignment-emptyresourcename";
+        var principalId = "principal-deletescopeassignment-emptyresourcename";
 
         // Attempt to delete assignment with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -393,7 +386,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_EmptyScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_EmptyScopeName));
+        var resourceName = "urn://resource-deletescopeassignment-emptyscopename";
+        var principalId = "principal-deletescopeassignment-emptyscopename";
 
         // Attempt to delete assignment with empty scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -413,11 +407,12 @@ public partial class RBACRepositoryTests
     public async Task DeleteScopeAssignment_FromMultipleAssignments()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteScopeAssignment_FromMultipleAssignments));
+        var resourceName = "urn://resource-deletescopeassignment-frommultipleassignments";
+        var scopeName = "scope-deletescopeassignment-frommultipleassignments";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(DeleteScopeAssignment_FromMultipleAssignments)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(DeleteScopeAssignment_FromMultipleAssignments)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(DeleteScopeAssignment_FromMultipleAssignments)}");
+        var principalId1 = "principal-1-deletescopeassignment-frommultipleassignments";
+        var principalId2 = "principal-2-deletescopeassignment-frommultipleassignments";
+        var principalId3 = "principal-3-deletescopeassignment-frommultipleassignments";
 
         // Create prerequisites and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -445,7 +440,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_InvalidResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_InvalidResourceName));
+        var scopeName = "scope-deletescopeassignment-invalidresourcename";
+        var principalId = "principal-deletescopeassignment-invalidresourcename";
 
         // Attempt to delete assignment with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -465,7 +461,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_InvalidScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_InvalidScopeName));
+        var resourceName = "urn://resource-deletescopeassignment-invalidscopename";
+        var principalId = "principal-deletescopeassignment-invalidscopename";
 
         // Attempt to delete assignment with invalid scope name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -485,13 +482,12 @@ public partial class RBACRepositoryTests
     public async Task DeleteScopeAssignment_NoResource()
     {
         // Generate unique test names for a non-existent resource.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_NoResource));
+        var resourceName = "urn://resource-deletescopeassignment-noresource";
+        var scopeName = "scope-deletescopeassignment-noresource";
+        var principalId = "principal-deletescopeassignment-noresource";
 
         // Attempt to revoke a scope from a principal for a non-existent resource (should be idempotent).
-        await _repository.DeleteScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
+        await _repository.DeleteScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
 
         // Verify no changes occurred.
         var o = new
@@ -508,17 +504,15 @@ public partial class RBACRepositoryTests
     public async Task DeleteScopeAssignment_NoScope()
     {
         // Generate unique test names for resource and a non-existent scope.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_NoScope));
+        var resourceName = "urn://resource-deletescopeassignment-noscope";
+        var scopeName = "scope-deletescopeassignment-noscope";
+        var principalId = "principal-deletescopeassignment-noscope";
 
         // Create a resource but not the scope we'll try to revoke.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Attempt to revoke a scope that doesn't exist from a principal (should be idempotent).
-        await _repository.DeleteScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
+        await _repository.DeleteScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
 
         // Verify no changes occurred beyond the resource creation.
         var o = new
@@ -535,7 +529,9 @@ public partial class RBACRepositoryTests
     public async Task DeleteScopeAssignment_NotExists()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_NotExists));
+        var resourceName = "urn://resource-deletescopeassignment-notexists";
+        var scopeName = "scope-deletescopeassignment-notexists";
+        var principalId = "principal-deletescopeassignment-notexists";
 
         // Create prerequisites but not the assignment.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -560,7 +556,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_NullResourceName()
     {
         // Generate unique scope and principal names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_NullResourceName));
+        var scopeName = "scope-deletescopeassignment-nullresourcename";
+        var principalId = "principal-deletescopeassignment-nullresourcename";
 
         // Attempt to delete assignment with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -580,7 +577,8 @@ public partial class RBACRepositoryTests
     public void DeleteScopeAssignment_NullScopeName()
     {
         // Generate unique resource and principal names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(DeleteScopeAssignment_NullScopeName));
+        var resourceName = "urn://resource-deletescopeassignment-nullscopename";
+        var principalId = "principal-deletescopeassignment-nullscopename";
 
         // Attempt to delete assignment with null scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -600,7 +598,9 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalsForScope()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalsForScope));
+        var resourceName = "urn://resource-getprincipalsforscope";
+        var scopeName = "scope-getprincipalsforscope";
+        var principalId = "principal-getprincipalsforscope";
 
         // Create prerequisites and assignment.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -623,7 +623,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_EmptyResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_EmptyResourceName));
+        var scopeName = "scope-getprincipalsforscope-emptyresourcename";
 
         // Attempt to retrieve principals with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -643,7 +643,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_EmptyScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetPrincipalsForScope_EmptyScopeName));
+        var resourceName = "urn://resource-getprincipalsforscope-emptyscopename";
 
         // Attempt to retrieve principals with empty scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -663,7 +663,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_InvalidResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_InvalidResourceName));
+        var scopeName = "scope-getprincipalsforscope-invalidresourcename";
 
         // Attempt to retrieve principals with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -683,7 +683,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_InvalidScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetPrincipalsForScope_InvalidScopeName));
+        var resourceName = "urn://resource-getprincipalsforscope-invalidscopename";
 
         // Attempt to retrieve principals with invalid scope name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -703,11 +703,12 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalsForScope_MultiplePrincipals()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_MultiplePrincipals));
+        var resourceName = "urn://resource-getprincipalsforscope-multipleprincipals";
+        var scopeName = "scope-getprincipalsforscope-multipleprincipals";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(GetPrincipalsForScope_MultiplePrincipals)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(GetPrincipalsForScope_MultiplePrincipals)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(GetPrincipalsForScope_MultiplePrincipals)}");
+        var principalId1 = "principal-1-getprincipalsforscope-multipleprincipals";
+        var principalId2 = "principal-2-getprincipalsforscope-multipleprincipals";
+        var principalId3 = "principal-3-getprincipalsforscope-multipleprincipals";
 
         // Create prerequisites and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -732,7 +733,8 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalsForScope_NoPrincipals()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_NoPrincipals));
+        var resourceName = "urn://resource-getprincipalsforscope-noprincipals";
+        var scopeName = "scope-getprincipalsforscope-noprincipals";
 
         // Create prerequisites but no assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -754,15 +756,14 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_NoResource()
     {
         // Generate unique test names for resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_NoResource));
+        var resourceName = "urn://resource-getprincipalsforscope-noresource";
+        var scopeName = "scope-getprincipalsforscope-noresource";
 
         // Attempt to retrieve principals from a resource that doesn't exist.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.GetPrincipalsForScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName);
+            await _repository.GetPrincipalsForScopeAsync(resourceName: resourceName, scopeName: scopeName);
         });
 
         // Verify the exception details match expected values.
@@ -781,19 +782,17 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalsForScope_NoScope()
     {
         // Generate unique test names for resource and a non-existent scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_NoScope));
+        var resourceName = "urn://resource-getprincipalsforscope-noscope";
+        var scopeName = "scope-getprincipalsforscope-noscope";
 
         // Create a resource but not the scope we'll try to query.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Attempt to retrieve principals for a scope that doesn't exist.
         // This should throw an HttpStatusCodeException.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.GetPrincipalsForScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName);
+            await _repository.GetPrincipalsForScopeAsync(resourceName: resourceName, scopeName: scopeName);
         });
 
         // Verify the exception details match expected values.
@@ -812,7 +811,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_NullResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetPrincipalsForScope_NullResourceName));
+        var scopeName = "scope-getprincipalsforscope-nullresourcename";
 
         // Attempt to retrieve principals with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -832,7 +831,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalsForScope_NullScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetPrincipalsForScope_NullScopeName));
+        var resourceName = "urn://resource-getprincipalsforscope-nullscopename";
 
         // Attempt to retrieve principals with null scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>

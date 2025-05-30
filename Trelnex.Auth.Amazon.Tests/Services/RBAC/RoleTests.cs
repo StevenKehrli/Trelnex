@@ -11,24 +11,20 @@ public partial class RBACRepositoryTests
     public async Task CreateRole()
     {
         // Generate unique test names for the resource and role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(CreateRole));
+        var resourceName = "urn://resource-createrole";
+        var roleName = "role-createrole";
 
         // First create a resource as a prerequisite for the role creation.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Create a new role within the resource.
         // This is the primary operation being tested.
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Verify the role was created correctly by retrieving it and checking DynamoDB state.
         var o = new
         {
-            roleAfter = await _repository.GetRoleAsync(
-                resourceName: resourceName,
-                roleName: roleName),
+            roleAfter = await _repository.GetRoleAsync(resourceName: resourceName, roleName: roleName),
             items = await GetItemsAsync()
         };
 
@@ -41,7 +37,8 @@ public partial class RBACRepositoryTests
     public async Task CreateRole_AlreadyExists()
     {
         // Generate unique test names for the resource and role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(CreateRole_AlreadyExists));
+        var resourceName = "urn://resource-createrole-alreadyexists";
+        var roleName = "role-createrole-alreadyexists";
 
         // Create a resource and role for the idempotent test.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -72,7 +69,7 @@ public partial class RBACRepositoryTests
     public void CreateRole_EmptyResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(CreateRole_EmptyResourceName));
+        var roleName = "role-createrole-emptyresourcename";
 
         // Attempt to create role with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -92,7 +89,7 @@ public partial class RBACRepositoryTests
     public async Task CreateRole_EmptyRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateRole_EmptyRoleName));
+        var resourceName = "urn://resource-createrole-emptyrolename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -115,7 +112,7 @@ public partial class RBACRepositoryTests
     public void CreateRole_InvalidResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(CreateRole_InvalidResourceName));
+        var roleName = "role-createrole-invalidresourcename";
 
         // Attempt to create role with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -135,7 +132,7 @@ public partial class RBACRepositoryTests
     public async Task CreateRole_InvalidRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateRole_InvalidRoleName));
+        var resourceName = "urn://resource-createrole-invalidrolename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -158,11 +155,11 @@ public partial class RBACRepositoryTests
     public async Task CreateRole_MultipleRolesInResource()
     {
         // Generate unique test names.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateRole_MultipleRolesInResource));
+        var resourceName = "urn://resource-createrole-multiplerolesinresource";
 
-        var (_, _, roleName1, _) = FormatNames($"1_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, roleName2, _) = FormatNames($"2_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, roleName3, _) = FormatNames($"3_{nameof(CreateRole_MultipleRolesInResource)}");
+        var roleName1 = "role-1-createrole-multiplerolesinresource";
+        var roleName2 = "role-2-createrole-multiplerolesinresource";
+        var roleName3 = "role-3-createrole-multiplerolesinresource";
 
         // Create resource and multiple roles.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -188,15 +185,14 @@ public partial class RBACRepositoryTests
     public void CreateRole_NoResource()
     {
         // Generate unique test names for a non-existent resource.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(CreateRole_NoResource));
+        var resourceName = "urn://resource-createrole-noresource";
+        var roleName = "role-createrole-noresource";
 
         // Attempt to create a role for a resource that doesn't exist.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.CreateRoleAsync(
-                resourceName: resourceName,
-                roleName: roleName);
+            await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         });
 
         // Verify the exception details match expected values.
@@ -216,7 +212,7 @@ public partial class RBACRepositoryTests
     public void CreateRole_NullResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(CreateRole_NullResourceName));
+        var roleName = "role-createrole-nullresourcename";
 
         // Attempt to create role with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -236,7 +232,7 @@ public partial class RBACRepositoryTests
     public async Task CreateRole_NullRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateRole_NullRoleName));
+        var resourceName = "urn://resource-createrole-nullrolename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -259,29 +255,22 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole()
     {
         // Generate unique test names for resource and role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(DeleteRole));
+        var resourceName = "urn://resource-deleterole";
+        var roleName = "role-deleterole";
 
         // Create a resource and a role within it for the deletion test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Delete the role within the resource.
         // This is the primary operation being tested.
-        await _repository.DeleteRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.DeleteRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Verify the role was deleted by attempting to retrieve it.
         // Should return null or an empty result.
         var o = new
         {
-            roleAfter = await _repository.GetRoleAsync(
-                resourceName: resourceName,
-                roleName: roleName),
+            roleAfter = await _repository.GetRoleAsync(resourceName: resourceName, roleName: roleName),
             items = await GetItemsAsync()
         };
 
@@ -294,7 +283,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_EmptyResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(DeleteRole_EmptyResourceName));
+        var roleName = "role-deleterole-emptyresourcename";
 
         // Attempt to delete role with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -314,7 +303,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_EmptyRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteRole_EmptyRoleName));
+        var resourceName = "urn://resource-deleterole-emptyrolename";
 
         // Attempt to delete role with empty role name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -334,11 +323,11 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole_FromMultipleRoles()
     {
         // Generate unique test names.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteRole_FromMultipleRoles));
+        var resourceName = "urn://resource-deleterole-frommultipleroles";
 
-        var (_, _, roleName1, _) = FormatNames($"1_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, roleName2, _) = FormatNames($"2_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, roleName3, _) = FormatNames($"3_{nameof(CreateRole_MultipleRolesInResource)}");
+        var roleName1 = "role-1-createrole-multiplerolesinresource";
+        var roleName2 = "role-2-createrole-multiplerolesinresource";
+        var roleName3 = "role-3-createrole-multiplerolesinresource";
 
         // Create resource and multiple roles.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -367,7 +356,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_InvalidResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(DeleteRole_InvalidResourceName));
+        var roleName = "role-deleterole-invalidresourcename";
 
         // Attempt to delete role with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -387,7 +376,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_InvalidRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteRole_InvalidRoleName));
+        var resourceName = "urn://resource-deleterole-invalidrolename";
 
         // Attempt to delete role with invalid role name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -407,7 +396,8 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole_NoResource()
     {
         // Generate unique test names for non-existent resource.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(DeleteRole_NoResource));
+        var resourceName = "urn://resource-deleterole-noresource";
+        var roleName = "role-deleterole-noresource";
 
         // Attempt to delete role from non-existent resource (should be idempotent).
         await _repository.DeleteRoleAsync(resourceName: resourceName, roleName: roleName);
@@ -427,7 +417,8 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole_NotExists()
     {
         // Generate unique test names.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(DeleteRole_NotExists));
+        var resourceName = "urn://resource-deleterole-notexists";
+        var roleName = "role-deleterole-notexists";
 
         // Create resource but not the role.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -451,7 +442,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_NullResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(DeleteRole_NullResourceName));
+        var roleName = "role-deleterole-nullresourcename";
 
         // Attempt to delete role with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -471,7 +462,7 @@ public partial class RBACRepositoryTests
     public void DeleteRole_NullRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteRole_NullRoleName));
+        var resourceName = "urn://resource-deleterole-nullrolename";
 
         // Attempt to delete role with null role name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -491,11 +482,12 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole_WithMultipleRoleAssignments()
     {
         // Generate unique test names.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(DeleteRole_WithMultipleRoleAssignments));
+        var resourceName = "urn://resource-deleterole-withmultipleroleassignments";
+        var roleName = "role-deleterole-withmultipleroleassignments";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(CreateRole_MultipleRolesInResource)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(CreateRole_MultipleRolesInResource)}");
+        var principalId1 = "principal-1-createrole-multiplerolesinresource";
+        var principalId2 = "principal-2-createrole-multiplerolesinresource";
+        var principalId3 = "principal-3-createrole-multiplerolesinresource";
 
         // Create resource, role, and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -523,33 +515,23 @@ public partial class RBACRepositoryTests
     public async Task DeleteRole_WithRoleAssignment()
     {
         // Generate unique test names for a complex test scenario.
-        var (resourceName, _, roleName, principalId) = FormatNames(nameof(DeleteRole_WithRoleAssignment));
+        var resourceName = "urn://resource-deleterole-withroleassignment";
+        var roleName = "role-deleterole-withroleassignment";
+        var principalId = "principal-deleterole-withroleassignment";
 
         // Create a resource with role and assignment.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName,
-            principalId: principalId);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Delete the role, which should cascade delete its role assignments.
         // This tests the role-assignment cascade deletion behavior.
-        await _repository.DeleteRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.DeleteRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Verify the principal access no longer references the deleted role.
         var o = new
         {
-            principalAccessAfter = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName),
+            principalAccessAfter = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -562,7 +544,8 @@ public partial class RBACRepositoryTests
     public async Task GetRole()
     {
         // Generate unique test names.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(GetRole));
+        var resourceName = "urn://resource-getrole";
+        var roleName = "role-getrole";
 
         // Create resource and role for retrieval test.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -584,7 +567,7 @@ public partial class RBACRepositoryTests
     public void GetRole_EmptyResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(GetRole_EmptyResourceName));
+        var roleName = "role-getrole-emptyresourcename";
 
         // Attempt to retrieve role with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -604,7 +587,7 @@ public partial class RBACRepositoryTests
     public void GetRole_EmptyRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetRole_EmptyRoleName));
+        var resourceName = "urn://resource-getrole-emptyrolename";
 
         // Attempt to retrieve role with empty role name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -624,7 +607,7 @@ public partial class RBACRepositoryTests
     public void GetRole_InvalidResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(GetRole_InvalidResourceName));
+        var roleName = "role-getrole-invalidresourcename";
 
         // Attempt to retrieve role with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -644,7 +627,7 @@ public partial class RBACRepositoryTests
     public void GetRole_InvalidRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetRole_InvalidRoleName));
+        var resourceName = "urn://resource-getrole-invalidrolename";
 
         // Attempt to retrieve role with invalid role name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -664,15 +647,14 @@ public partial class RBACRepositoryTests
     public void GetRole_NoResource()
     {
         // Generate unique test names for resource and a non-existent role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(GetRole_NoResource));
+        var resourceName = "urn://resource-getrole-noresource";
+        var roleName = "role-getrole-noresource";
 
         // Attempt to retrieve a role from a resource that doesn't exist.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.GetRoleAsync(
-                resourceName: resourceName,
-                roleName: roleName);
+            await _repository.GetRoleAsync(resourceName: resourceName, roleName: roleName);
         });
 
         // Verify the exception details match expected values.
@@ -691,19 +673,17 @@ public partial class RBACRepositoryTests
     public async Task GetRole_NotExists()
     {
         // Generate unique test names for resource and a non-existent role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(GetRole_NotExists));
+        var resourceName = "urn://resource-getrole-notexists";
+        var roleName = "role-getrole-notexists";
 
         // Create a resource but not the role we'll try to retrieve.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Attempt to retrieve a role that doesn't exist within an existing resource.
         // This tests the system's handling of non-existent roles.
         var o = new
         {
-            roleAfter = await _repository.GetRoleAsync(
-                resourceName: resourceName,
-                roleName: roleName),
+            roleAfter = await _repository.GetRoleAsync(resourceName: resourceName, roleName: roleName),
             items = await GetItemsAsync()
         };
 
@@ -716,7 +696,7 @@ public partial class RBACRepositoryTests
     public void GetRole_NullResourceName()
     {
         // Generate unique role name.
-        var (_, _, roleName, _) = FormatNames(nameof(GetRole_NullResourceName));
+        var roleName = "role-getrole-nullresourcename";
 
         // Attempt to retrieve role with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -736,7 +716,7 @@ public partial class RBACRepositoryTests
     public void GetRole_NullRoleName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetRole_NullRoleName));
+        var resourceName = "urn://resource-getrole-nullrolename";
 
         // Attempt to retrieve role with null role name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>

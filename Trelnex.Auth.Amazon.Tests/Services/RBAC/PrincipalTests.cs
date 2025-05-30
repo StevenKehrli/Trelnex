@@ -11,14 +11,13 @@ public partial class RBACRepositoryTests
     public async Task DeletePrincipal()
     {
         // Generate unique test principal ID to ensure test isolation.
-        var (_, _, _, principalId) = FormatNames(nameof(DeletePrincipal));
+        var principalId = "principal-deleteprincipal";
 
         // Capture the state before deletion for comparison.
         var itemsBefore = await GetItemsAsync();
 
         // Delete the principal to test the deletion functionality.
-        await _repository.DeletePrincipalAsync(
-            principalId: principalId);
+        await _repository.DeletePrincipalAsync(principalId: principalId);
 
         // Capture the state after deletion to verify no changes occurred.
         var o = new
@@ -36,8 +35,13 @@ public partial class RBACRepositoryTests
     public async Task DeletePrincipal_WithMultipleRoleAssignments()
     {
         // Generate unique test names for multiple resources and roles.
-        var (resourceName1, _, roleName1, principalId) = FormatNames($"1_{nameof(DeletePrincipal_WithMultipleRoleAssignments)}");
-        var (resourceName2, _, roleName2, _) = FormatNames($"2_{nameof(DeletePrincipal_WithMultipleRoleAssignments)}");
+        var resourceName1 = "urn://resource-1-deleteprincipal-withmultipleroleassignments";
+        var resourceName2 = "urn://resource-2-deleteprincipal-withmultipleroleassignments";
+
+        var roleName1 = "role-1-deleteprincipal-withmultipleroleassignments";
+        var roleName2 = "role-2-deleteprincipal-withmultipleroleassignments";
+
+        var principalId = "principal-1-deleteprincipal-withmultipleroleassignments";
 
         // Set up test data: create resources, roles, and multiple role assignments for the same principal.
         await _repository.CreateResourceAsync(resourceName: resourceName1);
@@ -66,8 +70,13 @@ public partial class RBACRepositoryTests
     public async Task DeletePrincipal_WithMultipleScopeAssignments()
     {
         // Generate unique test names for multiple resources and scopes.
-        var (resourceName1, scopeName1, _, principalId) = FormatNames($"1_{nameof(DeletePrincipal_WithMultipleScopeAssignments)}");
-        var (resourceName2, scopeName2, _, _) = FormatNames($"2_{nameof(DeletePrincipal_WithMultipleScopeAssignments)}");
+        var resourceName1 = "urn://resource-1-deleteprincipal-withmultiplescopeassignments";
+        var resourceName2 = "urn://resource-2-deleteprincipal-withmultiplescopeassignments";
+
+        var scopeName1 = "scope-1-deleteprincipal-withmultiplescopeassignments";
+        var scopeName2 = "scope-2-deleteprincipal-withmultiplescopeassignments";
+
+        var principalId = "principal-1-deleteprincipal-withmultiplescopeassignments";
 
         // Set up test data: create resources, scopes, and multiple scope assignments for the same principal.
         await _repository.CreateResourceAsync(resourceName: resourceName1);
@@ -96,13 +105,18 @@ public partial class RBACRepositoryTests
     public async Task DeletePrincipal_WithRoleAndScopeAssignments()
     {
         // Generate unique test names for the complete hierarchy.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(DeletePrincipal_WithRoleAndScopeAssignments));
+        var resourceName = "urn://resource-deleteprincipal-withroleandscopeassignments";
+        var scopeName = "scope-deleteprincipal-withroleandscopeassignments";
+        var roleName = "role-deleteprincipal-withroleandscopeassignments";
+        var principalId = "principal-deleteprincipal-withroleandscopeassignments";
 
         // Set up test data: create resource, scope, role, and both types of assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
+
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
-        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Delete the principal to test removal of all assignments.
@@ -123,21 +137,22 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccess()
     {
         // Generate unique test names for the complete hierarchy.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(GetPrincipalAccess));
+        var resourceName = "urn://resource-getprincipalaccess";
+        var scopeName = "scope-getprincipalaccess";
+        var roleName = "role-getprincipalaccess";
+        var principalId = "principal-getprincipalaccess";
 
         // Set up test data: create resource, scope, role, and assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
-        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Get principal access to test the retrieval functionality.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -150,7 +165,7 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccess_EmptyResourceName()
     {
         // Generate unique test principal ID.
-        var (_, _, _, principalId) = FormatNames(nameof(GetPrincipalAccess_EmptyResourceName));
+        var principalId = "principal-getprincipalaccess-emptyresourcename";
 
         // Attempt to get principal access with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -170,7 +185,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccess_ResourceNotExists()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccess_ResourceNotExists));
+        var resourceName = "urn://resource-getprincipalaccess-resourcenotexists";
+        var principalId = "principal-getprincipalaccess-resourcenotexists";
 
         // Attempt to get principal access for non-existent resource should throw HttpStatusCodeException.
         var exception = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
@@ -191,7 +207,8 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccess_WithNoAssignments()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccess_WithNoAssignments));
+        var resourceName = "urn://resource-getprincipalaccess-withnoassignments";
+        var principalId = "principal-getprincipalaccess-withnoassignments";
 
         // Set up test data: create resource only, no assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -199,9 +216,7 @@ public partial class RBACRepositoryTests
         // Get principal access to test no-assignments scenario.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -214,7 +229,9 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccess_WithOnlyRoleAssignments()
     {
         // Generate unique test names.
-        var (resourceName, _, roleName, principalId) = FormatNames(nameof(GetPrincipalAccess_WithOnlyRoleAssignments));
+        var resourceName = "urn://resource-getprincipalaccess-withonlyroleassignments";
+        var roleName = "role-getprincipalaccess-withonlyroleassignments";
+        var principalId = "principal-getprincipalaccess-withonlyroleassignments";
 
         // Set up test data: create resource, role, and role assignment only (no scope assignments).
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -224,9 +241,7 @@ public partial class RBACRepositoryTests
         // Get principal access to test role-only scenario without scope assignments.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -239,7 +254,9 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccess_WithOnlyScopeAssignments()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalAccess_WithOnlyScopeAssignments));
+        var resourceName = "urn://resource-getprincipalaccess-withonlyscopeassignments";
+        var scopeName = "scope-getprincipalaccess-withonlyscopeassignments";
+        var principalId = "principal-getprincipalaccess-withonlyscopeassignments";
 
         // Set up test data: create resource, scope, and scope assignment only.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -249,9 +266,7 @@ public partial class RBACRepositoryTests
         // Get principal access to test scope-only scenario.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -264,22 +279,24 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccessWithScope()
     {
         // Generate unique test names for the complete hierarchy.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope));
+        var resourceName = "urn://resource-getprincipalaccesswithscope";
+        var scopeName = "scope-getprincipalaccesswithscope";
+        var roleName = "role-getprincipalaccesswithscope";
+        var principalId = "principal-getprincipalaccesswithscope";
 
         // Set up test data: create resource, scope, role, and assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
+
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
-        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Get principal access with specific scope to test scope filtering.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName,
-                scopeName: scopeName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -292,22 +309,24 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccessWithScope_DefaultScope()
     {
         // Generate unique test names for the complete hierarchy.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_DefaultScope));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-defaultscope";
+        var scopeName = "scope-getprincipalaccesswithscope-defaultscope";
+        var roleName = "role-getprincipalaccesswithscope-defaultscope";
+        var principalId = "principal-getprincipalaccesswithscope-defaultscope";
 
         // Set up test data: create resource, scope, role, and assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
+
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
-        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Get principal access with default scope to test all scope behavior.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName,
-                scopeName: ".default"),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName, scopeName: ".default"),
             items = await GetItemsAsync()
         };
 
@@ -320,7 +339,9 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccessWithScope_DefaultScopeNoScopeAssignments()
     {
         // Generate unique test names.
-        var (resourceName, _, roleName, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_DefaultScopeNoScopeAssignments));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments";
+        var roleName = "role-getprincipalaccesswithscope-defaultscopenoscopeassignments";
+        var principalId = "principal-getprincipalaccesswithscope-defaultscopenoscopeassignments";
 
         // Set up test data: create resource, role, and role assignment only (no scope assignments).
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -330,10 +351,7 @@ public partial class RBACRepositoryTests
         // Get principal access with default scope when no scope assignments exist.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName,
-                scopeName: ".default"),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName, scopeName: ".default"),
             items = await GetItemsAsync()
         };
 
@@ -346,7 +364,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_EmptyResourceName()
     {
         // Generate unique test names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_EmptyResourceName));
+        var scopeName = "scope-getprincipalaccesswithscope-emptyresourcename";
+        var principalId = "principal-getprincipalaccesswithscope-emptyresourcename";
 
         // Attempt to get principal access with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -366,7 +385,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_EmptyScopeName()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_EmptyScopeName));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-emptyscopename";
+        var principalId = "principal-getprincipalaccesswithscope-emptyscopename";
 
         // Attempt to get principal access with empty scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -386,7 +406,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_InvalidResourceName()
     {
         // Generate unique test names.
-        var (_, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_InvalidResourceName));
+        var scopeName = "scope-getprincipalaccesswithscope-invalidresourcename";
+        var principalId = "principal-getprincipalaccesswithscope-invalidresourcename";
 
         // Attempt to get principal access with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -406,7 +427,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_InvalidScopeName()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_InvalidScopeName));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-invalidscopename";
+        var principalId = "principal-getprincipalaccesswithscope-invalidscopename";
 
         // Attempt to get principal access with invalid scope name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -426,24 +448,28 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccessWithScope_NoMatchingScope()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_NoMatchingScope));
-        var (_, differentScopeName, _, _) = FormatNames($"Different_{nameof(GetPrincipalAccessWithScope_NoMatchingScope)}");
+        var resourceName = "urn://resource-getprincipalaccesswithscope-nomatchingscope";
+
+        var scopeName = "scope-getprincipalaccesswithscope-nomatchingscope";
+        var differentScopeName = "scope-different-getprincipalaccesswithscope-nomatchingscope";
+
+        var roleName = "role-getprincipalaccesswithscope-nomatchingscope";
+        var principalId = "principal-getprincipalaccesswithscope-nomatchingscope";
 
         // Set up test data: create resource, different scope, role, and assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
+
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
         await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: differentScopeName);
-        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
         await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Get principal access with scope that doesn't match assignments.
         var o = new
         {
-            principalAccess = await _repository.GetPrincipalAccessAsync(
-                principalId: principalId,
-                resourceName: resourceName,
-                scopeName: differentScopeName),
+            principalAccess = await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName, scopeName: differentScopeName),
             items = await GetItemsAsync()
         };
 
@@ -456,11 +482,11 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_NullResourceName()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_NullResourceName));
+        var principalId = "principal-getprincipalaccesswithscope-nullresourcename";
 
         // Attempt to get principal access with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
-            await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: resourceName, scopeName: null!));
+            await _repository.GetPrincipalAccessAsync(principalId: principalId, resourceName: null!, scopeName: null!));
 
         // Verify the correct validation error details.
         var o = new
@@ -476,7 +502,8 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_NullScopeName()
     {
         // Generate unique test names.
-        var (resourceName, _, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_NullScopeName));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-nullscopename";
+        var principalId = "principal-getprincipalaccesswithscope-nullscopename";
 
         // Attempt to get principal access with null scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -496,7 +523,9 @@ public partial class RBACRepositoryTests
     public void GetPrincipalAccessWithScope_ResourceNotExists()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_ResourceNotExists));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-resourcenotexists";
+        var scopeName = "scope-getprincipalaccesswithscope-resourcenotexists";
+        var principalId = "principal-getprincipalaccesswithscope-resourcenotexists";
 
         // Attempt to get principal access for non-existent resource should throw HttpStatusCodeException.
         var exception = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
@@ -517,7 +546,9 @@ public partial class RBACRepositoryTests
     public async Task GetPrincipalAccessWithScope_ScopeNotExists()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(GetPrincipalAccessWithScope_ScopeNotExists));
+        var resourceName = "urn://resource-getprincipalaccesswithscope-scopenotexists";
+        var scopeName = "scope-getprincipalaccesswithscope-scopenotexists";
+        var principalId = "principal-getprincipalaccesswithscope-scopenotexists";
 
         // Create resource but not the scope we'll try to query.
         await _repository.CreateResourceAsync(resourceName: resourceName);

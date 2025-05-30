@@ -1,23 +1,23 @@
 ﻿{
   "resourcesBefore": [
-    "urn://resource-deleteresource-frommultiple-delete",
-    "urn://resource-deleteresource-frommultiple-keep1",
-    "urn://resource-deleteresource-frommultiple-keep2"
+    "urn://resource-deleteresource-frommultiple-1",
+    "urn://resource-deleteresource-frommultiple-2",
+    "urn://resource-deleteresource-frommultiple-3"
   ],
   "resourcesAfter": [
-    "urn://resource-deleteresource-frommultiple-keep1",
-    "urn://resource-deleteresource-frommultiple-keep2"
+    "urn://resource-deleteresource-frommultiple-1",
+    "urn://resource-deleteresource-frommultiple-3"
   ],
   "items": [
     {
-      "_resourceName": "urn://resource-deleteresource-frommultiple-keep1",
+      "_resourceName": "urn://resource-deleteresource-frommultiple-1",
       "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-keep1"
+      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-1"
     },
     {
-      "_resourceName": "urn://resource-deleteresource-frommultiple-keep2",
+      "_resourceName": "urn://resource-deleteresource-frommultiple-3",
       "entityName": "#RESOURCE#",
-      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-keep2"
+      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-3"
     }
   ]
 }

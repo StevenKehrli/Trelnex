@@ -11,24 +11,20 @@ public partial class RBACRepositoryTests
     public async Task CreateScope()
     {
         // Generate unique test names for the resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(CreateScope));
+        var resourceName = "urn://resource-createscope";
+        var scopeName = "scope-createscope";
 
         // First create a resource as a prerequisite for the scope creation.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Create a new scope within the resource.
         // This is the primary operation being tested.
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
         // Verify the scope was created correctly by retrieving it and checking DynamoDB state.
         var o = new
         {
-            scopeAfter = await _repository.GetScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName),
+            scopeAfter = await _repository.GetScopeAsync(resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -41,7 +37,8 @@ public partial class RBACRepositoryTests
     public async Task CreateScope_AlreadyExists()
     {
         // Generate unique test names for the resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(CreateScope_AlreadyExists));
+        var resourceName = "urn://resource-createscope-alreadyexists";
+        var scopeName = "scope-createscope-alreadyexists";
 
         // Create a resource and scope for the idempotent test.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -72,7 +69,7 @@ public partial class RBACRepositoryTests
     public void CreateScope_EmptyResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(CreateScope_EmptyResourceName));
+        var scopeName = "scope-createscope-emptyresourcename";
 
         // Attempt to create scope with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -92,7 +89,7 @@ public partial class RBACRepositoryTests
     public async Task CreateScope_EmptyScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateScope_EmptyScopeName));
+        var resourceName = "urn://resource-createscope-emptyscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -115,7 +112,7 @@ public partial class RBACRepositoryTests
     public void CreateScope_InvalidResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(CreateScope_InvalidResourceName));
+        var scopeName = "scope-createscope-invalidresourcename";
 
         // Attempt to create scope with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -135,7 +132,7 @@ public partial class RBACRepositoryTests
     public async Task CreateScope_InvalidScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateScope_InvalidScopeName));
+        var resourceName = "urn://resource-createscope-invalidscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -158,11 +155,11 @@ public partial class RBACRepositoryTests
     public async Task CreateScope_MultipleScopesInResource()
     {
         // Generate unique test names.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateScope_MultipleScopesInResource));
+        var resourceName = "urn://resource-createscope-multiplescopesinresource";
 
-        var (_, scopeName1, _, _) = FormatNames($"1_{nameof(CreateScope_MultipleScopesInResource)}");
-        var (_, scopeName2, _, _) = FormatNames($"2_{nameof(CreateScope_MultipleScopesInResource)}");
-        var (_, scopeName3, _, _) = FormatNames($"3_{nameof(CreateScope_MultipleScopesInResource)}");
+        var scopeName1 = "scope-1-createscope-multiplescopesinresource";
+        var scopeName2 = "scope-2-createscope-multiplescopesinresource";
+        var scopeName3 = "scope-3-createscope-multiplescopesinresource";
 
         // Create resource and multiple scopes.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -188,15 +185,14 @@ public partial class RBACRepositoryTests
     public void CreateScope_NoResource()
     {
         // Generate unique test names for a non-existent resource.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(CreateScope_NoResource));
+        var resourceName = "urn://resource-createscope-noresource";
+        var scopeName = "scope-createscope-noresource";
 
         // Attempt to create a scope for a resource that doesn't exist.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.CreateScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName);
+            await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
         });
 
         // Verify the exception details match expected values.
@@ -216,7 +212,7 @@ public partial class RBACRepositoryTests
     public void CreateScope_NullResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(CreateScope_NullResourceName));
+        var scopeName = "scope-createscope-nullresourcename";
 
         // Attempt to create scope with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -236,7 +232,7 @@ public partial class RBACRepositoryTests
     public async Task CreateScope_NullScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateScope_NullScopeName));
+        var resourceName = "urn://resource-createscope-nullscopename";
 
         // Create resource first.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -259,29 +255,22 @@ public partial class RBACRepositoryTests
     public async Task DeleteScope()
     {
         // Generate unique test names for resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteScope));
+        var resourceName = "urn://resource-deletescope";
+        var scopeName = "scope-deletescope";
 
         // Create a resource and a scope within it for the deletion test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
         // Delete the scope within the resource.
         // This is the primary operation being tested.
-        await _repository.DeleteScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        await _repository.DeleteScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
         // Verify the scope was deleted by attempting to retrieve it.
         // Should return null or an empty result.
         var o = new
         {
-            scopeAfter = await _repository.GetScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName),
+            scopeAfter = await _repository.GetScopeAsync(resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -294,7 +283,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_EmptyResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(DeleteScope_EmptyResourceName));
+        var scopeName = "scope-deletescope-emptyresourcename";
 
         // Attempt to delete scope with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -314,7 +303,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_EmptyScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteScope_EmptyScopeName));
+        var resourceName = "urn://resource-deletescope-emptyscopename";
 
         // Attempt to delete scope with empty scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -334,11 +323,11 @@ public partial class RBACRepositoryTests
     public async Task DeleteScope_FromMultipleScopes()
     {
         // Generate unique test names.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteScope_FromMultipleScopes));
+        var resourceName = "urn://resource-deletescope-frommultiplescopes";
 
-        var (_, scopeName1, _, _) = FormatNames($"1_{nameof(DeleteScope_FromMultipleScopes)}");
-        var (_, scopeName2, _, _) = FormatNames($"2_{nameof(DeleteScope_FromMultipleScopes)}");
-        var (_, scopeName3, _, _) = FormatNames($"3_{nameof(DeleteScope_FromMultipleScopes)}");
+        var scopeName1 = "scope-1-deletescope-frommultiplescopes";
+        var scopeName2 = "scope-2-deletescope-frommultiplescopes";
+        var scopeName3 = "scope-3-deletescope-frommultiplescopes";
 
         // Create resource and multiple scopes.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -367,7 +356,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_InvalidResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(DeleteScope_InvalidResourceName));
+        var scopeName = "scope-deletescope-invalidresourcename";
 
         // Attempt to delete scope with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -387,7 +376,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_InvalidScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteScope_InvalidScopeName));
+        var resourceName = "urn://resource-deletescope-invalidscopename";
 
         // Attempt to delete scope with invalid scope name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -407,7 +396,8 @@ public partial class RBACRepositoryTests
     public async Task DeleteScope_NoResource()
     {
         // Generate unique test names for non-existent resource.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteScope_NoResource));
+        var resourceName = "urn://resource-deletescope-noresource";
+        var scopeName = "scope-deletescope-noresource";
 
         // Attempt to delete scope from non-existent resource (should be idempotent).
         await _repository.DeleteScopeAsync(resourceName: resourceName, scopeName: scopeName);
@@ -427,7 +417,8 @@ public partial class RBACRepositoryTests
     public async Task DeleteScope_NotExists()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteScope_NotExists));
+        var resourceName = "urn://resource-deletescope-notexists";
+        var scopeName = "scope-deletescope-notexists";
 
         // Create resource but not the scope.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -451,7 +442,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_NullResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(DeleteScope_NullResourceName));
+        var scopeName = "scope-deletescope-nullresourcename";
 
         // Attempt to delete scope with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -471,7 +462,7 @@ public partial class RBACRepositoryTests
     public void DeleteScope_NullScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteScope_NullScopeName));
+        var resourceName = "urn://resource-deletescope-nullscopename";
 
         // Attempt to delete scope with null scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -491,11 +482,12 @@ public partial class RBACRepositoryTests
     public async Task DeleteScope_WithMultipleScopeAssignments()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteScope_WithMultipleScopeAssignments));
+        var resourceName = "urn://resource-deletescope-withmultiplescopeassignments";
+        var scopeName = "scope-deletescope-withmultiplescopeassignments";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(DeleteScope_WithMultipleScopeAssignments)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(DeleteScope_WithMultipleScopeAssignments)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(DeleteScope_WithMultipleScopeAssignments)}");
+        var principalId1 = "principal-1-deletescope-withmultiplescopeassignments";
+        var principalId2 = "principal-2-deletescope-withmultiplescopeassignments";
+        var principalId3 = "principal-3-deletescope-withmultiplescopeassignments";
 
         // Create resource, scope, and multiple assignments.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -523,7 +515,8 @@ public partial class RBACRepositoryTests
     public async Task GetScope()
     {
         // Generate unique test names.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetScope));
+        var resourceName = "urn://resource-getscope";
+        var scopeName = "scope-getscope";
 
         // Create resource and scope for retrieval test.
         await _repository.CreateResourceAsync(resourceName: resourceName);
@@ -545,7 +538,7 @@ public partial class RBACRepositoryTests
     public void GetScope_EmptyResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetScope_EmptyResourceName));
+        var scopeName = "scope-getscope-emptyresourcename";
 
         // Attempt to retrieve scope with empty resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -565,7 +558,7 @@ public partial class RBACRepositoryTests
     public void GetScope_EmptyScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetScope_EmptyScopeName));
+        var resourceName = "urn://resource-getscope-emptyscopename";
 
         // Attempt to retrieve scope with empty scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -585,7 +578,7 @@ public partial class RBACRepositoryTests
     public void GetScope_InvalidResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetScope_InvalidResourceName));
+        var scopeName = "scope-getscope-invalidresourcename";
 
         // Attempt to retrieve scope with invalid resource name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -605,7 +598,7 @@ public partial class RBACRepositoryTests
     public void GetScope_InvalidScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetScope_InvalidScopeName));
+        var resourceName = "urn://resource-getscope-invalidscopename";
 
         // Attempt to retrieve scope with invalid scope name format should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -625,15 +618,14 @@ public partial class RBACRepositoryTests
     public void GetScope_NoResource()
     {
         // Generate unique test names for resource and a non-existent scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetScope_NoResource));
+        var resourceName = "urn://resource-getscope-noresource";
+        var scopeName = "scope-getscope-noresource";
 
         // Attempt to retrieve a scope from a resource that doesn't exist.
         // This should throw an HttpStatusCodeException with an appropriate error message.
         var ex = Assert.ThrowsAsync<HttpStatusCodeException>(async () =>
         {
-            await _repository.GetScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName);
+            await _repository.GetScopeAsync(resourceName: resourceName, scopeName: scopeName);
         });
 
         // Verify the exception details match expected values.
@@ -652,19 +644,18 @@ public partial class RBACRepositoryTests
     public async Task GetScope_NotExists()
     {
         // Generate unique test names for resource and a non-existent scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetScope_NotExists));
+        var resourceName = "urn://resource-getscope-notexists";
+        var scopeName = "scope-getscope-notexists";
 
         // Create a resource but not the scope we'll try to retrieve.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Attempt to retrieve a scope that doesn't exist within an existing resource.
         // This tests the system's handling of non-existent scopes.
         var o = new
         {
-            scopeAfter = await _repository.GetScopeAsync(
-                resourceName: resourceName,
-                scopeName: scopeName),
+            scopeAfter = await _repository.GetScopeAsync(resourceName: resourceName, scopeName: scopeName),
             items = await GetItemsAsync()
         };
 
@@ -677,7 +668,7 @@ public partial class RBACRepositoryTests
     public void GetScope_NullResourceName()
     {
         // Generate unique scope name.
-        var (_, scopeName, _, _) = FormatNames(nameof(GetScope_NullResourceName));
+        var scopeName = "scope-getscope-nullresourcename";
 
         // Attempt to retrieve scope with null resource name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
@@ -697,7 +688,7 @@ public partial class RBACRepositoryTests
     public void GetScope_NullScopeName()
     {
         // Generate unique resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetScope_NullScopeName));
+        var resourceName = "urn://resource-getscope-nullscopename";
 
         // Attempt to retrieve scope with null scope name should throw ValidationException.
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>

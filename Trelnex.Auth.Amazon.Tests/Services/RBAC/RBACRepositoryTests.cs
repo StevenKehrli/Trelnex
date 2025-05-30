@@ -10,7 +10,7 @@ using Trelnex.Auth.Amazon.Services.Validators;
 namespace Trelnex.Auth.Amazon.Tests.Services.RBAC;
 
 [Category("RBAC")]
-[Ignore("Requires a DynamoDB table.")]
+// [Ignore("Requires a DynamoDB table.")]
 public partial class RBACRepositoryTests
 {
     private AmazonDynamoDBClient _client = null!;
@@ -124,27 +124,6 @@ public partial class RBACRepositoryTests
             // Update the request with any unprocessed items for the next iteration.
             batchWriteRequest.RequestItems = batchWriteItemResponse.UnprocessedItems;
         }
-    }
-
-    /// <summary>
-    /// Generates standardized test entity names based on the test method name.
-    /// This ensures each test has unique identifiers to prevent test interference.
-    /// </summary>
-    /// <param name="testName">The name of the test method.</param>
-    /// <returns>A tuple containing names for resource, scope, role, and principal.</returns>
-    private static (string resourceName, string scopeName, string roleName, string principalId) FormatNames(
-        string testName)
-    {
-        var qualifier = testName.Replace("_", "-").ToLowerInvariant();
-
-        // Generate consistent names for each entity type prefixed with the entity type
-        // and suffixed with the test name to ensure uniqueness across tests.
-        var resourceName = $"urn://resource-{qualifier}";
-        var scopeName = $"scope-{qualifier}";
-        var roleName = $"role-{qualifier}";
-        var principalId = $"principal-{qualifier}";
-
-        return (resourceName, scopeName, roleName, principalId);
     }
 
     /// <summary>

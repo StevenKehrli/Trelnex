@@ -10,11 +10,10 @@ public partial class RBACRepositoryTests
     public async Task CreateResource()
     {
         // Generate unique test resource name to ensure test isolation.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateResource));
+        var resourceName = "urn://resource-createresource";
 
         // Create the resource in the RBAC system.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Capture the state after creation to verify the operation succeeded.
         var o = new
@@ -32,19 +31,17 @@ public partial class RBACRepositoryTests
     public async Task CreateResource_AlreadyExists()
     {
         // Generate unique test resource name to ensure test isolation.
-        var (resourceName, _, _, _) = FormatNames(nameof(CreateResource_AlreadyExists));
+        var resourceName = "urn://resource-createresource-alreadyexists";
 
         // Create the resource for the first time.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Capture the state after first creation.
         var resourcesAfterFirst = await _repository.GetResourcesAsync(default);
         var itemsAfterFirst = await GetItemsAsync();
 
         // Create the same resource again to test idempotent behavior.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Capture the state after second creation to verify no changes.
         var o = new
@@ -118,18 +115,16 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource()
     {
         // Generate unique test resource name to ensure test isolation.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource));
+        var resourceName = "urn://resource-deleteresource";
 
         // Create a resource that will be deleted in this test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Capture the state before deletion for comparison.
         var resourcesBefore = await _repository.GetResourcesAsync(default);
 
         // Delete the resource to test the deletion functionality.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Capture the state after deletion to verify the resource was removed.
         var o = new
@@ -165,9 +160,9 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_FromMultiple()
     {
         // Generate unique test resource names to ensure test isolation.
-        var (resourceName1, _, _, _) = FormatNames($"{nameof(DeleteResource_FromMultiple)}_Keep1");
-        var (resourceName2, _, _, _) = FormatNames($"{nameof(DeleteResource_FromMultiple)}_Delete");
-        var (resourceName3, _, _, _) = FormatNames($"{nameof(DeleteResource_FromMultiple)}_Keep2");
+        var resourceName1 = "urn://resource-deleteresource-frommultiple-1";
+        var resourceName2 = "urn://resource-deleteresource-frommultiple-2";
+        var resourceName3 = "urn://resource-deleteresource-frommultiple-3";
 
         // Create three resources for the deletion test.
         await _repository.CreateResourceAsync(resourceName: resourceName1);
@@ -214,14 +209,13 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_NotExists()
     {
         // Generate a unique name for a resource that will not be created.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource_NotExists));
+        var resourceName = "urn://resource-deleteresource-notexists";
 
         // Capture the initial state before attempting deletion.
         var resourcesBefore = await _repository.GetResourcesAsync(default);
 
         // Attempt to delete a resource that doesn't exist to test error handling.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Capture the state after the failed deletion attempt.
         var o = new
@@ -257,53 +251,29 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithMultipleRoleAssignments()
     {
         // Generate unique test names for resource, roles, and principals.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource_WithMultipleRoleAssignments));
+        var resourceName = "urn://resource-deleteresource-withmultipleroleassignments";
 
-        var (_, roleName1, _, _) = FormatNames($"1_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
-        var (_, roleName2, _, _) = FormatNames($"2_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
+        var roleName1 = "role-1-deleteresource-withmultipleroleassignments";
+        var roleName2 = "role-2-deleteresource-withmultipleroleassignments";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
-        var (_, _, _, principalId4) = FormatNames($"4_{nameof(DeleteResource_WithMultipleRoleAssignments)}");
+        var principalId1 = "principal-1-deleteresource-withmultipleroleassignments";
+        var principalId2 = "principal-2-deleteresource-withmultipleroleassignments";
+        var principalId3 = "principal-3-deleteresource-withmultipleroleassignments";
+        var principalId4 = "principal-4-deleteresource-withmultipleroleassignments";
 
         // Set up test data: create resource, multiple roles, and multiple assignments per role.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName1);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName1);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName1, principalId: principalId1);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName1, principalId: principalId2);
 
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName2);
-
-        // Create multiple assignments for first role.
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName1,
-            principalId: principalId1);
-
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName1,
-            principalId: principalId2);
-
-        // Create multiple assignments for second role.
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName2,
-            principalId: principalId3);
-
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName2,
-            principalId: principalId4);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName2);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName2, principalId: principalId3);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName2, principalId: principalId4);
 
         // Delete the parent resource to test complete cascade deletion.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that all related entities were deleted in cascade.
         var o = new
@@ -320,32 +290,23 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithMultipleRoles()
     {
         // Generate unique test names for resource and multiple roles.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource_WithMultipleRoles));
+        var resourceName = "urn://resource-deleteresource-withmultipleroles";
 
-        var (_, roleName1, _, _) = FormatNames($"1_{nameof(DeleteResource_WithMultipleRoles)}");
-        var (_, roleName2, _, _) = FormatNames($"2_{nameof(DeleteResource_WithMultipleRoles)}");
+        var roleName1 = "role-1-deleteresource-withmultipleroles";
+        var roleName2 = "role-2-deleteresource-withmultipleroles";
 
         // Set up test data: create resource and multiple associated roles.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName1);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName2);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName1);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName2);
 
         // Delete the parent resource to test cascade deletion of all roles.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that resource and all roles were deleted in cascade.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -358,53 +319,29 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithMultipleScopeAssignments()
     {
         // Generate unique test names for resource, scopes, and principals.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource_WithMultipleScopeAssignments));
+        var resourceName = "urn://resource-deleteresource-withmultiplescopeassignments";
 
-        var (_, _, scopeName1, _) = FormatNames($"1_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
-        var (_, _, scopeName2, _) = FormatNames($"2_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
+        var scopeName1 = "scope-1-deleteresource-withmultiplescopeassignments";
+        var scopeName2 = "scope-2-deleteresource-withmultiplescopeassignments";
 
-        var (_, _, _, principalId1) = FormatNames($"1_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
-        var (_, _, _, principalId2) = FormatNames($"2_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
-        var (_, _, _, principalId3) = FormatNames($"3_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
-        var (_, _, _, principalId4) = FormatNames($"4_{nameof(DeleteResource_WithMultipleScopeAssignments)}");
+        var principalId1 = "principal-1-deleteresource-withmultiplescopeassignments";
+        var principalId2 = "principal-2-deleteresource-withmultiplescopeassignments";
+        var principalId3 = "principal-3-deleteresource-withmultiplescopeassignments";
+        var principalId4 = "principal-4-deleteresource-withmultiplescopeassignments";
 
         // Set up test data: create resource, multiple scopes, and multiple assignments per scope.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName1);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName1);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName1, principalId: principalId1);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName1, principalId: principalId2);
 
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName2);
-
-        // Create multiple assignments for first scope.
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName1,
-            principalId: principalId1);
-
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName1,
-            principalId: principalId2);
-
-        // Create multiple assignments for second scope.
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName2,
-            principalId: principalId3);
-
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName2,
-            principalId: principalId4);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName2);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName2, principalId: principalId3);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName2, principalId: principalId4);
 
         // Delete the parent resource to test complete cascade deletion.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that all related entities were deleted in cascade.
         var o = new
@@ -421,32 +358,23 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithMultipleScopes()
     {
         // Generate unique test names for resource and multiple scopes.
-        var (resourceName, _, _, _) = FormatNames(nameof(DeleteResource_WithMultipleScopes));
+        var resourceName = "urn://resource-deleteresource-withmultiplescopes";
 
-        var (_, _, scopeName1, _) = FormatNames($"1_{nameof(DeleteResource_WithMultipleScopes)}");
-        var (_, _, scopeName2, _) = FormatNames($"2_{nameof(DeleteResource_WithMultipleScopes)}");
+        var scopeName1 = "scope-1-deleteresource-withmultiplescopes";
+        var scopeName2 = "scope-2-deleteresource-withmultiplescopes";
 
         // Set up test data: create resource and multiple associated scopes.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName1);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName2);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName1);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName2);
 
         // Delete the parent resource to test cascade deletion of all scopes.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that resource and all scopes were deleted in cascade.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -459,25 +387,20 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithRole()
     {
         // Generate unique test names for both resource and role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(DeleteResource_WithRole));
+        var resourceName = "urn://resource-deleteresource-withrole";
+        var roleName = "role-deleteresource-withrole";
 
         // Set up test data: create resource and associated role.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Delete the parent resource to test cascade deletion of roles.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that both resource and role were deleted in cascade.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -490,24 +413,17 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithRoleAssignment()
     {
         // Generate unique test names for the complete hierarchy.
-        var (resourceName, _, roleName, principalId) = FormatNames(nameof(DeleteResource_WithRoleAssignment));
+        var resourceName = "urn://resource-deleteresource-withroleassignment";
+        var roleName = "role-deleteresource-withroleassignment";
+        var principalId = "principal-deleteresource-withroleassignment";
 
         // Set up test data: create resource, role, and role assignment.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName,
-            principalId: principalId);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Delete the parent resource to test complete cascade deletion.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify that all related entities were deleted in cascade.
         var o = new
@@ -524,26 +440,21 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithScope()
     {
         // Generate unique test names for resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(DeleteResource_WithScope));
+        var resourceName = "urn://resource-deleteresource-withscope";
+        var scopeName = "scope-deleteresource-withscope";
 
         // Create a resource and a scope within it for the deletion test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
         // Delete the resource, which should cascade delete its scopes.
         // This tests the resource-scope cascade deletion behavior.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify the resource and scopes were deleted by attempting to retrieve the resource.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -556,30 +467,23 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithScopeAndRole()
     {
         // Generate unique test names for resource and scope.
-        var (resourceName, scopeName, roleName, _) = FormatNames(nameof(DeleteResource_WithScopeAndRole));
+        var resourceName = "urn://resource-deleteresource-withscopeandrole";
+        var scopeName = "scope-deleteresource-withscopeandrole";
+        var roleName = "role-deleteresource-withscopeandrole";
 
         // Create a resource and a scope within it for the deletion test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Delete the resource, which should cascade delete its scopes and roles.
         // This tests the resource-scope and resource-role cascade deletion behavior.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify the resource, scopes, and roles were deleted by attempting to retrieve the resource.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -592,25 +496,18 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithScopeAssignment()
     {
         // Generate unique test names for a complex test scenario.
-        var (resourceName, scopeName, _, principalId) = FormatNames(nameof(DeleteResource_WithScopeAssignment));
+        var resourceName = "urn://resource-deleteresource-withscopeassignment";
+        var scopeName = "scope-deleteresource-withscopeassignment";
+        var principalId = "principal-deleteresource-withscopeassignment";
 
         // Create a resource with scope and assignment.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
 
         // Delete the resource, which should cascade delete roles, scopes, and assignments.
         // This tests the complete cascade deletion behavior across multiple entity types.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify all related data was deleted by checking the raw DynamoDB items.
         var o = new
@@ -627,34 +524,21 @@ public partial class RBACRepositoryTests
     public async Task DeleteResource_WithScopeAssignmentAndRoleAssignment()
     {
         // Generate unique test names for a complex test scenario.
-        var (resourceName, scopeName, roleName, principalId) = FormatNames(nameof(DeleteResource_WithScopeAssignmentAndRoleAssignment));
+        var resourceName = "urn://resource-deleteresource-withscopeassignmentandroleassignment";
+        var scopeName = "scope-deleteresource-withscopeassignmentandroleassignment";
+        var roleName = "role-deleteresource-withscopeassignmentandroleassignment";
+        var principalId = "principal-deleteresource-withscopeassignmentandroleassignment";
 
         // Create a resource with scope, role, and assignments.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _repository.CreateScopeAssignmentAsync(
-            resourceName: resourceName,
-            scopeName: scopeName,
-            principalId: principalId);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _repository.CreateRoleAssignmentAsync(
-            resourceName: resourceName,
-            roleName: roleName,
-            principalId: principalId);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
+        await _repository.CreateScopeAssignmentAsync(resourceName: resourceName, scopeName: scopeName, principalId: principalId);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
+        await _repository.CreateRoleAssignmentAsync(resourceName: resourceName, roleName: roleName, principalId: principalId);
 
         // Delete the resource, which should cascade delete roles, scopes, and assignments.
         // This tests the complete cascade deletion behavior across multiple entity types.
-        await _repository.DeleteResourceAsync(
-            resourceName: resourceName);
+        await _repository.DeleteResourceAsync(resourceName: resourceName);
 
         // Verify all related data was deleted by checking the raw DynamoDB items.
         var o = new
@@ -671,18 +555,16 @@ public partial class RBACRepositoryTests
     public async Task GetResource()
     {
         // Generate a unique test resource name.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetResource));
+        var resourceName = "urn://resource-getresource";
 
         // Create a resource to test retrieval.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Retrieve the resource by name.
         // This is the primary operation being tested.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -729,14 +611,13 @@ public partial class RBACRepositoryTests
     public async Task GetResource_NotExists()
     {
         // Generate a name for a resource that doesn't exist in the system.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetResource_NotExists));
+        var resourceName = "urn://resource-getresource-notexists";
 
         // Attempt to retrieve a resource that doesn't exist.
         // This tests the system's handling of non-existent resources.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -766,21 +647,18 @@ public partial class RBACRepositoryTests
     public async Task GetResource_WithRole()
     {
         // Generate unique test names for resource and role.
-        var (resourceName, _, roleName, _) = FormatNames(nameof(GetResource_WithRole));
+        var resourceName = "urn://resource-getresource-withrole";
+        var roleName = "role-getresource-withrole";
 
         // Create a resource with a role for the retrieval test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Retrieve the resource and verify its associated data.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -793,21 +671,18 @@ public partial class RBACRepositoryTests
     public async Task GetResource_WithScope()
     {
         // Generate unique test names for resource and scope.
-        var (resourceName, scopeName, _, _) = FormatNames(nameof(GetResource_WithScope));
+        var resourceName = "urn://resource-getresource-withscope";
+        var scopeName = "scope-getresource-withscope";
 
         // Create a resource with a scope for the retrieval test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
 
         // Retrieve the resource and verify its associated data.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -820,25 +695,19 @@ public partial class RBACRepositoryTests
     public async Task GetResource_WithScopeAndRole()
     {
         // Generate unique test names for resource, scope, and role.
-        var (resourceName, scopeName, roleName, _) = FormatNames(nameof(GetResource_WithScopeAndRole));
+        var resourceName = "urn://resource-getresource-withscopeandrole";
+        var scopeName = "scope-getresource-withscopeandrole";
+        var roleName = "role-getresource-withscopeandrole";
 
         // Create a resource with both a role and scope for the retrieval test.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
-
-        await _repository.CreateScopeAsync(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _repository.CreateRoleAsync(
-            resourceName: resourceName,
-            roleName: roleName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
+        await _repository.CreateScopeAsync(resourceName: resourceName, scopeName: scopeName);
+        await _repository.CreateRoleAsync(resourceName: resourceName, roleName: roleName);
 
         // Retrieve the resource and verify its associated data.
         var o = new
         {
-            resourceAfter = await _repository.GetResourceAsync(
-                resourceName: resourceName),
+            resourceAfter = await _repository.GetResourceAsync(resourceName: resourceName),
             items = await GetItemsAsync()
         };
 
@@ -851,9 +720,9 @@ public partial class RBACRepositoryTests
     public async Task GetResources_MultipleResources()
     {
         // Generate unique test resource names to ensure test isolation.
-        var (resourceName3, _, _, _) = FormatNames($"3_{nameof(GetResources_MultipleResources)}");
-        var (resourceName2, _, _, _) = FormatNames($"2_{nameof(GetResources_MultipleResources)}");
-        var (resourceName1, _, _, _) = FormatNames($"1_{nameof(GetResources_MultipleResources)}");
+        var resourceName1 = "urn://resource-1-getresources-multipleresources";
+        var resourceName2 = "urn://resource-2-getresources-multipleresources";
+        var resourceName3 = "urn://resource-3-getresources-multipleresources";
 
         // Create three resources in non-alphabetical order to test sorting.
         await _repository.CreateResourceAsync(resourceName: resourceName3);
@@ -891,11 +760,10 @@ public partial class RBACRepositoryTests
     public async Task GetResources_OneResource()
     {
         // Generate unique test resource name to ensure test isolation.
-        var (resourceName, _, _, _) = FormatNames(nameof(GetResources_OneResource));
+        var resourceName = "urn://resource-getresources-oneresource";
 
         // Create a single resource to test retrieval of resource lists.
-        await _repository.CreateResourceAsync(
-            resourceName: resourceName);
+        await _repository.CreateResourceAsync(resourceName: resourceName);
 
         // Retrieve all resources to test the listing functionality.
         var o = new
