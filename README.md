@@ -542,7 +542,7 @@ Notice the `Changes` element does not include a property change for `privateMess
 
 ### InMemoryCommandProvider
 
-`InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistance. It is intended to assist development and testing of their business logic.
+`InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
 
 #### InMemoryCommandProvider - Dependency Injection
 
