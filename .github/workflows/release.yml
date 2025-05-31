@@ -43,6 +43,7 @@ jobs:
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      run_build: ${{ steps.set-matrix.outputs.run_build }}
 
     steps:
 
