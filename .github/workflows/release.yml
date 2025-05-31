@@ -98,52 +98,52 @@ jobs:
 
     steps:
 
-      - name: checkout
-        uses: actions/checkout@v4
+      # - name: checkout
+      #   uses: actions/checkout@v4
 
-      - name: setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ matrix.component.dotnet_version }}
+      # - name: setup .NET
+      #   uses: actions/setup-dotnet@v4
+      #   with:
+      #     dotnet-version: ${{ matrix.component.dotnet_version }}
 
-      - name: dotnet nuget add source
-        run: dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+      # - name: dotnet nuget add source
+      #   run: dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
-      - name: dotnet restore project
-        run: dotnet restore ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj
+      # - name: dotnet restore project
+      #   run: dotnet restore ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj
 
-      - name: dotnet build
-        run: dotnet build ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore --configuration Release
+      # - name: dotnet build
+      #   run: dotnet build ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore --configuration Release
 
-      - name: dotnet restore test
-        if: ${{ matrix.component.tests != null }}
-        run: dotnet restore ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj
+      # - name: dotnet restore test
+      #   if: ${{ matrix.component.tests != null }}
+      #   run: dotnet restore ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj
 
-      - name: dotnet test
-        if: ${{ matrix.component.tests != null }}
-        run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --no-restore --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
+      # - name: dotnet test
+      #   if: ${{ matrix.component.tests != null }}
+      #   run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --no-restore --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
 
-      - name: upload dotnet test results
-        if: ${{ always() && matrix.component.tests != null }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestResults.${{ matrix.component.tests }}
-          path: TestResults.${{ matrix.component.tests }}
-          retention-days: 14
+      # - name: upload dotnet test results
+      #   if: ${{ always() && matrix.component.tests != null }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: TestResults.${{ matrix.component.tests }}
+      #     path: TestResults.${{ matrix.component.tests }}
+      #     retention-days: 14
 
       - name: bump version and push tag
         if: success()
         id: tag_version
-        uses: StevenKehrli/Trelnex.MonoTag@1.2.0
+        uses: StevenKehrli/Trelnex.MonoTag@1.0.0
         with:
           project_path: ${{ matrix.component.name }}
           tag_prefix: ${{ matrix.component.tag_prefix }}
           tag_part: ${{ github.event.inputs.release_type }}
 
-      - name: dotnet pack
-        if: success() && steps.tag_version.outcome == 'success'
-        run: dotnet pack ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore -p:PackageVersion=${{ steps.tag_version.outputs.new_semver }} -p:ContinuousIntegrationBuild=true
+      # - name: dotnet pack
+      #   if: success() && steps.tag_version.outcome == 'success'
+      #   run: dotnet pack ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore -p:PackageVersion=${{ steps.tag_version.outputs.new_semver }} -p:ContinuousIntegrationBuild=true
 
-      - name: dotnet nuget push
-        if: success() && steps.tag_version.outcome == 'success'
-        run: dotnet nuget push "${{ matrix.component.name }}/bin/Release/${{ matrix.component.name }}.${{ steps.tag_version.outputs.new_semver }}.nupkg" --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
+      # - name: dotnet nuget push
+      #   if: success() && steps.tag_version.outcome == 'success'
+      #   run: dotnet nuget push "${{ matrix.component.name }}/bin/Release/${{ matrix.component.name }}.${{ steps.tag_version.outputs.new_semver }}.nupkg" --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
