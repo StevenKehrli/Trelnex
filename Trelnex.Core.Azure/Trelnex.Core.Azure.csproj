@@ -33,8 +33,7 @@
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="PostSharp" Version="2025.1.4" PrivateAssets="All" />
-        <!-- <PackageReference Include="Trelnex.Core.Api" Version="2.0.0" /> -->
-        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
+        <PackageReference Include="Trelnex.Core.Api" Version="0.1.0" />
     </ItemGroup>
 
 </Project>
