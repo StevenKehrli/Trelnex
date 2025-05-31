@@ -5,7 +5,7 @@
       "ReadResult": null
     },
     {
-      "HttpStatusCode": "Conflict",
+      "HttpStatusCode": "PreconditionFailed",
       "ReadResult": null
     }
   ],
@@ -15,12 +15,14 @@
         "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
         "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
         "TypeName": "test-item",
-        "CreatedDate": "2025-01-19T22:19:55.004878Z",
-        "UpdatedDate": "2025-01-19T22:19:55.004878Z",
-        "DeletedDate": null,
+        "CreatedDateTimeOffset": "2025-05-27T01:18:17.902287+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T01:18:17.902287+00:00",
+        "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "e5211558-70d5-4028-b29c-5cb530cede62",
-        "Message": "Message #1"
+        "ETag": "14a4914a-be7a-484f-b952-d3ae7de05dc0",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null
       }
     }
   ]

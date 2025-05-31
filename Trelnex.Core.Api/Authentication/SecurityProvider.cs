@@ -1,85 +1,73 @@
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a security provider.
+/// Defines the contract for a security provider that manages authentication schemes.
 /// </summary>
 /// <remarks>
-/// The security provider is used by the Swagger <see cref="SecurityFilter"/>
-/// to get the collection of <see cref="ISecurityDefinition"/> to add to the Swagger documentation.
-/// </remarks>
-/// <remarks>
-/// The security provider is used by the Swagger <see cref="AuthorizeFilter"/>
-/// to get the collection of <see cref="ISecurityRequirement"/> to add to the Swagger operation (endpoint) documentation.
+/// Acts as a registry for authentication configuration.
 /// </remarks>
 public interface ISecurityProvider
 {
     /// <summary>
-    /// Gets the collection of <see cref="ISecurityDefinition"/> for this provider.
+    /// Gets all registered security definitions that describe authentication schemes.
     /// </summary>
-    /// <remarks>
-    /// The security definitions are used by the Swagger <see cref="SecurityFilter"/>
-    /// to add the <see cref="OpenApiSecurityScheme"/> to the Swagger documentation.
-    /// </remarks>
-    /// <returns>The collection of <see cref="ISecurityDefinition"/>.</returns>
-    public IEnumerable<ISecurityDefinition> GetSecurityDefinitions();
+    /// <returns>A collection of security definitions for the application.</returns>
+    IEnumerable<ISecurityDefinition> GetSecurityDefinitions();
 
     /// <summary>
-    /// Gets the <see cref="ISecurityRequirement"/> for the specified policy name.
+    /// Gets a specific security requirement by its policy name.
     /// </summary>
-    /// <remarks>
-    /// The security requirement is used by the Swagger <see cref="AuthorizeFilter"/>
-    /// to add the <see cref="OpenApiSecurityRequirement"/> to the Swagger operation (endpoint) documentation.
-    /// </remarks>
-    /// <param name="policy">The specified policy name.</param>
-    /// <returns>The <see cref="ISecurityRequirement"/> for the specified policy name.</returns>
-    public ISecurityRequirement GetSecurityRequirement(
+    /// <param name="policy">The policy name to look up.</param>
+    /// <returns>The security requirement associated with the specified policy.</returns>
+    ISecurityRequirement GetSecurityRequirement(
         string policy);
 }
 
+/// <summary>
+/// Implements the security provider that manages authentication schemes and requirements.
+/// </summary>
+/// <remarks>
+/// Maintains collections of security definitions and requirements.
+/// </remarks>
 internal class SecurityProvider : ISecurityProvider
 {
+    #region Private Fields
+
     /// <summary>
-    /// The collection of <see cref="ISecurityDefinition"/> for this provider.
+    /// The collection of security definitions registered with this provider.
     /// </summary>
     private readonly List<ISecurityDefinition> _securityDefinitions = [];
 
     /// <summary>
-    /// The collection of <see cref="ISecurityRequirement"/> by policy name.
+    /// The dictionary of security requirements indexed by policy name.
     /// </summary>
     private readonly Dictionary<string, ISecurityRequirement> _securityRequirements = [];
 
-    /// <summary>
-    /// Gets the collection of <see cref="ISecurityDefinition"/> for this provider.
-    /// </summary>
-    /// <remarks>
-    /// The security definitions are used by the Swagger <see cref="SecurityFilter"/>
-    /// to add the <see cref="OpenApiSecurityScheme"/> to the Swagger documentation.
-    /// </remarks>
-    /// <returns>The collection of <see cref="ISecurityDefinition"/>.</returns>
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc/>
     public IEnumerable<ISecurityDefinition> GetSecurityDefinitions()
     {
         return _securityDefinitions.AsEnumerable();
     }
 
-    /// <summary>
-    /// Gets the <see cref="ISecurityRequirement"/> for the specified policy name.
-    /// </summary>
-    /// <remarks>
-    /// The security requirement is used by the Swagger <see cref="AuthorizeFilter"/>
-    /// to add the <see cref="OpenApiSecurityRequirement"/> to the Swagger operation (endpoint) documentation.
-    /// </remarks>
-    /// <param name="policy">The specified policy name.</param>
-    /// <returns>The <see cref="ISecurityRequirement"/> for the specified policy name.</returns>
+    /// <inheritdoc/>
     public ISecurityRequirement GetSecurityRequirement(
         string policy)
     {
         return _securityRequirements[policy];
     }
 
+    #endregion
+
+    #region Internal Methods
+
     /// <summary>
-    /// Add the specified <see cref="ISecurityDefinition"/> to this provider.
+    /// Registers a security definition with this provider.
     /// </summary>
-    /// <param name="securityDefinition">The specified <see cref="ISecurityDefinition"/>.</param>
+    /// <param name="securityDefinition">The security definition to register.</param>
     internal void AddSecurityDefinition(
         ISecurityDefinition securityDefinition)
     {
@@ -87,9 +75,9 @@ internal class SecurityProvider : ISecurityProvider
     }
 
     /// <summary>
-    /// Add the specified <see cref="ISecurityRequirement"/> to this provider.
+    /// Registers a security requirement with this provider.
     /// </summary>
-    /// <param name="securityRequirement">The specified <see cref="ISecurityRequirement"/>.</param>
+    /// <param name="securityRequirement">The security requirement to register.</param>
     internal void AddSecurityRequirement(
         ISecurityRequirement securityRequirement)
     {
@@ -97,21 +85,27 @@ internal class SecurityProvider : ISecurityProvider
     }
 
     /// <summary>
-    /// Gets the collection of <see cref="ISecurityRequirement"/> for the specified permission.
+    /// Retrieves security requirements matching specific authentication criteria.
     /// </summary>
-    /// <param name="jwtBearerScheme">The JWT bearer token scheme.</param>
-    /// <param name="audience">The required audience of the JWT bearer token.</param>
-    /// <param name="scope">The required scope of the JWT bearer token.</param>
-    /// <returns>the collection of <see cref="ISecurityRequirement"/>.</returns>
+    /// <param name="jwtBearerScheme">The JWT bearer scheme to match.</param>
+    /// <param name="audience">The audience to match.</param>
+    /// <param name="scope">The scope to match.</param>
+    /// <returns>An array of matching security requirements.</returns>
     internal ISecurityRequirement[] GetSecurityRequirements(
         string jwtBearerScheme,
         string audience,
         string scope)
     {
+        // Filter security requirements based on the provided authentication criteria, order them by policy name, and return them as an array.
         return _securityRequirements
-            .Where(kvp => kvp.Value.JwtBearerScheme == jwtBearerScheme && kvp.Value.Audience == audience && kvp.Value.Scope == scope)
+            .Where(kvp =>
+                kvp.Value.JwtBearerScheme == jwtBearerScheme &&
+                kvp.Value.Audience == audience &&
+                kvp.Value.Scope == scope)
             .OrderBy(kvp => kvp.Key)
             .Select(kvp => kvp.Value)
             .ToArray();
     }
+
+    #endregion
 }

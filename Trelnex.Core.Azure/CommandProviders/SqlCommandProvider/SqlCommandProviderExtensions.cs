@@ -4,89 +4,136 @@ using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
+/// Extension methods for configuring and registering SQL Server command providers.
 /// </summary>
+/// <remarks>Provides dependency injection integration for SQL Server command providers.</remarks>
 public static class SqlCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the necessary command providers as a <see cref="ICommandProvider{TInterface}"/> to the <see cref="IServiceCollection"/>.
+    /// Adds SQL Server command providers to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <param name="configureCommandProviders">The action to configure the command providers.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection to add providers to.</param>
+    /// <param name="configuration">Application configuration containing provider settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording provider initialization.</param>
+    /// <param name="configureCommandProviders">Action to configure specific providers.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <exception cref="ConfigurationErrorsException">When the SqlCommandProviders section is missing from configuration.</exception>
+    /// <exception cref="InvalidOperationException">When the ServiceConfiguration is not registered or when attempting to register the same command provider interface twice.</exception>
+    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
+    /// <remarks>Registers command providers for specific types.</remarks>
     public static IServiceCollection AddSqlCommandProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<ICommandProviderOptions> configureCommandProviders)
     {
-        // get the token credential identity provider
+        // Get the token credential provider.
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        var providerConfiguration = configuration
-            .GetSection("SqlCommandProviders")
-            .Get<SqlCommandProviderConfiguration>()
-            ?? throw new ConfigurationErrorsException("The SqlCommandProviders configuration is not found.");
+        // Get the database and table configurations from the configuration
+        var dataSource = configuration.GetSection("Azure.SqlCommandProviders:DataSource").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Azure.SqlCommandProviders configuration is not found.");
 
-        // parse the sql options
-        var providerOptions = SqlCommandProviderOptions.Parse(providerConfiguration);
+        var initialCatalog = configuration.GetSection("Azure.SqlCommandProviders:InitialCatalog").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Azure.SqlCommandProviders configuration is not found.");
 
-        // create our factory
+        var tables = configuration.GetSection("Azure.SqlCommandProviders:Tables").GetChildren();
+        var tableConfigurations = tables
+            .Select(t =>
+            {
+                var tableName = t.GetValue<string>("TableName")
+                    ?? throw new ConfigurationErrorsException("The Azure.SqlCommandProviders configuration is not found.");
+
+                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+
+                return new TableConfiguration(
+                    TypeName: t.Key,
+                    TableName: tableName,
+                    EncryptionSecret: encryptionSecret);
+            })
+            .ToArray();
+
+        // Get the service configuration.
+        var serviceDescriptor = services
+            .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
+            ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
+
+        // Cast the service descriptor.
+        var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
+
+        // Convert the raw configuration into a validated options object.
+        var providerOptions = SqlCommandProviderOptions.Parse(
+            dataSource: dataSource,
+            initialCatalog: initialCatalog,
+            tableConfigurations: tableConfigurations);
+
+        // Set up the SQL client options for AAD authentication.
         var sqlClientOptions = GetSqlClientOptions(credentialProvider, providerOptions);
 
-        var providerFactory = SqlCommandProviderFactory.Create(
-            sqlClientOptions).Result;
+        // Create and initialize the SQL command provider factory.
+        var providerFactory = SqlCommandProviderFactory
+            .Create(serviceConfiguration, sqlClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
-        // inject the factory as the status interface
+        // Register the factory in the DI container as an implementation of ICommandProviderFactory.
         services.AddCommandProviderFactory(providerFactory);
 
-        // create the command providers and inject
+        // Create a configuration object that will be used by the consumer to register specific providers.
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             providerFactory: providerFactory,
             providerOptions: providerOptions);
 
+        // Execute the consumer-supplied configuration action to register specific entity types.
         configureCommandProviders(commandProviderOptions);
 
+        // Return the service collection to allow for method chaining in the calling code.
         return services;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Gets the <see cref="SqlClientOptions"/> to be used by <see cref="SqlClient"/>.
+    /// Creates SQL Server client options with properly configured authentication.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="SqlClient"/> scopes.
-    /// </para>
-    /// </remarks>
-    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
-    /// <param name="providerOptions">The <see cref="SqlCommandProviderOptions"/>.</param>
-    /// <returns>A valid <see cref="SqlClientOptions"/>.</returns>
+    /// <param name="credentialProvider">Provider for token-based authentication.</param>
+    /// <param name="providerOptions">Configuration options for SQL Server.</param>
+    /// <returns>Fully configured SQL client options.</returns>
+    /// <remarks>Initializes an access token with proper scope for SQL Server.</remarks>
     private static SqlClientOptions GetSqlClientOptions(
         ICredentialProvider<TokenCredential> credentialProvider,
         SqlCommandProviderOptions providerOptions)
     {
-        // get the token credential and initialize
+        // Retrieve the token credential from the provider that was registered during application startup.
         var tokenCredential = credentialProvider.GetCredential();
 
-        // format the scope
+        // Define the standard scope for Azure SQL Database access.
         var scope = "https://database.windows.net/.default";
 
+        // Create a token request context with the SQL Database scope.
         var tokenRequestContext = new TokenRequestContext(
             scopes: [scope]);
 
-        // warm-up this token
+        // Request a token now to "warm up" the credential provider and avoid cold start latency.
         tokenCredential.GetToken(tokenRequestContext, default);
 
+        // Construct and return the SQL client options with all necessary connection parameters.
         return new SqlClientOptions(
             TokenCredential: tokenCredential,
             Scope: scope,
@@ -96,6 +143,14 @@ public static class SqlCommandProvidersExtensions
         );
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
+    /// <summary>
+    /// Implementation of <see cref="ICommandProviderOptions"/> for configuring SQL Server providers.
+    /// </summary>
+    /// <remarks>Provides type-to-table mapping and command provider registration.</remarks>
     private class CommandProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -103,127 +158,165 @@ public static class SqlCommandProvidersExtensions
         SqlCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        #region Public Methods
+
+        /// <summary>
+        /// Registers a command provider for a specific item type with table mapping.
+        /// </summary>
+        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+        /// <param name="typeName">Type name to map to a table.</param>
+        /// <param name="itemValidator">Optional validator for items.</param>
+        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <returns>The options instance for method chaining.</returns>
+        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
+        /// <exception cref="InvalidOperationException">When a command provider for the interface is already registered.</exception>
+        /// <remarks>Maps a logical entity type with its physical storage location.</remarks>
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
-            AbstractValidator<TItem>? itemValidator = null,
+            IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // get the table for the specified item type
-            var tableName = providerOptions.GetTableName(typeName);
+            // Look up the table configuration from the configured mappings using the provided type name.
+            var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
-            if (tableName is null)
+            // If no table mapping exists for this type name, we cannot continue.
+            if (tableConfiguration is null)
             {
                 throw new ArgumentException(
                     $"The Table for TypeName '{typeName}' is not found.",
                     nameof(typeName));
             }
 
+            // Check if a command provider for this interface has already been registered.
             if (services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // create the command provider and inject
+            // Create the encryption service if a secret is provided
+            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
+                : null;
+
+            // Create a new command provider instance for this entity type via the factory.
             var commandProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableName,
+                tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
+            // Register the provider in the DI container as a singleton.
             services.AddSingleton(commandProvider);
 
+            // Prepare logging parameters to record the registration.
             object[] args =
             [
                 typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.DataSource, // server
                 providerOptions.InitialCatalog, // database,
-                tableName, // table
+                tableConfiguration.TableName, // table
             ];
 
-            // log - the :l format parameter (l = literal) to avoid the quotes
+            // Log the successful registration with connection details.
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
+                message: "Added SqlCommandProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
                 args: args);
 
+            // Return this instance to enable method chaining for fluent configuration.
             return this;
         }
+
+        #endregion
     }
 
+    #endregion
+
+    #region Configuration Records
+
     /// <summary>
-    /// Represents the table for the specified item type.
+    /// Table configuration mapping type names to table names.
     /// </summary>
-    /// <param name="TypeName">The specified item type name.</param>
-    /// <param name="TableId">The table for the specified item type.</param>
+    /// <param name="TypeName">The type name used for filtering items.</param>
+    /// <param name="TableName">The table name in SQL Server.</param>
+    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName);
+        string TableName,
+        string? EncryptionSecret);
+
+    #endregion
+
+    #region Provider Options
 
     /// <summary>
-    /// Represents the configuration properties for SQL command providers.
+    /// Runtime options for SQL Server command providers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// https://github.com/dotnet/runtime/issues/83803
-    /// </para>
-    /// </remarks>
-    private record SqlCommandProviderConfiguration
-    {
-        /// <summary>
-        /// The name/network address to the SQL Server.
-        /// </summary>
-        public required string DataSource { get; init; }
-
-        /// <summary>
-        /// The database name to initialize.
-        /// </summary>
-        public required string InitialCatalog { get; init; }
-
-        /// <summary>
-        /// The collection of tables by item type
-        /// </summary>
-        public required TableConfiguration[] Tables { get; init; }
-    }
-
-    /// <summary>
-    /// Represents the SQL command provider options: the collection of tables by item type.
-    /// </summary>
+    /// <param name="dataSource">The data source or server name for the SQL server.</param>
+    /// <param name="initialCatalog">The initial catalog or database name for the SQL server.</param>
+    /// <remarks>Provides validated, parsed configuration with table-to-type mappings.</remarks>
     private class SqlCommandProviderOptions(
         string dataSource,
         string initialCatalog)
     {
-        /// <summary>
-        /// The collection of tables by item type.
-        /// </summary>
-        private readonly Dictionary<string, string> _tableNamesByTypeName = [];
+        #region Private Fields
 
         /// <summary>
-        /// Initialize an instance of <see cref="SqlCommandProviderOptions"/>.
+        /// The mappings from type names to table configurations.
         /// </summary>
-        /// <param name="providerConfiguration">The sql command providers configuration.</param>
-        /// <returns>The <see cref="SqlCommandProviderOptions"/>.</returns>
-        /// <exception cref="AggregateException">Represents one or more configuration errors.</exception>
+        private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the SQL Server name or network address.
+        /// </summary>
+        public string DataSource => dataSource;
+
+        /// <summary>
+        /// Gets the database name.
+        /// </summary>
+        public string InitialCatalog => initialCatalog;
+
+        #endregion
+
+        #region Public Static Methods
+
+        /// <summary>
+        /// Parses configuration into a validated options object.
+        /// </summary>
+        /// <param name="endpointUri">The SQL Server endpoint URI.</param>
+        /// <param name="databaseId">The database ID.</param>
+        /// <param name="tableConfigurations">Array of table configurations.</param>
+        /// <returns>Validated options with type-to-table mappings.</returns>
+        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
+        /// <remarks>Validates that no type name is mapped to multiple tables.</remarks>
         public static SqlCommandProviderOptions Parse(
-            SqlCommandProviderConfiguration providerConfiguration)
+            string dataSource,
+            string initialCatalog,
+            TableConfiguration[] tableConfigurations)
         {
-            // get the server and database
-            var options = new SqlCommandProviderOptions(
-                dataSource: providerConfiguration.DataSource,
-                initialCatalog: providerConfiguration.InitialCatalog);
+            // Create a new options instance with the connection information from configuration.
+            var providerOptions = new SqlCommandProviderOptions(
+                dataSource: dataSource,
+                initialCatalog: initialCatalog);
 
-            // group the tables by item type
-            var groups = providerConfiguration
-                .Tables
-                .GroupBy(o => o.TypeName)
+            // Group the table configurations by type name to detect duplicates.
+            var groups = tableConfigurations
+                .GroupBy(tableConfiguration => tableConfiguration.TypeName)
                 .ToArray();
 
-            // any exceptions
+            // Prepare to collect any configuration errors for comprehensive reporting.
             var exs = new List<ConfigurationErrorsException>();
 
-            // enumerate each group - should be one
+            // Check each group to ensure no type name is mapped to multiple tables.
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -231,54 +324,55 @@ public static class SqlCommandProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
             });
 
-            // if there are any exceptions, then throw an aggregate exception of all exceptions
+            // If any configuration errors were found, throw them as an aggregate exception.
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // enumerate each group and set the table (value) for each item type (key)
+            // With validation complete, build the type-to-table mapping dictionary.
             Array.ForEach(groups, group =>
             {
-                options._tableNamesByTypeName[group.Key] = group.Single().TableName;
+                providerOptions._tableConfigurationsByTypeName[group.Key] = group.Single();
             });
 
-            return options;
+            // Return the fully configured and validated options object.
+            return providerOptions;
         }
 
-        /// <summary>
-        /// Get the server.
-        /// </summary>
-        public string DataSource => dataSource;
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
-        /// Get the database.
+        /// Gets the table configuration for a specified type name.
         /// </summary>
-        public string InitialCatalog => initialCatalog;
-
-        /// <summary>
-        /// Get the table for the specified item type.
-        /// </summary>
-        /// <param name="typeName">The specified item type.</param>
-        /// <returns>The table for the specified item type.</returns>
-        public string? GetTableName(
+        /// <param name="typeName">The type name to look up.</param>
+        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
-            return _tableNamesByTypeName.TryGetValue(typeName, out var tableName)
-                ? tableName
+            // Try to retrieve the table configuration associated with the given type name.
+            return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableConfiguration)
+                ? tableConfiguration
                 : null;
         }
 
         /// <summary>
-        /// Get the tables.
+        /// Gets all configured table names.
         /// </summary>
-        /// <returns>The array of tables.</returns>
+        /// <returns>Array of distinct table names sorted alphabetically.</returns>
         public string[] GetTableNames()
         {
-            return _tableNamesByTypeName
-                .Values
-                .OrderBy(tn => tn)
+            // Extract all the table names from the mapping dictionary.
+            return _tableConfigurationsByTypeName
+                .Select(tableConfiguration => tableConfiguration.Value.TableName)
+                .OrderBy(tableName => tableName)
                 .ToArray();
         }
+
+        #endregion
     }
+
+    #endregion
 }

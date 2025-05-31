@@ -2,6 +2,7 @@ using System.Configuration;
 using System.Net;
 using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Trelnex.Auth.Amazon.Services.RBAC.Models;
 using Trelnex.Auth.Amazon.Services.Validators;
@@ -12,98 +13,73 @@ namespace Trelnex.Auth.Amazon.Services.RBAC;
 
 internal interface IRBACRepository
 {
-
-#region Principals
+    #region Principals
 
     /// <summary>
-    /// Deletes the specified principal
+    /// Deletes all assignments for the specified principal.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
+    /// <param name="principalId">The unique identifier of the principal to be deleted.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <remarks>
+    /// This operation cascades to delete all role and scope assignments for the principal.
+    /// </remarks>
     Task DeletePrincipalAsync(
         string principalId,
         CancellationToken cancellationToken = default);
 
-#endregion Principals
-
-#region Principal Memberships
-
     /// <summary>
-    /// Retrieves the role memberships for a specified principal, resource and scope.
+    /// Retrieves the access information for a principal within a specific resource.
     /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource.</param>
-    /// <param name="scopeName">The name of the scope.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An <see cref="PrincipalMembership"/> that represents the principal's role memberships for the specified resource and scope.</returns>
-    Task<PrincipalMembership> GetPrincipalMembershipAsync(
+    /// <param name="principalId">The unique identifier of the principal.</param>
+    /// <param name="resourceName">The name of the resource to check access for.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>A <see cref="PrincipalAccess"/> object containing the principal's roles and scopes for the resource.</returns>
+    /// <remarks>
+    /// Returns roles only if the principal has scope assignments within the resource.
+    /// </remarks>
+    Task<PrincipalAccess> GetPrincipalAccessAsync(
         string principalId,
         string resourceName,
-        string? scopeName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Grants a specified role to a principal for a given resource.
+    /// Retrieves the access information for a principal within a specific resource and scope.
     /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource for which the role is being granted.</param>
-    /// <param name="roleName">The name of the role being granted to the principal.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="PrincipalMembership"/> object representing the new principal membership.</returns>
-    Task<PrincipalMembership> GrantRoleToPrincipalAsync(
+    /// <param name="principalId">The unique identifier of the principal.</param>
+    /// <param name="resourceName">The name of the resource to check access for.</param>
+    /// <param name="scopeName">The name of the scope to filter access by.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>A <see cref="PrincipalAccess"/> object containing the principal's roles for the specific scope.</returns>
+    /// <remarks>
+    /// Returns roles only if the principal has the specified scope assignment within the resource.
+    /// </remarks>
+    Task<PrincipalAccess> GetPrincipalAccessAsync(
         string principalId,
         string resourceName,
-        string roleName,
+        string scopeName,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Revokes a specified role from a principal for a given resource.
-    /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource for which the role is being revoked.</param>
-    /// <param name="roleName">The name of the role being revoked from the principal.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="PrincipalMembership"/> object representing the new principal membership.</returns>
-    Task<PrincipalMembership> RevokeRoleFromPrincipalAsync(
-        string principalId,
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default);
+    #endregion
 
-#endregion Principal Memberships
-
-#region Role Assignments
-
-    /// <summary>
-    /// Retrieves the role assignment for a specific role and resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the role.</param>
-    /// <param name="roleName">The name of the role whose assignment is being retrieved.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="RoleAssignment"/> representing the role assignment for the specified role and resource.</returns>
-    Task<RoleAssignment> GetRoleAssignmentAsync(
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default);
-
-#endregion Role Assignments
-
-#region Resources
+    #region Resources
 
     /// <summary>
     /// Creates a new resource with the specified name.
     /// </summary>
     /// <param name="resourceName">The name of the resource to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <remarks>
+    /// Resources represent protected assets that can be accessed through scope and roles.
+    /// </remarks>
     Task CreateResourceAsync(
         string resourceName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the specified resource, along with any associated roles and scopes.
+    /// Deletes the specified resource.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
     /// <param name="resourceName">The name of the resource to be deleted.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
     Task DeleteResourceAsync(
         string resourceName,
         CancellationToken cancellationToken = default);
@@ -112,8 +88,8 @@ internal interface IRBACRepository
     /// Retrieves the resource with the specified name.
     /// </summary>
     /// <param name="resourceName">The name of the resource to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Resource"/> object, or <c>null</c> if the resource does not exist.</returns>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>A <see cref="Resource"/> object with details about the resource, or <see langword="null"/> if not found.</returns>
     Task<Resource?> GetResourceAsync(
         string resourceName,
         CancellationToken cancellationToken = default);
@@ -121,32 +97,35 @@ internal interface IRBACRepository
     /// <summary>
     /// Retrieves a list of all available resources.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An array of names representing all available resources in the system.</returns>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>An array of resources.</returns>
     Task<string[]> GetResourcesAsync(
         CancellationToken cancellationToken = default);
 
-#endregion Resources
+    #endregion
 
-#region Roles
+    #region Roles
 
     /// <summary>
     /// Creates a new role for the specified resource.
     /// </summary>
     /// <param name="resourceName">The name of the resource for which the role is being created.</param>
     /// <param name="roleName">The name of the role to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <remarks>
+    /// Roles define what actions principals can perform on resources.
+    /// </remarks>
     Task CreateRoleAsync(
         string resourceName,
         string roleName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the specified role for the given resource, including any associated role memberships.
+    /// Deletes the specified role for the given resource.
     /// </summary>
     /// <param name="resourceName">The name of the resource from which the role is being deleted.</param>
     /// <param name="roleName">The name of the role to be deleted.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">An optional token for canceling the operation.</param>
     Task DeleteRoleAsync(
         string resourceName,
         string roleName,
@@ -155,36 +134,84 @@ internal interface IRBACRepository
     /// <summary>
     /// Retrieves the specified role for a given resource.
     /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the role.</param>
+    /// <param name="resourceName">The name of the resource from which the role is being retrieved.</param>
     /// <param name="roleName">The name of the role to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Role"/> object, or <c>null</c> if the role does not exist.</returns>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>A <see cref="Role"/> object with details about the role, or <see langword="null"/> if not found.</returns>
     Task<Role?> GetRoleAsync(
         string resourceName,
         string roleName,
         CancellationToken cancellationToken = default);
 
-#endregion Roles
+    #endregion
 
-#region Scopes
+    #region Role Assignments
+
+    /// <summary>
+    /// Creates a new role assignment for the specified principal and role.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource for which the role is being assigned.</param>
+    /// <param name="roleName">The name of the role being assigned to the principal.</param>
+    /// <param name="principalId">The unique identifier of the principal being assigned to the role.</param>
+    /// <param name="cancellationToken">An optional token for canceling the operation.</param>
+    /// <remarks>
+    /// Role assignments define which authorization boundaries a principal can access within a resource.
+    /// </remarks>
+    Task CreateRoleAssignmentAsync(
+        string resourceName,
+        string roleName,
+        string principalId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the specified role assignment for the given principal and role.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource from which the role assignment is being deleted.</param>
+    /// <param name="roleName">The name of the role being removed from the principal.</param>
+    /// <param name="principalId">The unique identifier of the principal whose role assignment is being deleted.</param>
+    /// <param name="cancellationToken">An optional token for canceling the operation.</param>
+    Task DeleteRoleAssignmentAsync(
+        string resourceName,
+        string roleName,
+        string principalId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all principals assigned to the specified role within a resource.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource containing the role.</param>
+    /// <param name="roleName">The name of the role to query principals for.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>An array of principal identifiers assigned to the role, ordered alphabetically.</returns>
+    Task<string[]> GetPrincipalsForRoleAsync(
+        string resourceName,
+        string roleName,
+        CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Scopes
 
     /// <summary>
     /// Creates a new scope for the specified resource.
     /// </summary>
     /// <param name="resourceName">The name of the resource for which the scope is being created.</param>
     /// <param name="scopeName">The name of the scope to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <remarks>
+    /// Scopes define authorization boundaries for roles within a resource.
+    /// </remarks>
     Task CreateScopeAsync(
         string resourceName,
         string scopeName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the specified scope for the given resource, including any associated scope memberships.
+    /// Deletes the specified scope for the given resource.
     /// </summary>
     /// <param name="resourceName">The name of the resource from which the scope is being deleted.</param>
     /// <param name="scopeName">The name of the scope to be deleted.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
     Task DeleteScopeAsync(
         string resourceName,
         string scopeName,
@@ -193,642 +220,364 @@ internal interface IRBACRepository
     /// <summary>
     /// Retrieves the specified scope for a given resource.
     /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the scope.</param>
+    /// <param name="resourceName">The name of the resource from which the scope is being retrieved.</param>
     /// <param name="scopeName">The name of the scope to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Scope"/> object, or <c>null</c> if the scope does not exist.</returns>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>A <see cref="Scope"/> object with details about the scope, or <see langword="null"/> if not found.</returns>
     Task<Scope?> GetScopeAsync(
         string resourceName,
         string scopeName,
         CancellationToken cancellationToken = default);
 
-#endregion Scopes
+    #endregion
 
+    #region Scope Assignments
+
+    /// <summary>
+    /// Creates a new scope assignment for the specified principal and scope.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource for which the scope is being assigned.</param>
+    /// <param name="scopeName">The name of the scope being assigned to the principal.</param>
+    /// <param name="principalId">The unique identifier of the principal being assigned to the scope.</param>
+    /// <param name="cancellationToken">An optional token for canceling the operation.</param>
+    /// <remarks>
+    /// Scope assignments define which authorization boundaries a principal can access within a resource.
+    /// </remarks>
+    Task CreateScopeAssignmentAsync(
+        string resourceName,
+        string scopeName,
+        string principalId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the specified scope assignment for the given principal and scope.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource from which the scope assignment is being deleted.</param>
+    /// <param name="scopeName">The name of the scope being removed from the principal.</param>
+    /// <param name="principalId">The unique identifier of the principal whose scope assignment is being deleted.</param>
+    /// <param name="cancellationToken">An optional token for canceling the operation.</param>
+    Task DeleteScopeAssignmentAsync(
+        string resourceName,
+        string scopeName,
+        string principalId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all principals assigned to the specified scope within a resource.
+    /// </summary>
+    /// <param name="resourceName">The name of the resource containing the scope.</param>
+    /// <param name="scopeName">The name of the scope to query principals for.</param>
+    /// <param name="cancellationToken">An optional token for cancelling the operation.</param>
+    /// <returns>An array of principal identifiers assigned to the scope, ordered alphabetically.</returns>
+    Task<string[]> GetPrincipalsForScopeAsync(
+        string resourceName,
+        string scopeName,
+        CancellationToken cancellationToken = default);
+
+    #endregion
 }
 
-internal class RBACRepository : IRBACRepository
+internal partial class RBACRepository : IRBACRepository
 {
+    #region Private Fields
+
+    /// <summary>
+    /// The validator for determining if a resource name is valid.
+    /// </summary>
+    private readonly IResourceNameValidator _resourceNameValidator;
+
+    /// <summary>
+    /// The validator for determining if a scope name is valid and is the default scope.
+    /// </summary>
     private readonly IScopeNameValidator _scopeNameValidator;
 
-    private readonly PrincipalRoleRepository _principalRoleRepository;
-    private readonly ResourceRepository _resourceRepository;
-    private readonly RoleRepository _roleRepository;
-    private readonly ScopeRepository _scopeRepository;
+    /// <summary>
+    /// The validator for determining if a role name is valid.
+    /// </summary>
+    private readonly IRoleNameValidator _roleNameValidator;
 
+    /// <summary>
+    /// The DynamoDB client for database operations.
+    /// </summary>
+    private readonly AmazonDynamoDBClient _client;
+
+    /// <summary>
+    /// The name of the DynamoDB table storing RBAC data.
+    /// </summary>
+    private readonly string _tableName;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RBACRepository"/> class.
+    /// </summary>
+    /// <param name="resourceNameValidator">The validator for determining if a resource name is valid.</param>
+    /// <param name="scopeNameValidator">The validator for determining if a scope name is valid and is the default scope.</param>
+    /// <param name="roleNameValidator">The validator for determining if a role name is valid.</param>
+    /// <param name="client">The DynamoDB client for database operations.</param>
+    /// <param name="tableName">The name of the DynamoDB table storing RBAC data.</param>
+    /// <remarks>
+    /// This constructor initializes the specialized repositories for each entity type,
+    /// all using the same DynamoDB table with different partition and sort key patterns.
+    /// </remarks>
     internal RBACRepository(
+        IResourceNameValidator resourceNameValidator,
         IScopeNameValidator scopeNameValidator,
+        IRoleNameValidator roleNameValidator,
         AmazonDynamoDBClient client,
         string tableName)
     {
+        _resourceNameValidator = resourceNameValidator;
         _scopeNameValidator = scopeNameValidator;
-
-        _principalRoleRepository = new PrincipalRoleRepository(client, tableName);
-        _resourceRepository = new ResourceRepository(client, tableName);
-        _roleRepository = new RoleRepository(client, tableName);
-        _scopeRepository = new ScopeRepository(client, tableName);
+        _roleNameValidator = roleNameValidator;
+        _client = client;
+        _tableName = tableName;
     }
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
-    /// Creates a new instance of the <see cref="RBACRepository"/>.
+    /// Creates a new instance of the <see cref="RBACRepository"/> with configuration settings.
     /// </summary>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="scopeNameValidator">The scope name validator.</param>
-    /// <param name="credentialProvider">The credential provider to get the AWS credentials.</param>
-    /// <returns>The <see cref="RBACRepository"/>.</returns>
+    /// <param name="configuration">The application configuration containing RBAC settings.</param>
+    /// <param name="resourceNameValidator">The validator for determining if a resource name is valid.</param>
+    /// <param name="scopeNameValidator">The validator for determining if a scope name is valid and is the default scope.</param>
+    /// <param name="roleNameValidator">The validator for determining if a role name is valid.</param>
+    /// <param name="credentialProvider">The provider for AWS credentials.</param>
+    /// <returns>A configured <see cref="RBACRepository"/> instance.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the RBAC configuration is missing.</exception>
+    /// <remarks>
+    /// This factory method creates a fully configured RBAC repository from application settings.
+    /// It extracts the DynamoDB table name and AWS region from the configuration,
+    /// and sets up the AWS credentials for accessing DynamoDB.
+    /// </remarks>
     public static RBACRepository Create(
         IConfiguration configuration,
+        IResourceNameValidator resourceNameValidator,
         IScopeNameValidator scopeNameValidator,
+        IRoleNameValidator roleNameValidator,
         ICredentialProvider<AWSCredentials> credentialProvider)
     {
+        // Get the AWS credentials from the provider.
         var credentials = credentialProvider.GetCredential();
 
+        // Extract RBAC configuration from application settings.
         var rbacConfiguration = configuration
             .GetSection("RBAC")
             .Get<RBACConfiguration>()
             ?? throw new ConfigurationErrorsException("The RBAC configuration is not found.");
 
-        // get the region
-        var region = RegionEndpoint.GetBySystemName(rbacConfiguration.Region);
+        // Get the AWS region endpoint from the configuration.
+        var regionEndpoint = RegionEndpoint.GetBySystemName(rbacConfiguration.Region);
 
-        // create the dynamodb client
-        var client = new AmazonDynamoDBClient(credentials, region);
+        // Create a DynamoDB client with the credentials and region.
+        var client = new AmazonDynamoDBClient(credentials, regionEndpoint);
 
-        // create the rbac repository
-        return new RBACRepository(scopeNameValidator, client, rbacConfiguration.TableName);
+        // Create and return the RBAC repository.
+        return new RBACRepository(
+            resourceNameValidator,
+            scopeNameValidator,
+            roleNameValidator,
+            client,
+            rbacConfiguration.TableName);
     }
 
-#region Principals
+    #endregion
+
+    #region Private Methods
 
     /// <summary>
-    /// Deletes the specified principal
+    /// Creates the specified items in the DynamoDB table.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    public async Task DeletePrincipalAsync(
-        string principalId,
-        CancellationToken cancellationToken = default)
+    /// <param name="item">The items to create.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when a DynamoDB service error occurs.</exception>
+    private async Task CreateAsync<TBaseItem>(
+        TBaseItem[] items,
+        CancellationToken cancellationToken)
+        where TBaseItem : BaseItem
     {
-        // get any principal roles
-        var scanItem = new PrincipalRoleScanItem();
-        scanItem.AddPrincipalId(principalId);
+        // If there are no items to create, return.
+        if (items.Length is 0) return;
 
-        // delete the principal roles
-        var principalRoleItems = await _principalRoleRepository
-            .ScanAsync(scanItem, cancellationToken);
+        // Create the put requests.
+        var putRequests = items.Select(item => new PutRequest { Item = item.ToAttributeMap() });
+        var writeRequests = putRequests.Select(putRequest => new WriteRequest { PutRequest = putRequest });
 
-        await _principalRoleRepository.DeleteAsync(principalRoleItems, cancellationToken);
-    }
-
-#endregion Principals
-
-#region Principal Memberships
-
-    /// <summary>
-    /// Retrieves the role memberships for a specified principal, resource and scope.
-    /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource.</param>
-    /// <param name="scopeName">The name of the scope.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An <see cref="PrincipalMembership"/> that represents the principal's role memberships for the specified resource and scope.</returns>
-    public async Task<PrincipalMembership> GetPrincipalMembershipAsync(
-        string principalId,
-        string resourceName,
-        string? scopeName = null,
-        CancellationToken cancellationToken = default)
-    {
-        // get the resource
-        var resource = await GetResourceAsync(resourceName, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // scan
-        var scanItem = new PrincipalRoleScanItem();
-        scanItem.AddPrincipalId(principalId);
-        scanItem.AddResourceName(resourceName);
-
-        var principalRoleItems = await _principalRoleRepository.ScanAsync(scanItem, cancellationToken);
-
-        // get the scope names
-        var scopeNames = (scopeName is null || _scopeNameValidator.IsDefault(scopeName))
-            ? resource.ScopeNames
-            : [ scopeName ];
-
-        // get the role names
-        var roleNames = principalRoleItems
-            .Select(principalRoleItem => principalRoleItem.RoleName)
-            .Where(roleName => resource.RoleNames.Contains(roleName))
-            .Order()
-            .ToArray();
-
-        return new PrincipalMembership
+        var batchWriteRequest = new BatchWriteItemRequest
         {
-            PrincipalId = principalId,
-            ResourceName = resourceName,
-            ScopeNames = scopeNames,
-            RoleNames = roleNames ?? []
+            RequestItems = new Dictionary<string, List<WriteRequest>>
+            {
+                { _tableName, writeRequests.ToList() }
+            }
         };
-    }
 
-    /// <summary>
-    /// Grants a specified role to a principal for a given resource.
-    /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource for which the role is being granted.</param>
-    /// <param name="roleName">The name of the role being granted to the principal.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="PrincipalMembership"/> object representing the new principal membership.</returns>
-    public async Task<PrincipalMembership> GrantRoleToPrincipalAsync(
-        string principalId,
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
-    {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
-
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // check if role exists
-        var roleItem = new RoleItem(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        _ = await _roleRepository.GetAsync(roleItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Role '{roleName}' not found.");
-
-        // create
-        var createItem = new PrincipalRoleItem(
-            principalId: principalId,
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _principalRoleRepository.CreateAsync(createItem, cancellationToken);
-
-        // get
-        return await GetPrincipalMembershipAsync(
-            principalId: principalId,
-            resourceName: resourceName,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <summary>
-    /// Revokes a specified role from a principal for a given resource.
-    /// </summary>
-    /// <param name="principalId">The unique identifier of the principal (e.g., user or service).</param>
-    /// <param name="resourceName">The name of the resource for which the role is being revoked.</param>
-    /// <param name="roleName">The name of the role being revoked from the principal.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="PrincipalMembership"/> object representing the new principal membership.</returns>
-    public async Task<PrincipalMembership> RevokeRoleFromPrincipalAsync(
-        string principalId,
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
-    {
-        // delete
-        var deleteItem = new PrincipalRoleItem(
-            principalId: principalId,
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _principalRoleRepository.DeleteAsync(deleteItem, cancellationToken);
-
-        // get
-        return await GetPrincipalMembershipAsync(
-            principalId: principalId,
-            resourceName: resourceName,
-            cancellationToken: cancellationToken);
-    }
-
-#endregion Principal Memberships
-
-#region Role Assignments
-
-    /// <summary>
-    /// Retrieves the role assignment for a specific role and resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the role.</param>
-    /// <param name="roleName">The name of the role whose assignment is being retrieved.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="RoleAssignment"/> representing the role assignment for the specified role and resource.</returns>
-    public async Task<RoleAssignment> GetRoleAssignmentAsync(
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
-    {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
-
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // check if role exists
-        var roleItem = new RoleItem(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        _ = await _roleRepository.GetAsync(roleItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Role '{roleName}' not found.");
-
-        // scan
-        var scanItem = new PrincipalRoleScanItem();
-        scanItem.AddResourceName(resourceName);
-        scanItem.AddRoleName(roleName);
-
-        var principalItems = await _principalRoleRepository.ScanAsync(scanItem, cancellationToken);
-
-        // get the principal ids
-        var principalIds = principalItems
-            .Select(principalItem => principalItem.PrincipalId)
-            .Order()
-            .ToArray();
-
-        return new RoleAssignment
+        try
         {
-            ResourceName = resourceName,
-            RoleName = roleName,
-            PrincipalIds = principalIds ?? []
+            // Write until complete.
+            while (batchWriteRequest.RequestItems.Count > 0)
+            {
+                // Create the items.
+                var response = await _client.BatchWriteItemAsync(batchWriteRequest, cancellationToken);
+
+                // Set the unprocessed items for the next iteration.
+                batchWriteRequest.RequestItems = response.UnprocessedItems;
+            }
+        }
+        catch (AmazonDynamoDBException ex)
+        {
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Deletes the specified items from the DynamoDB table.
+    /// </summary>
+    /// <param name="items">The items to delete.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when a DynamoDB service error occurs.</exception>
+    private async Task DeleteAsync<TBaseItem>(
+        TBaseItem[] items,
+        CancellationToken cancellationToken)
+        where TBaseItem : BaseItem
+    {
+        // If there are no items to delete, return.
+        if (items.Length is 0) return;
+
+        // Create the delete requests.
+        var deleteRequests = items.Select(item => new DeleteRequest { Key = item.Key });
+        var writeRequests = deleteRequests.Select(deleteRequest => new WriteRequest { DeleteRequest = deleteRequest });
+
+        var batchWriteRequest = new BatchWriteItemRequest
+        {
+            RequestItems = new Dictionary<string, List<WriteRequest>>
+            {
+                { _tableName, writeRequests.ToList() }
+            }
         };
-    }
 
-#endregion Role Assignments
+        try
+        {
+            // Delete until complete.
+            while (batchWriteRequest.RequestItems.Count > 0)
+            {
+                // Delete the items.
+                var response = await _client.BatchWriteItemAsync(batchWriteRequest, cancellationToken);
 
-#region Resources
-
-    /// <summary>
-    /// Creates a new resource with the specified name.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Resource"/> object representing the new resource.</returns>
-    public async Task CreateResourceAsync(
-        string resourceName,
-        CancellationToken cancellationToken = default)
-    {
-        // create
-        var createItem = new ResourceItem(
-            resourceName: resourceName);
-
-        await _resourceRepository.CreateAsync(createItem, cancellationToken);
+                // Set the unprocessed items for the next iteration.
+                batchWriteRequest.RequestItems = response.UnprocessedItems;
+            }
+        }
+        catch (AmazonDynamoDBException ex)
+        {
+            // Wrap and re-throw the exception with a more specific HTTP status code.
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, ex.Message);
+        }
     }
 
     /// <summary>
-    /// Deletes the specified resource, along with any associated roles and scopes.
+    /// Gets the specified item from the DynamoDB table.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <param name="resourceName">The name of the resource to be deleted.</param>
-    public async Task DeleteResourceAsync(
-        string resourceName,
-        CancellationToken cancellationToken = default)
+    /// <param name="item">The item to get (only key properties are used).</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The item if found; otherwise, <see langword="null"/>.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when a DynamoDB service error occurs.</exception>
+    private async Task<TBaseItem?> GetAsync<TBaseItem>(
+        TBaseItem item,
+        Func<Dictionary<string, AttributeValue>, TBaseItem?> fromAttributeMap,
+        CancellationToken cancellationToken)
+        where TBaseItem : BaseItem
     {
-        // delete the resource
-        var deleteResourceTask = Task.Run(async () =>
+        // Create the get request.
+        var request = new GetItemRequest
         {
-            var deleteItem = new ResourceItem(
-                resourceName: resourceName);
-
-            await _resourceRepository.DeleteAsync(deleteItem, cancellationToken);
-        }, cancellationToken);
-
-        // get any scopes and then delete
-        var deleteScopesTask = Task.Run(async () =>
-        {
-            var scopeScanItem = new ScopeScanItem();
-            scopeScanItem.AddResourceName(resourceName);
-
-            var scopeItems = await _scopeRepository.ScanAsync(scopeScanItem, cancellationToken);
-
-            await _scopeRepository.DeleteAsync(scopeItems, cancellationToken);
-        }, cancellationToken);
-
-        // get any roles and then delete
-        var deleteRolesTask = Task.Run(async () =>
-        {
-            var roleScanItem = new RoleScanItem();
-            roleScanItem.AddResourceName(resourceName);
-
-            var roleItems = await _roleRepository.ScanAsync(roleScanItem, cancellationToken);
-
-            await _roleRepository.DeleteAsync(roleItems, cancellationToken);
-        }, cancellationToken);
-
-        // get any principal roles under this resource and then delete
-        var deletePrincipalRolesTask = Task.Run(async () =>
-        {
-            var principalRoleScanItem = new PrincipalRoleScanItem();
-            principalRoleScanItem.AddResourceName(resourceName);
-
-            var principalRoleImtes = await _principalRoleRepository.ScanAsync(principalRoleScanItem, cancellationToken);
-
-            await _principalRoleRepository.DeleteAsync(principalRoleImtes, cancellationToken);
-        }, cancellationToken);
-
-        // wait for the tasks to complete
-        await Task.WhenAll(deleteResourceTask, deleteScopesTask, deleteRolesTask, deletePrincipalRolesTask);
-    }
-
-    /// <summary>
-    /// Retrieves the resource with the specified name.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Resource"/> object, or <c>null</c> if the resource does not exist.</returns>
-    public async Task<Resource?> GetResourceAsync(
-        string resourceName,
-        CancellationToken cancellationToken = default)
-    {
-        // get the resource
-        var getItem = new ResourceItem(
-            resourceName: resourceName);
-
-        var getResourceTask = _resourceRepository.GetAsync(getItem, cancellationToken);
-
-        // get the scopes
-        var getScopesTask = GetScopesAsync(resourceName, cancellationToken);
-
-        // get the roles
-        var getRolesTask = GetRolesAsync(resourceName, cancellationToken);
-
-        // wait for all tasks to complete
-        await Task.WhenAll(getResourceTask, getScopesTask, getRolesTask);
-
-        // if resource does not exist, return null
-        if (getResourceTask.Result is null) return null;
-
-        return new Resource
-        {
-            ResourceName = resourceName,
-            ScopeNames = getScopesTask.Result,
-            RoleNames = getRolesTask.Result
+            TableName = _tableName,
+            Key = item.Key,
+            ConsistentRead = true // Use consistent read for up-to-date data.
         };
-    }
 
-    /// <summary>
-    /// Retrieves a list of all available resources.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An array <see cref="Resource"/> objects representing all available resources in the system.</returns>
-    public async Task<string[]> GetResourcesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var scanItem = new ResourceScanItem();
-
-        var resourceItems = await _resourceRepository.ScanAsync(scanItem, cancellationToken);
-
-        return resourceItems
-            .Select(resourceItem => resourceItem.ResourceName)
-            .Order()
-            .ToArray();
-    }
-
-#endregion Resources
-
-#region Roles
-
-    /// <summary>
-    /// Creates a new role for the specified resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource for which the role is being created.</param>
-    /// <param name="roleName">The name of the role to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Role"/> object representing the new role.</returns>
-    public async Task CreateRoleAsync(
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
-    {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
-
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // create
-        var createItem = new RoleItem(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        await _roleRepository.CreateAsync(createItem, cancellationToken);
-    }
-
-    /// <summary>
-    /// Deletes the specified role for the given resource, including any associated role memberships.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource from which the role is being deleted.</param>
-    /// <param name="roleName">The name of the role to be deleted.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task DeleteRoleAsync(
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
-    {
-        // delete the role
-        var deleteRoleTask = Task.Run(async () =>
+        try
         {
-            var deleteItem = new RoleItem(
-                resourceName: resourceName,
-                roleName: roleName);
+            // Get the item.
+            var response = await _client.GetItemAsync(request, cancellationToken);
 
-            await _roleRepository.DeleteAsync(deleteItem, cancellationToken);
-        }, cancellationToken);
-
-        // get any principal roles with this role and delete
-        var deletePrincipalRolesTask = Task.Run(async () =>
+            // Convert the attribute map to the item.
+            return fromAttributeMap(response.Item);
+        }
+        catch (AmazonDynamoDBException ex)
         {
-            var principalRoleScanItem = new PrincipalRoleScanItem();
-            principalRoleScanItem.AddResourceName(resourceName);
-            principalRoleScanItem.AddRoleName(roleName);
-
-            // delete the principal roles with this role
-            var principalRoleItems = await _principalRoleRepository
-                .ScanAsync(principalRoleScanItem, cancellationToken);
-
-            await _principalRoleRepository.DeleteAsync(principalRoleItems, cancellationToken);
-        }, cancellationToken);
-
-        await Task.WhenAll(deleteRoleTask, deletePrincipalRolesTask);
+            // Wrap and re-throw the exception with a more specific HTTP status code.
+            throw new HttpStatusCodeException(HttpStatusCode.ServiceUnavailable, ex.Message);
+        }
     }
 
     /// <summary>
-    /// Retrieves the specified role for a given resource.
+    /// Queries the DynamoDB table for items matching the specified criteria.
     /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the role.</param>
-    /// <param name="roleName">The name of the role to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Role"/> object, or <c>null</c> if the role does not exist.</returns>
-    public async Task<Role?> GetRoleAsync(
-        string resourceName,
-        string roleName,
-        CancellationToken cancellationToken = default)
+    /// <param name="queryRequest">The query request containing the criteria for the query.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>An array of matching items.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when a DynamoDB service error occurs.</exception>
+    private async Task<TBaseItem[]> QueryAsync<TBaseItem>(
+        QueryRequest queryRequest,
+        Func<Dictionary<string, AttributeValue>, TBaseItem?> fromAttributeMap,
+        CancellationToken cancellationToken)
+        where TBaseItem : BaseItem
     {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
+        var result = new List<TBaseItem>();
 
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // get
-        var getItem = new RoleItem(
-            resourceName: resourceName,
-            roleName: roleName);
-
-        var roleItem = await _roleRepository.GetAsync(getItem, cancellationToken);
-
-        if (roleItem is null) return null;
-
-        return new Role
+        try
         {
-            ResourceName = roleItem.ResourceName,
-            RoleName = roleItem.RoleName
-        };
-    }
+            do
+            {
+                var response = await _client.QueryAsync(queryRequest, cancellationToken);
 
-    /// <summary>
-    /// Retrieves a list of all available roles for a specific resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource for which roles are being retrieved.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An array of names representing all available roles for the resource.</returns>
-    private async Task<string[]> GetRolesAsync(
-        string resourceName,
-        CancellationToken cancellationToken = default)
-    {
-        // scan
-        var scanItem = new RoleScanItem();
-        scanItem.AddResourceName(resourceName);
+                var items = response.Items
+                    .Select(fromAttributeMap)
+                    .OfType<TBaseItem>();
 
-        var roleItems = await _roleRepository.ScanAsync(scanItem, cancellationToken);
+                result.AddRange(items);
 
-        return roleItems
-            .Select(roleItem => roleItem.RoleName)
-            .Order()
-            .ToArray();
-    }
+                // Continue pagination if there are more results
+                queryRequest.ExclusiveStartKey = response.LastEvaluatedKey;
 
-#endregion Roles
+            } while (queryRequest.ExclusiveStartKey?.Count > 0);
 
-#region Scopes
-
-    /// <summary>
-    /// Creates a new scope for the specified resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource for which the scope is being created.</param>
-    /// <param name="scopeName">The name of the scope to be created.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Scope"/> object representing the new scope.</returns>
-    public async Task CreateScopeAsync(
-        string resourceName,
-        string scopeName,
-        CancellationToken cancellationToken = default)
-    {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
-
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // create
-        var createItem = new ScopeItem(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _scopeRepository.CreateAsync(createItem, cancellationToken);
-    }
-
-    /// <summary>
-    /// Deletes the specified scope for the given resource, including any associated scope memberships.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource from which the scope is being deleted.</param>
-    /// <param name="scopeName">The name of the scope to be deleted.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task DeleteScopeAsync(
-        string resourceName,
-        string scopeName,
-        CancellationToken cancellationToken = default)
-    {
-        // delete
-        var deleteItem = new ScopeItem(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        await _scopeRepository.DeleteAsync(deleteItem, cancellationToken);
-    }
-
-    /// <summary>
-    /// Retrieves the specified scope for a given resource.
-    /// </summary>
-    /// <param name="resourceName">The name of the resource associated with the scope.</param>
-    /// <param name="scopeName">The name of the scope to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The <see cref="Scope"/> object, or <c>null</c> if the scope does not exist.</returns>
-    public async Task<Scope?> GetScopeAsync(
-        string resourceName,
-        string scopeName,
-        CancellationToken cancellationToken = default)
-    {
-        // check if resource exists
-        var resourceItem = new ResourceItem(
-            resourceName: resourceName);
-
-        _ = await _resourceRepository.GetAsync(resourceItem, cancellationToken)
-            ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{resourceName}' not found.");
-
-        // get
-        var getItem = new ScopeItem(
-            resourceName: resourceName,
-            scopeName: scopeName);
-
-        var scopeItem = await _scopeRepository.GetAsync(getItem, cancellationToken);
-
-        if (scopeItem is null) return null;
-
-        return new Scope
+            return result.ToArray();
+        }
+        catch (AmazonDynamoDBException ex)
         {
-            ResourceName = scopeItem.ResourceName,
-            ScopeName = scopeItem.ScopeName
-        };
+            throw new HttpStatusCodeException(
+                HttpStatusCode.ServiceUnavailable,
+                ex.Message);
+        }
     }
+
+    #endregion
+
+    #region Nested Types
 
     /// <summary>
-    /// Retrieves a list of all available scopes for a specific resource.
+    /// Represents the RBAC configuration settings.
     /// </summary>
-    /// <param name="resourceName">The name of the resource for which scopes are being retrieved.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An array of names representing all available scopes for the resource.</returns>
-    private async Task<string[]> GetScopesAsync(
-        string resourceName,
-        CancellationToken cancellationToken = default)
-    {
-        // scan
-        var scanItem = new ScopeScanItem();
-        scanItem.AddResourceName(resourceName);
-
-        var scopeItems = await _scopeRepository.ScanAsync(scanItem, cancellationToken);
-
-        return scopeItems
-            .Select(scopeItem => scopeItem.ScopeName)
-            .Order()
-            .ToArray();
-    }
-
-#endregion Scopes
-
     private record RBACConfiguration
     {
         /// <summary>
-        /// The AWS region name of the dynamodb table.
+        /// The AWS region name of the DynamoDB table.
         /// </summary>
         public required string Region { get; init; }
 
         /// <summary>
-        /// The dynamodb table name.
+        /// The DynamoDB table name.
         /// </summary>
         public required string TableName { get; init; }
     }
+
+    #endregion
 }

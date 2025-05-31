@@ -1,10 +1,17 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Represents the status of a command provider factory
+/// Operational status of a command provider factory.
 /// </summary>
-/// <param name="IsHealthy">A value indicating whether the command provider is healthy.</param>
-/// <param name="Data">Additional key-value pairs describing the command provider.</param>
+/// <remarks>
+/// Encapsulates health status and diagnostic information.
+/// </remarks>
+/// <param name="IsHealthy">
+/// Whether factory is operational.
+/// </param>
+/// <param name="Data">
+/// Diagnostic key-value pairs.
+/// </param>
 public record CommandProviderFactoryStatus(
     bool IsHealthy,
     IReadOnlyDictionary<string, object> Data);

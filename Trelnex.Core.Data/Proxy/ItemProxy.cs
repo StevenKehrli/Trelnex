@@ -2,38 +2,66 @@ using System.Reflection;
 
 namespace Trelnex.Core.Data;
 
+/// <summary>
+/// Proxy that intercepts method calls for <typeparamref name="TInterface"/> objects.
+/// </summary>
+/// <typeparam name="TInterface">Interface type implemented by proxy.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
+/// <remarks>
+/// Extends <see cref="DispatchProxy"/> to intercept method calls.
+/// </remarks>
 internal class ItemProxy<TInterface, TItem>
     : DispatchProxy
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
-    /// <summary>
-    /// The method to invoke to dispatch control whenever any method on the generated proxy type is called.
-    /// </summary>
-    private Func<MethodInfo?, object?[]?, object?> _onInvoke = null!;
+    #region Private Fields
 
     /// <summary>
-    /// Create a proxy item over a item.
+    /// Delegate that handles method invocations.
     /// </summary>
-    /// <param name="onInvoke">The method to invoke to dispatch control whenever any method on the generated proxy type is called.</param>
-    /// <returns>A proxy item as TInterface.</returns>
+    /// <remarks>
+    /// Called for all method invocations on the proxy instance.
+    /// </remarks>
+    private Func<MethodInfo?, object?[]?, object?> _onInvoke = null!;
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Creates a proxy instance implementing <typeparamref name="TInterface"/>.
+    /// </summary>
+    /// <param name="onInvoke">Delegate for handling method invocations.</param>
+    /// <returns>Proxy instance implementing <typeparamref name="TInterface"/>.</returns>
+    /// <remarks>
+    /// Configures a proxy to forward all calls to the provided delegate.
+    /// </remarks>
     public static TInterface Create(
         Func<MethodInfo?, object?[]?, object?> onInvoke)
     {
-        // create the dispatch proxy over our item
+        // Create a new proxy instance using DispatchProxy.Create<TInterface, ItemProxy<>>
         var proxy = (Create<TInterface, ItemProxy<TInterface, TItem>>() as ItemProxy<TInterface, TItem>)!;
 
-        // set the onInvoke delegate
+        // Register the invocation handler that will be called for all method calls
         proxy._onInvoke = onInvoke;
 
-        // return the dispatch proxy
+        // Return the proxy instance cast to the interface type
         return (proxy as TInterface)!;
     }
 
+    #endregion
+
+    #region Protected Methods
+
+    /// <inheritdoc/>
     protected override object? Invoke(
         MethodInfo? targetMethod,
         object?[]? args)
     {
+        // Forward method invocation to the registered handler delegate
         return _onInvoke(targetMethod, args);
     }
+
+    #endregion
 }

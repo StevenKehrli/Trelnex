@@ -1,68 +1,50 @@
-using Azure.Core;
-using Azure.Identity;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 
+/// <summary>
+/// Tests for the SqlCommandProvider implementation using direct factory instantiation.
+/// </summary>
+/// <remarks>
+/// This class inherits from <see cref="SqlCommandProviderTestBase"/> to leverage the shared
+/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage
+/// the extensive test suite defined in that base class.
+///
+/// This approach tests the factory pattern and provider implementation directly.
+///
+/// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual SQL Server instance
+/// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
+/// </remarks>
 [Ignore("Requires a SQL server.")]
-public class SqlCommandProviderTests : CommandProviderTests
+[Category("SqlCommandProvider")]
+public class SqlCommandProviderTests : SqlCommandProviderTestBase
 {
-    private readonly string _scope = "https://database.windows.net/.default";
-
-    private TokenCredential _tokenCredential = null!;
-    private string _connectionString = null!;
-    private string _tableName = null!;
-
+    /// <summary>
+    /// Sets up the SqlCommandProvider for testing using the direct factory instantiation approach.
+    /// </summary>
     [OneTimeSetUp]
     public async Task TestFixtureSetup()
     {
-        // This method is called once prior to executing any of the tests in the fixture.
+        // Initialize shared resources from configuration
+        TestSetup();
 
-        // create the test configuration
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
-            .Build();
-
-        var dataSource = configuration
-            .GetSection("SqlCommandProviders:DataSource")
-            .Value!;
-
-        var initialCatalog = configuration
-            .GetSection("SqlCommandProviders:InitialCatalog")
-            .Value!;
-
-        _tableName = configuration
-            .GetSection("SqlCommandProviders:Tables:0:TableName")
-            .Value!;
-
-        var scsBuilder = new SqlConnectionStringBuilder()
-        {
-            DataSource = dataSource,
-            InitialCatalog = initialCatalog,
-            Encrypt = true,
-        };
-
-        _connectionString = scsBuilder.ConnectionString;
-
-        // create the command provider
-        _tokenCredential = new DefaultAzureCredential();
-
+        // Configure the SQL client options.
         var sqlClientOptions = new SqlClientOptions(
             TokenCredential: _tokenCredential,
             Scope: _scope,
-            DataSource: dataSource,
-            InitialCatalog: initialCatalog,
-            TableNames: [ _tableName ]
+            DataSource: _dataSource,
+            InitialCatalog: _initialCatalog,
+            TableNames: [_tableName]
         );
 
+        // Create the SqlCommandProviderFactory.
         var factory = await SqlCommandProviderFactory.Create(
+            _serviceConfiguration,
             sqlClientOptions);
 
+        // Create the command provider instance.
         _commandProvider = factory.Create<ITestItem, TestItem>(
             _tableName,
             "test-item",
@@ -70,20 +52,74 @@ public class SqlCommandProviderTests : CommandProviderTests
             CommandOperations.All);
     }
 
-    [TearDown]
-    public void TestCleanup()
+    [Test]
+    [Description("Tests SqlCommandProvider with an optional message and without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task SqlCommandProvider_OptionalMessage_WithoutEncryption()
     {
-        // This method is called after each test has run.
-        using var sqlConnection = new SqlConnection(_connectionString);
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
 
-        var tokenRequestContext = new TokenRequestContext([ _scope ]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
 
-        sqlConnection.Open();
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
 
-        var cmdText = $"DELETE FROM [{_tableName}-events]; DELETE FROM [{_tableName}];";
-        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
 
-        sqlCommand.ExecuteNonQuery();
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader["optionalMessage"], Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
+    [Description("Tests SqlCommandProvider without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task SqlCommandProvider_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader.IsDBNull(1), Is.True);
+        });
     }
 }

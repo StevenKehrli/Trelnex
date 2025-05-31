@@ -1,42 +1,50 @@
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a security definition.
+/// Defines the contract for a security definition that specifies authentication requirements.
 /// </summary>
-/// <remark>
-/// The security definition is used by the Swagger <see cref="SecurityFilter"/>
-/// to add the <see cref="OpenApiSecurityScheme"/> to the Swagger documentation.
-/// </remark>
+/// <remarks>
+/// Describes the authentication scheme, audience, and scope required for API access.
+/// </remarks>
 public interface ISecurityDefinition
 {
     /// <summary>
-    /// The JWT bearer token scheme.
+    /// Gets the JWT bearer token authentication scheme name.
     /// </summary>
-    public string JwtBearerScheme { get; }
+    string JwtBearerScheme { get; }
 
     /// <summary>
-    /// The required audience of the JWT bearer token.
+    /// Gets the required audience value that must be present in valid JWT tokens.
     /// </summary>
-    public string Audience { get; }
+    string Audience { get; }
 
     /// <summary>
-    /// The required scope of the JWT bearer token.
+    /// Gets the required scope value that must be present in valid JWT tokens.
     /// </summary>
-    public string Scope { get; }
+    string Scope { get; }
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="SecurityDefinition"/>.
+/// Implements a security definition for JWT bearer token authentication.
 /// </summary>
-/// <param name="jwtBearerScheme">Specifies the JWT bearer token scheme.</param>
-/// <param name="audience">Specifies the required audience of the JWT bearer token.</param>
-/// <param name="scope">Specifies the required audience of the JWT bearer token.</param>
+/// <param name="jwtBearerScheme">The JWT bearer authentication scheme name.</param>
+/// <param name="audience">The required audience claim value for valid tokens.</param>
+/// <param name="scope">The required scope claim value for valid tokens.</param>
 internal class SecurityDefinition(
     string jwtBearerScheme,
     string audience,
     string scope) : ISecurityDefinition
 {
+    #region Public Properties
+
+    /// <inheritdoc/>
     public string JwtBearerScheme => jwtBearerScheme;
+
+    /// <inheritdoc/>
     public string Audience => audience;
+
+    /// <inheritdoc/>
     public string Scope => scope;
+
+    #endregion
 }

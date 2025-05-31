@@ -5,6 +5,9 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/StevenKehrli/Trelnex.Core</RepositoryUrl>
+        <DebugType>embedded</DebugType>
+        <IncludeSymbols>true</IncludeSymbols>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -24,14 +27,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Identity" Version="1.13.2" />
+        <PackageReference Include="Azure.Identity" Version="1.14.0" />
         <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.7.0" />
-        <PackageReference Include="FluentValidation" Version="11.11.0" />
-        <PackageReference Include="linq2db" Version="5.4.1" />
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.1" />
-        <PackageReference Include="Microsoft.Azure.Cosmos.Encryption" Version="2.0.4" />
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-        <PackageReference Include="Trelnex.Core.Data" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+        <PackageReference Include="PostSharp" Version="2025.1.4" PrivateAssets="All" />
+        <!-- <PackageReference Include="Trelnex.Core.Api" Version="2.0.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
     </ItemGroup>
 
 </Project>

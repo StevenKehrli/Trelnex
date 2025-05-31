@@ -1,152 +1,224 @@
 using System.Net;
 using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 
 namespace Trelnex.Core.Amazon.CommandProviders;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="DynamoCommandProvider"/>.
+/// Factory for creating DynamoDB command providers.
 /// </summary>
+/// <remarks>
+/// Manages DynamoDB client initialization, table validation, and provider creation.
+/// </remarks>
 internal class DynamoCommandProviderFactory : ICommandProviderFactory
 {
-    private readonly AmazonDynamoDBClient _dynamoClient;
-    private readonly Func<CommandProviderFactoryStatus> _getStatus;
-
-    private DynamoCommandProviderFactory(
-        AmazonDynamoDBClient dynamoClient,
-        Func<CommandProviderFactoryStatus> getStatus)
-    {
-        _dynamoClient = dynamoClient;
-        _getStatus = getStatus;
-    }
+    #region Private Fields
 
     /// <summary>
-    /// Create an instance of the <see cref="DynamoCommandProviderFactory"/>.
+    /// The DynamoDB client.
     /// </summary>
-    /// <param name="dynamoClientOptions">The <see cref="DynamoClient"/> options.</param>
-    /// <returns>The <see cref="DynamoCommandProviderFactory"/>.</returns>
+    private readonly AmazonDynamoDBClient _dynamoClient;
+
+    /// <summary>
+    /// The options used to configure the DynamoDB client.
+    /// </summary>
+    private readonly DynamoClientOptions _dynamoClientOptions;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DynamoCommandProviderFactory"/> class.
+    /// </summary>
+    /// <param name="dynamoClient">The configured DynamoDB client.</param>
+    /// <param name="dynamoClientOptions">The options used to configure the DynamoDB client.</param>
+    private DynamoCommandProviderFactory(
+        AmazonDynamoDBClient dynamoClient,
+        DynamoClientOptions dynamoClientOptions)
+    {
+        _dynamoClient = dynamoClient;
+        _dynamoClientOptions = dynamoClientOptions;
+    }
+
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Creates and initializes a new instance of the <see cref="DynamoCommandProviderFactory"/>.
+    /// </summary>
+    /// <param name="dynamoClientOptions">Options for DynamoDB client configuration.</param>
+    /// <returns>A fully initialized <see cref="DynamoCommandProviderFactory"/> instance.</returns>
+    /// <exception cref="CommandException">Thrown when the DynamoDB connection cannot be established or tables are missing.</exception>
+    /// <remarks>
+    /// Initializes the DynamoDB client and validates that all required tables exist.
+    /// </remarks>
     public static async Task<DynamoCommandProviderFactory> Create(
         DynamoClientOptions dynamoClientOptions)
     {
-        // create the dynamo client
+        // Create the DynamoDB client using the provided AWS credentials and region.
         var dynamoClient = new AmazonDynamoDBClient(
             dynamoClientOptions.AWSCredentials,
-            RegionEndpoint.GetBySystemName(dynamoClientOptions.RegionName));
+            RegionEndpoint.GetBySystemName(dynamoClientOptions.Region));
 
-        CommandProviderFactoryStatus getStatus()
-        {
-            var data = new Dictionary<string, object>
-            {
-                { "regionName", dynamoClientOptions.RegionName },
-                { "tableNames", dynamoClientOptions.TableNames },
-            };
-
-            try
-            {
-                // get the tables
-                string[] getTableNames()
-                {
-                    var tableNames = new List<string>();
-
-                    string? lastEvaluatedTableName = null;
-
-                    do
-                    {
-                        // get the next batch of table names
-                        var request = new ListTablesRequest
-                        {
-                            ExclusiveStartTableName = lastEvaluatedTableName
-                        };
-
-                        var response = dynamoClient.ListTablesAsync(request).Result;
-
-                        tableNames.AddRange(response.TableNames);
-
-                        lastEvaluatedTableName = response.LastEvaluatedTableName;
-                    } while (lastEvaluatedTableName is not null);
-
-                    return tableNames.ToArray();
-                }
-
-                var tableNames = getTableNames();
-
-                // get any tables not found
-                var missingTableNames = new List<string>();
-                foreach (var tableName in dynamoClientOptions.TableNames.OrderBy(tableName => tableName))
-                {
-                    if (tableNames.Any(tn => tn == tableName) is false)
-                    {
-                        missingTableNames.Add(tableName);
-                    }
-                }
-
-                if (0 != missingTableNames.Count)
-                {
-                    data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
-                }
-
-                return new CommandProviderFactoryStatus(
-                    IsHealthy: 0 == missingTableNames.Count,
-                    Data: data);
-            }
-            catch (Exception ex)
-            {
-                data["error"] = ex.Message;
-
-                return new CommandProviderFactoryStatus(
-                    IsHealthy: false,
-                    Data: data);
-            }
-        }
-
-        var status = getStatus();
-        if (status.IsHealthy is false)
-        {
-            throw new CommandException(
-                HttpStatusCode.ServiceUnavailable,
-                status.Data["error"] as string);
-        }
-
-        // build the factory
+        // Build and return the factory instance.
         var factory = new DynamoCommandProviderFactory(
             dynamoClient,
-            getStatus);
+            dynamoClientOptions);
 
-        return await Task.FromResult(factory);
+        // Get the operational status of the factory.
+        var status = await factory.GetStatusAsync();
+
+        // Return the factory if it is healthy; otherwise, throw an exception.
+        return (status.IsHealthy is true)
+            ? factory
+            : throw new CommandException(
+                HttpStatusCode.ServiceUnavailable,
+                status.Data["error"] as string);
     }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Create an instance of the <see cref="DynamoCommandProvider"/>.
+    /// Creates a command provider for a specific item type.
     /// </summary>
-    /// <param name="tableName">The table name for the item.</param>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The value indicating if update and delete commands are allowed. By default, update is allowed; delete is not allowed.</param>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-    /// <returns>The <see cref="DynamoCommandProvider"/>.</returns>
+    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+    /// <param name="tableName">Name of the DynamoDB table to use.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+    /// <returns>A configured <see cref="ICommandProvider{TInterface}"/> instance.</returns>
+    /// <remarks>
+    /// Creates a <see cref="DynamoCommandProvider{TInterface, TItem}"/> that operates on the specified DynamoDB table.
+    /// </remarks>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
-        AbstractValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        IValidator<TItem>? validator = null,
+        CommandOperations? commandOperations = null,
+        IEncryptionService? encryptionService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
-        var table = Table.LoadTable(
-            _dynamoClient,
-            tableName);
+        // Get a Table object with the standard key schema for the specified table name.
+        var table = _dynamoClient.GetTable(tableName);
 
+        // Create and return the command provider instance.
         return new DynamoCommandProvider<TInterface, TItem>(
             table,
             typeName,
             validator,
-            commandOperations);
+            commandOperations,
+            encryptionService);
     }
 
-    public CommandProviderFactoryStatus GetStatus() => _getStatus();
+    /// <summary>
+    /// Asynchronously gets the current operational status of the factory.
+    /// </summary>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>Status information including connectivity and table availability.</returns>
+    public async Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        // Initialize a dictionary to hold status data.
+        var data = new Dictionary<string, object>
+        {
+            { "region", _dynamoClientOptions.Region },
+            { "tableNames", _dynamoClientOptions.TableNames },
+        };
+
+        try
+        {
+            // Retrieve the table names from DynamoDB.
+            var tableNames = await GetTableNames(
+                _dynamoClient,
+                cancellationToken);
+
+            // Identify any required tables that are missing.
+            var missingTableNames = new List<string>();
+            foreach (var tableName in _dynamoClientOptions.TableNames.OrderBy(tableName => tableName))
+            {
+                // Check if the table exists in DynamoDB.
+                if (tableNames.Any(tn => tn == tableName) is false)
+                {
+                    // Add the missing table name to the list.
+                    missingTableNames.Add(tableName);
+                }
+            }
+
+            // If there are any missing table names, add an error message to the status data.
+            if (0 != missingTableNames.Count)
+            {
+                data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
+            }
+
+            // Return a healthy status if there are no missing table names.
+            return new CommandProviderFactoryStatus(
+                IsHealthy: 0 == missingTableNames.Count,
+                Data: data);
+        }
+        catch (Exception ex)
+        {
+            // If an exception occurs, add the error message to the status data.
+            data["error"] = ex.Message;
+
+            // Return an unhealthy status with the error data.
+            return new CommandProviderFactoryStatus(
+                IsHealthy: false,
+                Data: data);
+        }
+    }
+
+    #endregion
+
+    #region Private Static Methods
+
+    /// <summary>
+    /// Retrieves an array of table names from DynamoDB.
+    /// </summary>
+    /// <param name="dynamoClient">The DynamoDB client.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>An array of table names.</returns>
+    private static async Task<string[]> GetTableNames(
+        AmazonDynamoDBClient dynamoClient,
+        CancellationToken cancellationToken)
+    {
+        // Initialize a list to hold the table names.
+        var tableNames = new List<string>();
+
+        // Initialize the last evaluated table name to null.
+        string? lastEvaluatedTableName = null;
+
+        // Paginate through the table names.
+        do
+        {
+            // Get the next batch of table names.
+            var request = new ListTablesRequest
+            {
+                ExclusiveStartTableName = lastEvaluatedTableName
+            };
+
+            var response = await dynamoClient.ListTablesAsync(request);
+
+            // Add the table names to the list.
+            tableNames.AddRange(response.TableNames);
+
+            // Update the last evaluated table name.
+            lastEvaluatedTableName = response.LastEvaluatedTableName;
+        } while (lastEvaluatedTableName is not null); // Continue while there are more tables to retrieve.
+
+        // Return the table names as an array.
+        return tableNames.ToArray();
+    }
+
+    #endregion
 }

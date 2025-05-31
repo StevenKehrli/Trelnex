@@ -4,64 +4,81 @@ using Trelnex.Core.Validation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// The interface to validate and save the item in the backing data store.
+/// Command for validating and persisting item changes.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Interface type of the items.</typeparam>
+/// <remarks>
+/// Command pattern implementation for create, update, or delete operations.
+/// </remarks>
 public interface ISaveCommand<TInterface>
     where TInterface : class, IBaseItem
 {
     /// <summary>
-    /// The item.
+    /// Item being operated on.
     /// </summary>
     TInterface Item { get; }
 
     /// <summary>
-    /// The action to save the item to the backing data store as an asynchronous operation.
+    /// Persists the item.
     /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"> that invoked this method.</param>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The item that was saved.</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Read-only wrapper for the saved item.</returns>
+    /// <exception cref="InvalidOperationException">When already executed.</exception>
+    /// <exception cref="ValidationException">When validation fails.</exception>
+    /// <exception cref="CommandException">When storage operation fails.</exception>
+    /// <exception cref="OperationCanceledException">When canceled.</exception>
     Task<IReadResult<TInterface>> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// The action to validate the item.
+    /// Validates the item without saving.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The fluent <see cref="ValidationResult"/> item that was saved.</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Validation result.</returns>
+    /// <exception cref="OperationCanceledException">When canceled.</exception>
     Task<ValidationResult> ValidateAsync(
         CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// The class to save the item in the backing data store.
+/// Implementation of the command pattern for item persistence.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Interface type of the items.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
+/// <remarks>
+/// Extends <see cref="ProxyManager{TInterface, TItem}"/> to provide change tracking and access control.
+/// </remarks>
 internal class SaveCommand<TInterface, TItem>
     : ProxyManager<TInterface, TItem>, ISaveCommand<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
+    #region Private Fields
+
     /// <summary>
-    /// The type of save action.
+    /// Operation type being performed.
     /// </summary>
     private SaveAction _saveAction;
 
     /// <summary>
-    /// The action to save the item.
+    /// Delegate for performing storage operations.
     /// </summary>
     private SaveAsyncDelegate<TInterface, TItem> _saveAsyncDelegate = null!;
 
+    #endregion
+
+    #region Public Static Methods
+
     /// <summary>
-    /// Create a proxy item over a item.
+    /// Creates a save command with change tracking and validation.
     /// </summary>
-    /// <param name="item">The item.</param>
-    /// <param name="isReadOnly">Indicates if the item is read-only.</param>
-    /// <param name="validateAsyncDelegate">The action to validate the item.</param>
-    /// <param name="saveAction">The type of save action.</param>
-    /// <param name="saveAsyncDelegate">The action to save the item.</param>
-    /// <returns>A proxy item as TInterface.</returns>
+    /// <param name="item">Item to be wrapped.</param>
+    /// <param name="isReadOnly">If true, item is read-only.</param>
+    /// <param name="validateAsyncDelegate">Validation delegate.</param>
+    /// <param name="saveAction">Operation type.</param>
+    /// <param name="saveAsyncDelegate">Storage operation delegate.</param>
+    /// <returns>Configured SaveCommand instance.</returns>
+    /// <exception cref="ArgumentNullException">When required parameters are null.</exception>
     public static SaveCommand<TInterface, TItem> Create(
         TItem item,
         bool isReadOnly,
@@ -69,7 +86,7 @@ internal class SaveCommand<TInterface, TItem>
         SaveAction saveAction,
         SaveAsyncDelegate<TInterface, TItem> saveAsyncDelegate)
     {
-        // create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
+        // Create the proxy manager - needs an item reference for the ItemProxy onInvoke delegate
         var proxyManager = new SaveCommand<TInterface, TItem>
         {
             _item = item,
@@ -79,39 +96,36 @@ internal class SaveCommand<TInterface, TItem>
             _saveAsyncDelegate = saveAsyncDelegate,
         };
 
-        // create the proxy
+        // Create the proxy using the proxy manager's OnInvoke method
         var proxy = ItemProxy<TInterface, TItem>.Create(proxyManager.OnInvoke);
 
-        // set our proxy
+        // Set the proxy on the proxy manager
         proxyManager._proxy = proxy;
 
-        // return the proxy manager
+        // Return the proxy manager
         return proxyManager;
     }
 
-    /// <summary>
-    /// The action to save the item.
-    /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"> that invoked this method.</param>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>A <see cref="IReadResult{TInterface}"/> representing the saved item.</returns>
-    /// <exception cref="InvalidOperationException">The command is no longer valid.</exception>
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc/>
     public async Task<IReadResult<TInterface>> SaveAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken)
     {
-        // ensure that only one operation that modifies the item is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
-
         try
         {
-            var request = CreateSaveRequest(requestContext);
+            // Ensure that only one operation that modifies the item is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
 
-            // validate the underlying item
+            var request = CreateSaveRequest();
+
+            // Validate the underlying item
             var validationResult = await ValidateAsync(cancellationToken);
             validationResult.ValidateOrThrow<TItem>();
 
-            // save the item
+            // Save the item using the provided delegate
             var item = await _saveAsyncDelegate(
                 request,
                 cancellationToken);
@@ -125,87 +139,108 @@ internal class SaveCommand<TInterface, TItem>
     }
 
     /// <summary>
-    /// Acquire exclusive access to this command and its item. For use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// Acquires exclusive access to this command and its item.
     /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"> that invoked this method.</param>
     /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="SaveRequest{TInterface, TItem}"/> to add to the batch.</returns>
-    /// <exception cref="InvalidOperationException">The command is no longer valid.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the command is no longer valid.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
+    /// <remarks>
+    /// This method is designed for use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// </remarks>
     public async Task<SaveRequest<TInterface, TItem>> AcquireAsync(
-        IRequestContext requestContext,
         CancellationToken cancellationToken = default)
     {
-        // ensure that only one operation that modifies the item is in progress at a time
-        await _semaphore.WaitAsync(cancellationToken);
-
         try
         {
-            return CreateSaveRequest(requestContext);
+            // Ensure that only one operation that modifies the item is in progress at a time
+            await _semaphore.WaitAsync(cancellationToken);
+
+            return CreateSaveRequest();
         }
         catch
         {
-            // CreateSaveRequest may throw an exception if the command is no longer valid
+            // CreateSaveRequest may throw an exception if the command is no longer valid, so release the semaphore
             _semaphore.Release();
 
             throw;
         }
     }
 
+    #endregion
+
+    #region Internal Methods
+
     /// <summary>
-    /// Update this command with the result of a batch save operation. For use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// Updates this command with the result of a save operation.
     /// </summary>
     /// <param name="item">The item that was saved.</param>
     /// <returns>A <see cref="IReadResult{TInterface}"/> representing the saved item.</returns>
+    /// <remarks>
+    /// This method is designed for use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// </remarks>
     internal IReadResult<TInterface> Update(
         TItem item)
     {
-        // set the updated item and proxy
+        // Set the updated item and proxy
         _item = item;
         _proxy = ItemProxy<TInterface, TItem>.Create(OnInvoke);
         _isReadOnly = true;
 
-        // null out the saveAsyncDelegate so we know that we have already saved and are no longer valid
+        // Null out the saveAsyncDelegate to indicate that the command is no longer valid
         _saveAsyncDelegate = null!;
 
-        // create the read result and return
+        // Create the read result and return
         return ReadResult<TInterface, TItem>.Create(
             item: item,
             validateAsyncDelegate: _validateAsyncDelegate);
     }
 
     /// <summary>
-    /// Release exclusive access to this command and its item. For use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// Releases exclusive access to this command and its item.
     /// </summary>
+    /// <remarks>
+    /// This method is designed for use by <see cref="BatchCommand{TInterface, TItem}"/>.
+    /// </remarks>
     internal void Release()
     {
         _semaphore.Release();
     }
 
+    #endregion
+
+    #region Private Methods
+
     /// <summary>
-    /// Create a save request.
+    /// Creates a save request for the current item state.
     /// </summary>
-    /// <param name="requestContext">The <see cref="IRequestContext"> that invoked this method.</param>
     /// <returns>A <see cref="SaveRequest{TInterface, TItem}"/> representing the save request.</returns>
-    /// <exception cref="InvalidOperationException">The command is no longer valid.</exception>
-    private SaveRequest<TInterface, TItem> CreateSaveRequest(
-        IRequestContext requestContext)
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the command is no longer valid.
+    /// </exception>
+    private SaveRequest<TInterface, TItem> CreateSaveRequest()
     {
-        // check if already saved
+        // Check if already saved
         if (_saveAsyncDelegate is null)
         {
             throw new InvalidOperationException("The Command is no longer valid because its SaveAsync method has already been called.");
         }
 
-        // create the event
+        // Create the event to record the operation
         var itemEvent = ItemEvent<TItem>.Create(
             related: _item,
             saveAction: _saveAction,
-            changes: GetPropertyChanges(),
-            requestContext: requestContext);
+            changes: GetPropertyChanges());
 
         return new SaveRequest<TInterface, TItem>(
             Item: _item,
             Event: itemEvent,
             SaveAction: _saveAction);
     }
+
+    #endregion
 }

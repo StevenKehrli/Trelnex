@@ -4,44 +4,47 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a permission.
+/// Defines the contract for implementing API endpoint protection.
 /// </summary>
 /// <remarks>
-/// A permission protects an endpoint with its Authentication and Authorization.
-/// The Authorization is defined by the permission policies of this object.
+/// Represents a security configuration for API endpoints.
 /// </remarks>
 public interface IPermission
 {
     /// <summary>
-    /// Gets the JWT bearer token scheme.
+    /// Gets the JWT bearer token authentication scheme name.
     /// </summary>
-    public string JwtBearerScheme { get; }
+    string JwtBearerScheme { get; }
 
     /// <summary>
-    /// Add Authentication to the <see cref="IServiceCollection"/>.
+    /// Configures authentication services for this permission.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    public void AddAuthentication(
+    /// <param name="services">The service collection to register authentication services with.</param>
+    /// <param name="configuration">The application configuration containing auth settings.</param>
+    void AddAuthentication(
         IServiceCollection services,
         IConfiguration configuration);
 
     /// <summary>
-    /// Add <see cref="IPermissionPolicy"/> to the <see cref="IPoliciesBuilder"/>.
+    /// Configures authorization policies for this permission.
     /// </summary>
-    /// <param name="policiesBuilder">The <see cref="IPoliciesBuilder"/> to add the policies to the permission.</param>
-    public void AddAuthorization(
+    /// <param name="policiesBuilder">The builder for registering permission-specific authorization policies.</param>
+    void AddAuthorization(
         IPoliciesBuilder policiesBuilder);
 
     /// <summary>
-    /// Gets the required audience of the JWT bearer token.
+    /// Gets the required audience value for JWT token validation.
     /// </summary>
-    public string GetAudience(
+    /// <param name="configuration">The application configuration containing audience settings.</param>
+    /// <returns>The audience string that tokens must contain to be considered valid.</returns>
+    string GetAudience(
         IConfiguration configuration);
 
     /// <summary>
-    /// Gets the required scope of the JWT bearer token.
+    /// Gets the required scope value for JWT token validation.
     /// </summary>
-    public string GetScope(
+    /// <param name="configuration">The application configuration containing scope settings.</param>
+    /// <returns>The scope string that tokens must contain to be considered valid.</returns>
+    string GetScope(
         IConfiguration configuration);
 }

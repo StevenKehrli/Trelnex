@@ -7,219 +7,221 @@ using Trelnex.Core.Validation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// The interface to expose the commands against the backing data store.
+/// Command pattern interface for data store operations.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Item interface type.</typeparam>
+/// <remarks>
+/// Standardized interface for different data stores.
+/// </remarks>
 public interface ICommandProvider<TInterface>
     where TInterface : class, IBaseItem
 {
     /// <summary>
-    /// Returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
+    /// Creates a batch command.
     /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was created.</returns>
+    /// <returns>Batch command.</returns>
+    /// <remarks>
+    /// Executes multiple operations atomically.
+    /// </remarks>
+    IBatchCommand<TInterface> Batch();
+
+    /// <summary>
+    /// Creates a new item.
+    /// </summary>
+    /// <param name="id">Unique identifier.</param>
+    /// <param name="partitionKey">Partition key.</param>
+    /// <returns>Command for configuring and persisting the new item.</returns>
+    /// <remarks>
+    /// Initializes an item but doesn't persist it until the command is executed.
+    /// </remarks>
     ISaveCommand<TInterface> Create(
         string id,
         string partitionKey);
 
     /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation
-    /// and returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
+    /// Marks an item for deletion (soft-delete).
     /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was read.</returns>
+    /// <param name="id">Item identifier.</param>
+    /// <param name="partitionKey">Partition key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// Command for the deletion operation, or null if item not found.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// When Delete operation isn't supported.
+    /// </exception>
     Task<ISaveCommand<TInterface>?> DeleteAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation.
+    /// Retrieves an item.
     /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>An <see cref="IReadResult{TInterface}"/> with the item that was read.</returns>
+    /// <param name="id">Item identifier.</param>
+    /// <param name="partitionKey">Partition key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// Read-only result containing the item, or null if not found.
+    /// </returns>
     Task<IReadResult<TInterface>?> ReadAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation
-    /// and returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
+    /// Creates a LINQ query command.
     /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was read.</returns>
+    /// <returns>Query command with LINQ capabilities.</returns>
+    /// <remarks>
+    /// Enables LINQ querying with deferred execution.
+    /// </remarks>
+    IQueryCommand<TInterface> Query();
+
+    /// <summary>
+    /// Prepares an existing item for modification.
+    /// </summary>
+    /// <param name="id">Item identifier.</param>
+    /// <param name="partitionKey">Partition key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// Command with modifiable item, or null if not found.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// When Update operation isn't supported.
+    /// </exception>
     Task<ISaveCommand<TInterface>?> UpdateAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Creates a batch of commands for the backing data store.
-    /// </summary>
-    /// <returns>An <see cref="IBatchCommand{TInterface}"/> to batch the commands for the backing data store.</returns>
-    IBatchCommand<TInterface> Batch();
-
-    /// <summary>
-    /// Creates a LINQ query for items from the backing data store.
-    /// </summary>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/>.</returns>
-    IQueryCommand<TInterface> Query();
 }
 
+/// <summary>
+/// Base implementation for command providers.
+/// </summary>
+/// <typeparam name="TInterface">Item interface type.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
+/// <remarks>
+/// Implements command pattern for data access.
+/// </remarks>
 public abstract partial class CommandProvider<TInterface, TItem>
     : ICommandProvider<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
+    #region Protected Fields
+
     /// <summary>
-    /// The type name of the item.
+    /// Type name stored in items.
     /// </summary>
     protected readonly string _typeName;
 
-    /// <summary>
-    /// The fluent validator for the base item.
-    /// </summary>
-    private readonly AbstractValidator<TItem> _baseItemValidator;
+    #endregion
+
+    #region Private Fields
 
     /// <summary>
-    /// The fluent validator for the item.
+    /// Validator for base item properties.
     /// </summary>
-    private readonly AbstractValidator<TItem>? _itemValidator;
+    private readonly IValidator<TItem> _baseItemValidator;
 
     /// <summary>
-    /// The <see cref="ExpressionConverter{TInterface,TItem}"/> to convert an expression using a TInterface to an expression using a TItem.
-    /// </summary>
-    private readonly ExpressionConverter<TInterface, TItem> _expressionConverter;
-
-    /// <summary>
-    /// The command operations allowed by this provider.
+    /// Allowed operations.
     /// </summary>
     private readonly CommandOperations _commandOperations;
 
     /// <summary>
-    /// The delegate to validate and save the item.
+    /// Converts interface expressions to implementation expressions.
     /// </summary>
-    private readonly SaveAsyncDelegate<TInterface, TItem> _saveAsyncDelegate;
+    private readonly ExpressionConverter<TInterface, TItem> _expressionConverter;
 
     /// <summary>
-    /// The delegate to validate and save a batch of items.
+    /// Domain-specific validator.
     /// </summary>
-    private readonly SaveBatchAsyncDelegate<TInterface, TItem> _saveBatchAsyncDelegate;
+    private readonly IValidator<TItem>? _itemValidator;
+
+    #endregion
+
+    #region Protected Properties
 
     /// <summary>
-    /// The type name of the item - used for <see cref="BaseItem.TypeName"/>.
+    /// Type name for items.
     /// </summary>
     protected string TypeName => _typeName;
 
+    #endregion
+
+    #region Constructors
+
     /// <summary>
-    ///
+    /// Initializes a new instance of the <see cref="CommandProvider{TInterface, TItem}"/> class.
     /// </summary>
     /// <param name="typeName">The type name of the item.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The command operations allowed by this provider.</param>
+    /// <param name="validator">Optional validator for items before they are saved.</param>
+    /// <param name="commandOperations">The operations allowed (default: Read only).</param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="typeName"/> is invalid.
+    /// </exception>
     protected CommandProvider(
         string typeName,
-        AbstractValidator<TItem>? validator,
+        IValidator<TItem>? validator,
         CommandOperations? commandOperations = null)
     {
-        // validate the type folloows the naming rules
+        // Validate the type name against the naming rules (lowercase letters and hyphens).
         if (TypeRulesRegex().IsMatch(typeName) is false)
         {
             throw new ArgumentException($"The typeName '{typeName}' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.", nameof(typeName));
         }
 
-        // validate not a reserved type
+        // Ensure the type name doesn't conflict with any system-reserved names.
         if (ReservedTypeNames.IsReserved(typeName))
         {
             throw new ArgumentException($"The typeName '{typeName}' is a reserved type name.", nameof(typeName));
         }
 
-        // set the inputs
+        // Store the validated type name for use in item creation and queries.
         _typeName = typeName;
 
-        // set the validators
+        // Set up validators for both base properties and custom item properties.
         _baseItemValidator = CreateBaseItemValidator(typeName);
         _itemValidator = validator;
 
-        // create the expression converter
+        // Create the expression converter for LINQ operations.
         _expressionConverter = new();
 
-        // the command operations allowed by this provider
-        _commandOperations = commandOperations ?? CommandOperations.Update;
-
-        _saveAsyncDelegate = (request, cancellationToken) =>
-        {
-            if (string.Equals(request.Event.PartitionKey, request.Item.PartitionKey) is false)
-            {
-                throw new CommandException(
-                    httpStatusCode: HttpStatusCode.BadRequest,
-                    message: "The PartitionKey for the itemEvent does not match the one specified for the item.");
-            }
-
-            return SaveItemAsync(request, cancellationToken);
-        };
-
-        _saveBatchAsyncDelegate = (partitionKey, requests, cancellationToken) =>
-        {
-            // check the partition keys
-            var partitionKeyCheck = (SaveRequest<TInterface, TItem> request) =>
-                string.Equals(request.Item.PartitionKey, partitionKey) &&
-                string.Equals(request.Event.PartitionKey, request.Item.PartitionKey);
-
-            // if any of the items do not have the correct partition key, return a bad request
-            if (requests.Any(request => partitionKeyCheck(request)) is false)
-            {
-                // allocate the results
-                var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
-
-                for (var index = 0; index < requests.Length; index++)
-                {
-                    var request = requests[index];
-
-                    // if the partition key does match, return a failed dependency; otherwise, return a bad request
-                    var httpStatusCode = partitionKeyCheck(request)
-                        ? HttpStatusCode.FailedDependency
-                        : HttpStatusCode.BadRequest;
-
-                    saveResults[index] = new SaveResult<TInterface, TItem>(httpStatusCode, null);
-                }
-
-                return Task.FromResult(saveResults);
-            }
-
-            return SaveBatchAsync(partitionKey, requests, cancellationToken);
-        };
+        // Set the allowed operations for this provider, defaulting to Read only if not specified.
+        _commandOperations = commandOperations ?? CommandOperations.Read;
     }
 
-    /// <summary>
-    /// Returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
-    /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was created.</returns>
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc />
+    public IBatchCommand<TInterface> Batch()
+    {
+        return new BatchCommand<TInterface, TItem>(SaveBatchAsync);
+    }
+
+    /// <inheritdoc />
     public ISaveCommand<TInterface> Create(
         string id,
         string partitionKey)
     {
-        var dateTimeUtcNow = DateTime.UtcNow;
+        if (_commandOperations.HasFlag(CommandOperations.Create) is false)
+        {
+            throw new NotSupportedException("The requested Create operation is not supported.");
+        }
+
+        var dateTimeOffsetUtcNow = DateTimeOffset.UtcNow;
 
         var item = new TItem
         {
             Id = id,
             PartitionKey = partitionKey,
-
             TypeName = _typeName,
-
-            CreatedDate = dateTimeUtcNow,
-            UpdatedDate = dateTimeUtcNow,
+            CreatedDateTimeOffset = dateTimeOffsetUtcNow,
+            UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
         };
 
         return SaveCommand<TInterface, TItem>.Create(
@@ -227,17 +229,10 @@ public abstract partial class CommandProvider<TInterface, TItem>
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.CREATED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
-    /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation
-    /// and returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
-    /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was read.</returns>
+    /// <inheritdoc />
     public async Task<ISaveCommand<TInterface>?> DeleteAsync(
         string id,
         string partitionKey,
@@ -258,13 +253,27 @@ public abstract partial class CommandProvider<TInterface, TItem>
         return CreateDeleteCommand(item);
     }
 
-    /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation.
-    /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was read.</returns>
+    /// <inheritdoc />
+    public IQueryCommand<TInterface> Query()
+    {
+        var queryable = CreateQueryable();
+
+        Func<TItem, IQueryResult<TInterface>> convertToQueryResult = item => {
+            return QueryResult<TInterface, TItem>.Create(
+                item: item,
+                validateAsyncDelegate: ValidateAsync,
+                createDeleteCommand: CreateDeleteCommand,
+                createUpdateCommand: CreateUpdateCommand);
+        };
+
+        return new QueryCommand<TInterface, TItem>(
+            expressionConverter: _expressionConverter,
+            queryable: queryable,
+            queryAsyncDelegate: ExecuteQueryableAsync,
+            convertToQueryResult: convertToQueryResult);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadResult<TInterface>?> ReadAsync(
         string id,
         string partitionKey,
@@ -282,14 +291,7 @@ public abstract partial class CommandProvider<TInterface, TItem>
             validateAsyncDelegate: ValidateAsync);
     }
 
-    /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation
-    /// and returns an <see cref="ISaveCommand{TInterface}"/> which wraps the item.
-    /// </summary>
-    /// <param name="id">The id of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item that was read.</returns>
+    /// <inheritdoc />
     public async Task<ISaveCommand<TInterface>?> UpdateAsync(
         string id,
         string partitionKey,
@@ -310,89 +312,124 @@ public abstract partial class CommandProvider<TInterface, TItem>
         return CreateUpdateCommand(item);
     }
 
-    /// <summary>
-    /// Creates a batch of commands for the backing data store.
-    /// </summary>
-    /// <returns>An <see cref="IBatchCommand{TInterface}"/> to batch the commands for the backing data store.</returns>
-    public IBatchCommand<TInterface> Batch()
-    {
-        return new BatchCommand<TInterface, TItem>(_saveBatchAsyncDelegate);
-    }
+    #endregion
+
+    #region Protected Abstract Methods
 
     /// <summary>
-    /// Creates a LINQ query for items from the backing data store.
+    /// Creates an <see cref="IQueryable{TItem}"/>.
     /// </summary>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/>.</returns>
-    public IQueryCommand<TInterface> Query()
-    {
-        // create the queryable
-        var queryable = CreateQueryable();
-
-        // create the convertToQueryResult delegate
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult = item => {
-            return QueryResult<TInterface, TItem>.Create(
-                item: item,
-                validateAsyncDelegate: ValidateAsync,
-                createDeleteCommand: CreateDeleteCommand,
-                createUpdateCommand: CreateUpdateCommand);
-        };
-
-        // create the query command
-        return new QueryCommand<TInterface, TItem>(
-            expressionConverter: _expressionConverter,
-            queryable: queryable,
-            executeQueryable: ExecuteQueryable,
-            convertToQueryResult: convertToQueryResult);
-    }
+    /// <returns>
+    /// An <see cref="IQueryable{TItem}"/>.
+    /// </returns>
+    protected abstract IQueryable<TItem> CreateQueryable();
 
     /// <summary>
-    /// Reads a item from the backing data store as an asynchronous operation.
+    /// Executes a LINQ query.
     /// </summary>
-    /// <param name="id">The id of the item.</param>
+    /// <param name="queryable">The LINQ query to execute.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// An enumerable of items matching the query.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
+    protected abstract IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+        IQueryable<TItem> queryable,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads an item.
+    /// </summary>
+    /// <param name="id">The unique identifier of the item.</param>
     /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was read.</returns>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// The item if found, or <see langword="null"/> if the item does not exist.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
     protected abstract Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a batch of items in the backing data store as an asynchronous operation.
+    /// Saves a batch of items.
     /// </summary>
-    /// <param name="partitionKey">The partition key of the batch.</param>
-    /// <param name="requests">The batch of save requests with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The results of the batch operation.</returns>
+    /// <param name="requests">An array of save requests.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// An array of <see cref="SaveResult{TInterface, TItem}"/> objects.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
     protected abstract Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        string partitionKey,
         SaveRequest<TInterface, TItem>[] requests,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Create the <see cref="IQueryable{TItem}"/> to query the items.
-    /// </summary>
-    /// <returns></returns>
-    protected abstract IQueryable<TItem> CreateQueryable();
+    #endregion
+
+    #region Private Static Methods
 
     /// <summary>
-    /// Execute the query specified by the <see cref="IQueryable{TItem}"/> and return the results as an enumerable.
+    /// Creates a validator for the base properties of all items.
     /// </summary>
-    /// <param name="queryable">The queryable.</param>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The <see cref="IEnumerable{TInterface}"/>.</returns>
-    protected abstract IEnumerable<TItem> ExecuteQueryable(
-        IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default);
+    /// <param name="typeName">The expected type name.</param>
+    /// <returns>An <see cref="IValidator{TItem}"/>.</returns>
+    private static IValidator<TItem> CreateBaseItemValidator(
+        string typeName)
+    {
+        var baseItemValidator = new InlineValidator<TItem>();
+
+        baseItemValidator.RuleFor(k => k.Id)
+            .NotEmpty()
+            .WithMessage("Id is null or empty.");
+
+        baseItemValidator.RuleFor(k => k.PartitionKey)
+            .NotEmpty()
+            .WithMessage("PartitionKey is null or empty.");
+
+        baseItemValidator.RuleFor(k => k.TypeName)
+            .Must(k => k == typeName)
+            .WithMessage($"TypeName is not '{typeName}'.");
+
+        baseItemValidator.RuleFor(k => k.CreatedDateTimeOffset)
+            .NotDefault()
+            .WithMessage("CreatedDateTimeOffset is not valid.");
+
+        baseItemValidator.RuleFor(k => k.UpdatedDateTimeOffset)
+            .NotDefault()
+            .WithMessage("UpdatedDateTimeOffset is not valid.");
+
+        return baseItemValidator;
+    }
 
     /// <summary>
-    /// Create an <see cref="ISaveCommand{TInterface}"/> to delete the item.
+    /// Creates a regular expression that enforces the naming rules for type names.
     /// </summary>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item to delete.</returns>
+    /// <returns>A <see cref="Regex"/> that matches valid type names.</returns>
+    [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
+    private static partial Regex TypeRulesRegex();
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Creates a command to mark an item as deleted.
+    /// </summary>
+    /// <param name="item">The item to mark as deleted.</param>
+    /// <returns>
+    /// An <see cref="ISaveCommand{TInterface}"/> that can be executed to perform the deletion.
+    /// </returns>
     private ISaveCommand<TInterface> CreateDeleteCommand(
         TItem item)
     {
-        item.DeletedDate = DateTime.UtcNow;
+        item.DeletedDateTimeOffset = DateTimeOffset.UtcNow;
         item.IsDeleted = true;
 
         return SaveCommand<TInterface, TItem>.Create(
@@ -400,41 +437,47 @@ public abstract partial class CommandProvider<TInterface, TItem>
             isReadOnly: true,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.DELETED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
     /// <summary>
-    /// Create an <see cref="ISaveCommand{TInterface}"/> to update the item.
+    /// Creates a command to update an item.
     /// </summary>
-    /// <returns>An <see cref="ISaveCommand{TInterface}"/> with the item to delete.</returns>
+    /// <param name="item">The item to update.</param>
+    /// <returns>
+    /// An <see cref="ISaveCommand{TInterface}"/> that can be executed to perform the update.
+    /// </returns>
     private ISaveCommand<TInterface> CreateUpdateCommand(
         TItem item)
     {
-        item.UpdatedDate = DateTime.UtcNow;
+        item.UpdatedDateTimeOffset = DateTimeOffset.UtcNow;
 
         return SaveCommand<TInterface, TItem>.Create(
             item: item,
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.UPDATED,
-            saveAsyncDelegate: _saveAsyncDelegate);
+            saveAsyncDelegate: SaveItemAsync);
     }
 
     /// <summary>
-    /// Saves a item in the backing data store as an asynchronous operation.
+    /// Saves a single item.
     /// </summary>
-    /// <param name="request">The save request with item and event to save.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> representing request cancellation.</param>
-    /// <returns>The item that was saved.</returns>
+    /// <param name="request">The save request.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// The saved item.
+    /// </returns>
+    /// <exception cref="CommandException">
+    /// Thrown when the save operation fails.
+    /// </exception>
     private async Task<TItem> SaveItemAsync(
         SaveRequest<TInterface, TItem> request,
         CancellationToken cancellationToken = default)
     {
-        // batch the item and event
         SaveRequest<TInterface, TItem>[] requests = [ request ];
 
         var results = await SaveBatchAsync(
-            partitionKey: request.Item.PartitionKey,
             requests: requests,
             cancellationToken: cancellationToken);
 
@@ -449,60 +492,24 @@ public abstract partial class CommandProvider<TInterface, TItem>
     }
 
     /// <summary>
-    /// Validate the item using the base item validator and the item validation.
+    /// Validates an item.
     /// </summary>
     /// <param name="item">The item to validate.</param>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The fluent <see cref="ValidationResult"/>.</returns>
+    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// The validation result.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
     private async Task<ValidationResult> ValidateAsync(
         TItem item,
         CancellationToken cancellationToken)
     {
-        // create a composite of the base item validator and the item validator
         var compositeValidator = new CompositeValidator<TItem>(_baseItemValidator, _itemValidator);
 
-        // validate the item
         return await compositeValidator.ValidateAsync(item, cancellationToken);
     }
 
-    [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
-    private static partial Regex TypeRulesRegex();
-
-    /// <summary>
-    /// Create an instance of <see cref="AbstractValidator{TItem}"/> to validate the base item.
-    /// </summary>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <returns>The <see cref="AbstractValidator{TItem}"/>.</returns>
-    private static AbstractValidator<TItem> CreateBaseItemValidator(
-        string typeName)
-    {
-        var baseItemValidator = new InlineValidator<TItem>();
-
-        // id
-        baseItemValidator.RuleFor(k => k.Id)
-            .NotEmpty()
-            .WithMessage("Id is null or empty.");
-
-        // partitionKey
-        baseItemValidator.RuleFor(k => k.PartitionKey)
-            .NotEmpty()
-            .WithMessage("PartitionKey is null or empty.");
-
-        // type
-        baseItemValidator.RuleFor(k => k.TypeName)
-            .Must(k => k == typeName)
-            .WithMessage($"TypeName is not '{typeName}'.");
-
-        // createdDate
-        baseItemValidator.RuleFor(k => k.CreatedDate)
-            .NotDefault()
-            .WithMessage($"CreatedDate is not valid.");
-
-        // updatedDate
-        baseItemValidator.RuleFor(k => k.UpdatedDate)
-            .NotDefault()
-            .WithMessage($"UpdatedDate is not valid.");
-
-        return baseItemValidator;
-    }
+    #endregion
 }

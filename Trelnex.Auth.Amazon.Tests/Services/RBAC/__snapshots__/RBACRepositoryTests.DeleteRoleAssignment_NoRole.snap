@@ -1,0 +1,9 @@
+﻿{
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteroleassignment-norole",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deleteroleassignment-norole"
+    }
+  ]
+}

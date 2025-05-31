@@ -1,88 +1,118 @@
 using System.Configuration;
 using Azure.Core;
-using Azure.Security.KeyVault.Keys.Cryptography;
 using FluentValidation;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
+using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Azure.CommandProviders;
 
 /// <summary>
-/// Extension method to add the necessary command providers to the <see cref="IServiceCollection"/>.
+/// Extension methods for configuring and registering Cosmos DB command providers.
 /// </summary>
+/// <remarks>Provides dependency injection integration for Cosmos DB command providers.</remarks>
 public static class CosmosCommandProvidersExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the necessary command providers as a <see cref="ICommandProvider{TInterface}"/> to the <see cref="IServiceCollection"/>.
+    /// Adds Cosmos DB command providers to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <param name="configureCommandProviders">The action to configure the command providers.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The service collection to add providers to.</param>
+    /// <param name="configuration">Application configuration containing provider settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording provider initialization.</param>
+    /// <param name="configureCommandProviders">Action to configure specific providers.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <exception cref="ConfigurationErrorsException">When the CosmosCommandProviders section is missing from configuration.</exception>
+    /// <exception cref="ArgumentException">When a requested type name has no associated container.</exception>
+    /// <exception cref="InvalidOperationException">When attempting to register the same command provider interface twice.</exception>
+    /// <remarks>Registers command providers for specific types.</remarks>
     public static IServiceCollection AddCosmosCommandProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<ICommandProviderOptions> configureCommandProviders)
     {
-        // get the azure identity provider
+        // Retrieve the token credential provider.
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        var providerConfiguration = configuration
-            .GetSection("CosmosCommandProviders")
-            .Get<CosmosCommandProviderConfiguration>()
-            ?? throw new ConfigurationErrorsException("The CosmosCommandProviders configuration is not found.");
+        // Get the database and container configurations from the configuration
+        var endpointUri = configuration.GetSection("Azure.CosmosCommandProviders:EndpointUri").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
 
-        // parse the cosmos options
-        var providerOptions = CosmosCommandProviderOptions.Parse(providerConfiguration);
+        var databaseId = configuration.GetSection("Azure.CosmosCommandProviders:DatabaseId").Get<string>()
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
 
-        // create our factory
+        var containers = configuration.GetSection("Azure.CosmosCommandProviders:Containers").GetChildren();
+        var containerConfigurations = containers
+            .Select(c =>
+            {
+                var containerId = c.GetValue<string>("ContainerId")
+                    ?? throw new ConfigurationErrorsException("The Azure.CosmosCommandProviders configuration is not found.");
+
+                var encryptionSecret = c.GetValue<string?>("EncryptionSecret");
+
+                return new ContainerConfiguration(
+                    TypeName: c.Key,
+                    ContainerId: containerId,
+                    EncryptionSecret: encryptionSecret);
+            })
+            .ToArray();
+
+        // Parse the cosmos options
+        var providerOptions = CosmosCommandProviderOptions.Parse(
+            endpointUri: endpointUri,
+            databaseId: databaseId,
+            containerConfigurations: containerConfigurations);
+
+        // Create our factory
         var cosmosClientOptions = GetCosmosClientOptions(credentialProvider, providerOptions);
-        var keyResolverOptions = GetKeyResolverOptions(credentialProvider, providerOptions);
 
-        var providerFactory = CosmosCommandProviderFactory.Create(
-            cosmosClientOptions,
-            keyResolverOptions).Result;
+        var providerFactory = CosmosCommandProviderFactory
+            .Create(cosmosClientOptions)
+            .GetAwaiter()
+            .GetResult();
 
-        // inject the factory as the status interface
+        // Inject the factory as the status interface
         services.AddCommandProviderFactory(providerFactory);
 
-        // create the command providers and inject
+        // Create the command providers and inject
         var commandProviderOptions = new CommandProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             providerFactory: providerFactory,
             providerOptions: providerOptions);
 
+        // Execute the configuration
         configureCommandProviders(commandProviderOptions);
 
         return services;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Gets the <see cref="CosmosClientOptions"/> to be used by <see cref="CosmosClient"/>.
+    /// Creates Cosmos DB client options with properly configured authentication.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="CosmosClient"/> scopes.
-    /// </para>
-    /// </remarks>
-    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
-    /// <param name="providerOptions">The <see cref="CosmosCommandProviderOptions"/>.</param>
-    /// <returns>A valid <see cref="CosmosClientOptions"/>.</returns>
+    /// <param name="credentialProvider">Provider for token-based authentication.</param>
+    /// <param name="providerOptions">Configuration options for Cosmos DB.</param>
+    /// <returns>Fully configured Cosmos DB client options.</returns>
+    /// <remarks>Initializes an access token with proper scope formatting for Cosmos DB.</remarks>
     private static CosmosClientOptions GetCosmosClientOptions(
         ICredentialProvider<TokenCredential> credentialProvider,
         CosmosCommandProviderOptions providerOptions)
     {
-        // get the token credential and initialize
+        // Get the token credential and initialize
         var tokenCredential = credentialProvider.GetCredential();
 
-        // format the scope
+        // Format the scope
         var uri = new Uri(providerOptions.EndpointUri);
 
         var scope = new UriBuilder(
@@ -95,7 +125,7 @@ public static class CosmosCommandProvidersExtensions
         var tokenRequestContext = new TokenRequestContext(
             scopes: [scope]);
 
-        // warm-up this token
+        // Warm-up this token
         tokenCredential.GetToken(tokenRequestContext, default);
 
         return new CosmosClientOptions(
@@ -105,35 +135,14 @@ public static class CosmosCommandProvidersExtensions
             ContainerIds: providerOptions.GetContainerIds());
     }
 
+    #endregion
+
+    #region CommandProviderOptions
+
     /// <summary>
-    /// Gets a <see cref="KeyResolverOptions"/> to be used by <see cref="KeyResolver"/>.
+    /// Implementation of <see cref="ICommandProviderOptions"/> for configuring Cosmos DB providers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Initializes an <see cref="AccessToken"/> with the necessary <see cref="KeyResolver"/> scopes.
-    /// </para>
-    /// </remarks>
-    /// <param name="credentialProvider">The <see cref="ICredentialProvider{TokenCredential}"/>.</param>
-    /// <param name="providerOptions">The <see cref="CosmosCommandProviderOptions"/>.</param>
-    /// <returns>A valid <see cref="KeyResolverOptions"/>.</returns>
-    private static KeyResolverOptions GetKeyResolverOptions(
-        ICredentialProvider<TokenCredential> credentialProvider,
-        CosmosCommandProviderOptions providerOptions)
-    {
-        // get the token credential and initialize
-        var tokenCredential = credentialProvider.GetCredential();
-
-        var tokenRequestContext = new TokenRequestContext(
-            scopes: ["https://vault.azure.net/.default"],
-            tenantId: providerOptions.TenantId);
-
-        // warm-up this token
-        tokenCredential.GetToken(tokenRequestContext, default);
-
-        return new KeyResolverOptions(
-            TokenCredential: tokenCredential);
-    }
-
+    /// <remarks>Provides type-to-container mapping and command provider registration.</remarks>
     private class CommandProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -141,134 +150,151 @@ public static class CosmosCommandProvidersExtensions
         CosmosCommandProviderOptions providerOptions)
         : ICommandProviderOptions
     {
+        #region Public Methods
+
+        /// <summary>
+        /// Registers a command provider for a specific item type with container mapping.
+        /// </summary>
+        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+        /// <param name="typeName">Type name to map to a container.</param>
+        /// <param name="itemValidator">Optional validator for items.</param>
+        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <returns>The options instance for method chaining.</returns>
+        /// <exception cref="ArgumentException">When no container is configured for the specified type name.</exception>
+        /// <exception cref="InvalidOperationException">When a command provider for the interface is already registered.</exception>
+        /// <remarks>Maps a logical entity type with its physical storage location.</remarks>
         public ICommandProviderOptions Add<TInterface, TItem>(
             string typeName,
-            AbstractValidator<TItem>? itemValidator = null,
+            IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
             where TInterface : class, IBaseItem
             where TItem : BaseItem, TInterface, new()
         {
-            // get the container for the specified item type
-            var containerId = providerOptions.GetContainerId(typeName);
+            // Get the container for the specified item type
+            var containerConfiguration = providerOptions.GetContainerConfiguration(typeName);
 
-            if (containerId is null)
+            // If the container is not found, then throw an exception
+            if (containerConfiguration is null)
             {
                 throw new ArgumentException(
                     $"The Container for TypeName '{typeName}' is not found.",
                     nameof(typeName));
             }
 
+            // If the command provider is already registered, then throw an exception
             if (services.Any(sd => sd.ServiceType == typeof(ICommandProvider<TInterface>)))
             {
                 throw new InvalidOperationException(
                     $"The CommandProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // create the command provider and inject
+            // Create the encryption service if a secret is provided
+            var encryptionService = (containerConfiguration.EncryptionSecret is not null)
+                ? EncryptionService.Create(containerConfiguration.EncryptionSecret)
+                : null;
+
+            // Create the command provider and inject
             var commandProvider = providerFactory.Create<TInterface, TItem>(
-                containerId: containerId,
+                containerId: containerConfiguration.ContainerId,
                 typeName: typeName,
                 validator: itemValidator,
-                commandOperations: commandOperations);
+                commandOperations: commandOperations,
+                encryptionService: encryptionService);
 
+            // Register the command provider
             services.AddSingleton(commandProvider);
 
+            // Prepare logging parameters to record the registration.
             object[] args =
             [
                 typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.EndpointUri, // account
                 providerOptions.DatabaseId, // database,
-                containerId, // container
+                containerConfiguration.ContainerId, // container
             ];
 
-            // log - the :l format parameter (l = literal) to avoid the quotes
+            // Log - the :l format parameter (l = literal) to avoid the quotes
             bootstrapLogger.LogInformation(
-                message: "Added CommandProvider<{TInterface:l}, {TItem:l}>: endpointUri = '{endpointUri:l}', databaseId = '{databaseId:l}', containerId = '{containerId:l}'.",
+                message: "Added CosmosCommandProvider<{TInterface:l}, {TItem:l}>: endpointUri = '{endpointUri:l}', databaseId = '{databaseId:l}', containerId = '{containerId:l}'.",
                 args: args);
 
             return this;
         }
+
+        #endregion
     }
 
+    #endregion
+
+    #region Configuration Records
+
     /// <summary>
-    /// Represents the container for the specified item type.
+    /// Container configuration mapping type names to container IDs.
     /// </summary>
-    /// <param name="TypeName">The specified item type name.</param>
-    /// <param name="ContainerId">The container for the specified item type.</param>
+    /// <param name="TypeName">The type name used for filtering items.</param>
+    /// <param name="ContainerId">The container ID in Cosmos DB.</param>
+    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <remarks>Defines the mapping between logical type names and physical containers.</remarks>
     private record ContainerConfiguration(
         string TypeName,
-        string ContainerId);
+        string ContainerId,
+        string? EncryptionSecret);
+
+    #endregion
+
+    #region Provider Options
 
     /// <summary>
-    /// Represents the configuration properties for Cosmos command providers.
+    /// Runtime options for Cosmos DB command providers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// https://github.com/dotnet/runtime/issues/83803
-    /// </para>
-    /// </remarks>
-    private record CosmosCommandProviderConfiguration
-    {
-        /// <summary>
-        /// The id of the Azure tenant (represents the organization).
-        /// </summary>
-        public required string TenantId { get; init; }
-
-        /// <summary>
-        /// The Uri to the Cosmos Account.
-        /// </summary>
-        public required string EndpointUri { get; init; }
-
-        /// <summary>
-        /// The database name to initialize.
-        /// </summary>
-        public required string DatabaseId { get; init; }
-
-        /// <summary>
-        /// The collection of containers by item type
-        /// </summary>
-        public required ContainerConfiguration[] Containers { get; init; }
-    }
-
-    /// <summary>
-    /// Represents the Cosmos command provider options: the collection of containers by item type.
-    /// </summary>
+    /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
+    /// <param name="databaseId">The database ID.</param>
+    /// <remarks>Provides validated, parsed configuration with container-to-type mappings.</remarks>
     private class CosmosCommandProviderOptions(
-        string tenantId,
         string endpointUri,
         string databaseId)
     {
-        /// <summary>
-        /// The collection of containers by item type.
-        /// </summary>
-        private readonly Dictionary<string, string> _containerIdsByTypeName = [];
+        #region Private Fields
 
         /// <summary>
-        /// Initialize an instance of <see cref="CosmosCommandProviderOptions"/>.
+        /// The mappings from type names to container configurations.
         /// </summary>
-        /// <param name="providerConfiguration">The cosmos command providers configuration.</param>
-        /// <returns>The <see cref="CosmosCommandProviderOptions"/>.</returns>
-        /// <exception cref="AggregateException">Represents one or more configuration errors.</exception>
+        private readonly Dictionary<string, ContainerConfiguration> _containerConfigurationsByTypeName = [];
+
+        #endregion
+
+        #region Public Static Methods
+
+        /// <summary>
+        /// Parses configuration into a validated options object.
+        /// </summary>
+        /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
+        /// <param name="databaseId">The database ID.</param>
+        /// <param name="containerConfigurations">Array of container configurations.</param>
+        /// <returns>Validated options with type-to-container mappings.</returns>
+        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
+        /// <remarks>Validates that no type name is mapped to multiple containers.</remarks>
         public static CosmosCommandProviderOptions Parse(
-            CosmosCommandProviderConfiguration providerConfiguration)
+            string endpointUri,
+            string databaseId,
+            ContainerConfiguration[] containerConfigurations)
         {
-            // get the tenant, endpoint, and database
-            var options = new CosmosCommandProviderOptions(
-                tenantId: providerConfiguration.TenantId,
-                endpointUri: providerConfiguration.EndpointUri,
-                databaseId: providerConfiguration.DatabaseId);
+            // Get the tenant, endpoint, and database
+            var providerOptions = new CosmosCommandProviderOptions(
+                endpointUri: endpointUri,
+                databaseId: databaseId);
 
-            // group the containers by item type
-            var groups = providerConfiguration
-                .Containers
+            // Group the containers by item type
+            var groups = containerConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
-            // any exceptions
+            // Any exceptions
             var exs = new List<ConfigurationErrorsException>();
 
-            // enumerate each group - should be one
+            // Enumerate each group - should be one
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -276,59 +302,71 @@ public static class CosmosCommandProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Container for TypeName '{group.Key} is specified more than once."));
             });
 
-            // if there are any exceptions, then throw an aggregate exception of all exceptions
+            // If there are any exceptions, then throw an aggregate exception of all exceptions
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // enumerate each group and set the container (value) for each item type (key)
+            // After validating that no type name is mapped to multiple containers,
+            // populate the dictionary that maps each type name to its corresponding container configuration.
             Array.ForEach(groups, group =>
             {
-                options._containerIdsByTypeName[group.Key] = group.Single().ContainerId;
+                // Extract the single container configuration for this type name and add it to the lookup dictionary.
+                providerOptions._containerConfigurationsByTypeName[group.Key] = group.Single();
             });
 
-            return options;
+            // Return the fully initialized and validated options object for use in creating providers.
+            return providerOptions;
         }
 
+        #endregion
+
+        #region Public Properties
+
         /// <summary>
-        /// Get the database.
+        /// Gets the database ID.
         /// </summary>
         public string DatabaseId => databaseId;
 
         /// <summary>
-        /// Get the endpoint.
+        /// Gets the Cosmos DB account endpoint URI.
         /// </summary>
         public string EndpointUri => endpointUri;
 
-        /// <summary>
-        /// Get the tenant id.
-        /// </summary>
-        public string TenantId => tenantId;
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
-        /// Get the container for the specified item type.
+        /// Gets the container configuration for a specified type name.
         /// </summary>
-        /// <param name="typeName">The specified item type.</param>
-        /// <returns>The container for the specified item type.</returns>
-        public string? GetContainerId(
+        /// <param name="typeName">The type name to look up.</param>
+        /// <returns>The container configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        public ContainerConfiguration? GetContainerConfiguration(
             string typeName)
         {
-            return _containerIdsByTypeName.TryGetValue(typeName, out var containerId)
-                ? containerId
+            // Try to find the container ID corresponding to the provided type name in our lookup dictionary.
+            return _containerConfigurationsByTypeName.TryGetValue(typeName, out var containerConfiguration)
+                ? containerConfiguration
                 : null;
         }
 
         /// <summary>
-        /// Get the containers.
+        /// Gets all configured container IDs.
         /// </summary>
-        /// <returns>The array of containers.</returns>
+        /// <returns>Array of distinct container IDs sorted alphabetically.</returns>
         public string[] GetContainerIds()
         {
-            return _containerIdsByTypeName
-                .Values
-                .OrderBy(c => c)
+            // Extract all container IDs from the dictionary's values, ensuring no duplicates.
+            return _containerConfigurationsByTypeName
+                .Select(c => c.Value.ContainerId)
+                .OrderBy(containerId => containerId)
                 .ToArray();
         }
+
+        #endregion
     }
+
+    #endregion
 }

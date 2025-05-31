@@ -5,7 +5,7 @@
       "ReadResult": null
     },
     {
-      "HttpStatusCode": "InternalServerError",
+      "HttpStatusCode": "PreconditionFailed",
       "ReadResult": null
     }
   ],
@@ -15,12 +15,14 @@
         "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
         "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
         "TypeName": "test-item",
-        "CreatedDate": "2025-01-19T22:30:55.786244Z",
-        "UpdatedDate": "2025-01-19T22:30:55.786244Z",
-        "DeletedDate": null,
+        "CreatedDateTimeOffset": "2025-05-27T01:13:58.702329+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T01:13:58.702329+00:00",
+        "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "90B10B43-307B-4353-B11A-A412B15342AC",
-        "Message": "Message #1"
+        "ETag": "5C7A1851-A37D-4C1C-93DE-BC81B1BB0E3B",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null
       }
     }
   ]

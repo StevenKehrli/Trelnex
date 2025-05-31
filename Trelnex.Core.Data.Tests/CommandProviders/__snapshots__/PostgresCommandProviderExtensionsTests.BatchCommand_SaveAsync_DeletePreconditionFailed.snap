@@ -1,0 +1,29 @@
+﻿{
+  "saved": [
+    {
+      "HttpStatusCode": "FailedDependency",
+      "ReadResult": null
+    },
+    {
+      "HttpStatusCode": "PreconditionFailed",
+      "ReadResult": null
+    }
+  ],
+  "read": [
+    {
+      "Item": {
+        "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
+        "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
+        "TypeName": "test-item",
+        "CreatedDateTimeOffset": "2025-05-27T00:49:54.254316+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T00:49:54.254316+00:00",
+        "DeletedDateTimeOffset": null,
+        "IsDeleted": null,
+        "ETag": "c48d3d12-9fcf-43b2-bd6f-d340cbe2fe8c",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+﻿{
+  "resourcesAfterFirst": [
+    "urn://resource-createresource-alreadyexists"
+  ],
+  "itemsAfterFirst": [
+    {
+      "_resourceName": "urn://resource-createresource-alreadyexists",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createresource-alreadyexists"
+    }
+  ],
+  "resourcesAfterSecond": [
+    "urn://resource-createresource-alreadyexists"
+  ],
+  "itemsAfterSecond": [
+    {
+      "_resourceName": "urn://resource-createresource-alreadyexists",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createresource-alreadyexists"
+    }
+  ]
+}

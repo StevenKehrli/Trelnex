@@ -1,8 +1,8 @@
 namespace Trelnex.Core.Identity;
 
 /// <summary>
-/// Represents the status of a credential.
+/// Represents the overall status of a credential, including all associated access tokens.
 /// </summary>
-/// <param name="Statuses">The statuses of the access tokens for the credential.</param>
+/// <param name="Statuses">Collection of status information for each access token associated with this credential.</param>
 public record CredentialStatus(
     AccessTokenStatus[] Statuses);

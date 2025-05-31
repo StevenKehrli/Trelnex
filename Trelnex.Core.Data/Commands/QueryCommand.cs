@@ -4,166 +4,180 @@ using System.Runtime.CompilerServices;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// The class to query the items in the backing data store.
+/// LINQ-style query interface.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Item interface type.</typeparam>
+/// <remarks>
+/// Fluent API for querying data with deferred execution.
+/// </remarks>
 public interface IQueryCommand<TInterface>
     where TInterface : class, IBaseItem
 {
     /// <summary>
-    /// Sorts a sequence of items in ascending order.
+    /// Adds ascending sort.
     /// </summary>
-    /// <param name="predicate">A function to extract a key from each item.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> whose items are sorted according to a key.</returns>
+    /// <typeparam name="TKey">Key type.</typeparam>
+    /// <param name="keySelector">Function that selects sort key.</param>
+    /// <returns>Query command for chaining.</returns>
+    /// <exception cref="ArgumentNullException">When keySelector is null.</exception>
     IQueryCommand<TInterface> OrderBy<TKey>(
-        Expression<Func<TInterface, TKey>> predicate);
+        Expression<Func<TInterface, TKey>> keySelector);
 
     /// <summary>
-    /// Sorts a sequence of items in descending order.
+    /// Adds descending sort.
     /// </summary>
-    /// <param name="predicate">A function to extract a key from each item.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> whose items are sorted in descending according to a key.</returns>
+    /// <typeparam name="TKey">Key type.</typeparam>
+    /// <param name="keySelector">Function that selects sort key.</param>
+    /// <returns>Query command for chaining.</returns>
+    /// <exception cref="ArgumentNullException">When keySelector is null.</exception>
     IQueryCommand<TInterface> OrderByDescending<TKey>(
-        Expression<Func<TInterface, TKey>> predicate);
+        Expression<Func<TInterface, TKey>> keySelector);
 
     /// <summary>
-    /// Bypasses a specified number of items in a sequence and then returns the remaining items.
+    /// Skips a specified number of items.
     /// </summary>
-    /// <param name="count">The number of items to skip before returning the remaining items.</param>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/> that contains the items that occur after the specified index in the input sequence.</returns>
-    IQueryCommand<TInterface> Skip(int count);
+    /// <param name="count">Number of items to skip.</param>
+    /// <returns>Query command for chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">When count is negative.</exception>
+    IQueryCommand<TInterface> Skip(
+        int count);
 
     /// <summary>
-    /// Returns a specified number of contiguous items from the start of a sequence.
+    /// Adds a take operation.
     /// </summary>
-    /// <param name="count">The number of elements to return.</param>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/> that contains the specified number of items from the start of the input sequence.</returns>
-    IQueryCommand<TInterface> Take(int count);
+    /// <param name="count">The maximum number of items to return.</param>
+    /// <returns>
+    /// The same <see cref="IQueryCommand{TInterface}"/> instance with the take operation added.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count"/> is negative.</exception>
+    IQueryCommand<TInterface> Take(
+        int count);
 
     /// <summary>
-    /// Executes the query and returns the results as an async enumerable.
+    /// Executes the query and returns the results as an asynchronous stream.
     /// </summary>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <returns>The <see cref="IAsyncEnumerable{IQueryResult{TInterface}}"/>.</returns>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// An <see cref="IAsyncEnumerable{T}"/> of <see cref="IQueryResult{TInterface}"/>.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled through <paramref name="cancellationToken"/>.
+    /// </exception>
     IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Filters a sequence of items based on a predicate.
+    /// Adds a filter condition.
     /// </summary>
-    /// <param name="predicate">A function to test each item for a condition.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> that contains items from the input sequence that satisfy the condition specified by <paramref name="predicate" />.</returns>
+    /// <param name="predicate">A function expression that defines the filter condition.</param>
+    /// <returns>
+    /// The same <see cref="IQueryCommand{TInterface}"/> instance with the filter condition added.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is <see langword="null"/>.</exception>
     IQueryCommand<TInterface> Where(
         Expression<Func<TInterface, bool>> predicate);
 }
 
 /// <summary>
-/// The class to query the items in the backing data store.
+/// Implements the query command pattern.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
-/// <typeparam name="TItem">The item type that inherits from the interface type.</typeparam>
+/// <typeparam name="TInterface">The interface type of the items.</typeparam>
+/// <typeparam name="TItem">The concrete implementation type of the items.</typeparam>
+/// <remarks>
+/// This class provides a concrete implementation of <see cref="IQueryCommand{TInterface}"/>.
+/// </remarks>
 internal class QueryCommand<TInterface, TItem>(
     ExpressionConverter<TInterface, TItem> expressionConverter,
     IQueryable<TItem> queryable,
-    Func<IQueryable<TItem>, CancellationToken, IEnumerable<TItem>> executeQueryable,
+    QueryAsyncDelegate<TInterface, TItem> queryAsyncDelegate,
     Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
     : IQueryCommand<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
-    /// <summary>
-    /// Sorts a sequence of items in ascending order.
-    /// </summary>
-    /// <param name="predicate">A function to extract a key from each item.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> whose items are sorted according to a key.</returns>
-    public IQueryCommand<TInterface> OrderBy<TKey>(
-        Expression<Func<TInterface, TKey>> predicate)
-    {
-        // need to convert the predicate from TInterface to TItem
-        // https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
-        var expression = expressionConverter.Convert(predicate);
+    #region Public Methods
 
-        // add the predicate to the queryable
+    /// <inheritdoc/>
+    public IQueryCommand<TInterface> OrderBy<TKey>(
+        Expression<Func<TInterface, TKey>> keySelector)
+    {
+        ArgumentNullException.ThrowIfNull(keySelector);
+
+        // Convert the predicate from TInterface to TItem
+        // See: https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
+        var expression = expressionConverter.Convert(keySelector);
+
+        // Add the predicate to the queryable
         queryable = queryable.OrderBy(expression);
 
         return this;
     }
 
-    /// <summary>
-    /// Sorts a sequence of items in descending order.
-    /// </summary>
-    /// <param name="predicate">A function to extract a key from each item.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> whose items are sorted in descending according to a key.</returns>
+    /// <inheritdoc/>
     public IQueryCommand<TInterface> OrderByDescending<TKey>(
-        Expression<Func<TInterface, TKey>> predicate)
+        Expression<Func<TInterface, TKey>> keySelector)
     {
-        // need to convert the predicate from TInterface to TItem
-        // https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
-        var expression = expressionConverter.Convert(predicate);
+        ArgumentNullException.ThrowIfNull(keySelector);
 
-        // add the predicate to the queryable
+        // Convert the predicate from TInterface to TItem
+        var expression = expressionConverter.Convert(keySelector);
+
+        // Add the predicate to the queryable
         queryable = queryable.OrderByDescending(expression);
 
         return this;
     }
 
-    /// <summary>
-    /// Bypasses a specified number of items in a sequence and then returns the remaining items.
-    /// </summary>
-    /// <param name="count">The number of items to skip before returning the remaining items.</param>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/> that contains the items that occur after the specified index in the input sequence.</returns>
+    /// <inheritdoc/>
     public IQueryCommand<TInterface> Skip(
         int count)
     {
-        // add the skip to the queryable
+        if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        // Add the skip operation to the queryable
         queryable = queryable.Skip(count);
 
         return this;
     }
 
-    /// <summary>
-    /// Returns a specified number of contiguous items from the start of a sequence.
-    /// </summary>
-    /// <param name="count">The number of elements to return.</param>
-    /// <returns>The <see cref="IQueryCommand{TInterface}"/> that contains the specified number of items from the start of the input sequence.</returns>
+    /// <inheritdoc/>
     public IQueryCommand<TInterface> Take(
         int count)
     {
-        // add the take to the queryable
+        if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        // Add the take operation to the queryable
         queryable = queryable.Take(count);
 
         return this;
     }
 
-    /// <summary>
-    /// Executes the query and returns the results as an async enumerable.
-    /// </summary>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <returns>The <see cref="IAsyncEnumerable{IQueryResult{TInterface}}"/>.</returns>
+    /// <inheritdoc/>
     public async IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        foreach (var item in executeQueryable(queryable, cancellationToken))
+        // Execute the query and process each result
+        await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            yield return await Task.FromResult(convertToQueryResult(item));
+            // Convert the TItem to an IQueryResult<TInterface> and yield it
+            yield return convertToQueryResult(item);
         }
     }
 
-    /// <summary>Filters a sequence of items based on a predicate.</summary>
-    /// <param name="predicate">A function to test each item for a condition.</param>
-    /// <returns>An <see cref="IQueryCommand{TInterface}"/> that contains items from the input sequence that satisfy the condition specified by <paramref name="predicate" />.</returns>
+    /// <inheritdoc/>
     public IQueryCommand<TInterface> Where(
         Expression<Func<TInterface, bool>> predicate)
     {
-        // need to convert the predicate from TInterface to TItem
-        // https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        // Convert the predicate from TInterface to TItem
         var expression = expressionConverter.Convert(predicate);
 
-        // add the predicate to the queryable
+        // Add the predicate to the queryable
         queryable = queryable.Where(expression);
 
         return this;
     }
+
+    #endregion
 }

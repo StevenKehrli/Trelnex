@@ -3,50 +3,50 @@ using FluentValidation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// A builder for creating an instance of the <see cref="CosmosCommandProvider"/>.
+/// Factory for creating in-memory command providers.
 /// </summary>
+/// <remarks>
+/// Provides non-persistent implementation.
+/// </remarks>
 public class InMemoryCommandProviderFactory : ICommandProviderFactory
 {
-    private readonly Func<CommandProviderFactoryStatus> _getStatus;
-
-    private InMemoryCommandProviderFactory(
-        Func<CommandProviderFactoryStatus> getStatus)
-    {
-        _getStatus = getStatus;
-    }
+    #region Constructors
 
     /// <summary>
-    /// Create an instance of the <see cref="InMemoryCommandProviderFactory"/>.
+    /// Initializes factory instance.
     /// </summary>
-    /// <returns>The <see cref="InMemoryCommandProviderFactory"/>.</returns>
+    private InMemoryCommandProviderFactory()
+    {
+    }
+
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Creates new factory instance.
+    /// </summary>
+    /// <returns>Task with new factory instance.</returns>
+    /// <remarks>
+    /// Always created in healthy state.
+    /// </remarks>
+#pragma warning disable CS1998
     public static async Task<InMemoryCommandProviderFactory> Create()
     {
-        CommandProviderFactoryStatus getStatus()
-        {
-            return new CommandProviderFactoryStatus(
-                IsHealthy: true,
-                Data: new Dictionary<string, object>());
-        }
+        var factory = new InMemoryCommandProviderFactory();
 
-        var factory = new InMemoryCommandProviderFactory(
-            getStatus);
-
-        return await Task.FromResult(factory);
+        return factory;
     }
+#pragma warning restore CS1998
 
+    #endregion
 
-    /// <summary>
-    /// Create an instance of the <see cref="InMemoryCommandProvider"/>.
-    /// </summary>
-    /// <param name="typeName">The type name of the item - used for <see cref="BaseItem.TypeName"/>.</param>
-    /// <param name="validator">The fluent validator for the item.</param>
-    /// <param name="commandOperations">The value indicating if update and delete commands are allowed. By default, update is allowed; delete is not allowed.</param>
-    /// <typeparam name="TInterface">The specified interface type.</typeparam>
-    /// <typeparam name="TItem">The specified item type that implements the specified interface type.</typeparam>
-    /// <returns>The <see cref="InMemoryCommandProvider"/>.</returns>
+    #region Public Methods
+
+    /// <inheritdoc/>
     public ICommandProvider<TInterface> Create<TInterface, TItem>(
         string typeName,
-        AbstractValidator<TItem>? validator = null,
+        IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
@@ -57,5 +57,18 @@ public class InMemoryCommandProviderFactory : ICommandProviderFactory
             commandOperations);
     }
 
-    public CommandProviderFactoryStatus GetStatus() => _getStatus();
+    /// <inheritdoc/>
+#pragma warning disable CS1998
+    public async Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var status = new CommandProviderFactoryStatus(
+            IsHealthy: true,
+            Data: new Dictionary<string, object>());
+
+        return status;
+    }
+#pragma warning restore CS1998
+
+    #endregion
 }

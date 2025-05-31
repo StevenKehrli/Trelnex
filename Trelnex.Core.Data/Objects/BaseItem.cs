@@ -2,104 +2,105 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data;
 
+/// <summary>
+/// Core properties for all data items.
+/// </summary>
+/// <remarks>
+/// Contract for identification, typing, versioning, and lifecycle tracking.
+/// </remarks>
 public interface IBaseItem
 {
     /// <summary>
-    /// The unique identifier that identifies the item within a container.
+    /// Unique identifier.
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// The unique identifier that identifies a logical partition within a container.
+    /// Logical partition identifier.
     /// </summary>
+    /// <remarks>
+    /// Determines physical storage location.
+    /// </remarks>
     string PartitionKey { get; }
 
     /// <summary>
-    /// The type name of the item.
+    /// Type name of the item.
     /// </summary>
+    /// <remarks>
+    /// Distinguishes between item types.
+    /// </remarks>
     string TypeName { get; }
 
     /// <summary>
-    /// The date time this item was created.
+    /// Creation timestamp.
     /// </summary>
-    DateTime CreatedDate { get; }
+    DateTimeOffset CreatedDateTimeOffset { get; }
 
     /// <summary>
-    /// The date time this item was updated.
+    /// Last update timestamp.
     /// </summary>
-    DateTime UpdatedDate { get; }
+    DateTimeOffset UpdatedDateTimeOffset { get; }
 
     /// <summary>
-    /// The date time this item was deleted.
+    /// Deletion timestamp, or null if not deleted.
     /// </summary>
-    DateTime? DeletedDate { get; }
+    DateTimeOffset? DeletedDateTimeOffset { get; }
 
     /// <summary>
-    /// Gets a value indicating if this item was deleted.
+    /// Flag indicating if item is deleted.
     /// </summary>
     bool? IsDeleted { get; }
 
     /// <summary>
-    /// The identifier for a specific version of this item.
+    /// Version identifier for optimistic concurrency control.
     /// </summary>
+    /// <remarks>
+    /// Prevents conflicting updates.
+    /// </remarks>
     string? ETag { get; }
 }
 
+/// <summary>
+/// Base implementation for data items.
+/// </summary>
+/// <remarks>
+/// Implements <see cref="IBaseItem"/> with common properties.
+/// </remarks>
 public abstract class BaseItem : IBaseItem
 {
-    /// <summary>
-    /// The unique identifier that identifies the item within a container.
-    /// </summary>
+    #region Public Properties
+
     [JsonInclude]
     [JsonPropertyName("id")]
     public string Id { get; internal set; } = null!;
 
-    /// <summary>
-    /// The unique identifier that identifies a logical partition within a container.
-    /// </summary>
     [JsonInclude]
     [JsonPropertyName("partitionKey")]
     public string PartitionKey { get; internal set; } = null!;
 
-    /// <summary>
-    /// The type name of the item.
-    /// </summary>
     [JsonInclude]
     [JsonPropertyName("typeName")]
     public string TypeName { get; internal set; } = null!;
 
-    /// <summary>
-    /// The date time this item was created.
-    /// </summary>
     [JsonInclude]
-    [JsonPropertyName("createdDate")]
-    public DateTime CreatedDate { get; internal set; }
+    [JsonPropertyName("createdDateTimeOffset")]
+    public DateTimeOffset CreatedDateTimeOffset { get; internal set; }
 
-    /// <summary>
-    /// The date time this item was updated.
-    /// </summary>
     [JsonInclude]
-    [JsonPropertyName("updatedDate")]
-    public DateTime UpdatedDate { get; internal set; }
+    [JsonPropertyName("updatedDateTimeOffset")]
+    public DateTimeOffset UpdatedDateTimeOffset { get; internal set; }
 
-    /// <summary>
-    /// The date time this item was deleted.
-    /// </summary>
     [JsonInclude]
-    [JsonPropertyName("deletedDate")]
-    public DateTime? DeletedDate { get; internal set; }
+    [JsonPropertyName("deletedDateTimeOffset")]
+    public DateTimeOffset? DeletedDateTimeOffset { get; internal set; }
 
-    /// <summary>
-    /// Gets a value indicating if this item was deleted.
-    /// </summary>
     [JsonInclude]
     [JsonPropertyName("isDeleted")]
     public bool? IsDeleted { get; internal set; }
 
-    /// <summary>
-    /// The identifier for a specific version of this item.
-    /// </summary>
     [JsonInclude]
     [JsonPropertyName("_etag")]
     public string? ETag { get; internal set; }
+
+    #endregion
 }

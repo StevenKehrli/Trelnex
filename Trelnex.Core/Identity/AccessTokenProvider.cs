@@ -1,25 +1,44 @@
 namespace Trelnex.Core.Identity;
 
-public interface IAccessTokenProvider<TClient>
+/// <summary>
+/// Interface for access token providers.
+/// </summary>
+public interface IAccessTokenProvider
 {
     /// <summary>
-    /// Gets the scope of the access token
+    /// Gets the scope of the access token.
     /// </summary>
     string Scope { get; }
 
     /// <summary>
     /// Gets the <see cref="AccessToken"/>.
     /// </summary>
-    /// <returns>The <see cref="AccessToken"/>.</returns>
+    /// <returns>The <see cref="AccessToken"/> for authentication.</returns>
     AccessToken GetAccessToken();
 }
 
-public class AccessTokenProvider<TClient> : IAccessTokenProvider<TClient>
+/// <summary>
+/// Implementation of <see cref="IAccessTokenProvider"/> that retrieves tokens from credentials.
+/// </summary>
+/// <remarks>
+/// Manages token lifecycle and caching behavior.
+/// </remarks>
+public class AccessTokenProvider : IAccessTokenProvider
 {
-    private readonly ICredential _credential;
+    #region Private Fields
 
+    private readonly ICredential _credential;
     private readonly string _scope;
 
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AccessTokenProvider"/> class.
+    /// </summary>
+    /// <param name="credential">The credential to use for token acquisition.</param>
+    /// <param name="scope">The scope of permissions to request.</param>
     private AccessTokenProvider(
         ICredential credential,
         string scope)
@@ -28,23 +47,47 @@ public class AccessTokenProvider<TClient> : IAccessTokenProvider<TClient>
         _scope = scope;
     }
 
-    public static AccessTokenProvider<TClient> Create(
+    #endregion
+
+    #region Public Properties
+
+    /// <inheritdoc />
+    public string Scope => _scope;
+
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Creates a new <see cref="AccessTokenProvider"/> instance.
+    /// </summary>
+    /// <param name="credential">The credential to use for token acquisition.</param>
+    /// <param name="scope">The scope of permissions to request.</param>
+    /// <returns>An initialized <see cref="AccessTokenProvider"/>.</returns>
+    public static AccessTokenProvider Create(
         ICredential credential,
         string scope)
     {
-        // create the provider
-        var accessTokenProvider = new AccessTokenProvider<TClient>(credential, scope);
+        // Create the provider.
+        var accessTokenProvider = new AccessTokenProvider(credential, scope);
 
-        // warm-up this token
+        // Warm-up this token by fetching it immediately. This helps to cache the token and avoid initial delays.
         accessTokenProvider.GetAccessToken();
 
+        // Return the created provider.
         return accessTokenProvider;
     }
 
-    public string Scope => _scope;
+    #endregion
 
+    #region Public Methods
+
+    /// <inheritdoc />
     public AccessToken GetAccessToken()
     {
+        // Retrieve the access token from the credential for the specified scope.
         return _credential.GetAccessToken(_scope);
     }
+
+    #endregion
 }

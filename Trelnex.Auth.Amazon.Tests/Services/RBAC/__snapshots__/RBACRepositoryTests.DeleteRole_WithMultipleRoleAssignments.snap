@@ -1,0 +1,10 @@
+﻿{
+  "roleAfter": null,
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleterole-withmultipleroleassignments",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deleterole-withmultipleroleassignments"
+    }
+  ]
+}

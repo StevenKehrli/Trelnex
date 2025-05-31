@@ -1,9 +1,0 @@
-﻿{
-  "scopeAfter": null,
-  "items": [
-    {
-      "resourceName": "testResource_RBACRepositoryTests_GetScopeNotExists",
-      "subjectName": "RESOURCE#"
-    }
-  ]
-}

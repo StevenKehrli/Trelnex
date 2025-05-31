@@ -14,10 +14,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FluentValidation" Version="11.11.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.11.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
         <PackageReference Include="NUnit" Version="4.3.2" />
-        <PackageReference Include="NUnit.Analyzers" Version="4.6.0">
+        <PackageReference Include="NUnit.Analyzers" Version="4.8.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -28,6 +28,11 @@
 
     <ItemGroup>
         <Using Include="NUnit.Framework" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="appsettings.json" CopyToOutputDirectory="Always" />
+        <None Include="appsettings.User.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.User.json')" />
     </ItemGroup>
 
     <ItemGroup>

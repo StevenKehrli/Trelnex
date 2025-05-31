@@ -4,56 +4,58 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Prometheus;
-using Trelnex.Core.HealthChecks;
 
 namespace Trelnex.Core.Api.HealthChecks;
 
 /// <summary>
-/// Extension methods to add the health checks to the <see cref="IServiceCollection"/> and the <see cref="WebApplication"/>.
+/// Provides extension methods for configuring health checks.
 /// </summary>
+/// <remarks>
+/// Simplifies setup of health monitoring.
+/// </remarks>
 public static class HealthChecksExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the health checks to the <see cref="IServiceCollection"/>.
+    /// Registers health check services with customizable health checks.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="addHealthChecks">An optional delegate to add additional health checks to the <see cref="IServiceCollection"/>.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
-    public static IServiceCollection AddHealthChecks(
-        this IServiceCollection services,
-        Action<IHealthChecksBuilder>? addHealthChecks)
+    /// <param name="services">The service collection to add health checks to.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    public static IServiceCollection AddDefaultHealthChecks(
+        this IServiceCollection services)
     {
-        // add health checks
-        var builder = services.AddHealthChecks();
+        // Register health check services.
+        var healthChecksBuilder = services.AddHealthChecks();
 
-        // invoke callback to caller to add health checks
-        addHealthChecks?.Invoke(builder);
+        // Add a default health check that always returns healthy.
+        // This ensures the /healthz endpoint works even without custom checks.
+        healthChecksBuilder.AddCheck("Default", () => HealthCheckResult.Healthy());
 
-        // add an always healthy
-        builder.AddCheck("Default", () => HealthCheckResult.Healthy());
-
-        // expose to prometheus
-        // https://github.com/prometheus-net/prometheus-net?tab=readme-ov-file#aspnet-core-health-check-status-metrics
-        builder.ForwardToPrometheus();
+        // Configure Prometheus metrics integration to expose health check status as metrics.
+        // See: https://github.com/prometheus-net/prometheus-net?tab=readme-ov-file#aspnet-core-health-check-status-metrics
+        healthChecksBuilder.ForwardToPrometheus();
 
         return services;
     }
 
     /// <summary>
-    /// Map the health checks endpoints.
+    /// Maps the health check endpoint to the application pipeline.
     /// </summary>
-    /// <param name="erb">The <see cref="IEndpointRouteBuilder"/> to add the health checks endpoints to.</param>
-    /// <returns>The <see cref="IEndpointRouteBuilder"/>.</returns>
-    public static IEndpointRouteBuilder MapHealthChecks(
-        this IEndpointRouteBuilder erb)
+    /// <param name="endpoints">The endpoint route builder to configure.</param>
+    /// <returns>The endpoint route builder for method chaining.</returns>
+    public static IEndpointRouteBuilder MapHealthChecks(this IEndpointRouteBuilder endpoints)
     {
-        erb.MapHealthChecks(
-            "/healthz",
+        endpoints.MapHealthChecks(
+            "/healthz", // Standard Kubernetes health check path
             new HealthCheckOptions
             {
+                // Use custom JSON response writer for readable, structured output.
                 ResponseWriter = JsonResponseWriter.WriteResponse
             });
 
-        return erb;
+        return endpoints;
     }
+
+    #endregion
 }

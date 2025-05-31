@@ -1,7 +1,4 @@
-using Azure.Identity;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.CommandProviders;
@@ -11,52 +8,44 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 
+/// <summary>
+/// Tests for the extension methods used to register and configure CosmosCommandProviders
+/// in the dependency injection container.
+/// </summary>
+/// <remarks>
+/// This class inherits from <see cref="CosmosCommandProviderTestBase"/> to leverage the shared
+/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage
+/// the extensive test suite defined in that base class.
+///
+/// This class focuses on testing the extension methods for DI registration rather than
+/// direct factory instantiation. It also adds an additional test for duplicate registration handling.
+///
+/// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance
+/// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
+/// </remarks>
 [Ignore("Requires a CosmosDB instance.")]
-public class CosmosCommandProviderExtensionsTests : CommandProviderTests
+[Category("CosmosCommandProvider")]
+public class CosmosCommandProviderExtensionsTests : CosmosCommandProviderTestBase
 {
-    private Container _container = null!;
-
+    /// <summary>
+    /// Sets up the CosmosCommandProvider for testing using the dependency injection approach.
+    /// </summary>
     [OneTimeSetUp]
     public void TestFixtureSetup()
     {
-        // This method is called once prior to executing any of the tests in the fixture.
-
-        // create the service collection
+        // Create the service collection.
         var services = new ServiceCollection();
 
-        // create the test configuration
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
-            .Build();
+        // Initialize shared resources from configuration
+        var configuration = TestSetup();
 
-        // create a cosmos client for cleanup
-        var tokenCredential = new DefaultAzureCredential();
-
-        var endpointUri = configuration
-            .GetSection("CosmosCommandProviders:EndpointUri")
-            .Value!;
-
-        var databaseId = configuration
-            .GetSection("CosmosCommandProviders:DatabaseId")
-            .Value!;
-
-        var containerId = configuration
-            .GetSection("CosmosCommandProviders:Containers:0:ContainerId")
-            .Value!;
-
-        var cosmosClient = new CosmosClient(
-            accountEndpoint: endpointUri,
-            tokenCredential: tokenCredential);
-
-        _container = cosmosClient.GetContainer(
-            databaseId: databaseId,
-            containerId: containerId);
+        services.AddSingleton(_serviceConfiguration);
 
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            _serviceConfiguration);
 
+        // Add Azure Identity and Cosmos Command Providers to the service collection.
         services
             .AddAzureIdentity(
                 configuration,
@@ -71,49 +60,31 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
 
         var serviceProvider = services.BuildServiceProvider();
 
-        // get the command provider
+        // Get the command provider from the DI container.
         _commandProvider = serviceProvider.GetRequiredService<ICommandProvider<ITestItem>>();
     }
 
-    [TearDown]
-    public async Task TestCleanup()
-    {
-        // This method is called after each test case is run.
-
-        var feedIterator = _container
-            .GetItemLinqQueryable<CosmosItem>()
-            .ToFeedIterator();
-
-        while (feedIterator.HasMoreResults)
-        {
-            var feedResponse = await feedIterator.ReadNextAsync();
-
-            foreach (var item in feedResponse)
-            {
-                await _container.DeleteItemAsync<CosmosItem>(
-                    id: item.id,
-                    partitionKey: new PartitionKey(item.partitionKey));
-            }
-        }
-    }
-
+    /// <summary>
+    /// Tests that registering the same type with the CosmosCommandProvider twice results in an exception.
+    /// </summary>
     [Test]
+    [Description("Tests that registering the same type with the CosmosCommandProvider twice results in an exception.")]
     public void CosmosCommandProvider_AlreadyRegistered()
     {
-        // create the service collection
+        // Create the service collection.
         var services = new ServiceCollection();
 
-        // create the test configuration
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
-            .Build();
+        // Initialize shared resources from configuration
+        var configuration = TestSetup();
 
+        services.AddSingleton(_serviceConfiguration);
+
+        // Configure Serilog
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            _serviceConfiguration);
 
-        // add twice
+        // Attempt to register the same type twice, which should throw an InvalidOperationException.
         Assert.Throws<InvalidOperationException>(() =>
         {
             services.AddCosmosCommandProviders(
@@ -131,7 +102,91 @@ public class CosmosCommandProviderExtensionsTests : CommandProviderTests
         });
     }
 
-    private record CosmosItem(
-        string id,
-        string partitionKey);
+    [Test]
+    [Description("Tests CosmosCommandProvider with optional message and without encryption to ensure data is properly stored and retrieved.")]
+    public async Task CosmosCommandProvider_OptionalMessage_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Get the item
+        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+            id: id,
+            partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
+            cancellationToken: default);
+
+        Assert.That(item, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.Resource.OptionalMessage, Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
+    [Description("Tests CosmosCommandProvider without encryption to ensure data is properly stored and retrieved.")]
+    public async Task CosmosCommandProvider_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Get the item
+        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+            id: id,
+            partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
+            cancellationToken: default);
+
+        Assert.That(item, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.Resource.OptionalMessage, Is.Null);
+        });
+
+    }
+
+    private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
+    {
+        [JsonPropertyName("publicMessage")]
+        public string PublicMessage { get; set; } = null!;
+
+        [JsonPropertyName("privateMessage")]
+        public string PrivateMessage { get; set; } = null!;
+
+        [JsonPropertyName("optionalMessage")]
+        public string? OptionalMessage { get; set; }
+    }
 }

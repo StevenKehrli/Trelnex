@@ -1,10 +1,18 @@
 namespace Trelnex.Core.Data;
 
+/// <summary>
+/// Factory for creating and managing command providers.
+/// </summary>
+/// <remarks>
+/// Core component of data access infrastructure.
+/// </remarks>
 public interface ICommandProviderFactory
 {
     /// <summary>
-    /// Gets the <see cref="CommandProviderStatus"/> of the command provider.
+    /// Asynchronously gets the current operational status of the factory.
     /// </summary>
-    /// <returns>The <see cref="CommandProviderStatus"/> of the command provider.</returns>
-    CommandProviderFactoryStatus GetStatus();
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>Status information including connectivity and container availability.</returns>
+    Task<CommandProviderFactoryStatus> GetStatusAsync(
+        CancellationToken cancellationToken = default);
 }

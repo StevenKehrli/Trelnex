@@ -2,6 +2,14 @@
 
 Trelnex.Core is a REST API framework that demonstrates the following concepts:
 
+## License
+
+See [LICENSE](LICENSE) for more information.
+
+## Third-Party Libraries
+
+See [NOTICE.md](NOTICE.md) for more information.
+
 ## Vertical Slice Architecture
 
 <details>
@@ -115,9 +123,9 @@ The challenge is implementing [Policy based role checks](https://learn.microsoft
 - When referencing that policy in the `AuthorizeAttribute` we again see the `RequireAdministratorRole` magic string.
 - It is a challenge to add the security schemes and security requirements to the OpenAPI specification (Swagger).
 
-Trelnex.Core.API exposes a friendlier approach to implementing RBAC that solves these problems.
+Trelnex.Core.Api exposes a friendlier approach to implementing RBAC that solves these problems.
 
-Trelnex.Core.API currently supports Microsoft Identity Web App Authentication and JWT Bearer Authentication. This is easily extensible to support any authentication / authorization provider.
+Trelnex.Core.Api currently supports Microsoft Identity Web App Authentication and JWT Bearer Authentication. This is easily extensible to support any authentication / authorization provider.
 
 ### Configuration
 
@@ -169,7 +177,7 @@ The below code defines two policies:
 - `UsersCreatePolicy` with required role `users.create`
 - `UsersReadPolicy` with required role `users.read`
 
-The first example uses Microsoft Identity Web App Authentication and the second example uses JWT Bearer Authentication. Notice both examples are nearly identical, with the only difference the reference to `MicrosoftIdentityPermission` or `JwtBearerPermission` base class.
+The first example uses Microsoft Identity Web App Authentication and the second example uses JWT Bearer Authentication. Notice both examples are nearly identical, with the only difference are the reference to `MicrosoftIdentityPermission` or `JwtBearerPermission` base class.
 
 #### Permission and Policy Definition - Microsoft Identity Web App Authentication
 
@@ -320,7 +328,7 @@ This encapsulation ensures data integrity of the DTO. In addition, the command c
 
 ### ICommandProvider
 
-An `ICommandProvider` exposes the commands against a backing data store. Trelnex.Core.Data currently supports [CosmosDB NoSQL](#cosmoscommandprovider---cosmosdb-nosql) and [SQL Server](#sqlcommandprovider---sql-server). Trelnex.Core.Data.Emulator adds an in-memory data store for development and testing. This is easily extensible to support other data stores.
+An `ICommandProvider` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a command provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements command providers for DynamoDB and Postgres. Trelnex.Core.Azure implements command providers for CosmosDB NoSQL and SqlServer.
 
 The `ICommandProvider` interface defines five methods:
 
@@ -381,7 +389,7 @@ If `ISaveCommand<TInterface>` faults, it will throw an exception:
 - `CommandException`: The item failed to save
 
     - `Conflict`: The item conflicts with an existing item in the backing store
-    - `PreconditionFailed`: The item a different version from the version available in the backing store
+    - `PreconditionFailed`: The item has a different version from the version available in the backing store
 
 Otherwise, `ISaveCommand<TInterface>` will return an `IReadResult<TInterface>`.
 
@@ -399,7 +407,7 @@ Otherwise, `IBatchCommand<TInterface>` will return an array of `IBatchResult<TIn
     - `BadRequest`: The save command is not valid
     - `Conflict`: The item conflicts with an existing item in the backing store
     - `FailedDependency`: An item in the batch faulted
-    - `PreconditionFailed`: The item a different version from the version available in the backing store
+    - `PreconditionFailed`: The item has a different version from the version available in the backing store
 
 - `ReadResult`: the saved item, if the save was successful
 
@@ -419,7 +427,7 @@ For example, the `TInterface Item` for `IReadResult<TInterface>` is set as read-
 
 ### TrackChangeAttribute
 
-The `TrackChangeAttribute` on any property informs the `DispatchProxy` to track any changes to that property value. These changes are then added to the audit event that is created and saved an within `ISaveCommand`.
+The `TrackChangeAttribute` on any property informs the `DispatchProxy` to track any changes to that property value. These changes are then added to the audit event that is created and saved within `ISaveCommand`.
 
 ### Usage
 
@@ -478,9 +486,9 @@ The `ICommandProvider` will save the item to the backing data store.
     "Id": "0346bbe4-0154-449f-860d-f3c1819aa174",
     "PartitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
     "TypeName": "test-item",
-    "CreatedDate": "2024-10-12T00:43:10.5437965Z",
-    "UpdatedDate": "2024-10-12T00:43:10.5437965Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
     "ETag": "e7622db2-c465-44bc-9d0a-e643882e8f38",
     "PublicMessage": "Public #1",
@@ -514,23 +522,17 @@ Notice the `Changes` element does not include a property change for `privateMess
     "Id": "6e00fae0-2229-42e2-99b8-9ca14fdaa5f1",
     "PartitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
     "TypeName": "event",
-    "CreatedDate": "2024-10-12T00:43:10.5437965Z",
-    "UpdatedDate": "2024-10-12T00:43:10.5437965Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
     "ETag": "2cc85775-2d92-49f7-acf2-7abb17d46227"
   }
 ```
 
-#### Dependency Injection
-
-See [Command Providers Dependency Injection](#command-providers-dependency-injection) for more information.
-
 </details>
 
 ## Command Providers
-
-### InMemoryCommandProvider
 
 <details>
 
@@ -538,7 +540,9 @@ See [Command Providers Dependency Injection](#command-providers-dependency-injec
 
 &nbsp;
 
-`InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistance. It is intended to assist development and testing of their business logic.
+### InMemoryCommandProvider
+
+`InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
 
 #### InMemoryCommandProvider - Dependency Injection
 
@@ -598,7 +602,7 @@ The `Application.Run` method takes four parameters:
 - `args`: the command line arguments
 - `addApplication`: the delegate to inject necessary services to `IServiceCollection`
 - `useApplication`: the delegate to add the endpoints to the `WebApplication`
-- `addHealthChecks`: an optional delegate to injec additional health checks to the `IServiceCollection`
+- `addHealthChecks`: an optional delegate to inject additional health checks to the `IServiceCollection`
 
 
 ```csharp
@@ -629,6 +633,9 @@ This delegate is called to inject necessary services to `IServiceCollection`. Th
 ```
 
 ### useApplication Delegate
+
+This delegate is called to configure the `WebApplication`. This is generally Swagger and the endpoints.
+
 
 ```csharp
     public static void Use(
@@ -666,7 +673,3 @@ The [Vertical Slice Architecture](#vertical-slice-architecture) simplifies this 
 See [Trelnex.Samples](https://github.com/StevenKehrli/Trelnex.Samples?tab=readme-ov-file#trelnexintegrationtests) for more information.
 
 </details>
-
-## Third-Party Libraries
-
-See [NOTICE.md](NOTICE.md) for more information.

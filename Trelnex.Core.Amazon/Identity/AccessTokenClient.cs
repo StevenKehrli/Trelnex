@@ -4,28 +4,39 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.Identity;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="AccessTokenClient"/>.
+/// HTTP client for Amazon's OAuth2 token endpoint.
 /// </summary>
-/// <param name="httpClient">The specified <see cref="HttpClient"/> instance.</param>
+/// <remarks>
+/// Requests access tokens using AWS SigV4 signatures for authentication.
+/// Uses the OAuth2 client credentials flow.
+/// </remarks>
+/// <param name="httpClient">The HTTP client.</param>
 internal class AccessTokenClient(
     HttpClient httpClient)
     : BaseClient(httpClient)
 {
+    #region Public Methods
+
     /// <summary>
-    /// Get the access token for the specified principal and scope.
+    /// Requests an access token from Amazon's OAuth2 token endpoint.
     /// </summary>
-    /// <param name="principalId">The specified principal id.</param>
-    /// <param name="signature">The signature to identify the caller identity through an AWS sigv4 (region and headers).</param>
-    /// <param name="scope">The specified scope.</param>
-    /// <returns>The new <see cref="AccessToken"/>.</returns>
+    /// <param name="principalId">The AWS principal ID.</param>
+    /// <param name="signature">The AWS SigV4 signature.</param>
+    /// <param name="scope">The requested token scope.</param>
+    /// <returns>A new <see cref="AccessToken"/>.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when the token request fails.</exception>
+    /// <remarks>
+    /// Uses the OAuth2 client credentials flow.
+    /// </remarks>
     public async Task<AccessToken> GetAccessToken(
         string principalId,
         CallerIdentitySignature signature,
         string scope)
     {
-        // create the form content
+        // Encode the AWS SigV4 signature to use as the client secret
         var clientSecret = signature.Encode();
 
+        // Create the OAuth2 request parameters as a dictionary
         var nameValueCollection = new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
@@ -34,10 +45,14 @@ internal class AccessTokenClient(
             { "scope", scope }
         };
 
+        // Format the dictionary as form URL encoded content
         var content = new FormUrlEncodedContent(nameValueCollection);
 
+        // Send the POST request to the token endpoint and return the access token
         return await Post<FormUrlEncodedContent, AccessToken>(
             uri: BaseAddress.AppendPath("/oauth2/token"),
             content: content);
     }
+
+    #endregion
 }

@@ -1,0 +1,62 @@
+﻿{
+  "principals": [
+    "principal-1-getprincipalsforrole-multipleprincipals",
+    "principal-2-getprincipalsforrole-multipleprincipals",
+    "principal-3-getprincipalsforrole-multipleprincipals"
+  ],
+  "items": [
+    {
+      "_principalId": "principal-1-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#PRINCIPAL#principal-1-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals#ROLE#role-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_principalId": "principal-2-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#PRINCIPAL#principal-2-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals#ROLE#role-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_principalId": "principal-3-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#PRINCIPAL#principal-3-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals#ROLE#role-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLE#role-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_principalId": "principal-1-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalsforrole-multipleprincipals#PRINCIPAL#principal-1-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_principalId": "principal-2-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalsforrole-multipleprincipals#PRINCIPAL#principal-2-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_principalId": "principal-3-getprincipalsforrole-multipleprincipals",
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "_roleName": "role-getprincipalsforrole-multipleprincipals",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals",
+      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalsforrole-multipleprincipals#PRINCIPAL#principal-3-getprincipalsforrole-multipleprincipals"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforrole-multipleprincipals",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforrole-multipleprincipals"
+    }
+  ]
+}

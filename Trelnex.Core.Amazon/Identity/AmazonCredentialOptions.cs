@@ -1,16 +1,24 @@
 namespace Trelnex.Core.Amazon.Identity;
 
 /// <summary>
-/// Represents the configuration options for creating an <see cref="AmazonCredentialProvider"/> instance.
+/// Configuration options for <see cref="AmazonCredentialProvider"/>.
 /// </summary>
-/// <param name="Region">The region name for the security token service.</param>
+/// <remarks>
+/// Configures the AWS region and token acquisition endpoint.
+/// Loaded from appsettings.json under the "Amazon.Credentials" section.
+/// </remarks>
+/// <param name="Region">The AWS region name.</param>
+/// <param name="AccessTokenClient">Configuration for the token acquisition client.</param>
 public record AmazonCredentialOptions(
     string Region,
     AccessTokenClientConfiguration AccessTokenClient);
 
 /// <summary>
-/// Represents the configuration properties for the access token client.
+/// Configuration for the OAuth2 token client.
 /// </summary>
-/// <param name="BaseAddress">The base address <see cref="Uri"/> to build the request <see cref="Uri"/>.</param>
+/// <remarks>
+/// Specifies the endpoint for obtaining access tokens.
+/// </remarks>
+/// <param name="BaseAddress">The base URI of the token endpoint service.</param>
 public record AccessTokenClientConfiguration(
     Uri BaseAddress);

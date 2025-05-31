@@ -21,37 +21,33 @@
         }
       }
     ],
-    "Context": {
-      "ObjectId": "549cc53c-e8d2-4595-ae39-981863ba7d33",
-      "HttpTraceIdentifier": "61244c2b-aea8-41a1-a1a9-fc3c60ed243d",
-      "HttpRequestPath": "38f6015d-b245-4e91-9d8e-dcccee4b151c"
-    },
-    "Id": "1e6fcd05-5687-4b64-a1ae-5b032df7b80d",
+    "TraceContext": "00-3cb78059e0dbd557610dc0a41c890225-b244193c9eb0139e-01",
+    "TraceId": "3cb78059e0dbd557610dc0a41c890225",
+    "SpanId": "b244193c9eb0139e",
+    "Id": "fd01e561-8edf-49fa-87e3-fc90857dad3a",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDate": "2025-01-19T22:19:55.339325Z",
-    "UpdatedDate": "2025-01-19T22:19:55.339325Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T04:56:31.964037+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.964037+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "f4bea99d-ba13-483a-8754-7db21bcea6d3"
+    "ETag": "8c39ab87-b355-4ff7-bb96-b550ebd551fb"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "Context": {
-      "ObjectId": "549cc53c-e8d2-4595-ae39-981863ba7d33",
-      "HttpTraceIdentifier": "61244c2b-aea8-41a1-a1a9-fc3c60ed243d",
-      "HttpRequestPath": "38f6015d-b245-4e91-9d8e-dcccee4b151c"
-    },
-    "Id": "323866f6-1522-4261-93eb-727e878225be",
+    "TraceContext": "00-3cb78059e0dbd557610dc0a41c890225-b244193c9eb0139e-01",
+    "TraceId": "3cb78059e0dbd557610dc0a41c890225",
+    "SpanId": "b244193c9eb0139e",
+    "Id": "ae8e2eb6-5d5c-4e1c-9850-497c3486a58b",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDate": "2025-01-19T22:19:55.339436Z",
-    "UpdatedDate": "2025-01-19T22:19:55.339436Z",
-    "DeletedDate": null,
+    "CreatedDateTimeOffset": "2025-05-21T04:56:31.964192+00:00",
+    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.964192+00:00",
+    "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "99ccc5a9-993c-4abd-a2a5-da1aa71a63e3"
+    "ETag": "b1cd6772-aeba-4ae2-8756-b1754f47e069"
   }
 ]

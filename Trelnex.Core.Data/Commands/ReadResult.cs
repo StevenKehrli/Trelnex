@@ -3,46 +3,64 @@ using FluentValidation.Results;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// The class to expose and validate a item read from the backing data store.
+/// Read-only access to items.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Interface type for items.</typeparam>
+/// <remarks>
+/// Standardized wrapper for retrieved items.
+/// </remarks>
 public interface IReadResult<TInterface>
     where TInterface : class, IBaseItem
 {
     /// <summary>
-    /// The item.
+    /// Gets the item with read-only access.
     /// </summary>
     TInterface Item { get; }
 
     /// <summary>
-    /// The action to validate the item.
+    /// Validates the item.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-    /// <returns>The fluent <see cref="ValidationResult"/>item that was saved.</returns>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task containing a <see cref="ValidationResult"/>.</returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled.
+    /// </exception>
     Task<ValidationResult> ValidateAsync(
         CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// The class to read the item in the backing data store.
+/// Implements read-only access and validation.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items in the backing data store.</typeparam>
+/// <typeparam name="TInterface">Interface type for data store items.</typeparam>
+/// <typeparam name="TItem">Concrete implementation type.</typeparam>
+/// <remarks>
+/// Concrete implementation of <see cref="IReadResult{TInterface}"/>.
+/// </remarks>
 internal class ReadResult<TInterface, TItem>
     : ProxyManager<TInterface, TItem>, IReadResult<TInterface>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
+    #region Public Methods
+
     /// <summary>
-    /// Create a proxy item over a item.
+    /// Creates a read-only wrapper for the provided item.
     /// </summary>
-    /// <param name="item">The item.</param>
-    /// <param name="validateAsyncDelegate">The action to validate the item.</param>
-    /// <returns>A proxy item as TInterface.</returns>
+    /// <param name="item">The concrete item to be wrapped.</param>
+    /// <param name="validateAsyncDelegate">The validation delegate.</param>
+    /// <returns>A configured ReadResult instance.</returns>
+    /// <remarks>
+    /// Factory method.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if item or validateAsyncDelegate is null.
+    /// </exception>
     public static ReadResult<TInterface, TItem> Create(
         TItem item,
         ValidateAsyncDelegate<TInterface, TItem> validateAsyncDelegate)
     {
-        // create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
+        // Create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
         var proxyManager = new ReadResult<TInterface, TItem>
         {
             _item = item,
@@ -50,13 +68,15 @@ internal class ReadResult<TInterface, TItem>
             _validateAsyncDelegate = validateAsyncDelegate,
         };
 
-        // create the proxy
+        // Create the proxy that will be exposed to consumers
         var proxy = ItemProxy<TInterface, TItem>.Create(proxyManager.OnInvoke);
 
-        // set our proxy
+        // Set our proxy reference
         proxyManager._proxy = proxy;
 
-        // return the proxy manager
+        // Return the configured proxy manager
         return proxyManager;
     }
+
+    #endregion
 }

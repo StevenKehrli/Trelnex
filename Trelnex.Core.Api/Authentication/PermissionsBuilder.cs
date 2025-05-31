@@ -5,52 +5,53 @@ using Microsoft.Extensions.Logging;
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a permissions builder.
+/// Defines the builder interface for registering and configuring permissions.
 /// </summary>
 /// <remarks>
-/// A permissions builder collects the permissions through its <see cref="IPermissionsBuilder.AddPermissions{T}"/>.
+/// Provides a fluent API for registering permissions and their authorization policies.
 /// </remarks>
 public interface IPermissionsBuilder
 {
     /// <summary>
-    /// Adds the specified permission to this builder.
+    /// Registers a permission type with the application.
     /// </summary>
-    /// <typeparam name="T">The specified <see cref="IPermission"/>.</typeparam>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <returns>This builder</returns>
-    public IPermissionsBuilder AddPermissions<T>(
+    /// <typeparam name="T">The permission type to register.</typeparam>
+    /// <param name="bootstrapLogger">Logger to record permission registration details.</param>
+    /// <returns>The same builder instance for method chaining.</returns>
+    IPermissionsBuilder AddPermissions<T>(
         ILogger bootstrapLogger)
         where T : IPermission;
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="PermissionsBuilder"/>.
+/// Implementation of the permissions builder that registers and configures permissions.
 /// </summary>
-/// <param name="services">The <see cref="IServiceCollection"/> to add the authorization policy services to.</param>
-/// <param name="configuration">Represents a set of key/value application configuration properties.</param>
-/// <param name="securityProvider">The <see cref="ISecurityProvider"/> to add the security definition of the permission.</param>
+/// <param name="services">The service collection to register authorization policies with.</param>
+/// <param name="configuration">The application configuration containing authentication settings.</param>
+/// <param name="securityProvider">The security provider to store security definitions and requirements.</param>
 internal class PermissionsBuilder(
     IServiceCollection services,
     IConfiguration configuration,
-    SecurityProvider securityProvider) : IPermissionsBuilder
+    SecurityProvider securityProvider)
+    : IPermissionsBuilder
 {
-    /// <summary>
-    /// Adds the specified permission to this builder.
-    /// </summary>
-    /// <typeparam name="T">The specified <see cref="IPermission"/>.</typeparam>
-    /// <param name="bootstrapLogger">The <see cref="ILogger"/> to write the CommandProvider bootstrap logs.</param>
-    /// <returns>This builder</returns>
+    #region Public Methods
+
+    /// <inheritdoc />
     public IPermissionsBuilder AddPermissions<T>(
         ILogger bootstrapLogger) where T : IPermission
     {
+        // Create an instance of the permission type.
         var permission = Activator.CreateInstance<T>();
 
+        // Configure authentication settings for this permission.
         permission.AddAuthentication(services, configuration);
 
-        // get the security definition
+        // Retrieve the security parameters from the permission.
         var audience = permission.GetAudience(configuration);
         var scope = permission.GetScope(configuration);
 
+        // Create and register the security definition.
         var securityDefinition = new SecurityDefinition(
             jwtBearerScheme: permission.JwtBearerScheme,
             audience: audience,
@@ -58,11 +59,11 @@ internal class PermissionsBuilder(
 
         securityProvider.AddSecurityDefinition(securityDefinition);
 
-        // get the policies builder
+        // Configure authorization policies for this permission.
         var policiesBuilder = new PoliciesBuilder(securityProvider, securityDefinition);
         permission.AddAuthorization(policiesBuilder);
 
-        // get the security requirements from the security provider
+        // Retrieve all security requirements for this permission.
         var securityRequirements = securityProvider.GetSecurityRequirements(
             jwtBearerScheme: permission.JwtBearerScheme,
             audience: audience,
@@ -80,14 +81,17 @@ internal class PermissionsBuilder(
                 securityRequirement.RequiredRoles // requiredRoles
             ];
 
-            // log - the :l format parameter (l = literal) to avoid the quotes
+            // Log all security requirements for this permission using a literal format to avoid quotes in the output.
             bootstrapLogger.LogInformation(
                 message: "Added Policy '{policyName:l}' to Permission '{permissionName:l}': jwtBearerScheme = '{jwtBearerScheme:l}'; audience = '{audience:l}'; scope = '{scope:l}'; requiredRoles = '{requiredRoles:l}'.",
                 args: args);
         }
 
+        // Register all policies with ASP.NET Core authorization.
         services.AddAuthorization(policiesBuilder.Build);
 
         return this;
     }
+
+    #endregion
 }

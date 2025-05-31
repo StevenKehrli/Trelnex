@@ -1,9 +1,0 @@
-﻿{
-  "roleAfter": null,
-  "items": [
-    {
-      "resourceName": "testResource_RBACRepositoryTests_DeleteRole",
-      "subjectName": "RESOURCE#"
-    }
-  ]
-}

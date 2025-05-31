@@ -15,12 +15,14 @@
         "Id": "3107d2ff-9f33-4718-b180-f7b65223fba8",
         "PartitionKey": "90eabddb-a71a-4ccb-aa1a-062590597fb2",
         "TypeName": "test-item",
-        "CreatedDate": "2025-01-19T22:30:00.910035Z",
-        "UpdatedDate": "2025-01-19T22:30:00.910035Z",
-        "DeletedDate": null,
+        "CreatedDateTimeOffset": "2025-05-27T01:02:10.54678+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T01:02:10.54678+00:00",
+        "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "\"c60c229c-0000-0300-0000-678d7ce90000\"",
-        "Message": "Message #1"
+        "ETag": "\"8e0141b7-0000-0300-0000-68350f120000\"",
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null
       }
     },
     {
@@ -28,12 +30,14 @@
         "Id": "5f969f1c-c115-4982-949b-4e4987197dfe",
         "PartitionKey": "90eabddb-a71a-4ccb-aa1a-062590597fb2",
         "TypeName": "test-item",
-        "CreatedDate": "2025-01-19T22:30:00.910063Z",
-        "UpdatedDate": "2025-01-19T22:30:01.037188Z",
-        "DeletedDate": null,
+        "CreatedDateTimeOffset": "2025-05-27T01:02:10.546807+00:00",
+        "UpdatedDateTimeOffset": "2025-05-27T01:02:10.686719+00:00",
+        "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "\"c60c4b9c-0000-0300-0000-678d7ce90000\"",
-        "Message": "Message #0"
+        "ETag": "\"8e015eb7-0000-0300-0000-68350f120000\"",
+        "PublicMessage": "Public Message #0",
+        "PrivateMessage": "Private Message #0",
+        "OptionalMessage": null
       }
     }
   ]

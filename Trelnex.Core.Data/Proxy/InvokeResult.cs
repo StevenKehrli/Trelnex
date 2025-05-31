@@ -1,29 +1,35 @@
 namespace Trelnex.Core.Data;
 
+/// <summary>
+/// Result of a proxy method invocation.
+/// </summary>
+/// <remarks>
+/// Captures method result and property change data.
+/// </remarks>
 internal record InvokeResult
 {
     /// <summary>
-    /// An object containing the return value of the invoked method.
+    /// Return value of the invoked method.
     /// </summary>
     public object? Result { get; set; }
 
     /// <summary>
-    /// A value indicating if the property is tracked for changes. true if tracked; otherwise, false.
+    /// Indicates if the property is tracked for changes.
     /// </summary>
     public bool IsTracked { get; set; }
 
     /// <summary>
-    /// The property name.
+    /// Name of the property.
     /// </summary>
     public string? PropertyName { get; set; }
 
     /// <summary>
-    /// The old value for the property.
+    /// Previous value of the property.
     /// </summary>
     public dynamic? OldValue { get; set; }
 
     /// <summary>
-    /// The new value for the property.
+    /// Current value of the property.
     /// </summary>
     public dynamic? NewValue { get; set; }
 }

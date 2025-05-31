@@ -1,35 +1,41 @@
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a permission policy.
+/// Defines the contract for an authorization policy that enforces role-based security.
 /// </summary>
 /// <remarks>
-/// A permission policy defines the required roles to authorize a request to an endpoint.
-/// </remarks>
-/// <remarks>
-/// A permission policy is added to the the endpoint by RequirePermission&lt;IPermissionPolicy&gt;()
+/// Defines the role requirements needed to authorize a request.
 /// </remarks>
 public interface IPermissionPolicy
 {
     /// <summary>
-    /// The array of roles required by this policy.
+    /// Gets the array of roles required by this policy.
     /// </summary>
-    public string[] RequiredRoles { get; }
+    /// <value>
+    /// An array of role names that a user must have at least one of to be authorized.
+    /// </value>
+    string[] RequiredRoles { get; }
 }
 
 /// <summary>
-/// Extension method to get the name of a permission policy.
+/// Provides utility methods for working with permission policies.
 /// </summary>
 internal static class PermissionPolicy
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Gets the name of the specified permission policy.
+    /// Gets the unique name for a permission policy type.
     /// </summary>
-    /// <typeparam name="T">The <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>The name of the specified permission policy.</returns>
-    /// <exception cref="ArgumentException">The exception that is thrown when one the name of the specified permission policy is not found.</exception>
+    /// <typeparam name="T">The permission policy type. This should be an <see cref="IPermissionPolicy"/> implementation.</typeparam>
+    /// <returns>A unique string identifier for the policy, derived from its fully qualified type name.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the full name of the type cannot be determined, indicating a configuration issue.
+    /// </exception>
     public static string Name<T>() where T : IPermissionPolicy
     {
-        return typeof(T).FullName ?? throw new ArgumentException();
+        return typeof(T).FullName ?? throw new ArgumentException("Could not determine type name for permission policy.");
     }
+
+    #endregion
 }

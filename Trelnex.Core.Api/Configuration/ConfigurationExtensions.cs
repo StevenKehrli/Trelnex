@@ -5,50 +5,69 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Trelnex.Core.Api.Configuration;
 
 /// <summary>
-/// Extension methods to add the configuration to the <see cref="WebApplicationBuilder"/>.
+/// Provides extension methods for configuring application settings.
 /// </summary>
+/// <remarks>
+/// Establishes a consistent configuration approach.
+/// </remarks>
 public static class ConfigurationExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add the configuration to the <see cref="WebApplicationBuilder"/>.
+    /// Configures the application's configuration sources using a layered approach.
     /// </summary>
-    /// <param name="builder">The <see cref="WebApplicationBuilder"/>.</param>
+    /// <param name="builder">The web application builder to configure.</param>
     public static void AddConfiguration(
         this WebApplicationBuilder builder)
     {
-        // the array of json files to the configuration
-        //   1. appsettings.json
-        //   2. appsettings.Development.json | appsettings.Staging.json | appsettings.Production.json (based on {builder.Environment.EnvironmentName})
-        //   3. appsettings.User.json
-        // ORDER MATTERS!!!
+        // Define the layered configuration files in order of precedence.
+        // Later files override settings from earlier files.
         string[] jsonFiles = [
+            // Base settings
             "appsettings.json",
+            // Environment-specific settings
             $"appsettings.{builder.Environment.EnvironmentName}.json",
+            // User-specific overrides (not in source control)
             "appsettings.User.json"
         ];
 
+        // Configure the configuration sources.
         builder.Configuration
             .SetBasePath(Directory.GetCurrentDirectory())
+            // Add JSON configuration files
             .AddJsonFiles(jsonFiles)
+            // Environment variables override all JSON settings
             .AddEnvironmentVariables();
 
+        // Register the options pattern for strongly-typed configuration.
         builder.Services.AddOptions();
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Add the specified json files to the <see cref="IConfigurationBuilder"/>.
+    /// Adds multiple JSON configuration files to the configuration builder.
     /// </summary>
-    /// <param name="configurationBuilder">The <see cref="IConfigurationBuilder"/>.</param>
-    /// <param name="jsonFiles">The array of specified json files.</param>
-    /// <returns>The <see cref="IConfigurationBuilder"/>.</returns>
+    /// <param name="configurationBuilder">The configuration builder to add files to.</param>
+    /// <param name="jsonFiles">An array of JSON file paths relative to the base path.</param>
+    /// <returns>The same configuration builder for method chaining.</returns>
     private static IConfigurationBuilder AddJsonFiles(
         this IConfigurationBuilder configurationBuilder,
         string[] jsonFiles)
     {
+        // Add each JSON file to the configuration.
         Array.ForEach(
             jsonFiles,
-            jsonFile => configurationBuilder.AddJsonFile(jsonFile, optional: true, reloadOnChange: true));
+            jsonFile => configurationBuilder.AddJsonFile(
+                path: jsonFile,
+                optional: true,
+                reloadOnChange: true));
 
         return configurationBuilder;
     }
+
+    #endregion
 }

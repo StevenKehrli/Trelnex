@@ -1,0 +1,14 @@
+﻿{
+  "publicMessage": "public message",
+  "encryptMessage": "ImVnYXNzZW0gdHB5cmNuZSI=",
+  "encryptInt": "MDE=",
+  "encryptGuid": "Ijc2NzIwNzJkNDYzNi1jNjZiLTQxMzQtN2EwNy1hNjA2MjdlMSI=",
+  "encryptDateTimeOffset": "IjAwOjAwKzUwOjQwOjMwVDIwLTEwLTUyMDIi",
+  "encryptNestedTestItem": {
+    "nestedPublicMessage": "nested public message",
+    "nestedEncryptMessage": "ImVnYXNzZW0gdHB5cmNuZSBkZXRzZW4i",
+    "nestedEncryptInt": "MDI=",
+    "nestedEncryptGuid": "IjEwMWJiZGM4YzhjOS01MmQ5LTdhNjQtMjgzOC0zN2E0ZWViNSI=",
+    "nestedEncryptDateTimeOffset": "IjAwOjAwKzYwOjUwOjQwVDMwLTIwLTYyMDIi"
+  }
+}

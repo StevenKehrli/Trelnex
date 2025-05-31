@@ -1,36 +1,57 @@
 namespace Trelnex.Core.Identity;
 
+/// <summary>
+/// Defines a provider for accessing authentication credentials and token providers.
+/// </summary>
+/// <remarks>
+/// Serves as a factory and manager for credentials and access token providers.
+/// </remarks>
 public interface ICredentialProvider
 {
     /// <summary>
-    /// Gets the name of the credential provider.
+    /// Gets the unique identifier for this credential provider.
     /// </summary>
+    /// <remarks>
+    /// Used for logging and distinguishing between multiple credential providers.
+    /// </remarks>
     string Name { get; }
 
     /// <summary>
-    /// Gets the <see cref="IAccessTokenProvider"/> for the specified credential name and scope.
+    /// Creates or retrieves an access token provider for the specified scope.
     /// </summary>
-    /// <param name="scope">The scope of the token.</param>
-    /// <returns>The <see cref="IAccessTokenProvider"/> for the specified credential name.</returns>
-    IAccessTokenProvider<TClient> GetAccessTokenProvider<TClient>(
+    /// <param name="scope">The scope or resource identifier for which to obtain tokens.</param>
+    /// <returns>An access token provider configured for the specified scope.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the scope is invalid or not supported by this provider.
+    /// </exception>
+    IAccessTokenProvider GetAccessTokenProvider(
         string scope);
 
     /// <summary>
-    /// Gets the <see cref="CredentialStatus"/> of the credential used by this token provider.
+    /// Retrieves diagnostic information about the health of all credentials managed by this provider.
     /// </summary>
-    /// <returns>The <see cref="CredentialStatus"/> of the credential used by this token provider.</returns>
+    /// <returns>Status information for all credentials and their associated tokens.</returns>
+    /// <remarks>
+    /// Used for monitoring and diagnostics to assess the health of authentication mechanisms.
+    /// </remarks>
     CredentialStatus GetStatus();
 }
 
 /// <summary>
-/// Represents a provider to retrieve credentials of type <see cref="TCredential"/>.
+/// Generic credential provider interface for accessing specific credential types.
 /// </summary>
-/// <typeparam name="TCredential">The type of credential (e.g., TokenCredential, AWSCredentials, GoogleCredential, etc.).</typeparam>
+/// <typeparam name="TCredential">The specific credential type managed by this provider.</typeparam>
+/// <remarks>
+/// Extends the base credential provider interface with type-specific credential access.
+/// </remarks>
 public interface ICredentialProvider<TCredential> : ICredentialProvider
 {
     /// <summary>
-    /// Gets the credential of type <see cref="TCredential"/> for the specified credential name.
+    /// Retrieves the raw credential object of the specified type.
     /// </summary>
-    /// <returns>The credential of type <see cref="TCredential"/>.</returns>
+    /// <returns>The credential object for direct use with platform-specific APIs.</returns>
+    /// <exception cref="AccessTokenUnavailableException">
+    /// Thrown when the underlying credential cannot be accessed or is invalid.
+    /// </exception>
     TCredential GetCredential();
 }

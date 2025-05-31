@@ -1,0 +1,16 @@
+﻿{
+  "principals": [],
+  "items": [
+    {
+      "_resourceName": "urn://resource-getprincipalsforscope-noprincipals",
+      "_scopeName": "scope-getprincipalsforscope-noprincipals",
+      "entityName": "#RESOURCE#urn://resource-getprincipalsforscope-noprincipals",
+      "subjectName": "#SCOPE#scope-getprincipalsforscope-noprincipals"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalsforscope-noprincipals",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalsforscope-noprincipals"
+    }
+  ]
+}

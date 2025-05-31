@@ -1,35 +1,37 @@
 namespace Trelnex.Core.Data.Tests.Commands;
 
+[Category("Commands")]
 public class CreateCommandSaveTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
-    public async Task CreateCommand_SaveAsync_IsReadOnlyAfterSave()
+    [Description("Tests that a create command's item becomes read-only after saving")]
+    public async Task CreateCommandSave_SaveAsync_IsReadOnlyAfterSave()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Verify the item is read-only after save
         Assert.Multiple(() =>
         {
             Assert.Throws<InvalidOperationException>(
@@ -43,34 +45,58 @@ public class CreateCommandSaveTests
     }
 
     [Test]
-    public async Task CreateCommand_SaveAsync_ResultIsReadOnly()
+    [Description("Tests that create command throws when operations are not supported")]
+    public async Task CreateCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider with no supported operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Read);
 
+        // Attempt to create an create command, which should throw
+        Assert.Throws<NotSupportedException>(
+            () => commandProvider.Create(id: id, partitionKey: partitionKey),
+            "The requested Create operation is not supported.");
+    }
+
+    [Test]
+    [Description("Tests that the result returned from saving a create command is read-only")]
+    public async Task CreateCommandSave_SaveAsync_ResultIsReadOnly()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create our in-memory command provider factory
+        var factory = await InMemoryCommandProviderFactory.Create();
+
+        // Get a command provider for our test item type
+        var commandProvider = factory.Create<ITestItem, TestItem>(
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
+
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it and read it back
+        // Save the command and get the result
         var created = await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(created, Is.Not.Null);
         Assert.That(created.Item, Is.Not.Null);
 
+        // Verify the result is read-only
         Assert.Multiple(() =>
         {
             Assert.Throws<InvalidOperationException>(
@@ -84,34 +110,36 @@ public class CreateCommandSaveTests
     }
 
     [Test]
-    public async Task CreateCommand_SaveAsync_WhenAlreadySaved()
+    [Description("Tests that a create command cannot be saved more than once")]
+    public async Task CreateCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the command
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Attempt to save it again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await createCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }

@@ -3,13 +3,12 @@ using System.Net;
 namespace Trelnex.Core;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="HttpStatusCodeException"/>.
-/// with the specified <see cref="HttpStatusCode"/>, optional message, optional errors, and optional reference to the inner <see cref="Exception"/>.
+/// Exception that represents an HTTP error with associated status code.
 /// </summary>
-/// <param name="httpStatusCode">The specified <see cref="HttpStatusCode"/>.</param>
-/// <param name="message">The optional error message string. If not specified, it will default to the reason phrase of the specified <see cref="HttpStatusCode"/>.</param>
-/// <param name="errors">The optional dictionary of errors that describe the exception.</param>
-/// <param name="innerException">The optional inner exception reference.</param>
+/// <param name="httpStatusCode">The HTTP status code associated with this exception.</param>
+/// <param name="message">Optional error message. Defaults to the reason phrase of the status code if not specified.</param>
+/// <param name="errors">Optional dictionary of structured validation errors.</param>
+/// <param name="innerException">Optional inner exception that caused this exception.</param>
 public class HttpStatusCodeException(
     HttpStatusCode httpStatusCode,
     string? message = null,
@@ -17,7 +16,17 @@ public class HttpStatusCodeException(
     Exception? innerException = null)
     : Exception(message ?? httpStatusCode.ToReason(), innerException)
 {
+    #region Public Properties
+
+    /// <summary>
+    /// Gets the HTTP status code associated with this exception.
+    /// </summary>
     public HttpStatusCode HttpStatusCode { get; init; } = httpStatusCode;
 
+    /// <summary>
+    /// Gets the structured validation errors associated with this exception.
+    /// </summary>
     public IReadOnlyDictionary<string, string[]>? Errors { get; init; } = errors;
+
+    #endregion
 }

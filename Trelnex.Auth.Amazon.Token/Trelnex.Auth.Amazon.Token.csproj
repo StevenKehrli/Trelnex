@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Trelnex.Auth.Amazon.Token</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
+        <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="1.0.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
+    </ItemGroup>
+
+</Project>

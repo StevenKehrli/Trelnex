@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Reflection;
 using Amazon;
 using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
@@ -11,34 +13,41 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.Identity;
 
 /// <summary>
-/// A class to manage the <see cref="AWSCredentials"/> and get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.
+/// Manages AWS credentials and provides access tokens.
 /// </summary>
+/// <remarks>
+/// Initializes credentials, creates SigV4 signatures, acquires access tokens, and refreshes credentials.
+/// Addresses an issue in <see cref="RefreshingAWSCredentials"/> by proactively refreshing credentials.
+/// </remarks>
 public class AWSCredentialsManager
 {
-    /// <summary>
-    /// Gets the Credentials property of the <see cref="AmazonSecurityTokenServiceClient"/>.
-    /// </summary>
-    private static readonly PropertyInfo _credentialsProperty =
-            typeof(AmazonSecurityTokenServiceClient)
-            .GetProperty(
-                "Credentials",
-                BindingFlags.NonPublic | BindingFlags.Instance)!;
+    #region Private Fields
 
     /// <summary>
-    /// The <see cref="AccessTokenClient"/> to get the <see cref="Trelnex.Core.Identity.AccessToken"/> from the Amazon /oauth2/token endpoint.
+    /// Client for requesting access tokens.
     /// </summary>
     private readonly AccessTokenClient _accessTokenClient;
 
     /// <summary>
-    /// The <see cref="AmazonSecurityTokenServiceClient"/> to get the caller identity.
+    /// STS client for AWS identity operations.
     /// </summary>
     private readonly AmazonSecurityTokenServiceClient _stsClient;
 
     /// <summary>
-    /// The current caller identity.
+    /// AWS principal ARN.
     /// </summary>
     private readonly string _principalId;
 
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AWSCredentialsManager"/> class.
+    /// </summary>
+    /// <param name="accessTokenClient">The client for OAuth2 token requests.</param>
+    /// <param name="stsClient">The STS client for AWS identity operations.</param>
+    /// <param name="principalId">The AWS principal ARN.</param>
     private AWSCredentialsManager(
         AccessTokenClient accessTokenClient,
         AmazonSecurityTokenServiceClient stsClient,
@@ -49,33 +58,46 @@ public class AWSCredentialsManager
         _principalId = principalId;
     }
 
-    public AWSCredentials AWSCredentials => (AWSCredentials) _credentialsProperty.GetValue(_stsClient)!;
+    #endregion
+
+    #region Public Properties
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AWSCredentialsManager"/> class.
+    /// Gets the AWS credentials.
     /// </summary>
-    /// <param name="logger">The <see cref="ILogger"/>.</param>
-    /// <param name="options">The <see cref="AmazonCredentialOptions"/>.</param>
-    /// <returns>The <see cref="AWSCredentialsManager"/>.</returns>
-    public async static Task<AWSCredentialsManager> Create(
+    public AWSCredentials AWSCredentials => _stsClient.Config.DefaultAWSCredentials;
+
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Creates a new <see cref="AWSCredentialsManager"/> with initialized AWS credentials.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="options">The options that configure AWS credentials and token client.</param>
+    /// <returns>A fully initialized <see cref="AWSCredentialsManager.</returns>
+    /// <remarks>
+    /// Creates AWS credentials, initializes an STS client, obtains the caller identity, and creates the OAuth2 token client.
+    /// </remarks>
+    public static async Task<AWSCredentialsManager> Create(
         ILogger logger,
         AmazonCredentialOptions options)
     {
-        // create the AWSCredentials
-        var credentials = CreateAWSCredentials(logger);
+        // Create the AWS credentials with automatic refresh
+        var awsCredentials = CreateAWSCredentials(logger);
 
-        // create the security token service client
+        // Create the Security Token Service client with the specified region
         var regionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
 
-        var clientConfig = new AmazonSecurityTokenServiceConfig
+        var stsClientConfig = new AmazonSecurityTokenServiceConfig
         {
             RegionEndpoint = regionEndpoint,
-            StsRegionalEndpoints = StsRegionalEndpointsValue.Regional
         };
 
-        var stsClient = new AmazonSecurityTokenServiceClient(credentials, clientConfig);
+        var stsClient = new AmazonSecurityTokenServiceClient(awsCredentials, stsClientConfig);
 
-        // get the caller identity
+        // Get the caller identity (AWS principal)
         var request = new GetCallerIdentityRequest();
         var response = await stsClient.GetCallerIdentityAsync(request);
 
@@ -84,55 +106,62 @@ public class AWSCredentialsManager
             response.Arn,
             options.Region);
 
-        // get the access token client
-        HttpClient httpClient = new()
+        // Create the OAuth2 token client
+        var httpClient = new HttpClient(new SocketsHttpHandler(), disposeHandler: false)
         {
             BaseAddress = options.AccessTokenClient.BaseAddress
         };
 
         var accessTokenClient = new AccessTokenClient(httpClient);
 
-        // create the manager
+        // Create and return the credentials manager
         return new AWSCredentialsManager(
             accessTokenClient,
             stsClient,
             response.Arn);
     }
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.
+    /// Gets an access token for the specified scope.
     /// </summary>
     /// <param name="scope">The scope required for the token.</param>
-    /// <returns>The <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.</returns>
+    /// <returns>An access token with the requested scope.</returns>
+    /// <exception cref="HttpStatusCodeException">Thrown when the token request fails.</exception>
+    /// <remarks>
+    /// Creates a caller identity request, signs it using AWS SigV4, and requests an access token.
+    /// </remarks>
     public async Task<AccessToken> GetAccessToken(
         string scope)
     {
-        // marshal the request to the AWS IRequest
+        // Marshal the request to the AWS IRequest format
         var request = new GetCallerIdentityRequest();
         var marshaller = new GetCallerIdentityRequestMarshaller();
         var marshalledRequest = marshaller.Marshall(request);
 
-        // get the endpoint for the sts client
+        // Get the endpoint for the STS client and set it on the request
         var endpoint = _stsClient.DetermineServiceOperationEndpoint(request);
         marshalledRequest.Endpoint = new Uri(endpoint.URL);
 
-        // sign the request
-        var signer = new AWS4Signer();
-
-        signer.Sign(
+        // Create an AWS SigV4 signer and sign the request
+        var awsSigner = new AWS4Signer();
+        awsSigner.Sign(
             request: marshalledRequest,
             clientConfig: _stsClient.Config,
             metrics: null,
-            credentials: AWSCredentials.GetCredentials());
+            identity: AWSCredentials);
 
-        // create the signature
+        // Create a signature object with the region and signed headers
         var signature = new CallerIdentitySignature
         {
             Region = _stsClient.Config.RegionEndpoint.SystemName,
             Headers = marshalledRequest.Headers
         };
 
-        // get a new token and set
+        // Request an access token using the principal ID, signature, and scope
         var accessToken = await _accessTokenClient.GetAccessToken(
             _principalId,
             signature,
@@ -141,77 +170,94 @@ public class AWSCredentialsManager
         return accessToken;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Creates the <see cref="AWSCredentials"/>.
+    /// Creates AWS credentials with automatic refresh.
     /// </summary>
-    /// <param name="logger">The <see cref="ILogger"/>.</param>
-    /// <returns>The <see cref="AWSCredentials"/>.</returns>
+    /// <param name="logger">The logger.</param>
+    /// <returns>AWS credentials that can be used for authentication.</returns>
+    /// <remarks>
+    /// Handles different types of credentials, wrapping <see cref="RefreshingAWSCredentials"/> to ensure timely refresh.
+    /// </remarks>
     private static AWSCredentials CreateAWSCredentials(
         ILogger logger)
     {
-        // create the AWSCredentials
-        var credentials = FallbackCredentialsFactory.GetCredentials();
+        // Get the default AWS credentials
+        var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        // create the refreshing credentials if necessary
-        if (credentials is RefreshingAWSCredentials refreshingAWSCredentials)
+        // For refreshing credentials, wrap them to ensure timely refresh
+        if (awsCredentials is RefreshingAWSCredentials refreshingAWSCredentials)
         {
             return RefreshingCredentials.Create(logger, refreshingAWSCredentials);
         }
 
-        // initialize the credentials and return
-        _ = credentials.GetCredentials();
+        // For other credential types, initialize them and return
+        _ = awsCredentials.GetCredentials();
 
-        return credentials;
+        return awsCredentials;
     }
 
+    #endregion
+
+    #region RefreshingCredentials
+
     /// <summary>
-    /// This class will refresh the underlying <see cref="RefreshingAWSCredentials"/> when the refreshOn time is reached (Expiration - PreemptExpiryTime).
+    /// Wrapper for <see cref="RefreshingAWSCredentials"/> that ensures proactive credential refresh.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// <see cref="RefreshingCredentials"/> will refresh on-demand when the expiration time is reached.
-    /// There is an existing bug that fails to refresh when the refreshOn time is reached.
-    /// https://github.com/aws/aws-sdk-net/issues/3613
-    /// </para>
-    /// <para>
-    /// This class will refresh the credentials using a timer, ensuring that valid credentials are available without waiting for the on-demand refresh.
-    /// </para>
+    /// Addresses an issue in the AWS SDK where <see cref="RefreshingAWSCredentials"/> doesn't properly refresh credentials.
     /// </remarks>
     private class RefreshingCredentials : AWSCredentials
     {
+        #region Private Static Fields
+
         /// <summary>
-        /// Gets the currentState field of the <see cref="RefreshingAWSCredentials"/>.
+        /// Reflection access to the internal state of <see cref="RefreshingAWSCredentials"/>.
         /// </summary>
-        private static readonly FieldInfo _currentStateField =
-            typeof(RefreshingAWSCredentials)
+        private static readonly FieldInfo _currentStateField = typeof(RefreshingAWSCredentials)
             .GetField(
                 "currentState",
                 BindingFlags.NonPublic | BindingFlags.Instance)!;
 
         /// <summary>
-        /// Gets the Expiration property of the <see cref="RefreshingAWSCredentials.CredentialsRefreshState"/>.
+        /// Reflection access to the expiration time of credentials.
         /// </summary>
-        private static readonly PropertyInfo _expirationProperty =
-            typeof(RefreshingAWSCredentials.CredentialsRefreshState)
+        private static readonly PropertyInfo _expirationProperty = typeof(RefreshingAWSCredentials.CredentialsRefreshState)
             .GetProperty(
                 "Expiration",
                 BindingFlags.Public | BindingFlags.Instance)!;
 
+        #endregion
+
+        #region Private Fields
+
         /// <summary>
-        /// The <see cref="ILogger"/>.
+        /// The logger.
         /// </summary>
         private readonly ILogger _logger;
 
         /// <summary>
-        /// The underlying <see cref="RefreshingAWSCredentials"/>.
+        /// The underlying AWS credentials.
         /// </summary>
         private readonly RefreshingAWSCredentials _refreshingAWSCredentials;
 
         /// <summary>
-        /// The <see cref="Timer"/> to refresh the <see cref="RefreshingAWSCredentials"/>.
+        /// The timer used to schedule credential refresh.
         /// </summary>
-        private readonly Timer _timer;
+        private readonly Timer _refreshTimer;
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RefreshingCredentials"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="refreshingAWSCredentials">The underlying AWS credentials to wrap.</param>
         private RefreshingCredentials(
             ILogger logger,
             RefreshingAWSCredentials refreshingAWSCredentials)
@@ -219,87 +265,126 @@ public class AWSCredentialsManager
             _logger = logger;
             _refreshingAWSCredentials = refreshingAWSCredentials;
 
-            _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            // Create a timer but don't start it yet
+            _refreshTimer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
+        #endregion
+
+        #region Public Static Methods
+
         /// <summary>
-        /// Creates a new instance of the <see cref="AWSCredentials"/> class.
+        /// Creates a new instance of <see cref="RefreshingCredentials"/> and performs initial refresh.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"/>.</param>
-        /// <param name="refreshingAWSCredentials">The underlying <see cref="RefreshingAWSCredentials"/>.</param>
-        /// <returns>The <see cref="AWSCredentials"/>.</returns>
+        /// <param name="logger">The logger.</param>
+        /// <param name="refreshingAWSCredentials">The underlying AWS credentials to wrap.</param>
+        /// <returns>A new credentials instance with refreshed credentials.</returns>
         public static AWSCredentials Create(
             ILogger logger,
             RefreshingAWSCredentials refreshingAWSCredentials)
         {
+            // Create the credentials wrapper
             var credentials = new RefreshingCredentials(logger, refreshingAWSCredentials);
 
+            // Perform initial refresh
             credentials.Refresh(null);
 
             return credentials;
         }
 
+        #endregion
+
+        #region Public Methods
+
+        /// <inheritdoc />
         public override ImmutableCredentials GetCredentials()
         {
+            // Delegate to the underlying credentials
             return _refreshingAWSCredentials.GetCredentials();
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
-        /// Get the refresh time of the <see cref="_refreshingAWSCredentials"/>.
+        /// Calculates when the credentials should be refreshed.
         /// </summary>
-        /// <returns>The <see cref="DateTime"/> of the next refresh.</returns>
+        /// <returns>The UTC time when credentials should be refreshed.</returns>
+        /// <remarks>
+        /// Refresh time is the credential expiration time minus the preempt expiry time, but not less than 5 seconds from now.
+        /// </remarks>
         private DateTime GetRefreshOn()
         {
-            // not less than 5 seconds from now
+            // Set minimum refresh time to not less than 5 seconds from now
             var minRefreshOn = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 
-            // get the current state
+            // Get the current credential state using reflection
             var currentState = _currentStateField.GetValue(_refreshingAWSCredentials)!;
             if (currentState is null)
             {
                 return minRefreshOn;
             }
 
-            // get the expiration time
-            var expiration = (DateTime) _expirationProperty.GetValue(currentState)!;
+            // Get the expiration time of the current credentials
+            var expiration = (DateTime)_expirationProperty.GetValue(currentState)!;
 
-            // get the refresh time
+            // Calculate refresh time as expiration minus preempt time
             var refreshOn = expiration - _refreshingAWSCredentials.PreemptExpiryTime;
 
+            // Ensure refresh time is not too soon
             return refreshOn >= minRefreshOn
                 ? refreshOn
                 : minRefreshOn;
         }
 
         /// <summary>
-        /// The <see cref="TimerCallback"/> delegate of the <see cref="_timer"/> <see cref="Timer"/>.
+        /// Refreshes the credentials and schedules the next refresh.
         /// </summary>
-        /// <param name="state">An object containing application-specific information relevant to the method invoked by this delegate, or null.</param>
+        /// <param name="state">The state object passed by the Timer (not used).</param>
         private void Refresh(object? state)
         {
-            // set the expiration time to force a refresh
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // Log the refresh attempt.
+            _logger.LogInformation(
+                "AWSCredentialsManager.Refresh");
+
+            // Force a refresh by setting expiration to minimum value
             var currentState = _currentStateField.GetValue(_refreshingAWSCredentials);
             if (currentState is not null)
             {
                 _expirationProperty.SetValue(currentState, DateTime.MinValue);
             }
 
-            // get the current credentials
+            // Trigger a refresh by calling GetCredentials
             _ = _refreshingAWSCredentials.GetCredentials();
 
-            // get the refresh time
+            // Calculate the next refresh time
             var refreshOn = GetRefreshOn();
 
+            // Log the scheduled refresh time
             _logger.LogInformation(
                 "AWSCredentialsManager.Refresh: refreshOn = '{refreshOn:o}'.",
                 refreshOn);
 
-            // get the due time
+            // Calculate the time until the next refresh
             var dueTime = refreshOn - DateTime.UtcNow;
 
-            _timer.Change(
+            // Schedule the next refresh
+            _refreshTimer.Change(
                 dueTime: dueTime,
                 period: Timeout.InfiniteTimeSpan);
+
+            stopwatch.Stop();
+            _logger.LogInformation(
+                "AWSCredentialsManager.Refresh: elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                stopwatch.ElapsedMilliseconds);
         }
+
+        #endregion
     }
+
+    #endregion
 }

@@ -1,0 +1,10 @@
+﻿{
+  "scopeAfter": null,
+  "items": [
+    {
+      "_resourceName": "urn://resource-deletescope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deletescope"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+﻿{
+  "items": [
+    {
+      "_resourceName": "urn://resource-deletescopeassignment-noscope",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deletescopeassignment-noscope"
+    }
+  ]
+}

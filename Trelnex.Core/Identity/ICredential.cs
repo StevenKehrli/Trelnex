@@ -1,15 +1,21 @@
 namespace Trelnex.Core.Identity;
 
 /// <summary>
-/// Represents a credential.
+/// Represents a security credential capable of acquiring access tokens.
 /// </summary>
+/// <remarks>
+/// Defines the contract for credential implementations.
+/// </remarks>
 public interface ICredential
 {
     /// <summary>
-    /// Gets the <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.
+    /// Acquires an access token for the specified scope or resource.
     /// </summary>
-    /// <param name="scope">The scope required for the token.</param>
-    /// <returns>The <see cref="Trelnex.Core.Identity.AccessToken"/> for the specified scope.</returns>
+    /// <param name="scope">The scope or resource identifier for which to obtain an access token.</param>
+    /// <returns>An access token that can be used to authenticate requests to the specified scope.</returns>
+    /// <exception cref="AccessTokenUnavailableException">
+    /// Thrown when the access token cannot be acquired.
+    /// </exception>
     AccessToken GetAccessToken(
         string scope);
 }

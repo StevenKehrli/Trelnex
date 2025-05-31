@@ -1,7 +1,3 @@
-using Azure.Core;
-using Azure.Identity;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.CommandProviders;
@@ -11,57 +7,45 @@ using Trelnex.Core.Data.Tests.CommandProviders;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 
+/// <summary>
+/// Tests for the extension methods used to register and configure SqlCommandProviders
+/// in the dependency injection container.
+/// </summary>
+/// <remarks>
+/// This class inherits from <see cref="SqlCommandProviderTestBase"/> to leverage the shared
+/// test infrastructure and from <see cref="CommandProviderTests"/> (indirectly) to leverage
+/// the extensive test suite defined in that base class.
+///
+/// This class focuses on testing the extension methods for DI registration rather than
+/// direct factory instantiation. It also adds an additional test for duplicate registration handling.
+///
+/// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual SQL Server instance
+/// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
+/// </remarks>
 [Ignore("Requires a SQL server.")]
-public class SqlCommandProviderExtensionsTests : CommandProviderTests
+[Category("SqlCommandProvider")]
+public class SqlCommandProviderExtensionsTests : SqlCommandProviderTestBase
 {
-    private readonly string _scope = "https://database.windows.net/.default";
-
-    private TokenCredential _tokenCredential = null!;
-    private string _connectionString = null!;
-    private string _tableName = null!;
-
+    /// <summary>
+    /// Sets up the SqlCommandProvider for testing using the dependency injection approach.
+    /// </summary>
     [OneTimeSetUp]
     public void TestFixtureSetup()
     {
-        // This method is called once prior to executing any of the tests in the fixture.
-
-        // create the service collection
+        // Create the service collection.
         var services = new ServiceCollection();
 
-        // create the test configuration
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
-            .Build();
+        // Initialize shared resources from configuration
+        var configuration = TestSetup();
 
-        var dataSource = configuration
-            .GetSection("SqlCommandProviders:DataSource")
-            .Value!;
+        services.AddSingleton(_serviceConfiguration);
 
-        var initialCatalog = configuration
-            .GetSection("SqlCommandProviders:InitialCatalog")
-            .Value!;
-
-        _tableName = configuration
-            .GetSection("SqlCommandProviders:Tables:0:TableName")
-            .Value!;
-
-        var scsBuilder = new SqlConnectionStringBuilder()
-        {
-            DataSource = dataSource,
-            InitialCatalog = initialCatalog,
-            Encrypt = true,
-        };
-
-        _connectionString = scsBuilder.ConnectionString;
-
-        // create the command provider
-        _tokenCredential = new DefaultAzureCredential();
-
+        // Configure Serilog
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            _serviceConfiguration);
 
+        // Add Azure Identity and SQL Command Providers to the service collection.
         services
             .AddAzureIdentity(
                 configuration,
@@ -76,44 +60,31 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
 
         var serviceProvider = services.BuildServiceProvider();
 
-        // get the command provider
+        // Get the command provider from the DI container.
         _commandProvider = serviceProvider.GetRequiredService<ICommandProvider<ITestItem>>();
     }
 
-    [TearDown]
-    public void TestCleanup()
-    {
-        // This method is called after each test has run.
-        using var sqlConnection = new SqlConnection(_connectionString);
-
-        var tokenRequestContext = new TokenRequestContext([ _scope ]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
-
-        sqlConnection.Open();
-
-        var cmdText = $"DELETE FROM [{_tableName}-events]; DELETE FROM [{_tableName}];";
-        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-
-        sqlCommand.ExecuteNonQuery();
-    }
-
+    /// <summary>
+    /// Tests that registering the same type with the SqlCommandProvider twice results in an exception.
+    /// </summary>
     [Test]
+    [Description("Tests that registering the same type with the SqlCommandProvider twice results in an exception.")]
     public void SqlCommandProvider_AlreadyRegistered()
     {
-        // create the service collection
+        // Create the service collection.
         var services = new ServiceCollection();
 
-        // create the test configuration
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.User.json", optional: true, reloadOnChange: true)
-            .Build();
+        // Initialize shared resources from configuration
+        var configuration = TestSetup();
 
+        services.AddSingleton(_serviceConfiguration);
+
+        // Configure Serilog
         var bootstrapLogger = services.AddSerilog(
             configuration,
-            "Trelnex.Integration.Tests");
+            _serviceConfiguration);
 
-        // add twice
+        // Attempt to register the same type twice, which should throw an InvalidOperationException.
         Assert.Throws<InvalidOperationException>(() =>
         {
             services.AddSqlCommandProviders(
@@ -128,6 +99,77 @@ public class SqlCommandProviderExtensionsTests : CommandProviderTests
                         typeName: "test-item",
                         validator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
+        });
+    }
+
+    [Test]
+    [Description("Tests SqlCommandProvider with an optional message and without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task SqlCommandProvider_OptionalMessage_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+        createCommand.Item.OptionalMessage = "Optional Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader["optionalMessage"], Is.EqualTo("Optional Message #1"));
+        });
+    }
+
+    [Test]
+    [Description("Tests SqlCommandProvider without encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task SqlCommandProvider_WithoutEncryption()
+    {
+        var id = Guid.NewGuid().ToString();
+        var partitionKey = Guid.NewGuid().ToString();
+
+        // Create a command for creating a test item
+        var createCommand = _commandProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        // Set initial values on the test item
+        createCommand.Item.PublicMessage = "Public Message #1";
+        createCommand.Item.PrivateMessage = "Private Message #1";
+
+        // Save the command and capture the result
+        var created = await createCommand.SaveAsync(
+            cancellationToken: default);
+
+        Assert.That(created, Is.Not.Null);
+
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey);
+
+        Assert.That(reader.Read(), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
+            Assert.That(reader.IsDBNull(1), Is.True);
         });
     }
 }

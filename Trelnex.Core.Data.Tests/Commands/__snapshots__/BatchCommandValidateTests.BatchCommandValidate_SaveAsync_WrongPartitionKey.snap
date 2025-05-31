@@ -1,0 +1,9 @@
+﻿{
+  "HttpStatusCode": "UnprocessableEntity",
+  "Message": "The collection of 'TestItem' is not valid.",
+  "Errors": {
+    "[1].PartitionKey": [
+      "The partition key '823bcd49-bb5b-4cb3-8a3a-f678cf03a78a' does not match the batch partition key 'a15b53a6-1c81-4285-adba-779145fd00b0'."
+    ]
+  }
+}

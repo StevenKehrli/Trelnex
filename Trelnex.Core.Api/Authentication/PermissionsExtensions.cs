@@ -3,19 +3,29 @@ using Microsoft.AspNetCore.Builder;
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Extension method to require a permission policy to authorize a request to an endpoint.
+/// Provides extension methods for applying permission-based authorization to API endpoints.
 /// </summary>
+/// <remarks>
+/// Simplifies applying permission policies to minimal API endpoints.
+/// </remarks>
 public static class PermissionsExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Require a permission policy to authorize a request to an endpoint.
+    /// Requires a specific permission policy for authorization on an API endpoint.
     /// </summary>
-    /// <param name="rhb">The <see cref="RouteHandlerBuilder"/> to add the permission policy to.</param>
-    /// <typeparam name="T">The <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>The <see cref="RouteHandlerBuilder"/>.</returns>
+    /// <typeparam name="T">The permission policy type that defines the required access rights.</typeparam>
+    /// <param name="routeHandlerBuilder">The route handler builder being configured.</param>
+    /// <returns>The route handler builder with the permission policy applied.</returns>
     public static RouteHandlerBuilder RequirePermission<T>(
-        this RouteHandlerBuilder rhb) where T : IPermissionPolicy
+        this RouteHandlerBuilder routeHandlerBuilder) where T : IPermissionPolicy
     {
-        return rhb.RequireAuthorization(PermissionPolicy.Name<T>());
+        // Applies the authorization requirement based on the specified permission policy.
+        var policy = PermissionPolicy.Name<T>();
+        var permissionAttribute = new PermissionAttribute(policy);
+        return routeHandlerBuilder.WithMetadata(permissionAttribute);
     }
+
+    #endregion
 }

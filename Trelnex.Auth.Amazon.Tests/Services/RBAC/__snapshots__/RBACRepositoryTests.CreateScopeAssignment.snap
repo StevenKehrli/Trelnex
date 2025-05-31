@@ -1,0 +1,32 @@
+﻿{
+  "principalsAfter": [
+    "principal-createscopeassignment"
+  ],
+  "items": [
+    {
+      "_principalId": "principal-createscopeassignment",
+      "_resourceName": "urn://resource-createscopeassignment",
+      "_scopeName": "scope-createscopeassignment",
+      "entityName": "#PRINCIPAL#principal-createscopeassignment",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment#SCOPE#scope-createscopeassignment"
+    },
+    {
+      "_resourceName": "urn://resource-createscopeassignment",
+      "_scopeName": "scope-createscopeassignment",
+      "entityName": "#RESOURCE#urn://resource-createscopeassignment",
+      "subjectName": "#SCOPE#scope-createscopeassignment"
+    },
+    {
+      "_principalId": "principal-createscopeassignment",
+      "_resourceName": "urn://resource-createscopeassignment",
+      "_scopeName": "scope-createscopeassignment",
+      "entityName": "#RESOURCE#urn://resource-createscopeassignment",
+      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment#PRINCIPAL#principal-createscopeassignment"
+    },
+    {
+      "_resourceName": "urn://resource-createscopeassignment",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-createscopeassignment"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+﻿[
+  {
+    "IsValid": true,
+    "Errors": [],
+    "RuleSetsExecuted": [
+      "default"
+    ]
+  },
+  {
+    "IsValid": false,
+    "Errors": [
+      {
+        "PropertyName": "PartitionKey",
+        "ErrorMessage": "The partition key 'a87d1e2e-c67f-402f-8780-092a8225f80f' does not match the batch partition key 'dfbdcb72-c5bb-41e6-b234-d0915d7d3a0a'.",
+        "AttemptedValue": "a87d1e2e-c67f-402f-8780-092a8225f80f",
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "PredicateValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Partition Key",
+          "PropertyValue": "a87d1e2e-c67f-402f-8780-092a8225f80f",
+          "PropertyPath": "PartitionKey"
+        }
+      },
+      {
+        "PropertyName": "PublicMessage",
+        "ErrorMessage": "NotEmpty",
+        "AttemptedValue": "",
+        "CustomState": null,
+        "Severity": "Error",
+        "ErrorCode": "NotEmptyValidator",
+        "FormattedMessagePlaceholderValues": {
+          "PropertyName": "Public Message",
+          "PropertyValue": "",
+          "PropertyPath": "PublicMessage"
+        }
+      }
+    ],
+    "RuleSetsExecuted": null
+  }
+]

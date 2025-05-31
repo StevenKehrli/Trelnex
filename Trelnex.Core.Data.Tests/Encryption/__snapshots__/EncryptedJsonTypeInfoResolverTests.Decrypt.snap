@@ -1,0 +1,14 @@
+﻿{
+  "PublicMessage": "public message",
+  "EncryptMessage": "encrypt message",
+  "EncryptInt": 10,
+  "EncryptGuid": "1e72606a-70a7-4314-b66c-6364d2702767",
+  "EncryptDateTimeOffset": "2025-01-02T03:04:05+00:00",
+  "EncryptNestedTestItem": {
+    "NestedPublicMessage": "nested public message",
+    "NestedEncryptMessage": "nested encrypt message",
+    "NestedEncryptInt": 20,
+    "NestedEncryptGuid": "5bee4a73-8382-46a7-9d25-9c8c8cdbb101",
+    "NestedEncryptDateTimeOffset": "2026-02-03T04:05:06+00:00"
+  }
+}

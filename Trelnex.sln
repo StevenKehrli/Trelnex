@@ -25,7 +25,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Auth.Amazon", "Trel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Auth.Amazon.Tests", "Trelnex.Auth.Amazon.Tests\Trelnex.Auth.Amazon.Tests.csproj", "{13CC4508-D93B-4F4D-8C38-2959E1382007}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Auth.Amazon.Client", "Trelnex.Auth.Amazon.Client\Trelnex.Auth.Amazon.Client.csproj", "{550D258B-1E24-4EDE-BDB9-B6015F323A5B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Auth.Amazon.Admin", "Trelnex.Auth.Amazon.Admin\Trelnex.Auth.Amazon.Admin.csproj", "{EF185385-939A-42C7-9886-339B01DC3B51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Auth.Amazon.Token", "Trelnex.Auth.Amazon.Token\Trelnex.Auth.Amazon.Token.csproj", "{550D258B-1E24-4EDE-BDB9-B6015F323A5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -169,6 +171,18 @@ Global
 		{13CC4508-D93B-4F4D-8C38-2959E1382007}.Release|x64.Build.0 = Release|Any CPU
 		{13CC4508-D93B-4F4D-8C38-2959E1382007}.Release|x86.ActiveCfg = Release|Any CPU
 		{13CC4508-D93B-4F4D-8C38-2959E1382007}.Release|x86.Build.0 = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|x64.Build.0 = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF185385-939A-42C7-9886-339B01DC3B51}.Release|x86.Build.0 = Release|Any CPU
 		{550D258B-1E24-4EDE-BDB9-B6015F323A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{550D258B-1E24-4EDE-BDB9-B6015F323A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{550D258B-1E24-4EDE-BDB9-B6015F323A5B}.Debug|x64.ActiveCfg = Debug|Any CPU

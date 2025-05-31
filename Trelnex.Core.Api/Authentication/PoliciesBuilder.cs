@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Identity.Web;
 
 namespace Trelnex.Core.Api.Authentication;
 
@@ -7,48 +6,60 @@ namespace Trelnex.Core.Api.Authentication;
 /// Defines the contract for a permission policies builder.
 /// </summary>
 /// <remarks>
-/// A permission policies builder collects the permission policies through its <see cref="IPoliciesBuilder.AddPolicy{T}"/>.
+/// Implements a fluent interface to configure authorization policies.
 /// </remarks>
 public interface IPoliciesBuilder
 {
     /// <summary>
-    /// Adds the specified permission policy to this builder.
+    /// Adds a specified permission policy to the builder's collection.
     /// </summary>
-    /// <typeparam name="T">The specified <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>This builder.</returns>
-    public IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy;
+    /// <typeparam name="T">The type of permission policy to add.</typeparam>
+    /// <returns>The same builder instance for method chaining.</returns>
+    IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy;
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="PoliciesBuilder"/>.
+/// Implements the permission policies builder for configuring authorization policies.
 /// </summary>
-/// <param name="securityProvider">The <see cref="ISecurityProvider"/> to add the security requirements of the permission policies.</param>
-/// <param name="securityDefinition">The <see cref="ISecurityDefinition"/> that own the permission policies of this builder.</param>
+/// <param name="securityProvider">The security provider to register security requirements.</param>
+/// <param name="securityDefinition">The security definition containing authentication scheme information.</param>
 internal class PoliciesBuilder(
     SecurityProvider securityProvider,
     ISecurityDefinition securityDefinition) : IPoliciesBuilder
 {
+    #region Private Static Fields
+
+    private static readonly PermissionRequirement _permissionRequirement = new();
+
+    #endregion
+
+    #region Private Fields
+
     private readonly List<PolicyContainer> _policyContainers = [];
 
+    #endregion
+
+    #region Public Methods
+
     /// <summary>
-    /// Adds the specified permission policy to this builder.
+    /// Adds a permission policy to the builder and registers its security requirements.
     /// </summary>
-    /// <remarks>
-    /// Creates an <see cref="ISecurityRequirement"/> that defines the security requirement of the permission policy
-    /// and adds it to the <see cref="ISecurityProvider"/>.
-    /// </remarks>
-    /// <typeparam name="T">The specified <see cref="IPermissionPolicy"/>.</typeparam>
-    /// <returns>This builder.</returns>
+    /// <typeparam name="T">The type of permission policy to add.</typeparam>
+    /// <returns>The builder instance for method chaining.</returns>
     public IPoliciesBuilder AddPolicy<T>() where T : IPermissionPolicy
     {
+        // Get the policy name from the permission policy type.
         var policyName = PermissionPolicy.Name<T>();
 
+        // Create an instance of the permission policy.
         var policy = Activator.CreateInstance<T>();
 
+        // Add the policy to the list of policy containers.
         _policyContainers.Add(
             new PolicyContainer(policyName, policy)
         );
 
+        // Create a security requirement for the policy.
         var securityRequirement =
             new SecurityRequirement(
                 jwtBearerScheme: securityDefinition.JwtBearerScheme,
@@ -57,15 +68,20 @@ internal class PoliciesBuilder(
                 policy: policyName,
                 requiredRoles: policy.RequiredRoles);
 
+        // Register the security requirement with the security provider.
         securityProvider.AddSecurityRequirement(securityRequirement);
 
         return this;
     }
 
+    #endregion
+
+    #region Internal Methods
+
     /// <summary>
-    /// Adds the permission policies to the <see cref="AuthorizationOptions"/>.
+    /// Builds and registers all configured policies with the authorization options.
     /// </summary>
-    /// <param name="options">The specified <see cref="AuthorizationOptions"/> to add the permission policies to.</param>
+    /// <param name="options">The authorization options to configure with these policies.</param>
     internal void Build(
         AuthorizationOptions options)
     {
@@ -76,20 +92,23 @@ internal class PoliciesBuilder(
                 policyBuilder =>
                 {
                     policyBuilder.AuthenticationSchemes = [securityDefinition.JwtBearerScheme];
-                    policyBuilder.RequireClaim(ClaimConstants.Scope, securityDefinition.Scope);
-                    Array.ForEach(
-                        policyContainer.Policy.RequiredRoles,
-                        r => policyBuilder.RequireRole(r));
+                    policyBuilder.Requirements.Add(_permissionRequirement);
                 });
         });
     }
 
+    #endregion
+
+    #region Private Types
+
     /// <summary>
-    /// Represents a permission policy by its name and <see cref="IPermissionPolicy"/>.
+    /// Represents a named permission policy container with its policy implementation.
     /// </summary>
-    /// <param name="Name">The name of the permission policy.</param>
-    /// <param name="Policy">The <see cref="IPermissionPolicy"/>.</param>
+    /// <param name="Name">The policy name used for registration and lookup.</param>
+    /// <param name="Policy">The policy implementation defining required roles.</param>
     private record PolicyContainer(
         string Name,
         IPermissionPolicy Policy);
+
+    #endregion
 }

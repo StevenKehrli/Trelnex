@@ -1,35 +1,37 @@
 namespace Trelnex.Core.Data.Tests.Commands;
 
-public class UpdateCommandTests
+[Category("Commands")]
+public class UpdateCommandSaveTests
 {
-    private readonly string _typeName = "test-item";
-
     [Test]
+    [Description("Tests that an update command's item becomes read-only after saving")]
     public async Task UpdateCommandSave_SaveAsync_IsReadOnlyAfterSave()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Create an update command for the saved item
         var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
@@ -37,17 +39,18 @@ public class UpdateCommandTests
         Assert.That(updateCommand, Is.Not.Null);
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
+        // Update the item values
         updateCommand.Item.PublicMessage = "Public #2";
         updateCommand.Item.PrivateMessage = "Private #2";
 
-        // save it and read it back
+        // Save the update and get the result
         var updated = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
         Assert.That(updated.Item, Is.Not.Null);
 
+        // Verify the item is read-only
         Assert.Multiple(() =>
         {
             Assert.Throws<InvalidOperationException>(
@@ -61,50 +64,55 @@ public class UpdateCommandTests
     }
 
     [Test]
+    [Description("Tests that update command throws when operations are not supported")]
     public async Task UpdateCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider with no supported operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                commandOperations: CommandOperations.None);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Read);
 
+        // Attempt to create an update command, which should throw
         Assert.ThrowsAsync<NotSupportedException>(
             async () => await commandProvider.UpdateAsync(id: id, partitionKey: partitionKey),
             "The requested Update operation is not supported.");
     }
 
     [Test]
-    public async Task UpdateCommand_SaveAsync_ResultIsReadOnly()
+    [Description("Tests that the result returned from saving an update command is read-only")]
+    public async Task UpdateCommandSave_SaveAsync_ResultIsReadOnly()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type with update operations
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName,
-                commandOperations: CommandOperations.Update);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Create an update command for the saved item
         var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
@@ -112,17 +120,18 @@ public class UpdateCommandTests
         Assert.That(updateCommand, Is.Not.Null);
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
+        // Update the item values
         updateCommand.Item.PublicMessage = "Public #2";
         updateCommand.Item.PrivateMessage = "Private #2";
 
-        // save it and read it back
+        // Save the update and get the result
         var updated = await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
         Assert.That(updated, Is.Not.Null);
         Assert.That(updated.Item, Is.Not.Null);
 
+        // Verify the result is read-only
         Assert.Multiple(() =>
         {
             Assert.Throws<InvalidOperationException>(
@@ -136,31 +145,34 @@ public class UpdateCommandTests
     }
 
     [Test]
+    [Description("Tests that an update command cannot be saved more than once")]
     public async Task UpdateCommandSave_SaveAsync_WhenAlreadySaved()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        var requestContext = TestRequestContext.Create();
-
-        // create our command provider
+        // Create our in-memory command provider factory
         var factory = await InMemoryCommandProviderFactory.Create();
 
+        // Get a command provider for our test item type
         var commandProvider = factory.Create<ITestItem, TestItem>(
-                typeName: _typeName);
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Update);
 
+        // Create a new command to create our test item
         var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
+        // Set initial values on the test item
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // save it
+        // Save the create command first
         await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Create an update command for the saved item
         var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
@@ -168,19 +180,18 @@ public class UpdateCommandTests
         Assert.That(updateCommand, Is.Not.Null);
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
+        // Update the item values
         updateCommand.Item.PublicMessage = "Public #2";
         updateCommand.Item.PrivateMessage = "Private #2";
 
-        // save it
+        // Save the update command
         await updateCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 
+        // Attempt to save it again, which should throw
         Assert.ThrowsAsync<InvalidOperationException>(
             async () => await updateCommand.SaveAsync(
-                requestContext: requestContext,
                 cancellationToken: default),
             "The Command is no longer valid because its SaveAsync method has already been called.");
     }
-
 }

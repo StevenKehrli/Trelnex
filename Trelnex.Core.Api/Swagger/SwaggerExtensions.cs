@@ -1,30 +1,53 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Semver;
+using Trelnex.Core.Api.Configuration;
 
 namespace Trelnex.Core.Api.Swagger;
 
 /// <summary>
-/// Extension methods to add Swagger to the <see cref="IServiceCollection"/> and the <see cref="WebApplication"/>.
+/// Provides extension methods for configuring Swagger/OpenAPI.
 /// </summary>
+/// <remarks>
+/// These extensions simplify the setup of Swagger documentation.
+/// </remarks>
 public static class SwaggerExtensions
 {
+    #region Public Static Methods
+
     /// <summary>
-    /// Add Swagger to the <see cref="IServiceCollection"/>.
+    /// Adds Swagger generator and explorer services to the <see cref="IServiceCollection"/>.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the Swagger services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="ServiceConfiguration"/> is not registered.</exception>
     public static IServiceCollection AddSwaggerToServices(
         this IServiceCollection services)
     {
+        var serviceDescriptor = services.FirstOrDefault(serviceDescriptor => serviceDescriptor.ServiceType == typeof(ServiceConfiguration))
+            ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
+
+        var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
+
+        // Format the version string.
+        var versionString = FormatVersionString(serviceConfiguration.SemVersion);
+
         services.AddEndpointsApiExplorer();
 
         services.AddSwaggerGen(options =>
         {
+            options.SwaggerDoc(versionString, new()
+            {
+                Title = serviceConfiguration.DisplayName,
+                Version = serviceConfiguration.Version,
+                Description = serviceConfiguration.Description,
+            });
+
             options.EnableAnnotations(
                 enableAnnotationsForInheritance: true,
                 enableAnnotationsForPolymorphism: true);
 
+            // Define a local function to determine the order of HTTP methods.
             static int GetHttpMethodOrdinal(string httpMethod)
             {
                 return httpMethod switch
@@ -34,17 +57,20 @@ public static class SwaggerExtensions
                     "PUT" => 02,
                     "PATCH" => 03,
                     "DELETE" => 04,
-                    _ => 99,
+                    _ => 99, // Place unknown methods last.
                 };
             }
 
-            options.OrderActionsBy((apiDesc) =>
+            options.OrderActionsBy(apiDescription =>
             {
-                var httpMethodOrdinal = GetHttpMethodOrdinal(apiDesc.HttpMethod ?? string.Empty);
+                // Get the ordinal value for the HTTP method.
+                var httpMethodOrdinal = GetHttpMethodOrdinal(apiDescription.HttpMethod ?? string.Empty);
 
-                return $"{apiDesc.RelativePath} {httpMethodOrdinal}";
+                // Order by relative path and then by HTTP method ordinal.
+                return $"{apiDescription.RelativePath} {httpMethodOrdinal}";
             });
 
+            options.SchemaFilter<SchemaFilter>();
             options.OperationFilter<AuthorizeFilter>();
             options.DocumentFilter<SecurityFilter>();
         });
@@ -53,15 +79,19 @@ public static class SwaggerExtensions
     }
 
     /// <summary>
-    /// Add the Swagger into the <see cref="WebApplication"/>.
+    /// Configures a <see cref="WebApplication"/> to use Swagger UI and JSON endpoints.
     /// </summary>
-    /// <param name="app">The <see cref="WebApplication"/> to add the Swagger endpoints to.</param>
-    /// <returns>The <see cref="WebApplication"/>.</returns>
+    /// <param name="app">The <see cref="WebApplication"/> to configure with Swagger.</param>
+    /// <returns>The <see cref="WebApplication"/> for method chaining.</returns>
     public static WebApplication AddSwaggerToWebApplication(
         this WebApplication app)
     {
-        var swaggerOptions = app.Configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
+        var serviceConfiguration = app.Services.GetRequiredService<ServiceConfiguration>();
 
+        // Format the version string.
+        var versionString = FormatVersionString(serviceConfiguration.SemVersion);
+
+        // Allow CORS for Swagger UI.
         app.Use((context, next) =>
         {
             if (context.Request.Path.StartsWithSegments("/swagger"))
@@ -76,17 +106,27 @@ public static class SwaggerExtensions
 
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", swaggerOptions?.ServiceName);
+            options.SwaggerEndpoint($"/swagger/{versionString}/swagger.json", serviceConfiguration.DisplayName);
         });
 
         return app;
     }
 
+    #endregion
+
+    #region Private Static Methods
+
     /// <summary>
-    /// Represents the configuration properties for Swagger.
+    /// Formats a semantic version into a Swagger version string.
     /// </summary>
-    /// <param name="ServiceName">The service name that appears in the document selector drop-down.</param>
-    private record SwaggerConfiguration(
-        string? ServiceName
-    );
+    /// <param name="semanticVersion">The semantic version to format.</param>
+    /// <returns>A formatted version string in the format "v{Major}".</returns>
+    private static string FormatVersionString(
+        SemVersion semanticVersion)
+    {
+        // Format the version string.
+        return $"v{semanticVersion.Major}";
+    }
+
+    #endregion
 }

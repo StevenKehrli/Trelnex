@@ -1,48 +1,47 @@
 namespace Trelnex.Core.Api.Authentication;
 
 /// <summary>
-/// Defines the contract for a security requirement.
+/// Defines the contract for a security requirement that specifies authorization conditions.
 /// </summary>
-/// <remark>
-/// The security requirement is used by the Swagger <see cref="AuthorizeFilter"/>
-/// to add the <see cref="OpenApiSecurityRequirement"/> to the operation (endpoint) documentation.
-/// </remark>
+/// <remarks>
+/// Describes authentication and authorization requirements for an operation or endpoint.
+/// </remarks>
 public interface ISecurityRequirement
 {
     /// <summary>
-    /// The JWT bearer token scheme.
+    /// Gets the JWT bearer token scheme used for authentication.
     /// </summary>
-    public string JwtBearerScheme { get; }
+    string JwtBearerScheme { get; }
 
     /// <summary>
-    /// The required audience of the JWT bearer token.
+    /// Gets the required audience claim value that must be present in the JWT token.
     /// </summary>
-    public string Audience { get; }
+    string Audience { get; }
 
     /// <summary>
-    /// The required scope of the JWT bearer token.
+    /// Gets the required scope claim value that must be present in the JWT token.
     /// </summary>
-    public string Scope { get; }
+    string Scope { get; }
 
     /// <summary>
-    /// The policy name for this requirement.
+    /// Gets the authorization policy name associated with this security requirement.
     /// </summary>
-    public string Policy { get; }
+    string Policy { get; }
 
     /// <summary>
-    /// The array of roles required by this requirement.
+    /// Gets the array of role claims that must be present in the JWT token.
     /// </summary>
-    public string[] RequiredRoles { get; }
+    string[] RequiredRoles { get; }
 }
 
 /// <summary>
-/// Initializes a new instance of <see cref="SecurityRequirement"/>.
+/// Implements a security requirement for JWT bearer token authentication.
 /// </summary>
-/// <param name="jwtBearerScheme">The JWT bearer token scheme.</param>
-/// <param name="audience">The required audience of the JWT bearer token.</param>
-/// <param name="scope">The required scope of the JWT bearer token.</param>
+/// <param name="jwtBearerScheme">The JWT bearer authentication scheme name.</param>
+/// <param name="audience">The required audience claim value.</param>
+/// <param name="scope">The required scope claim value.</param>
 /// <param name="policy">The policy name for this requirement.</param>
-/// <param name="requiredRoles">The array of roles required by this requirement.</param>
+/// <param name="requiredRoles">The array of roles required for access.</param>
 internal class SecurityRequirement(
     string jwtBearerScheme,
     string audience,
@@ -50,28 +49,22 @@ internal class SecurityRequirement(
     string policy,
     string[] requiredRoles) : ISecurityRequirement
 {
-    /// <summary>
-    /// The JWT bearer token scheme.
-    /// </summary>
+    #region Public Properties
+
+    /// <inheritdoc/>
     public string JwtBearerScheme => jwtBearerScheme;
 
-    /// <summary>
-    /// The required audience of the JWT bearer token.
-    /// </summary>
+    /// <inheritdoc/>
     public string Audience => audience;
 
-    /// <summary>
-    /// The required scope of the JWT bearer token.
-    /// </summary>
+    /// <inheritdoc/>
     public string Scope => scope;
 
-    /// <summary>
-    /// The policy name for this requirement.
-    /// </summary>
+    /// <inheritdoc/>
     public string Policy => policy;
 
-    /// <summary>
-    /// The array of roles required by this requirement.
-    /// </summary>
+    /// <inheritdoc/>
     public string[] RequiredRoles => requiredRoles;
+
+    #endregion
 }
