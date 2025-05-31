@@ -11,6 +11,14 @@
       ]
     },
     {
+      "name": "Trelnex.Auth.Amazon.Admin",
+      "dotnet_version": "9.0.x",
+      "workflows": [ "build" ],
+      "paths": [
+          "Trelnex.Auth.Amazon.Admin/**"
+      ]
+    },
+    {
       "name": "Trelnex.Auth.Amazon.Token",
       "dotnet_version": "9.0.x",
       "workflows": [ "build" ],
