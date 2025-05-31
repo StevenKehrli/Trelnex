@@ -134,7 +134,7 @@ jobs:
       - name: bump version and push tag
         if: success()
         id: tag_version
-        uses: StevenKehrli/Trelnex.MonoTag@2.1.0
+        uses: StevenKehrli/Trelnex.MonoTag@2.2.0
         with:
           project_path: ${{ matrix.component.name }}
           tag_prefix: ${{ matrix.component.tag_prefix }}
