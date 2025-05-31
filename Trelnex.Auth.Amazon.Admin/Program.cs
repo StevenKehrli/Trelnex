@@ -69,13 +69,13 @@ public class Program
         RegionEndpoint regionEndpoint)
     {
         // Configure the STS client with the specified region endpoint.
-        var stsConfigConfig = new AmazonSecurityTokenServiceConfig
+        var stsConfig = new AmazonSecurityTokenServiceConfig
         {
             RegionEndpoint = regionEndpoint,
         };
 
         // Create the STS client using the provided credentials and configuration.
-        var stsClient = new AmazonSecurityTokenServiceClient(credentials, stsConfigConfig);
+        var stsClient = new AmazonSecurityTokenServiceClient(credentials, stsConfig);
 
         // Get the caller identity (AWS principal) using STS to determine who is making the request.
         var request = new GetCallerIdentityRequest();
