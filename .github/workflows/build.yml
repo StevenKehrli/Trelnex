@@ -31,8 +31,9 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
       run_build: ${{ steps.set-matrix.outputs.run_build }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      test_matrix: ${{ steps.set-matrix.outputs.test_matrix }}
 
     steps:
 
@@ -132,6 +133,16 @@ jobs:
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
+          # Create test matrix with unique test projects and their dotnet versions
+          TEST_PROJECTS=$(echo "$MATRIX" | jq -r '
+            [ .component[] |
+              select(.tests != null) |
+              { tests: .tests, dotnet_version: .dotnet_version } ] |
+              unique_by(.tests)
+          ')
+          
+          echo "test_matrix={\"component\":$(echo $TEST_PROJECTS)}" >> $GITHUB_OUTPUT
+
   build:
     name: Build ${{ matrix.component.name }}
 
@@ -164,16 +175,42 @@ jobs:
       - name: dotnet build
         run: dotnet build ${{ matrix.component.name }}/${{ matrix.component.name }}.csproj --no-restore --configuration Release
 
+  test:
+    name: Test ${{ matrix.component.tests }}
+
+    needs: [create-matrix, build]
+
+    if: ${{ needs.create-matrix.outputs.run_build == 'true' && needs.build.result == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix: ${{ fromJson(needs.create-matrix.outputs.test_matrix) }}
+      fail-fast: false
+
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.component.dotnet_version }}
+
+      - name: dotnet nuget add source
+        run: dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name "github" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
       - name: dotnet restore test
-        if: ${{ matrix.component.tests != null }}
         run: dotnet restore ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj
 
       - name: dotnet test
-        if: ${{ matrix.component.tests != null }}
         run: dotnet test ${{ matrix.component.tests }}/${{ matrix.component.tests }}.csproj --no-restore --logger html --results-directory "TestResults.${{ matrix.component.tests }}"
 
       - name: upload dotnet test results
-        if: ${{ always() && matrix.component.tests != null }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: TestResults.${{ matrix.component.tests }}
