@@ -1,0 +1,101 @@
+﻿{
+  "principalAccess": {
+    "PrincipalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+    "ResourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+    "ScopeNames": [
+      "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "scope-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    ],
+    "RoleNames": [
+      "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "role-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    ]
+  },
+  "items": [
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLEASSIGNMENT##ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_roleName": "role-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLEASSIGNMENT##ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments"
+    }
+  ]
+}
