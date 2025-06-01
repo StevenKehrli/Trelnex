@@ -10,7 +10,7 @@ using Trelnex.Auth.Amazon.Services.Validators;
 namespace Trelnex.Auth.Amazon.Tests.Services.RBAC;
 
 [Category("RBAC")]
-[Ignore("Requires a DynamoDB table.")]
+// [Ignore("Requires a DynamoDB table.")]
 public partial class RBACRepositoryTests
 {
     private AmazonDynamoDBClient _client = null!;

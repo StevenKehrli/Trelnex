@@ -1,0 +1,33 @@
+﻿{
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "_roleName": "role-1-deleteprincipal-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLE#role-1-deleteprincipal-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "_roleName": "role-2-deleteprincipal-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "subjectName": "#ROLE#role-2-deleteprincipal-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-1-deleteprincipal-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPE#scope-1-deleteprincipal-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "_scopeName": "scope-2-deleteprincipal-withmultiplescopeandroleassignments",
+      "entityName": "#RESOURCE#urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "subjectName": "#SCOPE#scope-2-deleteprincipal-withmultiplescopeandroleassignments"
+    },
+    {
+      "_resourceName": "urn://resource-deleteprincipal-withmultiplescopeandroleassignments",
+      "entityName": "#ROOT#",
+      "subjectName": "#RESOURCE#urn://resource-deleteprincipal-withmultiplescopeandroleassignments"
+    }
+  ]
+}
