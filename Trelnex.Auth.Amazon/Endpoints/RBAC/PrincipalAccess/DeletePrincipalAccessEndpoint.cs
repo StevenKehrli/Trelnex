@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core.Api.Authentication;
@@ -16,7 +15,7 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// performed when a principal no longer needs any access or when it has been deprovisioned
 /// from the identity system.
 /// </remarks>
-internal static class DeletePrincipalEndpoint
+internal static class DeletePrincipalAccessEndpoint
 {
     #region Private Static Fields
 
@@ -24,7 +23,7 @@ internal static class DeletePrincipalEndpoint
     /// Pre-configured validation exception for the request is not valid.
     /// </summary>
     private static readonly ValidationException _validationException = new(
-        $"The '{typeof(DeletePrincipalRequest).Name}' is not valid.");
+        $"The '{typeof(DeletePrincipalAccessRequest).Name}' is not valid.");
 
     #endregion
 
@@ -42,28 +41,27 @@ internal static class DeletePrincipalEndpoint
     public static void Map(
         IEndpointRouteBuilder erb)
     {
-        // Map the DELETE endpoint for deleting a principal to "/principals".
+        // Map the DELETE endpoint for deleting a principal to "/assignments/principals".
         erb.MapDelete(
-                "/assignments/principals",
+                "assignments/principals",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACDeletePolicy>()
-            .Accepts<DeletePrincipalRequest>(MediaTypeNames.Application.Json)
             .Produces(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
             .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)
-            .WithName("DeletesPrincipal")
-            .WithDescription("Deletes the specified principal")
-            .WithTags("Principals");
+            .WithName("DeletePrincipalAccess")
+            .WithDescription("Deletes the access permissions for the specified principal")
+            .WithTags("Principal Access");
     }
 
     /// <summary>
     /// Handles requests to the Delete Principal endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="parameters">The request parameters containing the principal ID to delete.</param>
+    /// <param name="request">The request parameters containing the principal ID to delete.</param>
     /// <returns>An HTTP 200 OK result if the operation succeeds.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as missing principal ID.
@@ -76,10 +74,9 @@ internal static class DeletePrincipalEndpoint
     /// </remarks>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] DeletePrincipalRequest? request)
+        [AsParameters] DeletePrincipalAccessRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.PrincipalId is null) throw _validationException;
 
         // Delete the principal.

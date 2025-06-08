@@ -71,16 +71,13 @@ internal static class CreateScopeEndpoint
     /// Handles the scope creation request by validating inputs and creating the scope.
     /// </summary>
     /// <param name="rbacRepository">The repository for RBAC operations.</param>
-    /// <param name="resourceNameValidator">The validator for resource names.</param>
-    /// <param name="scopeNameValidator">The validator for scope names.</param>
-    /// <param name="parameters">The request parameters containing the scope creation details.</param>
+    /// <param name="request">The request body containing the scope creation details.</param>
     /// <returns>A response confirming the successful creation of the scope.</returns>
     /// <remarks>
     /// This method processes a scope creation request by:
-    /// 1. Validating the resource name using the resource name validator
-    /// 2. Validating the scope name using the scope name validator
-    /// 3. Creating the scope in the RBAC repository if validations pass
-    /// 4. Returning a response containing the details of the created scope
+    /// 1. Validating the resource name and scope name from the request
+    /// 2. Creating the scope in the RBAC repository if validations pass
+    /// 3. Returning a response containing the details of the created scope
     ///
     /// The resource must exist in the system before scopes can be created for it.
     /// If validation fails, an appropriate exception is thrown, which will be transformed

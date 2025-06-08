@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record GetRoleRequest
     /// This is typically an API or service name for which the role is defined.
     /// The resource must exist in the system for the role information to be retrieved.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -37,7 +37,7 @@ public record GetRoleRequest
     /// This request will return detailed information about the specified role
     /// within the context of the specified resource.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 

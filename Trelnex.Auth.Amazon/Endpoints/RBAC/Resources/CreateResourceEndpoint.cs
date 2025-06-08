@@ -62,8 +62,7 @@ internal static class CreateResourceEndpoint
     /// Handles requests to the Create Resource endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing the resource name to create.</param>
+    /// <param name="request">The request body containing the resource name to create.</param>
     /// <returns>A response confirming the creation of the resource.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the resource name fails validation, such as being too long, containing invalid characters,

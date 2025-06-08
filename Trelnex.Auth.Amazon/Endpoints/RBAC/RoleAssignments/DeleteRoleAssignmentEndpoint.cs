@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core.Api.Authentication;
@@ -46,7 +45,6 @@ internal static class DeleteRoleAssignmentEndpoint
                 "/assignments/roles",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACDeletePolicy>()
-            .Accepts<DeleteRoleAssignmentRequest>(MediaTypeNames.Application.Json)
             .Produces<DeleteRoleAssignmentResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -61,10 +59,7 @@ internal static class DeleteRoleAssignmentEndpoint
     /// Handles requests to the Delete Role Assignment endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="scopeNameValidator">Validates scope name format and compliance.</param>
-    /// <param name="roleNameValidator">Validates role name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing principal, resource, and role information.</param>
+    /// <param name="request">The request parameters containing principal, resource, and role information.</param>
     /// <returns>A response containing the principal's updated role assignments after deleting the assignment.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as missing principal ID,
@@ -79,10 +74,9 @@ internal static class DeleteRoleAssignmentEndpoint
     /// </remarks>
     public static async Task<DeleteRoleAssignmentResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] DeleteRoleAssignmentRequest? request)
+        [AsParameters] DeleteRoleAssignmentRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.RoleName is null) throw _validationException;
         if (request.PrincipalId is null) throw _validationException;

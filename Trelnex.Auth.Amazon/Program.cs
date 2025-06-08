@@ -131,7 +131,7 @@ internal static class AuthApplication
         GetOpenIdConfigurationEndpoint.Map(erb);
 
         // RBAC - principals.
-        DeletePrincipalEndpoint.Map(erb);
+        DeletePrincipalAccessEndpoint.Map(erb);
         GetPrincipalAccessEndpoint.Map(erb);
 
         // RBAC - resources.

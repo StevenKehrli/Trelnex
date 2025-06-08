@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -25,7 +25,7 @@ public record CreateRoleRequest
     /// This is typically an API or service name for which the role is being defined.
     /// The resource must exist in the system before roles can be created for it.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -38,7 +38,7 @@ public record CreateRoleRequest
     /// Role names should be descriptive and reflect the level of access they provide.
     /// Role names must be unique within a resource context.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 

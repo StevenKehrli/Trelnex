@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -26,7 +26,7 @@ public record CreateScopeRequest
     /// This is typically an API or service name for which the scope is being defined.
     /// The resource must exist in the system before scopes can be created for it.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -40,7 +40,7 @@ public record CreateScopeRequest
     /// Scope names must follow the validation rules defined in the system,
     /// typically requiring alphanumeric characters with limited special characters.
     /// </remarks>
-    [JsonPropertyName("scopeName")]
+    [FromQuery(Name = "scopeName")]
     [SwaggerSchema("The name of the scope.", Nullable = false)]
     public required string ScopeName { get; init; }
 

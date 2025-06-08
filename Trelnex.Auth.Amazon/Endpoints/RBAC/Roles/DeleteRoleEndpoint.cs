@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core.Api.Authentication;
@@ -57,7 +56,6 @@ internal static class DeleteRoleEndpoint
                 "/roles",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACDeletePolicy>()
-            .Accepts<DeleteRoleRequest>(MediaTypeNames.Application.Json)
             .Produces(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -73,15 +71,12 @@ internal static class DeleteRoleEndpoint
     /// Handles the role deletion request by validating inputs and performing the deletion operation.
     /// </summary>
     /// <param name="rbacRepository">The repository for RBAC operations.</param>
-    /// <param name="resourceNameValidator">The validator for resource names.</param>
-    /// <param name="roleNameValidator">The validator for role names.</param>
-    /// <param name="parameters">The request parameters containing the role deletion details.</param>
+    /// <param name="request">The request parameters containing the role deletion details.</param>
     /// <returns>An HTTP result indicating the outcome of the operation.</returns>
     /// <remarks>
     /// This method processes a role deletion request by:
-    /// 1. Validating the resource name using the resource name validator
-    /// 2. Validating the role name using the role name validator
-    /// 3. Deleting the role from the RBAC repository if validations pass
+    /// 1. Validating the resource name and role name from the request
+    /// 2. Deleting the role from the RBAC repository if validations pass
     ///
     /// If validation fails, an appropriate exception is thrown, which will be transformed
     /// into an appropriate HTTP error response.
@@ -91,10 +86,9 @@ internal static class DeleteRoleEndpoint
     /// </exception>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] DeleteRoleRequest? request)
+        [AsParameters] DeleteRoleRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.RoleName is null) throw _validationException;
 

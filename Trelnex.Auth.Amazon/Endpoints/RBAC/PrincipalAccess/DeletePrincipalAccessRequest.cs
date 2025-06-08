@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -13,7 +13,7 @@ namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 /// from the identity system. The operation cascades to remove all role assignments for this
 /// principal across all resources and scopes.
 /// </remarks>
-public record DeletePrincipalRequest
+public record DeletePrincipalAccessRequest
 {
     #region Public Properties
 
@@ -26,7 +26,7 @@ public record DeletePrincipalRequest
     /// assignments for this principal will be removed, effectively revoking all access
     /// permissions across all resources and scopes.
     /// </remarks>
-    [JsonPropertyName("principalId")]
+    [FromQuery(Name = "principalId")]
     [SwaggerSchema("The principal id.", Nullable = false)]
     public required string PrincipalId { get; init; }
 

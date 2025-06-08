@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -30,7 +30,7 @@ public record DeleteScopeRequest
     /// The resource name identifies the protected asset in the RBAC system.
     /// This is typically an API or service name from which the scope will be removed.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -42,7 +42,7 @@ public record DeleteScopeRequest
     /// Once deleted, all role assignments referencing this scope will no longer be valid,
     /// and principals will lose any permissions granted within this authorization boundary.
     /// </remarks>
-    [JsonPropertyName("scopeName")]
+    [FromQuery(Name = "scopeName")]
     [SwaggerSchema("The name of the scope.", Nullable = false)]
     public required string ScopeName { get; init; }
 

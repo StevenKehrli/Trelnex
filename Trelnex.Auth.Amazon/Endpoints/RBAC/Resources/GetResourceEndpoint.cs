@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core;
@@ -48,7 +47,6 @@ internal static class GetResourceEndpoint
                 "/resources",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
-            .Accepts<GetResourceRequest>(MediaTypeNames.Application.Json)
             .Produces<GetResourceResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -65,7 +63,7 @@ internal static class GetResourceEndpoint
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
     /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing the resource name to retrieve.</param>
+    /// <param name="request">The request parameters containing the resource name to retrieve.</param>
     /// <returns>A response containing detailed information about the requested resource.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the resource name fails validation, such as being too long, containing invalid characters,
@@ -82,17 +80,16 @@ internal static class GetResourceEndpoint
     /// </remarks>
     public static async Task<GetResourceResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] GetResourceRequest? request)
+        [AsParameters] GetResourceRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
 
         // Get the resource.
         var resource = await rbacRepository.GetResourceAsync(
             resourceName: request.ResourceName);
 
-        if (resource == null)
+        if (resource is null)
         {
             throw new HttpStatusCodeException(
                 HttpStatusCode.NotFound,

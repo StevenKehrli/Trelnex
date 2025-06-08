@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record DeleteRoleRequest
     /// The resource name identifies the protected asset in the RBAC system.
     /// This is typically an API or service name for which the role is being removed.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -37,7 +37,7 @@ public record DeleteRoleRequest
     /// to principals across all scopes, effectively revoking these permissions from all users
     /// or services that had been granted it.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 

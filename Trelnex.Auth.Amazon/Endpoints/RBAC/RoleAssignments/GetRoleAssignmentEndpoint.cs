@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core;
@@ -48,7 +47,6 @@ internal static class GetRoleAssignmentEndpoint
                 "/assignments/roles",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
-            .Accepts<GetRoleAssignmentRequest>(MediaTypeNames.Application.Json)
             .Produces<GetRoleAssignmentResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -64,9 +62,7 @@ internal static class GetRoleAssignmentEndpoint
     /// Handles requests to the Get Role Assignment endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="roleNameValidator">Validates role name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing resource and role information.</param>
+    /// <param name="request">The request parameters containing resource and role information.</param>
     /// <returns>A response containing information about all principals assigned to the specified role for the resource.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as invalid resource name or role name.
@@ -83,10 +79,9 @@ internal static class GetRoleAssignmentEndpoint
     /// </remarks>
     public static async Task<GetRoleAssignmentResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] GetRoleAssignmentRequest? request)
+        [AsParameters] GetRoleAssignmentRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.RoleName is null) throw _validationException;
 

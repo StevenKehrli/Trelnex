@@ -106,6 +106,7 @@ public static class SwaggerExtensions
 
         app.UseSwaggerUI(options =>
         {
+            options.ConfigObject.AdditionalItems.Add("tagsSorter", "alpha");
             options.SwaggerEndpoint($"/swagger/{versionString}/swagger.json", serviceConfiguration.DisplayName);
         });
 

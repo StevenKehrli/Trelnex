@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core.Api.Authentication;
@@ -44,7 +43,6 @@ internal static class GetPrincipalAccessEndpoint
                 "/assignments/principals",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
-            .Accepts<GetPrincipalAccessRequest>(MediaTypeNames.Application.Json)
             .Produces<GetPrincipalAccessResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -59,10 +57,7 @@ internal static class GetPrincipalAccessEndpoint
     /// Handles requests to the Get Principal Access endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="scopeNameValidator">Validates scope name format and compliance.</param>
-    /// <param name="roleNameValidator">Validates role name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing principal, resource, and scope information.</param>
+    /// <param name="request">The request parameters containing principal, resource, and scope information.</param>
     /// <returns>A response containing the principal's access permissions for the specified resource and scope.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as missing principal ID,
@@ -75,10 +70,9 @@ internal static class GetPrincipalAccessEndpoint
     /// </remarks>
     public static async Task<GetPrincipalAccessResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] GetPrincipalAccessRequest? request)
+        [AsParameters] GetPrincipalAccessRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.PrincipalId is null) throw _validationException;
 

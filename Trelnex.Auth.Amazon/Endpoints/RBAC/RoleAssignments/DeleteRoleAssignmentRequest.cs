@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record DeleteRoleAssignmentRequest
     /// This is typically an API or service name for which the principal's access
     /// is being modified.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -37,7 +37,7 @@ public record DeleteRoleAssignmentRequest
     /// permissions for the specified resource. Deleting a role assignment that was not
     /// previously created is typically treated as a no-op.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 
@@ -49,7 +49,7 @@ public record DeleteRoleAssignmentRequest
     /// identity provider's unique identifier for the entity. This is the subject that will
     /// have the specified permissions removed.
     /// </remarks>
-    [JsonPropertyName("principalId")]
+    [FromQuery(Name = "principalId")]
     [SwaggerSchema("The principal id.", Nullable = false)]
     public required string PrincipalId { get; init; }
 

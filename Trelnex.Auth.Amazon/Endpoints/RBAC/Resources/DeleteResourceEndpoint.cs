@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core.Api.Authentication;
@@ -47,7 +46,6 @@ internal static class DeleteResourceEndpoint
                 "/resources",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACDeletePolicy>()
-            .Accepts<DeleteResourceRequest>(MediaTypeNames.Application.Json)
             .Produces(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -81,10 +79,9 @@ internal static class DeleteResourceEndpoint
     /// </remarks>
     public static async Task<IResult> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] DeleteResourceRequest? request)
+        [AsParameters] DeleteResourceRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
 
         // Delete the resource.

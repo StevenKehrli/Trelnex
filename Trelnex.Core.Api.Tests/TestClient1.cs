@@ -90,7 +90,10 @@ internal class TestClient1(
         string value)
     {
         // Append "/queryString" to the base string and append "value" to the query string and send the GET request.
-        return await Get<TestResponse>(
-            uri: BaseAddress.AppendPath("/queryString").AddQueryString("value", value));
+        var uri = BaseAddress
+            .AppendPath("/queryString")
+            .AddQueryString(("value", value));
+
+        return await Get<TestResponse>(uri);
     }
 }
