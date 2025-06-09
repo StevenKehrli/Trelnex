@@ -10,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Swagger;
+using Trelnex.Core.Client;
+using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Tests;
 
@@ -81,22 +83,6 @@ public abstract class BaseApiTests
     #endregion
 
     #region Protected Fields
-
-    /// <summary>
-    /// HTTP client for making requests to the in-memory test application.
-    ///
-    /// This client is created by _webApplication.GetTestClient() and is connected directly
-    /// to the in-memory TestServer, allowing tests to make HTTP requests that are processed
-    /// by the test web application without going through the network stack.
-    ///
-    /// This client is used by:
-    /// - All test classes inherited from BaseApiTests to make direct HTTP requests to test endpoints
-    /// - TestClient1 in client tests as its underlying HTTP client
-    ///
-    /// The field is protected to allow derived test classes to use it for making requests
-    /// while preventing them from replacing it with a different client.
-    /// </summary>
-    protected HttpClient _httpClient;
 
     /// <summary>
     /// The in-memory ASP.NET Core web application used for testing.
@@ -304,9 +290,6 @@ public abstract class BaseApiTests
 
         // Start the web application
         await _webApplication.StartAsync();
-
-        // Create the HTTP client to our web application for making requests
-        _httpClient = _webApplication.GetTestClient();
     }
 
     #endregion
@@ -345,14 +328,42 @@ public abstract class BaseApiTests
             await _webApplication.StopAsync();
             await _webApplication.DisposeAsync();
         }
-
-        // Dispose of the HTTP client if it exists
-        _httpClient?.Dispose();
     }
 
     #endregion
 
     #region Private Static Methods
+
+    /// <summary>
+    /// Creates an anonymous HTTP client connected to the test application.
+    /// </summary>
+    /// <returns>An HttpClient for making unauthenticated requests. Caller is responsible for disposal.</returns>
+    protected HttpClient CreateAnonymousHttpClient()
+    {
+        return _webApplication.GetTestClient();
+    }
+
+    /// <summary>
+    /// Creates an HTTP client with authentication handler connected to the test application.
+    /// </summary>
+    /// <param name="accessTokenProvider">The access token provider for authentication.</param>
+    /// <returns>An HttpClient configured with authentication for making authenticated requests. Caller is responsible for disposal.</returns>
+    protected HttpClient CreateAuthenticatedHttpClient(
+        IAccessTokenProvider accessTokenProvider)
+    {
+        // Get the TestServer from the web application's Services
+        var testServer = _webApplication.Services.GetRequiredService<IServer>();
+
+        var authHandler = new AuthenticationHandler(accessTokenProvider)
+        {
+            InnerHandler = (testServer as TestServer)!.CreateHandler()
+        };
+
+        return new HttpClient(authHandler)
+        {
+            BaseAddress = _webApplication.GetTestClient().BaseAddress
+        };
+    }
 
     /// <summary>
     /// Retrieves the role claim from the user's claims.

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Client;
-using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Client;
 
@@ -23,18 +22,18 @@ public static class ClientExtensions
     /// <typeparam name="IClient">The client interface type to register.</typeparam>
     /// <param name="services">The service collection to add the client to.</param>
     /// <param name="configuration">The application configuration containing client settings.</param>
-    /// <param name="clientFactory">The factory responsible for creating client instances.</param>
     /// <returns>The service collection for method chaining.</returns>
     /// <exception cref="ConfigurationErrorsException">
     /// Thrown when the client configuration section is missing or invalid.
     /// </exception>
-    public static IServiceCollection AddClient<IClient>(
+    public static IServiceCollection AddClient<IClient, TClient>(
         this IServiceCollection services,
-        IConfiguration configuration,
-        IClientFactory<IClient> clientFactory)
+        IConfiguration configuration)
         where IClient : class
+        where TClient: BaseClient, IClient
     {
-        var clientName = clientFactory.Name;
+        // Extract the client name from the TClient type name to locate configuration
+        var clientName = typeof(TClient).Name;
 
         // Get the client configuration from the appropriate section.
         var clientConfiguration = configuration
@@ -43,46 +42,36 @@ public static class ClientExtensions
             .Get<ClientConfiguration>()
             ?? throw new ConfigurationErrorsException($"Configuration error for 'Clients:{clientName}'.");
 
-        // Set up the access token provider if authentication is configured.
-        var accessTokenProvider = GetAccessTokenProvider(services, clientConfiguration);
+        // Register the typed HTTP client with dependency injection
+        var httpClientBuilder = services.AddHttpClient<IClient, TClient>();
 
-        // Register the typed HTTP client with the DI container.
-        services.AddHttpClient<IClient, IClient>(httpClient =>
+        // Configure the HTTP client
+        httpClientBuilder.ConfigureHttpClient(httpClient =>
         {
             // Set the base address for the HTTP client.
             httpClient.BaseAddress = clientConfiguration.BaseAddress;
-
-            // Create the client instance using the provided factory.
-            return clientFactory.Create(httpClient, accessTokenProvider);
         });
 
-        return services;
-    }
-
-    #endregion
-
-    #region Private Static Methods
-
-    /// <summary>
-    /// Retrieves the access token provider for a specific client configuration.
-    /// </summary>
-    /// <param name="services">The service collection to search for the provider.</param>
-    /// <param name="clientConfiguration">The client configuration containing authentication settings.</param>
-    /// <returns>The access token provider for the specified scope, or null if not configured.</returns>
-    private static IAccessTokenProvider? GetAccessTokenProvider(
-        this IServiceCollection services,
-        ClientConfiguration clientConfiguration)
-    {
-        if (clientConfiguration.Authentication is null)
+        // Configure authentication if specified in the client configuration
+        if (clientConfiguration.Authentication is not null)
         {
-            return null;
+            var authenticationConfiguration = clientConfiguration.Authentication;
+
+            // Add custom authentication handler to the HTTP client pipeline
+            httpClientBuilder.AddHttpMessageHandler(serviceProvider =>
+            {
+                // Resolve the credential provider by name from the service container
+                var credentialProvider = services.GetCredentialProvider(authenticationConfiguration.CredentialProviderName);
+
+                // Obtain an access token provider configured for the required OAuth scope
+                var accessTokenProvider = credentialProvider.GetAccessTokenProvider(authenticationConfiguration.Scope);
+
+                // Create and return the authentication handler
+                return new AuthenticationHandler(accessTokenProvider);
+            });
         }
 
-        // Retrieve the credential provider based on the configured name.
-        var credentialProvider = services.GetCredentialProvider(clientConfiguration.Authentication.CredentialProviderName);
-
-        // Get the access token provider for the specified scope.
-        return credentialProvider.GetAccessTokenProvider(clientConfiguration.Authentication.Scope);
+        return services;
     }
 
     #endregion

@@ -95,7 +95,7 @@ public class LogFormatter() : ConsoleFormatter(nameof(LogFormatter))
         /// Gets the foreground console color.
         /// </summary>
         public ConsoleColor? Foreground => foreground;
-        
+
         /// <summary>
         /// Gets the background console color.
         /// </summary>

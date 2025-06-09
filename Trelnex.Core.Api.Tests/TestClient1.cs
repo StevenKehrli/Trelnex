@@ -1,5 +1,4 @@
 using Trelnex.Core.Client;
-using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Tests;
 
@@ -14,13 +13,12 @@ namespace Trelnex.Core.Api.Tests;
 /// identifier string that allows tests to verify they received the expected response from the correct endpoint.
 /// The client methods are used by ClientTests.cs to test both authentication and HTTP method handling.
 ///
-/// The client uses a provided <see cref="HttpClient"/> and <see cref="IAccessTokenProvider"/> for making
-/// authenticated requests, allowing tests to verify both authorized and unauthorized scenarios.
+/// The client uses a provided <see cref="HttpClient"/> for making authenticated requests,
+/// allowing tests to verify both authorized and unauthorized scenarios.
 /// </summary>
 internal class TestClient1(
-    HttpClient httpClient,
-    IAccessTokenProvider accessTokenProvider)
-    : BaseClient(httpClient, accessTokenProvider)
+    HttpClient httpClient)
+    : BaseClient(httpClient)
 {
     /// <summary>
     /// Sends a DELETE request to the /delete1 endpoint.

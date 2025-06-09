@@ -14,7 +14,8 @@ public class ExceptionsTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/exception");
 
         // Send the request to the /exception endpoint
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
         Assert.That(response, Is.Not.Null);
 
         // Verify that the response status code is BadRequest (400) because no authorization header is set

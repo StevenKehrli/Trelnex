@@ -36,10 +36,9 @@ public class ClientTests : BaseApiTests
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
             accessToken: accessToken); // The pre-generated token with necessary claims
 
-        // Create the test client with the http client and access token provider
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: accessTokenProvider);
+        // Create authenticated HTTP client
+        using var httpClient = CreateAuthenticatedHttpClient(accessTokenProvider);
+        var testClient = new TestClient1(httpClient);
 
         // Call the Delete method on the test client
         var response = await testClient.Delete();
@@ -68,10 +67,9 @@ public class ClientTests : BaseApiTests
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
             accessToken: accessToken); // The pre-generated token with necessary claims
 
-        // Create the test client with the http client and access token provider
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: accessTokenProvider);
+        // Create authenticated HTTP client and test client
+        using var httpClient = CreateAuthenticatedHttpClient(accessTokenProvider);
+        var testClient = new TestClient1(httpClient);
 
         // Call the Get method on the test client
         var response = await testClient.Get();
@@ -87,13 +85,11 @@ public class ClientTests : BaseApiTests
     [Description("Tests the GetQueryString method of the TestClient")]
     public async Task Client_GetQueryString()
     {
-        // Create the test client with a null access token provider since
-        // this endpoint doesn't require authentication. This demonstrates how
-        // TestClient1/BaseClient can handle both authenticated and unauthenticated requests,
-        // and shows that TestAccessTokenProvider is only needed for protected endpoints.
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: null!);
+        // Create anonymous HTTP client since this endpoint does not require authentication.
+        // This demonstrates how TestClient1/BaseClient can handle both authenticated and unauthenticated
+        // requests, and shows that TestAccessTokenProvider is only needed for protected endpoints.
+        using var httpClient = CreateAnonymousHttpClient();
+        var testClient = new TestClient1(httpClient);
 
         // Call the QueryString method on the test client
         var response = await testClient.QueryString("value");
@@ -122,10 +118,9 @@ public class ClientTests : BaseApiTests
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
             accessToken: accessToken); // The pre-generated token with necessary claims
 
-        // Create the test client with the http client and access token provider
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: accessTokenProvider);
+        // Create authenticated HTTP client and test client
+        using var httpClient = CreateAuthenticatedHttpClient(accessTokenProvider);
+        var testClient = new TestClient1(httpClient);
 
         // Call the Patch method on the test client
         var response = await testClient.Patch();
@@ -154,10 +149,9 @@ public class ClientTests : BaseApiTests
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
             accessToken: accessToken); // The pre-generated token with necessary claims
 
-        // Create the test client with the http client and access token provider
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: accessTokenProvider);
+        // Create authenticated HTTP client and test client
+        using var httpClient = CreateAuthenticatedHttpClient(accessTokenProvider);
+        var testClient = new TestClient1(httpClient);
 
         // Call the Post method on the test client
         var response = await testClient.Post();
@@ -186,10 +180,9 @@ public class ClientTests : BaseApiTests
             scope: "Scope.trelnex-auth-amazon-tests-authentication-1", // Associated scope
             accessToken: accessToken); // The pre-generated token with necessary claims
 
-        // Create the test client with the http client and access token provider
-        var testClient = new TestClient1(
-            httpClient: _httpClient,
-            accessTokenProvider: accessTokenProvider);
+        // Create authenticated HTTP client and test client
+        using var httpClient = CreateAuthenticatedHttpClient(accessTokenProvider);
+        var testClient = new TestClient1(httpClient);
 
         // Call the Put method on the test client
         var response = await testClient.Put();
