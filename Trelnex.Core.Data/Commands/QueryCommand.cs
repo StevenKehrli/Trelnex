@@ -194,16 +194,8 @@ internal class QueryCommand<TInterface, TItem>(
     public async Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync(
         CancellationToken cancellationToken = default)
     {
-        var results = new List<IQueryResult<TInterface>>();
-
-        // Create an async enumerable that lazily converts items as they're enumerated
-        var asyncEnumerable = QueryAsync(cancellationToken);
-
         // Eagerly materialize all results into memory
-        await foreach (var item in asyncEnumerable)
-        {
-            results.Add(item);
-        }
+        var results = await QueryAsync(cancellationToken).ToArrayAsync(cancellationToken);
 
         // Return as a disposable enumerable with array-like access and automatic disposal management
         return DisposableEnumerable<IQueryResult<TInterface>>.From(results);
