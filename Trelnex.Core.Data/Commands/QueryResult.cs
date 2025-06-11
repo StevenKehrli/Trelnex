@@ -10,6 +10,7 @@ namespace Trelnex.Core.Data;
 /// Extends <see cref="IReadResult{TInterface}"/> with methods to transition to mutable commands.
 /// </remarks>
 public interface IQueryResult<TInterface>
+    : IDisposable
     where TInterface : class, IBaseItem
 {
     /// <summary>

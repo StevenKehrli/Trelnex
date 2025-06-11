@@ -29,7 +29,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -74,7 +74,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -114,7 +114,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -157,7 +157,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -201,7 +201,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -245,7 +245,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -281,7 +281,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -312,7 +312,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -346,7 +346,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -381,7 +381,7 @@ public class CreateCommandValidateTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

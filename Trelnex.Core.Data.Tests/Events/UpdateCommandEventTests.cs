@@ -35,7 +35,7 @@ public class UpdateCommandEventTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -49,7 +49,7 @@ public class UpdateCommandEventTests
             cancellationToken: default);
 
         // Get an update command for the same item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 

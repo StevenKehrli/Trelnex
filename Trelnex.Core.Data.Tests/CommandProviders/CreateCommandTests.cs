@@ -15,7 +15,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -30,7 +30,7 @@ public abstract partial class CommandProviderTests
         Assert.That(created1, Is.Not.Null);
 
         // Create another command with the same id (will conflict)
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -66,7 +66,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -125,7 +125,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

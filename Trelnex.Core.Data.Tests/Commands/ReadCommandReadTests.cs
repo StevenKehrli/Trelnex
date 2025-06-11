@@ -19,7 +19,7 @@ public class ReadCommandReadTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -32,7 +32,7 @@ public class ReadCommandReadTests
             cancellationToken: default);
 
         // Read the saved item
-        var read = await commandProvider.ReadAsync(
+        using var read = await commandProvider.ReadAsync(
             id: id,
             partitionKey: partitionKey);
 

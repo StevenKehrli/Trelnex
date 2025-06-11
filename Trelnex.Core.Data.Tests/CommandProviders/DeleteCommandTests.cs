@@ -15,7 +15,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -28,7 +28,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a delete command for the item
-        var deleteCommand = await _commandProvider.DeleteAsync(
+        using var deleteCommand = await _commandProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -90,7 +90,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -103,14 +103,14 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create two delete commands for the same item
-        var deleteCommand1 = await _commandProvider.DeleteAsync(
+        using var deleteCommand1 = await _commandProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 
         Assert.That(deleteCommand1, Is.Not.Null);
         Assert.That(deleteCommand1!.Item, Is.Not.Null);
 
-        var deleteCommand2 = await _commandProvider.DeleteAsync(
+        using var deleteCommand2 = await _commandProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 

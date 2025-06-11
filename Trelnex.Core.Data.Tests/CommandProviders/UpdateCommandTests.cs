@@ -15,7 +15,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -28,7 +28,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create an update command for the item
-        var updateCommand = await _commandProvider.UpdateAsync(
+        using var updateCommand = await _commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -89,7 +89,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -102,7 +102,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create two update commands for the same item
-        var updateCommand1 = await _commandProvider.UpdateAsync(
+        using var updateCommand1 = await _commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -113,7 +113,7 @@ public abstract partial class CommandProviderTests
         updateCommand1.Item.PublicMessage = "Public Message #2";
         updateCommand1.Item.PrivateMessage = "Private Message #2";
 
-        var updateCommand2 = await _commandProvider.UpdateAsync(
+        using var updateCommand2 = await _commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 

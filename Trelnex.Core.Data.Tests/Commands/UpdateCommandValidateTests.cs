@@ -29,7 +29,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -74,7 +74,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -114,7 +114,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -157,7 +157,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -201,7 +201,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -245,7 +245,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create and save a valid initial item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -257,7 +257,7 @@ public class UpdateCommandValidateTests
             cancellationToken: default);
 
         // Create an update command for the saved item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -295,7 +295,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create and save a valid initial item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -307,7 +307,7 @@ public class UpdateCommandValidateTests
             cancellationToken: default);
 
         // Create an update command for the saved item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -345,7 +345,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create and save a valid initial item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -357,7 +357,7 @@ public class UpdateCommandValidateTests
             cancellationToken: default);
 
         // Create an update command for the saved item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -394,7 +394,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create and save a valid initial item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -406,7 +406,7 @@ public class UpdateCommandValidateTests
             cancellationToken: default);
 
         // Create an update command for the saved item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -444,7 +444,7 @@ public class UpdateCommandValidateTests
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
         // Create and save a valid initial item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -456,7 +456,7 @@ public class UpdateCommandValidateTests
             cancellationToken: default);
 
         // Create an update command for the saved item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 

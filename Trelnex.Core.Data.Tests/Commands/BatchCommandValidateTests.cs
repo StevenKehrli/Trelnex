@@ -29,7 +29,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -78,7 +78,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -122,7 +122,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -169,7 +169,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -217,7 +217,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -267,7 +267,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -275,7 +275,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -326,7 +326,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -334,7 +334,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -383,7 +383,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -423,7 +423,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -458,7 +458,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -496,14 +496,14 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
         // Set only private message, leaving public message empty
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // Create a batch command and add our create command to it
+        // Create a batch command and add our create Command to it
         var batchCommand = commandProvider.Batch();
         batchCommand.Add(createCommand);
 
@@ -535,7 +535,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -576,7 +576,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -584,7 +584,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -626,7 +626,7 @@ public class BatchCommandValidateTests
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -634,7 +634,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 

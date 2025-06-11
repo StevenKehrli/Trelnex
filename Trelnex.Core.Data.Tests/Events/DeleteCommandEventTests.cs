@@ -35,7 +35,7 @@ public class DeleteCommandEventTests
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -49,7 +49,7 @@ public class DeleteCommandEventTests
             cancellationToken: default);
 
         // Get a delete command for the same item
-        var deleteCommand = await commandProvider.DeleteAsync(
+        using var deleteCommand = await commandProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 

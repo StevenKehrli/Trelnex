@@ -11,6 +11,7 @@ namespace Trelnex.Core.Data;
 /// Command pattern implementation for create, update, or delete operations.
 /// </remarks>
 public interface ISaveCommand<TInterface>
+    : IDisposable
     where TInterface : class, IBaseItem
 {
     /// <summary>

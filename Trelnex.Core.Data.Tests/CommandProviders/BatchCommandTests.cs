@@ -1,4 +1,5 @@
 using Snapshooter.NUnit;
+using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data.Tests.CommandProviders;
 
@@ -16,7 +17,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -24,7 +25,7 @@ public abstract partial class CommandProviderTests
         createCommand1.Item.PublicMessage = "Public Message #1";
         createCommand1.Item.PrivateMessage = "Private Message #1";
 
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -93,7 +94,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create and save an initial item with id2
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -106,7 +107,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for a new item with unique id
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -115,7 +116,7 @@ public abstract partial class CommandProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create another command with the same id as the initial item (will conflict)
-        var createCommand3 = _commandProvider.Create(
+        using var createCommand3 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -138,7 +139,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return just the initial item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new
@@ -192,7 +193,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -200,7 +201,7 @@ public abstract partial class CommandProviderTests
         createCommand1.Item.PublicMessage = "Public Message #1";
         createCommand1.Item.PrivateMessage = "Private Message #1";
 
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -218,14 +219,14 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create delete commands for both items
-        var deleteCommand1 = await _commandProvider.DeleteAsync(
+        using var deleteCommand1 = await _commandProvider.DeleteAsync(
             id: id1,
             partitionKey: partitionKey);
 
         Assert.That(deleteCommand1, Is.Not.Null);
         Assert.That(deleteCommand1!.Item, Is.Not.Null);
 
-        var deleteCommand2 = await _commandProvider.DeleteAsync(
+        using var deleteCommand2 = await _commandProvider.DeleteAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -298,7 +299,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -306,7 +307,7 @@ public abstract partial class CommandProviderTests
         createCommand1.Item.PublicMessage = "Public Message #1";
         createCommand1.Item.PrivateMessage = "Private Message #1";
 
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -324,7 +325,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a delete command for the second item (will be saved first)
-        var deleteCommand1 = await _commandProvider.DeleteAsync(
+        using var deleteCommand1 = await _commandProvider.DeleteAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -332,7 +333,7 @@ public abstract partial class CommandProviderTests
         Assert.That(deleteCommand1!.Item, Is.Not.Null);
 
         // Create a delete command for the first item
-        var deleteCommand2 = await _commandProvider.DeleteAsync(
+        using var deleteCommand2 = await _commandProvider.DeleteAsync(
             id: id1,
             partitionKey: partitionKey);
 
@@ -340,7 +341,7 @@ public abstract partial class CommandProviderTests
         Assert.That(deleteCommand2!.Item, Is.Not.Null);
 
         // Create another delete command for the second item (will conflict)
-        var deleteCommand3 = await _commandProvider.DeleteAsync(
+        using var deleteCommand3 = await _commandProvider.DeleteAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -366,7 +367,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return just the first item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new
@@ -420,7 +421,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -428,7 +429,7 @@ public abstract partial class CommandProviderTests
         createCommand1.Item.PublicMessage = "Public Message #1";
         createCommand1.Item.PrivateMessage = "Private Message #1";
 
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -446,7 +447,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create update commands for both items
-        var updateCommand1 = await _commandProvider.UpdateAsync(
+        using var updateCommand1 = await _commandProvider.UpdateAsync(
             id: id1,
             partitionKey: partitionKey);
 
@@ -457,7 +458,7 @@ public abstract partial class CommandProviderTests
         updateCommand1.Item.PublicMessage = "Public Message #3";
         updateCommand1.Item.PrivateMessage = "Private Message #3";
 
-        var updateCommand2 = await _commandProvider.UpdateAsync(
+        using var updateCommand2 = await _commandProvider.UpdateAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -529,7 +530,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create two commands for creating test items
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey);
 
@@ -537,7 +538,7 @@ public abstract partial class CommandProviderTests
         createCommand1.Item.PublicMessage = "Public Message #1";
         createCommand1.Item.PrivateMessage = "Private Message #1";
 
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey);
 
@@ -555,7 +556,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a update command for the second item (will be saved first)
-        var updateCommand1 = await _commandProvider.UpdateAsync(
+        using var updateCommand1 = await _commandProvider.UpdateAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -567,7 +568,7 @@ public abstract partial class CommandProviderTests
         updateCommand1.Item.PrivateMessage = "Private Message #0";
 
         // Create a update command for the first item
-        var updateCommand2 = await _commandProvider.UpdateAsync(
+        using var updateCommand2 = await _commandProvider.UpdateAsync(
             id: id1,
             partitionKey: partitionKey);
 
@@ -579,7 +580,7 @@ public abstract partial class CommandProviderTests
         updateCommand2.Item.PrivateMessage = "Private Message #3";
 
         // Create another update command for the second item (will conflict)
-        var updateCommand3 = await _commandProvider.UpdateAsync(
+        using var updateCommand3 = await _commandProvider.UpdateAsync(
             id: id2,
             partitionKey: partitionKey);
 
@@ -609,7 +610,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return the first item and updated second item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new

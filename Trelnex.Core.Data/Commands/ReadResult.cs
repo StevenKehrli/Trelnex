@@ -10,6 +10,7 @@ namespace Trelnex.Core.Data;
 /// Standardized wrapper for retrieved items.
 /// </remarks>
 public interface IReadResult<TInterface>
+    : IDisposable
     where TInterface : class, IBaseItem
 {
     /// <summary>

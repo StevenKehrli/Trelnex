@@ -101,7 +101,7 @@ var commandProvider =
         commandOperations: CommandOperations.All); // Allow all operations
 
 // Create an ISaveCommand<ITestItem> to create the item
-var createCommand = commandProvider.Create(
+using var createCommand = commandProvider.Create(
     id: id,
     partitionKey: partitionKey);
 
@@ -112,11 +112,12 @@ createCommand.Item.PrivateMessage = "Private #1";
 // Save the item and get the IReadResult<ITestItem>
 var requestContext = TestRequestContext.Create();
 
-var result = await createCommand.SaveAsync(
+using var result = await createCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
 
 // After SaveAsync, the command becomes read-only and can't be reused
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Read
@@ -133,11 +134,12 @@ var commandProvider =
         typeName: _typeName);
 
 // Get the IReadResult<TItem>
-var result = await commandProvider.ReadAsync(
+using var result = await commandProvider.ReadAsync(
     id: id,
     partitionKey: partitionKey);
 
 // Items from ReadAsync are always read-only
+// Result is automatically disposed when it goes out of scope
 ```
 
 ### Update
@@ -155,7 +157,7 @@ var commandProvider =
         commandOperations: CommandOperations.All); // Need Update permission
 
 // Create an ISaveCommand<ITestItem> to update the item
-var updateCommand = await commandProvider.UpdateAsync(
+using var updateCommand = await commandProvider.UpdateAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -168,11 +170,12 @@ updateCommand.Item.PrivateMessage = "Private #2";
 // Save the item and get the IReadResult<ITestItem>
 var requestContext = TestRequestContext.Create();
 
-var result = await updateCommand.SaveAsync(
+using var result = await updateCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
 
 // ETag is automatically updated to prevent conflicts
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Delete
@@ -190,7 +193,7 @@ var commandProvider =
         commandOperations: CommandOperations.All); // Need Delete permission
 
 // Create an ISaveCommand<ITestItem> to delete the item
-var deleteCommand = await commandProvider.DeleteAsync(
+using var deleteCommand = await commandProvider.DeleteAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -199,15 +202,18 @@ var deleteCommand = await commandProvider.DeleteAsync(
 // Save the item (performs a soft delete by setting IsDeleted=true and DeletedDate)
 var requestContext = TestRequestContext.Create();
 
-var result = await deleteCommand.SaveAsync(
+using var result = await deleteCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
+
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Query
 
 ```csharp
 using Trelnex.Core.Data;
+using Trelnex.Core.Disposables;
 
 // Create our ICommandProvider<ITestItem, TestItem>
 var commandProvider =
@@ -218,9 +224,10 @@ var commandProvider =
 var queryCommand = commandProvider.Query();
 queryCommand.Where(i => i.PublicMessage == "Public #1");
 
-// Get the items as an array of IReadResult<TItem>
-var results = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+// Get the items with automatic disposal management
+using var results = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
+// All query results are automatically disposed when 'results' goes out of scope
 // Soft-deleted items are automatically filtered out from queries
 ```
 

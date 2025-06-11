@@ -19,7 +19,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -34,7 +34,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -68,7 +68,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -101,7 +101,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -116,7 +116,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -149,7 +149,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -165,7 +165,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -198,7 +198,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -214,7 +214,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -249,7 +249,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -264,7 +264,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -297,7 +297,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -312,7 +312,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -341,7 +341,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -373,7 +373,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -409,7 +409,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -441,7 +441,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -456,7 +456,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -490,7 +490,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -523,7 +523,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -538,7 +538,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -571,7 +571,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -587,7 +587,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -621,7 +621,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -636,7 +636,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -669,7 +669,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -684,7 +684,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -713,7 +713,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -747,7 +747,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -763,7 +763,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -792,7 +792,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -808,7 +808,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -841,7 +841,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -857,7 +857,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -892,7 +892,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -908,7 +908,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await commandProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -939,7 +939,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -974,7 +974,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -1009,7 +1009,7 @@ public class PropertyChangesTests
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

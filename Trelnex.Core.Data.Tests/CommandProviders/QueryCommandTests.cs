@@ -1,4 +1,5 @@
 using Snapshooter.NUnit;
+using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data.Tests.CommandProviders;
 
@@ -18,7 +19,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -31,7 +32,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -48,7 +49,7 @@ public abstract partial class CommandProviderTests
         queryCommand.OrderBy(i => i.PublicMessage);
 
         // Execute query and get results (should return items in ascending order)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the ordered results using snapshot matching
         Snapshot.Match(
@@ -75,7 +76,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -88,7 +89,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -105,7 +106,7 @@ public abstract partial class CommandProviderTests
         queryCommand.OrderByDescending(i => i.PublicMessage);
 
         // Execute query and get results (should return second item first)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the ordered results using snapshot matching
         Snapshot.Match(
@@ -132,7 +133,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -145,7 +146,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -162,7 +163,7 @@ public abstract partial class CommandProviderTests
         queryCommand.OrderBy(i => i.PublicMessage).Skip(1);
 
         // Execute query and get results (should return only the second item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the skipped results using snapshot matching
         Snapshot.Match(
@@ -189,7 +190,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -202,7 +203,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -219,7 +220,7 @@ public abstract partial class CommandProviderTests
         queryCommand.OrderBy(i => i.PublicMessage).Take(1);
 
         // Execute query and get results (should return only the first item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the limited results using snapshot matching
         Snapshot.Match(
@@ -246,7 +247,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating the first test item
-        var createCommand1 = _commandProvider.Create(
+        using var createCommand1 = _commandProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -259,7 +260,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a command for creating the second test item
-        var createCommand2 = _commandProvider.Create(
+        using var createCommand2 = _commandProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -276,7 +277,7 @@ public abstract partial class CommandProviderTests
         queryCommand.Where(i => i.PublicMessage == "Public Message #1");
 
         // Execute query and get results (should return only the first item)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the filtered results using snapshot matching
         Snapshot.Match(
@@ -300,7 +301,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -313,7 +314,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Create a delete command for the item
-        var deleteCommand = await _commandProvider.DeleteAsync(
+        using var deleteCommand = await _commandProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -328,7 +329,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return no items)
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
 
         // Verify the empty result using snapshot matching
         Snapshot.Match(read);

@@ -15,7 +15,7 @@ public abstract partial class CommandProviderTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -28,7 +28,7 @@ public abstract partial class CommandProviderTests
             cancellationToken: default);
 
         // Read the item using the command provider
-        var read = await _commandProvider.ReadAsync(
+        using var read = await _commandProvider.ReadAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -75,7 +75,7 @@ public abstract partial class CommandProviderTests
         var partitionKey = "802398b0-892a-49c5-8310-48212b4817a0";
 
         // Attempt to read a non-existent item
-        var read = await _commandProvider.ReadAsync(
+        using var read = await _commandProvider.ReadAsync(
             id: id,
             partitionKey: partitionKey);
 

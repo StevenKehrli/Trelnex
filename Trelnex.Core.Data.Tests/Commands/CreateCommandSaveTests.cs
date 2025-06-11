@@ -19,7 +19,7 @@ public class CreateCommandSaveTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -81,7 +81,7 @@ public class CreateCommandSaveTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -125,7 +125,7 @@ public class CreateCommandSaveTests
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

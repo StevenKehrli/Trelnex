@@ -81,7 +81,7 @@ public class EncryptedDynamoCommandProviderExtensionsTests : DynamoCommandProvid
         var partitionKey = Guid.NewGuid().ToString();
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -142,7 +142,7 @@ public class EncryptedDynamoCommandProviderExtensionsTests : DynamoCommandProvid
         var partitionKey = Guid.NewGuid().ToString();
 
         // Create a command for creating a test item
-        var createCommand = _commandProvider.Create(
+        using var createCommand = _commandProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
