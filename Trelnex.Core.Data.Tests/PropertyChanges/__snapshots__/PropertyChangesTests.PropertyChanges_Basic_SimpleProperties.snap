@@ -1,11 +1,11 @@
 ﻿[
   {
-    "PropertyName": "publicId",
+    "PropertyName": "/publicId",
     "OldValue": 0,
     "NewValue": 1
   },
   {
-    "PropertyName": "publicMessage",
+    "PropertyName": "/publicMessage",
     "OldValue": null,
     "NewValue": "Public #1"
   }

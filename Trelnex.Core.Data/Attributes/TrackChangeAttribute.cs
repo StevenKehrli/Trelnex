@@ -6,5 +6,5 @@ namespace Trelnex.Core.Data;
 /// <remarks>
 /// Enables the proxy system to monitor and record property modifications.
 /// </remarks>
-[AttributeUsage(AttributeTargets.Property)]
-public class TrackChangeAttribute : Attribute;
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public sealed class TrackChangeAttribute : Attribute;

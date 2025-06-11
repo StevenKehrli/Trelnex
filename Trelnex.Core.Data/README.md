@@ -370,23 +370,87 @@ To track changes to properties, decorate them with the `TrackChangeAttribute`:
 ```csharp
 public interface ITestItem : IBaseItem
 {
-    [TrackChange]
     string PublicMessage { get; set; }
 
-    string PrivateMessage { get; set; } // changes won't be tracked
+    string PrivateMessage { get; set; }
+
+    TestSettings Settings { get; set; }
+}
+
+public class TestSettings
+{
+    [TrackChange]
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [TrackChange]
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = string.Empty;
 }
 
 public class TestItem : BaseItem, ITestItem
 {
+    [TrackChange]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = string.Empty;
 
+     // changes will not be tracked for privateMessage
     [JsonPropertyName("privateMessage")]
     public string PrivateMessage { get; set; } = string.Empty;
+
+    [TrackChange]
+    [JsonPropertyName("settings")]
+    public TestSettings Settings { get; set; } = new();
 }
 ```
 
-When a property decorated with `[TrackChange]` is modified through the proxy system, the old and new values are captured and included in the item event. This provides a detailed audit trail of changes.
+### Change Tracking Features
+
+The change tracking system provides comprehensive monitoring of data modifications:
+
+- **JSON Pointer Paths** - Each change is recorded with a precise JSON Pointer path (e.g., `/customer/name`, `/orders/0/quantity`)
+- **Nested Object Support** - Changes to nested objects and their properties are automatically tracked when both the parent property and child properties have `[TrackChange]`
+- **Value Transitions** - Both old and new values are captured for each property change
+- **Array and Collection Changes** - Modifications to arrays, lists, and dictionaries are tracked at the individual element level
+
+### Hierarchical Tracking Rules
+
+For nested objects and collections, the `[TrackChange]` attribute must be present at both levels:
+
+1. **Parent Property** - The containing property must have `[TrackChange]`
+2. **Child Properties** - Individual properties within nested objects must also have `[TrackChange]`
+
+If the parent property lacks `[TrackChange]`, no changes within that object will be tracked, even if child properties have the attribute.
+
+### Change Event Auditing
+
+When properties decorated with `[TrackChange]` are modified, the system:
+
+1. **Captures Change Details** - Records the property path, old value, and new value for each modification
+2. **Generates Property Changes** - Creates an array of `PropertyChange` objects containing the audit trail
+3. **Persists with Item Events** - Includes the property changes in the event object that is saved alongside the item
+
+**Example Property Change:**
+```json
+{
+  "PropertyName": "/settings/value",
+  "OldValue": "old configuration",
+  "NewValue": "new configuration"
+}
+```
+
+### Security and Privacy Considerations
+
+**Important:** Property change tracking captures and persists the actual values (both old and new) in the audit trail. This provides detailed auditing capabilities but may expose sensitive information:
+
+- **Data Exposure** - Old and new values are stored in plain text in the event log
+- **Compliance Risk** - May conflict with data privacy regulations (GDPR, CCPA) for sensitive data
+- **Access Control** - Event logs may be accessible to administrators or auditors
+
+**Recommendations:**
+- Use `[TrackChange]` judiciously on sensitive properties
+- Consider omitting the attribute from properties containing PII, credentials, or confidential data
+- Implement appropriate access controls for event logs and audit trails
 
 ## Encrypting Properties with the EncryptAttribute
 
@@ -419,7 +483,18 @@ public class CustomerItem : BaseItem, ICustomerItem
 
 Properties marked with `[Encrypt]` are automatically encrypted before storage and decrypted when retrieved. This ensures that sensitive data remains protected at rest in the data store.
 
-**Note:** Property change tracking is automatically disabled for properties that have the `[Encrypt]` attribute. This prevents sensitive data from being included in change history logs.
+### Encryption and Change Tracking Interaction
+
+**Important:** When both `[Encrypt]` and `[TrackChange]` are specified on a property:
+
+- **Storage** - The property value is encrypted when saved to the data store
+- **Change Tracking** - Property changes are captured with **unencrypted** old and new values in the audit trail
+- **Security Risk** - This exposes sensitive data in plain text within the event logs
+
+**Recommendations for Sensitive Data:**
+- **Use only `[Encrypt]`** - For maximum security, omit `[TrackChange]` on encrypted properties
+- **Risk Assessment** - If audit trails are required, ensure event logs have appropriate access controls
+- **Compliance** - Consider data privacy regulations when tracking changes to encrypted properties
 
 The `EncryptionService` uses:
 - Authenticated encryption with AES-GCM

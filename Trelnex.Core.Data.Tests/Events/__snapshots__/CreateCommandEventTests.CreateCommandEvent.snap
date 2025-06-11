@@ -5,7 +5,7 @@
     "RelatedTypeName": "test-item",
     "Changes": [
       {
-        "PropertyName": "publicId",
+        "PropertyName": "/publicId",
         "OldValue": {
           "ValueKind": "Number"
         },
@@ -14,23 +14,23 @@
         }
       },
       {
-        "PropertyName": "publicMessage",
+        "PropertyName": "/publicMessage",
         "OldValue": null,
         "NewValue": {
           "ValueKind": "String"
         }
       }
     ],
-    "TraceContext": "00-bfe1f2420699f9c6cc334a5e517935ac-c00fa83e075249ff-01",
-    "TraceId": "bfe1f2420699f9c6cc334a5e517935ac",
-    "SpanId": "c00fa83e075249ff",
-    "Id": "23192b12-e162-45e1-9d16-43e683087da7",
+    "TraceContext": "00-feb8951935a2e7865dbfac41608d4863-1b216fb524a113cd-01",
+    "TraceId": "feb8951935a2e7865dbfac41608d4863",
+    "SpanId": "1b216fb524a113cd",
+    "Id": "6394cb2e-7961-4e85-b647-45c407f6144c",
     "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-05-21T04:56:31.94445+00:00",
-    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.94445+00:00",
+    "CreatedDateTimeOffset": "2025-06-10T23:54:13.577698+00:00",
+    "UpdatedDateTimeOffset": "2025-06-10T23:54:13.577698+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "a9135127-3ef2-4f18-b0d3-d2f58d76c695"
+    "ETag": "0e019865-d15c-4520-8e3f-e4c3581375d7"
   }
 ]
