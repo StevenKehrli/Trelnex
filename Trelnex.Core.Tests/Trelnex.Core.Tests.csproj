@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-        <RootNamespace>Trelnex.Core.Azure.Tests</RootNamespace>
+        <RootNamespace>Trelnex.Core.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,13 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="appsettings.json" CopyToOutputDirectory="Always" />
-        <None Include="appsettings.User.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.User.json')" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Trelnex.Core.Azure\Trelnex.Core.Azure.csproj" />
-        <ProjectReference Include="..\Trelnex.Core.Data.Tests\Trelnex.Core.Data.Tests.csproj" />
+        <ProjectReference Include="..\Trelnex.Core\Trelnex.Core.csproj" />
     </ItemGroup>
 
 </Project>

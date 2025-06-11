@@ -1,4 +1,4 @@
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Encryption;
 
 /// <summary>
 /// Marks a property for encryption.

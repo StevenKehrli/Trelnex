@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Trelnex.Core.Amazon.CommandProviders;
 using Trelnex.Core.Data;
-using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Data.Tests.CommandProviders;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.Tests.CommandProviders;
 

@@ -1,7 +1,6 @@
 using System.Text;
-using Trelnex.Core.Data.Encryption;
 
-namespace Trelnex.Core.Data.Tests.Encryption;
+namespace Trelnex.Core.Encryption.Tests;
 
 /// <summary>
 /// Contains tests for the <see cref="EncryptionService"/> class.

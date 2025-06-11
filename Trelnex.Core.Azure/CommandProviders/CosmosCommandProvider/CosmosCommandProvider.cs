@@ -6,7 +6,7 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Trelnex.Core.Data;
-using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Encryption;
 using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Azure.CommandProviders;

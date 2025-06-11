@@ -6,7 +6,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
-namespace Trelnex.Core.Data.Encryption;
+namespace Trelnex.Core.Encryption;
 
 /// <summary>
 /// Interface for encryption services.

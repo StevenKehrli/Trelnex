@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 using Trelnex.Core.Azure.CommandProviders;
 using Trelnex.Core.Data;
-using Trelnex.Core.Data.Encryption;
 using Trelnex.Core.Data.Tests.CommandProviders;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.CommandProviders;
 

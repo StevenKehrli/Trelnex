@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Trelnex.Core.Data.Encryption;
+namespace Trelnex.Core.Encryption;
 
 /// <summary>
 /// Provides static methods for encrypting and decrypting objects by combining JSON serialization with encryption services.

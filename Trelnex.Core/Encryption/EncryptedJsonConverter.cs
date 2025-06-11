@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Trelnex.Core.Data.Encryption;
+namespace Trelnex.Core.Encryption;
 
 /// <summary>
 /// A custom JSON converter that encrypts and decrypts properties of type <typeparamref name="TProperty"/>.

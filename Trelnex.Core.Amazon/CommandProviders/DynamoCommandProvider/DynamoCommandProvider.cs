@@ -8,7 +8,7 @@ using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
 using Trelnex.Core.Data;
-using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Encryption;
 using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Amazon.CommandProviders;

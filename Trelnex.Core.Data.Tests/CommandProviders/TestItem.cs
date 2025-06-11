@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data.Tests.CommandProviders;
 

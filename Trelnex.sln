@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core", "Trelnex.Core\Trelnex.Core.csproj", "{353FCD93-CC30-449A-84C6-842024D2623C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Tests", "Trelnex.Core.Tests\Trelnex.Core.Tests.csproj", "{AE569EDF-50DB-411D-AFDD-6B024DC70683}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Data", "Trelnex.Core.Data\Trelnex.Core.Data.csproj", "{4FADEE32-2440-4669-B154-69D95560372E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trelnex.Core.Data.Tests", "Trelnex.Core.Data.Tests\Trelnex.Core.Data.Tests.csproj", "{3CEE881D-C04E-46A3-8905-7930973F75A9}"
@@ -51,6 +53,18 @@ Global
 		{353FCD93-CC30-449A-84C6-842024D2623C}.Release|x64.Build.0 = Release|Any CPU
 		{353FCD93-CC30-449A-84C6-842024D2623C}.Release|x86.ActiveCfg = Release|Any CPU
 		{353FCD93-CC30-449A-84C6-842024D2623C}.Release|x86.Build.0 = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|x64.Build.0 = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Debug|x86.Build.0 = Debug|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|x64.ActiveCfg = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|x64.Build.0 = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|x86.ActiveCfg = Release|Any CPU
+		{AE569EDF-50DB-411D-AFDD-6B024DC70683}.Release|x86.Build.0 = Release|Any CPU
 		{4FADEE32-2440-4669-B154-69D95560372E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4FADEE32-2440-4669-B154-69D95560372E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FADEE32-2440-4669-B154-69D95560372E}.Debug|x64.ActiveCfg = Debug|Any CPU

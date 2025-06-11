@@ -8,7 +8,7 @@ using Trelnex.Core.Api.CommandProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
-using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Encryption;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Azure.CommandProviders;

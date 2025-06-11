@@ -9,7 +9,7 @@ using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
-using Trelnex.Core.Data.Encryption;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data;
 

@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Trelnex.Core.Data.Encryption;
+namespace Trelnex.Core.Encryption;
 
 /// <summary>
 /// A custom <see cref="IJsonTypeInfoResolver"/> that adds a custom <see cref="JsonConverter"/>

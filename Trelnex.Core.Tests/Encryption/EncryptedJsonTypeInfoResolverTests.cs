@@ -2,9 +2,8 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Snapshooter.NUnit;
-using Trelnex.Core.Data.Encryption;
 
-namespace Trelnex.Core.Data.Tests.Encryption;
+namespace Trelnex.Core.Encryption.Tests;
 
 [Category("Encryption")]
 public class EncryptedJsonTypeInfoResolverTests
