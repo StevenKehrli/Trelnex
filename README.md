@@ -374,10 +374,37 @@ The `IBatchResult<TInterface>` interface defines two properties:
 
 ### IQueryCommand\<TInterface\>
 
-The `IQueryCommand<TInterface>` interface defines two methods:
+The `IQueryCommand<TInterface>` interface defines methods for building and executing queries:
 
+- `IQueryCommand<TInterface> OrderBy()`: adds ascending sort by the specified key
+- `IQueryCommand<TInterface> OrderByDescending()`: adds descending sort by the specified key
+- `IQueryCommand<TInterface> Skip()`: skips a specified number of items
+- `IQueryCommand<TInterface> Take()`: takes a maximum number of items
 - `IQueryCommand<TInterface> Where()`: adds a predicate to filter the items
-- `IAsyncEnumerable<IReadResult<TInterface>> ToAsyncEnumerable()`: executes the query and returns the results as an enumerable collection of `IReadResult<TInterface>`.
+- `IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable()`: executes the query with lazy async enumeration and automatic disposal management
+- `Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync()`: executes the query with eager materialization and automatic disposal management
+
+#### Query Execution Patterns
+
+**Lazy Async Enumeration** - Items are materialized one by one as enumerated:
+```csharp
+using var lazyResults = queryCommand.ToAsyncDisposableEnumerable();
+await foreach (var item in lazyResults)
+{
+}
+// All enumerated items are automatically disposed when lazyResults goes out of scope
+```
+
+**Eager Materialization** - All items are loaded upfront with array-like access:
+```csharp
+using var eagerResults = await queryCommand.ToDisposableEnumerableAsync();
+foreach (var item in eagerResults)
+{
+}
+// All materialized items are automatically disposed when eagerResults goes out of scope
+```
+
+Both patterns automatically dispose all materialized items when the returned enumerable is disposed.
 
 ### ISaveCommand\<TInterface\> vs IBatchCommand\<TInterface\>
 

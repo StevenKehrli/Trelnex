@@ -1,5 +1,4 @@
 using Snapshooter.NUnit;
-using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data.Tests.Commands;
 
@@ -47,7 +46,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return both items
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -88,7 +87,7 @@ public class QueryCommandTests
         var cts = new CancellationTokenSource();
 
         // create the async enumerable
-        var enumerable = queryCommand.ToAsyncEnumerable().WithCancellation(cts.Token);
+        var enumerable = queryCommand.ToAsyncDisposableEnumerable().WithCancellation(cts.Token);
 
         // but cancel
         await cts.CancelAsync();
@@ -138,7 +137,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return no items
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(read);
     }
@@ -186,7 +185,7 @@ public class QueryCommandTests
         queryCommand.OrderBy(i => i.PublicMessage);
 
         // should return first item first
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -241,7 +240,7 @@ public class QueryCommandTests
         queryCommand.OrderByDescending(i => i.PublicMessage);
 
         // should return second item first
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -281,7 +280,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return item
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.Multiple(() =>
         {
@@ -338,7 +337,7 @@ public class QueryCommandTests
         queryCommand.OrderBy(i => i.PublicMessage).Skip(1);
 
         // should return second item
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -393,7 +392,7 @@ public class QueryCommandTests
         queryCommand.OrderBy(i => i.PublicMessage).Take(1);
 
         // should return first item
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -448,7 +447,7 @@ public class QueryCommandTests
         queryCommand.Where(i => i.PublicMessage == "Public #1");
 
         // should return first item
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -488,7 +487,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
@@ -510,7 +509,7 @@ public class QueryCommandTests
                 .IgnoreField("**.ETag"));
 
         // should return empty
-        using var read2 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read2 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read2, Is.Not.Null);
         Assert.That(read2, Has.Length.EqualTo(0));
@@ -544,7 +543,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
@@ -586,7 +585,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
@@ -628,7 +627,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
@@ -643,7 +642,7 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // should return empty
-        using var read2 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read2 = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read2,
@@ -683,7 +682,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
@@ -725,7 +724,7 @@ public class QueryCommandTests
         var queryCommand = commandProvider.Query();
 
         // should return first item
-        using var read1 = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));

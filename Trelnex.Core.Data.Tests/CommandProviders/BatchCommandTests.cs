@@ -1,5 +1,4 @@
 using Snapshooter.NUnit;
-using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data.Tests.CommandProviders;
 
@@ -139,7 +138,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return just the initial item)
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new
@@ -367,7 +366,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return just the first item)
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new
@@ -610,7 +609,7 @@ public abstract partial class CommandProviderTests
         var queryCommand = _commandProvider.Query();
 
         // Execute query and get results (should return the first item and updated second item)
-        using var read = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         // Create object for snapshot matching
         var o = new

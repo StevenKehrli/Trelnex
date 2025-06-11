@@ -224,10 +224,20 @@ var commandProvider =
 var queryCommand = commandProvider.Query();
 queryCommand.Where(i => i.PublicMessage == "Public #1");
 
-// Get the items with automatic disposal management
-using var results = await queryCommand.ToAsyncEnumerable().ToDisposableEnumerableAsync();
+// Option 1: Lazy async enumeration - items materialized one by one
+using var lazyResults = queryCommand.ToAsyncDisposableEnumerable();
+await foreach (var item in lazyResults)
+{
+}
+// All enumerated items are automatically disposed when lazyResults goes out of scope
 
-// All query results are automatically disposed when 'results' goes out of scope
+// Option 2: Eager materialization - all items loaded upfront with array-like access
+using var eagerResults = await queryCommand.ToDisposableEnumerableAsync();
+foreach (var item in eagerResults)
+{
+}
+// All materialized items are automatically disposed when eagerResults goes out of scope
+
 // Soft-deleted items are automatically filtered out from queries
 ```
 
