@@ -14,7 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores
-- **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute
+- **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute (see [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute))
 - **Property encryption** - Securely encrypt sensitive data with the `Encrypt` attribute
 - **Event logging** - Generate audit events for all data modifications with property change history
 - **Validation** - Built-in validation support via FluentValidation
@@ -45,10 +45,7 @@ Command providers are the main entry point for generating commands to interact w
 ### Proxy System
 
 A dynamic proxy system enables:
-- Consistent interface regardless of the underlying data store
-- Property change tracking with the `TrackChangeAttribute`
 - Automatic enforcement of read-only protection for data that should not be modified
-- Thread-safe property access with semaphore-based synchronization
 - Command objects that become read-only after execution to prevent reuse
 
 ### BaseItem and IBaseItem
@@ -83,13 +80,7 @@ The system includes comprehensive validation:
 
 ## Change Tracking
 
-Property changes are tracked automatically when:
-
-1. A property is decorated with the `[TrackChange]` attribute
-2. The property is accessed through the proxy system
-3. A change is made to the property's value
-
-The system captures the property name, old value, and new value for each change, providing a detailed audit trail.
+See [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute).
 
 ## Usage
 
@@ -364,6 +355,8 @@ public class CustomCommandProviderFactory : ICommandProviderFactory
 ```
 
 ## Tracking Changes with the TrackChangeAttribute
+
+The system captures the property name, old value, and new value for each change, providing a detailed audit trail.
 
 To track changes to properties, decorate them with the `TrackChangeAttribute`:
 

@@ -365,7 +365,7 @@ The `IReadResult<TInterface>` interface defines one property and one method:
 - `TInterface Item`: the item read
 - `ValidationResult ValidateAsync()`: validate the item
 
-### IBatchResult`<TInterface`>
+### IBatchResult\<TInterface\>
 
 The `IBatchResult<TInterface>` interface defines two properties:
 

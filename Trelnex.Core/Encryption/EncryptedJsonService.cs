@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace Trelnex.Core.Encryption;
@@ -29,7 +30,7 @@ public static class EncryptedJsonService
         var jsonString = JsonSerializer.Serialize(value);
 
         // Convert the JSON string to a byte array.
-        var jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+        var jsonBytes = Encoding.UTF8.GetBytes(jsonString);
 
         // Encrypt the byte array using the encryption service.
         var encryptedBytes = encryptionService.Encrypt(jsonBytes);
@@ -64,7 +65,7 @@ public static class EncryptedJsonService
         var jsonBytes = encryptionService.Decrypt(encryptedBytes);
 
         // Convert the decrypted byte array back to a JSON string.
-        var jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
+        var jsonString = Encoding.UTF8.GetString(jsonBytes);
 
         // Deserialize the JSON string into an object of type TProperty.
         return JsonSerializer.Deserialize<T>(jsonString);
