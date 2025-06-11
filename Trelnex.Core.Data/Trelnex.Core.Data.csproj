@@ -29,7 +29,6 @@
     <ItemGroup>
         <PackageReference Include="linq2db" Version="5.4.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-        <PackageReference Include="PostSharp" Version="2025.1.4" PrivateAssets="All" />
         <PackageReference Include="SystemTextJson.JsonDiffPatch" Version="2.0.0" />
         <!-- <PackageReference Include="Trelnex.Core" Version="0.1.0" /> -->
         <ProjectReference Include="..\Trelnex.Core\Trelnex.Core.csproj" />
