@@ -25,7 +25,7 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual SQL Server instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-// [Ignore("Requires a SQL server.")]
+[Ignore("Requires a SQL server.")]
 [Category("SqlDataProvider")]
 public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
 {

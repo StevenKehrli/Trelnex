@@ -20,7 +20,7 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual DynamoDB table
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-// [Ignore("Requires a DynamoDB table.")]
+[Ignore("Requires a DynamoDB table.")]
 [Category("DynamoDataProvider")]
 public class DynamoDataProviderTests : DynamoDataProviderTestBase
 {

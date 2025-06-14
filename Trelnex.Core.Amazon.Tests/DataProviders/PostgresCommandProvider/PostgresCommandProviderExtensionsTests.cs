@@ -22,7 +22,7 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual PostgreSQL server
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-// [Ignore("Requires a Postgres server.")]
+[Ignore("Requires a Postgres server.")]
 [Category("PostgresDataProvider")]
 public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
 {
