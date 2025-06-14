@@ -1,0 +1,17 @@
+﻿[
+  {
+    "PropertyName": "/trackedSettingsDictionary/setting1/primaryValue",
+    "OldValue": "Primary Value #1",
+    "NewValue": "Primary Value #3"
+  },
+  {
+    "PropertyName": "/trackedSettingsDictionary/setting1/secondaryValue",
+    "OldValue": "Secondary Value #1",
+    "NewValue": "Secondary Value #3"
+  },
+  {
+    "PropertyName": "/trackedSettingsDictionary/setting1/settingId",
+    "OldValue": 101,
+    "NewValue": 103
+  }
+]

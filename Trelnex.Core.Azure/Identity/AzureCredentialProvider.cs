@@ -68,7 +68,7 @@ internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
         AzureCredentialOptions credentialOptions)
     {
         // Ensure that the Sources array is not null or empty.
-        if (credentialOptions?.Sources == null || credentialOptions.Sources.Length == 0)
+        if (credentialOptions?.Sources is null || credentialOptions.Sources.Length == 0)
         {
             throw new ArgumentNullException(nameof(credentialOptions.Sources));
         }

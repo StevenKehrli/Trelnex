@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core;
@@ -57,7 +56,6 @@ internal static class GetScopeEndpoint
                 "/scopes",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
-            .Accepts<GetScopeRequest>(MediaTypeNames.Application.Json)
             .Produces<GetScopeResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -73,16 +71,13 @@ internal static class GetScopeEndpoint
     /// Handles the scope retrieval request by validating inputs and fetching the scope information.
     /// </summary>
     /// <param name="rbacRepository">The repository for RBAC operations.</param>
-    /// <param name="resourceNameValidator">The validator for resource names.</param>
-    /// <param name="scopeNameValidator">The validator for scope names.</param>
-    /// <param name="parameters">The request parameters containing the scope retrieval details.</param>
+    /// <param name="request">The request parameters containing the scope retrieval details.</param>
     /// <returns>A response containing the requested scope information.</returns>
     /// <remarks>
     /// This method processes a scope information request by:
-    /// 1. Validating the resource name using the resource name validator
-    /// 2. Validating the scope name using the scope name validator
-    /// 3. Retrieving the scope from the RBAC repository if validations pass
-    /// 4. Transforming the repository data into a standardized API response
+    /// 1. Validating the resource name and scope name from the request
+    /// 2. Retrieving the scope from the RBAC repository if validations pass
+    /// 3. Transforming the repository data into a standardized API response
     ///
     /// If validation fails, an appropriate exception is thrown, which will be transformed
     /// into an HTTP error response. If the specified scope doesn't exist, a 404 Not Found
@@ -96,10 +91,9 @@ internal static class GetScopeEndpoint
     /// </exception>
     public static async Task<GetScopeResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] GetScopeRequest? request)
+        [AsParameters] GetScopeRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.ScopeName is null) throw _validationException;
 

@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -29,7 +29,7 @@ public record GetScopeRequest
     /// The resource name identifies the protected asset in the RBAC system.
     /// This is typically an API or service name containing the scope being queried.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -41,7 +41,7 @@ public record GetScopeRequest
     /// This can represent environments (e.g., "development", "production"),
     /// geographical regions, or other logical authorization boundaries.
     /// </remarks>
-    [JsonPropertyName("scopeName")]
+    [FromQuery(Name = "scopeName")]
     [SwaggerSchema("The name of the scope.", Nullable = false)]
     public required string ScopeName { get; init; }
 

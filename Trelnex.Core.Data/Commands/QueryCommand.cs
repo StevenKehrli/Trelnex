@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data;
 
@@ -54,16 +55,42 @@ public interface IQueryCommand<TInterface>
         int count);
 
     /// <summary>
-    /// Executes the query and returns the results as an asynchronous stream.
+    /// Executes the query and returns the results with lazy async enumeration and automatic disposal management.
     /// </summary>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
-    /// An <see cref="IAsyncEnumerable{T}"/> of <see cref="IQueryResult{TInterface}"/>.
+    /// An <see cref="IAsyncDisposableEnumerable{T}"/> that can be enumerated asynchronously.
+    /// Items are materialized lazily as they are enumerated, and all enumerated items are automatically disposed when the enumerable is disposed.
     /// </returns>
     /// <exception cref="OperationCanceledException">
     /// Thrown when the operation is canceled through <paramref name="cancellationToken"/>.
     /// </exception>
-    IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
+    /// <remarks>
+    /// This method provides lazy async enumeration where items are materialized one by one as they are enumerated.
+    /// Use this method when you want to minimize memory usage or when processing large result sets.
+    /// The returned enumerable tracks all materialized items and disposes them when disposed.
+    /// </remarks>
+    IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the query and returns the results with automatic disposal management.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A <see cref="Task{T}"/> that represents the asynchronous operation.
+    /// The task result contains an <see cref="IDisposableEnumerable{T}"/> of <see cref="IQueryResult{TInterface}"/>.
+    /// All items are materialized and available for immediate access with array-like indexing and count properties.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when the operation is canceled through <paramref name="cancellationToken"/>.
+    /// </exception>
+    /// <remarks>
+    /// This method eagerly materializes all query results into memory before returning.
+    /// Use this method when you need immediate access to item count, indexing, or when the result set is known to be small.
+    /// All materialized items are automatically disposed when the returned enumerable is disposed.
+    /// </remarks>
+    Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -153,15 +180,17 @@ internal class QueryCommand<TInterface, TItem>(
     }
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<IQueryResult<TInterface>> ToAsyncEnumerable(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable(
+        CancellationToken cancellationToken = default)
     {
-        // Execute the query and process each result
-        await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
-        {
-            // Convert the TItem to an IQueryResult<TInterface> and yield it
-            yield return convertToQueryResult(item);
-        }
+        return QueryAsync(cancellationToken).ToAsyncDisposableEnumerable();
+    }
+
+    /// <inheritdoc/>
+    public async Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await QueryAsync(cancellationToken).ToDisposableEnumerableAsync(cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -177,6 +206,30 @@ internal class QueryCommand<TInterface, TItem>(
         queryable = queryable.Where(expression);
 
         return this;
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Creates an async enumerable that executes the query and converts items lazily.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>An async enumerable of query results.</returns>
+    /// <remarks>
+    /// This private method encapsulates the query execution logic and is reused by both
+    /// ToAsyncDisposableEnumerable and ToDisposableEnumerableAsync methods to ensure consistency.
+    /// </remarks>
+    private async IAsyncEnumerable<IQueryResult<TInterface>> QueryAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // Execute the underlying query through the delegate and convert items as they arrive
+        await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
+        {
+            // Convert each TItem to an IQueryResult<TInterface> wrapper and yield it
+            yield return convertToQueryResult(item);
+        }
     }
 
     #endregion

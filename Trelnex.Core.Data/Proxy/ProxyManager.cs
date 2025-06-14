@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using FluentValidation.Results;
 
 namespace Trelnex.Core.Data;
@@ -20,7 +22,14 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
-    #region Static Fields
+    #region Private Static Fields
+
+    private static readonly JsonNode _jsonNodeEmpty = new JsonObject();
+
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        TypeInfoResolver = new TrackChangeResolver()
+    };
 
     /// <summary>
     /// Cached property getter methods.
@@ -29,14 +38,6 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// Used to determine if a method invocation is a property getter.
     /// </remarks>
     private static readonly PropertyGetters<TItem> _propertyGetters = PropertyGetters<TItem>.Create();
-
-    /// <summary>
-    /// Handles property interception for change tracking.
-    /// </summary>
-    /// <remarks>
-    /// Intercepts property operations to detect changes.
-    /// </remarks>
-    private static readonly TrackProperties<TItem> _trackProperties = TrackProperties<TItem>.Create();
 
     #endregion
 
@@ -53,7 +54,16 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// <summary>
     /// The actual item instance being proxied.
     /// </summary>
-    protected TItem _item = null!;
+    protected TItem _item
+    {
+        get => _itemValue;
+
+        set
+        {
+            _itemValue = value;
+            _initialJsonNode = JsonSerializer.SerializeToNode(value, _jsonSerializerOptions);
+        }
+    }
 
     /// <summary>
     /// The proxy that wraps the underlying item.
@@ -86,12 +96,14 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     private bool _disposed = false;
 
     /// <summary>
-    /// Collection of tracked property changes.
+    /// Parsed representation of the item's initial state for change tracking.
     /// </summary>
-    /// <remarks>
-    /// Records property modifications with old and new values.
-    /// </remarks>
-    private readonly PropertyChanges _propertyChanges = new();
+    private JsonNode? _initialJsonNode;
+
+    /// <summary>
+    /// Backing field for the actual item instance being proxied.
+    /// </summary>
+    private TItem _itemValue = null!;
 
     #endregion
 
@@ -166,37 +178,14 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
         MethodInfo? targetMethod,
         object?[]? args)
     {
-        try
+        // For read-only items, we only allow property getter methods to be called
+        if (_isReadOnly && _propertyGetters.IsGetter(targetMethod) is false)
         {
-            // Acquire a lock to ensure thread safety during method invocation
-            _semaphore.Wait();
-
-            // For read-only items, we only allow property getter methods to be called
-            if (_isReadOnly && _propertyGetters.IsGetter(targetMethod) is false)
-            {
-                throw new InvalidOperationException($"The '{typeof(TInterface)}' is read-only.");
-            }
-
-            // Delegate the actual method invocation to the _trackProperties helper
-            var invokeResult = _trackProperties.Invoke(targetMethod, _item, args);
-
-            // If this invocation modified a property marked with [TrackChange]
-            if (invokeResult.IsTracked)
-            {
-                _propertyChanges.Add(
-                    propertyName: invokeResult.PropertyName,
-                    oldValue: invokeResult.OldValue,
-                    newValue: invokeResult.NewValue);
-            }
-
-            // Return the result of the method invocation to the caller
-            return invokeResult.Result;
+            throw new InvalidOperationException($"The '{typeof(TInterface)}' is read-only.");
         }
-        finally
-        {
-            // Always release the semaphore to prevent deadlocks
-            _semaphore.Release();
-        }
+
+        // Execute the method on the underlying item
+        return targetMethod?.Invoke(_item, args);
     }
 
     #endregion
@@ -204,15 +193,23 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     #region Internal Methods
 
     /// <summary>
-    /// Gets the tracked property changes.
+    /// Gets tracked property changes by comparing initial and current JSON states using RFC 6902 diff.
     /// </summary>
-    /// <returns>Array of property changes or null if no changes made.</returns>
+    /// <returns>PropertyChange array for leaf-level differences, or null if no changes</returns>
     /// <remarks>
-    /// Returns chronological history of property changes.
+    /// Detects all modifications including nested objects and arrays using JSON diff comparison.
+    /// Returns individual entries for each modified leaf property with JSON Pointer paths.
+    /// Automatically consolidates array reordering operations.
     /// </remarks>
     internal PropertyChange[]? GetPropertyChanges()
     {
-        return _propertyChanges.ToArray();
+        // Serialize current item state to JsonNode for comparison
+        var currentJsonNode = JsonSerializer.SerializeToNode(_item, _jsonSerializerOptions);
+
+        // Compare initial and current states using RFC 6902 JSON Patch diff
+        return PropertyChanges.Compare(
+            _initialJsonNode ?? _jsonNodeEmpty,
+            currentJsonNode ?? _jsonNodeEmpty);
     }
 
     #endregion

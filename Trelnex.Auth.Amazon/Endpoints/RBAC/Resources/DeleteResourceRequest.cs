@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -26,7 +26,7 @@ public record DeleteResourceRequest
     /// and all principal memberships (role assignments) for this resource will also be deleted.
     /// This is a cascading operation that completely removes the resource and its authorization model.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 

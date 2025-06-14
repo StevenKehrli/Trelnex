@@ -1,0 +1,32 @@
+﻿[
+  {
+    "PropertyName": "/trackedSettingsArray/0/primaryValue",
+    "OldValue": null,
+    "NewValue": "Primary Value #1"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/0/secondaryValue",
+    "OldValue": null,
+    "NewValue": "Secondary Value #1"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/0/settingId",
+    "OldValue": null,
+    "NewValue": 101
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/1/primaryValue",
+    "OldValue": null,
+    "NewValue": "Primary Value #2"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/1/secondaryValue",
+    "OldValue": null,
+    "NewValue": "Secondary Value #2"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/1/settingId",
+    "OldValue": null,
+    "NewValue": 102
+  }
+]

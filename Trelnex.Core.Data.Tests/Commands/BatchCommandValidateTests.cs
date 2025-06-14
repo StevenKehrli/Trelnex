@@ -19,17 +19,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -38,7 +38,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -68,22 +68,22 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -112,17 +112,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -130,7 +130,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -159,17 +159,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -177,7 +177,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -207,17 +207,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -225,7 +225,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -257,17 +257,17 @@ public class BatchCommandValidateTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "823bcd49-bb5b-4cb3-8a3a-f678cf03a78a";
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -275,7 +275,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -283,7 +283,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = "Public #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -316,17 +316,17 @@ public class BatchCommandValidateTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "748af380-281b-4d9f-b375-56d62b4f34b6";
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -334,7 +334,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -342,7 +342,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = string.Empty;
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -373,17 +373,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -392,7 +392,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -413,22 +413,22 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item (with default empty values)
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -448,17 +448,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -466,7 +466,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -486,25 +486,25 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
         // Set only private message, leaving public message empty
         createCommand.Item.PrivateMessage = "Private #1";
 
-        // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        // Create a batch command and add our create Command to it
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -525,17 +525,17 @@ public class BatchCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -543,7 +543,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -566,17 +566,17 @@ public class BatchCommandValidateTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "59cdc22b-04b2-46de-a90f-04b1ed0b6a62";
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -584,7 +584,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -592,7 +592,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = "Public #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -616,17 +616,17 @@ public class BatchCommandValidateTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = "a87d1e2e-c67f-402f-8780-092a8225f80f";
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -634,7 +634,7 @@ public class BatchCommandValidateTests
         createCommand1.Item.PublicMessage = "Public #1";
 
         // Create a new command to create our test item
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -642,7 +642,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = string.Empty;
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 

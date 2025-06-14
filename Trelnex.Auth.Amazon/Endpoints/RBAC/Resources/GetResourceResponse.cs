@@ -50,7 +50,7 @@ public record GetResourceResponse
     /// complete list of all roles that have been defined for this resource, allowing
     /// administrators to understand the permission model in place.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [JsonPropertyName("roleNames")]
     [SwaggerSchema("The array of available roles for the resource.", Nullable = false)]
     public required string[] RoleNames { get; init; }
 

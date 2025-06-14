@@ -71,16 +71,13 @@ internal static class CreateRoleEndpoint
     /// Handles the role creation request by validating inputs and creating the role.
     /// </summary>
     /// <param name="rbacRepository">The repository for RBAC operations.</param>
-    /// <param name="resourceNameValidator">The validator for resource names.</param>
-    /// <param name="roleNameValidator">The validator for role names.</param>
-    /// <param name="parameters">The request parameters containing the role creation details.</param>
+    /// <param name="request">The request body containing the role creation details.</param>
     /// <returns>A response confirming the successful creation of the role.</returns>
     /// <remarks>
     /// This method processes a role creation request by:
-    /// 1. Validating the resource name using the resource name validator
-    /// 2. Validating the role name using the role name validator
-    /// 3. Creating the role in the RBAC repository if validations pass
-    /// 4. Returning a response containing the details of the created role
+    /// 1. Validating the resource name and role name from the request
+    /// 2. Creating the role in the RBAC repository if validations pass
+    /// 3. Returning a response containing the details of the created role
     ///
     /// The resource must exist in the system before roles can be created for it.
     /// If validation fails, an appropriate exception is thrown, which will be transformed

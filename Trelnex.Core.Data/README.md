@@ -14,7 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores
-- **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute
+- **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute (see [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute))
 - **Property encryption** - Securely encrypt sensitive data with the `Encrypt` attribute
 - **Event logging** - Generate audit events for all data modifications with property change history
 - **Validation** - Built-in validation support via FluentValidation
@@ -28,13 +28,13 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 Trelnex.Core.Data is built around several core concepts:
 
-### Command Pattern
+### Data Provider Interface and Command Pattern
 
-The library uses the Command pattern to encapsulate data operations. Each command is an object that maintains its own state and handles validation and execution.
+The library uses the Command Pattern to encapsulate data operations. Each command is an object that maintains its own state and handles validation and execution.
 
-### Command Providers
+### Data Providers
 
-Command providers are the main entry point for generating commands to interact with data. They implement the `ICommandProvider<TInterface>` interface and determine which operations are permitted through the `CommandOperations` flags enum:
+Data providers are the main entry point for generating commands to interact with data. They implement the `IDataProvider<TInterface>` interface and determine which operations are permitted through the `DataOperations` flags enum:
 
 - **Read** - Default permission, allows read operations only
 - **Create** - Allows creation of new items
@@ -45,10 +45,7 @@ Command providers are the main entry point for generating commands to interact w
 ### Proxy System
 
 A dynamic proxy system enables:
-- Consistent interface regardless of the underlying data store
-- Property change tracking with the `TrackChangeAttribute`
 - Automatic enforcement of read-only protection for data that should not be modified
-- Thread-safe property access with semaphore-based synchronization
 - Command objects that become read-only after execution to prevent reuse
 
 ### BaseItem and IBaseItem
@@ -83,17 +80,11 @@ The system includes comprehensive validation:
 
 ## Change Tracking
 
-Property changes are tracked automatically when:
-
-1. A property is decorated with the `[TrackChange]` attribute
-2. The property is accessed through the proxy system
-3. A change is made to the property's value
-
-The system captures the property name, old value, and new value for each change, providing a detailed audit trail.
+See [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute).
 
 ## Usage
 
-The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryCommandProvider<TInterface, TItem>`. In practice, the ASP.NET startup will inject a singleton of `ICommandProvider<TInterface, TItem>` for each requested type name.
+The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryDataProvider<TInterface, TItem>`. In practice, the ASP.NET startup will inject a singleton of `IDataProvider<TInterface, TItem>` for each requested type name.
 
 ### Create
 
@@ -103,14 +94,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Allow all operations
 
 // Create an ISaveCommand<ITestItem> to create the item
-var createCommand = commandProvider.Create(
+using var createCommand = dataProvider.Create(
     id: id,
     partitionKey: partitionKey);
 
@@ -121,11 +112,12 @@ createCommand.Item.PrivateMessage = "Private #1";
 // Save the item and get the IReadResult<ITestItem>
 var requestContext = TestRequestContext.Create();
 
-var result = await createCommand.SaveAsync(
+using var result = await createCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
 
 // After SaveAsync, the command becomes read-only and can't be reused
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Read
@@ -136,17 +128,18 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName);
 
 // Get the IReadResult<TItem>
-var result = await commandProvider.ReadAsync(
+using var result = await dataProvider.ReadAsync(
     id: id,
     partitionKey: partitionKey);
 
 // Items from ReadAsync are always read-only
+// Result is automatically disposed when it goes out of scope
 ```
 
 ### Update
@@ -157,14 +150,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Need Update permission
 
 // Create an ISaveCommand<ITestItem> to update the item
-var updateCommand = await commandProvider.UpdateAsync(
+using var updateCommand = await dataProvider.UpdateAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -177,11 +170,12 @@ updateCommand.Item.PrivateMessage = "Private #2";
 // Save the item and get the IReadResult<ITestItem>
 var requestContext = TestRequestContext.Create();
 
-var result = await updateCommand.SaveAsync(
+using var result = await updateCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
 
 // ETag is automatically updated to prevent conflicts
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Delete
@@ -192,14 +186,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Need Delete permission
 
 // Create an ISaveCommand<ITestItem> to delete the item
-var deleteCommand = await commandProvider.DeleteAsync(
+using var deleteCommand = await dataProvider.DeleteAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -208,27 +202,41 @@ var deleteCommand = await commandProvider.DeleteAsync(
 // Save the item (performs a soft delete by setting IsDeleted=true and DeletedDate)
 var requestContext = TestRequestContext.Create();
 
-var result = await deleteCommand.SaveAsync(
+using var result = await deleteCommand.SaveAsync(
     requestContext: requestContext,
     cancellationToken: default);
+
+// Both command and result are automatically disposed when they go out of scope
 ```
 
 ### Query
 
 ```csharp
 using Trelnex.Core.Data;
+using Trelnex.Core.Disposables;
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName);
 
 // Build the query with LINQ expressions
-var queryCommand = commandProvider.Query();
+var queryCommand = dataProvider.Query();
 queryCommand.Where(i => i.PublicMessage == "Public #1");
 
-// Get the items as an array of IReadResult<TItem>
-var results = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+// Option 1: Lazy async enumeration - items materialized one by one
+using var lazyResults = queryCommand.ToAsyncDisposableEnumerable();
+await foreach (var item in lazyResults)
+{
+}
+// All enumerated items are automatically disposed when lazyResults goes out of scope
+
+// Option 2: Eager materialization - all items loaded upfront with array-like access
+using var eagerResults = await queryCommand.ToDisposableEnumerableAsync();
+foreach (var item in eagerResults)
+{
+}
+// All materialized items are automatically disposed when eagerResults goes out of scope
 
 // Soft-deleted items are automatically filtered out from queries
 ```
@@ -238,22 +246,22 @@ var results = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
 ```csharp
 using Trelnex.Core.Data;
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All);
 
 // Create a batch command
-var batchCommand = commandProvider.Batch();
+var batchCommand = dataProvider.Batch();
 
 // Create commands to add to the batch (all must have the same partitionKey)
-var createCommand1 = commandProvider.Create(
+var createCommand1 = dataProvider.Create(
     id: "id1",
     partitionKey: partitionKey);
 createCommand1.Item.PublicMessage = "Public #1";
 
-var createCommand2 = commandProvider.Create(
+var createCommand2 = dataProvider.Create(
     id: "id2",
     partitionKey: partitionKey);
 createCommand2.Item.PublicMessage = "Public #2";
@@ -279,34 +287,17 @@ var results = await batchCommand.SaveAsync(
 // If any operation fails, the entire batch is rolled back
 ```
 
-## Dependency Injection
+## Creating Custom Data Providers
 
-To use Trelnex.Core.Data with dependency injection in ASP.NET Core:
-
-```csharp
-using Trelnex.Core.Data;
-
-// Register the command provider factory
-services.AddCommandProviderFactory(
-    new YourCommandProviderFactory());
-
-// Optional - register specific command providers
-services.AddSingleton<ICommandProvider<IUser, User>>(
-    serviceProvider => serviceProvider.GetRequiredService<ICommandProviderFactory>()
-        .CreateCommandProvider<IUser, User>("user"));
-```
-
-## Creating Custom Command Providers
-
-To implement your own data store, create a custom command provider:
+To implement your own data store, create a custom data provider:
 
 ```csharp
-public class CustomCommandProvider<TInterface, TItem>
-    : CommandProvider<TInterface, TItem>
+public class CustomDataProvider<TInterface, TItem>
+    : DataProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
-    public CustomCommandProvider(
+    public CustomDataProvider(
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
@@ -343,14 +334,14 @@ public class CustomCommandProvider<TInterface, TItem>
     }
 }
 
-public class CustomCommandProviderFactory : ICommandProviderFactory
+public class CustomDataProviderFactory : IDataProviderFactory
 {
-    public ICommandProvider<TInterface, TItem> CreateCommandProvider<TInterface, TItem>(
+    public IDataProvider<TInterface, TItem> CreateDataProvider<TInterface, TItem>(
         string typeName)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
-        return new CustomCommandProvider<TInterface, TItem>(
+        return new CustomDataProvider<TInterface, TItem>(
             typeName,
             validator: GetValidator<TItem>(),
             commandOperations: CommandOperations.All);
@@ -365,28 +356,94 @@ public class CustomCommandProviderFactory : ICommandProviderFactory
 
 ## Tracking Changes with the TrackChangeAttribute
 
+The system captures the property name, old value, and new value for each change, providing a detailed audit trail.
+
 To track changes to properties, decorate them with the `TrackChangeAttribute`:
 
 ```csharp
 public interface ITestItem : IBaseItem
 {
-    [TrackChange]
     string PublicMessage { get; set; }
 
-    string PrivateMessage { get; set; } // changes won't be tracked
+    string PrivateMessage { get; set; }
+
+    TestSettings Settings { get; set; }
+}
+
+public class TestSettings
+{
+    [TrackChange]
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [TrackChange]
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = string.Empty;
 }
 
 public class TestItem : BaseItem, ITestItem
 {
+    [TrackChange]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = string.Empty;
 
+     // changes will not be tracked for privateMessage
     [JsonPropertyName("privateMessage")]
     public string PrivateMessage { get; set; } = string.Empty;
+
+    [TrackChange]
+    [JsonPropertyName("settings")]
+    public TestSettings Settings { get; set; } = new();
 }
 ```
 
-When a property decorated with `[TrackChange]` is modified through the proxy system, the old and new values are captured and included in the item event. This provides a detailed audit trail of changes.
+### Change Tracking Features
+
+The change tracking system provides comprehensive monitoring of data modifications:
+
+- **JSON Pointer Paths** - Each change is recorded with a precise JSON Pointer path (e.g., `/customer/name`, `/orders/0/quantity`)
+- **Nested Object Support** - Changes to nested objects and their properties are automatically tracked when both the parent property and child properties have `[TrackChange]`
+- **Value Transitions** - Both old and new values are captured for each property change
+- **Array and Collection Changes** - Modifications to arrays, lists, and dictionaries are tracked at the individual element level
+
+### Hierarchical Tracking Rules
+
+For nested objects and collections, the `[TrackChange]` attribute must be present at both levels:
+
+1. **Parent Property** - The containing property must have `[TrackChange]`
+2. **Child Properties** - Individual properties within nested objects must also have `[TrackChange]`
+
+If the parent property lacks `[TrackChange]`, no changes within that object will be tracked, even if child properties have the attribute.
+
+### Change Event Auditing
+
+When properties decorated with `[TrackChange]` are modified, the system:
+
+1. **Captures Change Details** - Records the property path, old value, and new value for each modification
+2. **Generates Property Changes** - Creates an array of `PropertyChange` objects containing the audit trail
+3. **Persists with Item Events** - Includes the property changes in the event object that is saved alongside the item
+
+**Example Property Change:**
+```json
+{
+  "PropertyName": "/settings/value",
+  "OldValue": "old configuration",
+  "NewValue": "new configuration"
+}
+```
+
+### Security and Privacy Considerations
+
+**Important:** Property change tracking captures and persists the actual values (both old and new) in the audit trail. This provides detailed auditing capabilities but may expose sensitive information:
+
+- **Data Exposure** - Old and new values are stored in plain text in the event log
+- **Compliance Risk** - May conflict with data privacy regulations (GDPR, CCPA) for sensitive data
+- **Access Control** - Event logs may be accessible to administrators or auditors
+
+**Recommendations:**
+- Use `[TrackChange]` judiciously on sensitive properties
+- Consider omitting the attribute from properties containing PII, credentials, or confidential data
+- Implement appropriate access controls for event logs and audit trails
 
 ## Encrypting Properties with the EncryptAttribute
 
@@ -419,7 +476,18 @@ public class CustomerItem : BaseItem, ICustomerItem
 
 Properties marked with `[Encrypt]` are automatically encrypted before storage and decrypted when retrieved. This ensures that sensitive data remains protected at rest in the data store.
 
-**Note:** Property change tracking is automatically disabled for properties that have the `[Encrypt]` attribute. This prevents sensitive data from being included in change history logs.
+### Encryption and Change Tracking Interaction
+
+**Important:** When both `[Encrypt]` and `[TrackChange]` are specified on a property:
+
+- **Storage** - The property value is encrypted when saved to the data store
+- **Change Tracking** - Property changes are captured with **unencrypted** old and new values in the audit trail
+- **Security Risk** - This exposes sensitive data in plain text within the event logs
+
+**Recommendations for Sensitive Data:**
+- **Use only `[Encrypt]`** - For maximum security, omit `[TrackChange]` on encrypted properties
+- **Risk Assessment** - If audit trails are required, ensure event logs have appropriate access controls
+- **Compliance** - Consider data privacy regulations when tracking changes to encrypted properties
 
 The `EncryptionService` uses:
 - Authenticated encryption with AES-GCM

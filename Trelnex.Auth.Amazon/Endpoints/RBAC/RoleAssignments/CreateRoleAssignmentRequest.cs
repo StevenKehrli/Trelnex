@@ -1,5 +1,6 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json.Serialization;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
 
@@ -24,7 +25,7 @@ public record CreateRoleAssignmentRequest
     /// This is typically an API or service name that the principal needs to access.
     /// The resource must exist in the system before role assignments can be created for it.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -36,7 +37,7 @@ public record CreateRoleAssignmentRequest
     /// Common examples include "Reader", "Writer", or "Administrator".
     /// The role must exist for the specified resource before it can be assigned.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 
@@ -48,7 +49,7 @@ public record CreateRoleAssignmentRequest
     /// identity provider's unique identifier for the entity. This is the subject that will
     /// receive the permissions defined by the role.
     /// </remarks>
-    [JsonPropertyName("principalId")]
+    [FromQuery(Name = "principalId")]
     [SwaggerSchema("The principal id.", Nullable = false)]
     public required string PrincipalId { get; init; }
 

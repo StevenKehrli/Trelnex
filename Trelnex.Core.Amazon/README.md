@@ -12,8 +12,8 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 ## Key Features
 
-- **Data Access Integration** - DynamoDB and PostgreSQL command providers for the Trelnex.Core.Data system
-- **Command Provider Factories** - Simplified registration of AWS-based data stores
+- **Data Access Integration** - DynamoDB and PostgreSQL data providers for the Trelnex.Core.Data system
+- **Data Provider Factories** - Simplified registration of AWS-based data stores
 - **AWS Identity Integration** - Managed credential handling for AWS services with automatic token refresh
 - **Query Translation** - LINQ to DynamoDB expression conversion for strongly-typed queries
 
@@ -21,11 +21,11 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 Trelnex.Core.Amazon bridges the gap between the Trelnex framework and AWS services, providing implementations that follow the patterns and interfaces defined in the core libraries while leveraging AWS-specific functionality.
 
-## CommandProviders
+## DataProviders
 
-The library includes command providers for AWS data services that implement the `ICommandProvider` interface from Trelnex.Core.Data.
+The library includes data providers for AWS data services that implement the `IDataProvider` interface from Trelnex.Core.Data.
 
-### DynamoCommandProvider - DynamoDB
+### DynamoDataProvider - DynamoDB
 
 <details>
 
@@ -33,11 +33,11 @@ The library includes command providers for AWS data services that implement the 
 
 &nbsp;
 
-`DynamoCommandProvider` is an `ICommandProvider` that uses Amazon DynamoDB as a backing store, providing scalable, highly available NoSQL database capabilities.
+`DynamoDataProvider` is an `IDataProvider` that uses Amazon DynamoDB as a backing store, providing scalable, highly available NoSQL database capabilities.
 
-#### DynamoCommandProvider - Dependency Injection
+#### DynamoDataProvider - Dependency Injection
 
-The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate configures the necessary `ICommandProvider` instances for the application.
+The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
     public static void Add(
@@ -54,16 +54,16 @@ The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>`
             .AddAmazonIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddDynamoCommandProviders(
+            .AddDynamoDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 
 ```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
+    public static IDataProviderOptions AddUsersDataProviders(
+        this IDataProviderOptions options)
     {
         return options
             .Add<IUser, User>(
@@ -73,12 +73,12 @@ The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>`
     }
 ```
 
-#### DynamoCommandProvider - Configuration
+#### DynamoDataProvider - Configuration
 
-`appsettings.json` specifies the configuration of a `DynamoCommandProvider`. Values like region can be sourced from environment variables for security.
+`appsettings.json` specifies the configuration of a `DynamoDataProvider`. Values like region can be sourced from environment variables for security.
 
 ```json
-  "Amazon.DynamoCommandProviders": {
+  "Amazon.DynamoDataProviders": {
     "Region": "FROM_ENV",
     "Tables": {
       "test-item": {
@@ -94,7 +94,7 @@ The `AddDynamoCommandProviders` method takes a `Action<ICommandProviderOptions>`
 
 The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
-#### DynamoCommandProvider - Table Schema
+#### DynamoDataProvider - Table Schema
 
 The DynamoDB table must follow these requirements:
 - Partition key = `partitionKey (S)` - String type partition key
@@ -102,7 +102,7 @@ The DynamoDB table must follow these requirements:
 - Standard properties from `BaseItem` are mapped to appropriate attributes
 - Custom properties are serialized according to JSON property name attributes
 
-#### DynamoCommandProvider - Query Model
+#### DynamoDataProvider - Query Model
 
 The `QueryHelper<T>` class provides LINQ to DynamoDB expression translation:
 
@@ -128,7 +128,7 @@ The query translation supports:
 
 </details>
 
-### PostgresCommandProvider - PostgreSQL with IAM Authentication
+### PostgresDataProvider - PostgreSQL with IAM Authentication
 
 <details>
 
@@ -136,11 +136,11 @@ The query translation supports:
 
 &nbsp;
 
-`PostgresCommandProvider` is an `ICommandProvider` that uses Amazon RDS for PostgreSQL as a backing store, providing relational database capabilities with AWS IAM authentication.
+`PostgresDataProvider` is an `IDataProvider` that uses Amazon RDS for PostgreSQL as a backing store, providing relational database capabilities with AWS IAM authentication.
 
-#### PostgresCommandProvider - Dependency Injection
+#### PostgresDataProvider - Dependency Injection
 
-The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate configures the necessary `ICommandProvider` instances for the application.
+The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
     public static void Add(
@@ -157,16 +157,16 @@ The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions
             .AddAmazonIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddPostgresCommandProviders(
+            .AddPostgresDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 
 ```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
+    public static IDataProviderOptions AddUsersDataProviders(
+        this IDataProviderOptions options)
     {
         return options
             .Add<IUser, User>(
@@ -176,12 +176,12 @@ The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions
     }
 ```
 
-#### PostgresCommandProvider - Configuration
+#### PostgresDataProvider - Configuration
 
-`appsettings.json` specifies the configuration of a `PostgresCommandProvider`. Connection information can be securely loaded from environment variables.
+`appsettings.json` specifies the configuration of a `PostgresDataProvider`. Connection information can be securely loaded from environment variables.
 
 ```json
-  "Amazon.PostgresCommandProviders": {
+  "Amazon.PostgresDataProviders": {
     "Host": "FROM_ENV",
     "Database": "trelnex-core-data-tests",
     "DbUser": "FROM_ENV",
@@ -199,7 +199,7 @@ The `AddPostgresCommandProviders` method takes a `Action<ICommandProviderOptions
 
 The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
-#### PostgresCommandProvider - Item Schema
+#### PostgresDataProvider - Item Schema
 
 The table for the items must follow the following schema:
 
@@ -220,7 +220,7 @@ CREATE TABLE "test-items" (
 );
 ```
 
-#### PostgresCommandProvider - Event Schema
+#### PostgresDataProvider - Event Schema
 
 The table for the events must use the following schema to track changes:
 
@@ -246,7 +246,7 @@ CREATE TABLE "test-items-events" (
 );
 ```
 
-#### PostgresCommandProvider - Item Trigger
+#### PostgresDataProvider - Item Trigger
 
 The following trigger must exist to check and update the item ETag for optimistic concurrency control:
 
@@ -270,7 +270,7 @@ BEFORE INSERT OR UPDATE ON "test-items"
 FOR EACH ROW EXECUTE FUNCTION update_test_items_etag();
 ```
 
-#### PostgresCommandProvider - Event Trigger
+#### PostgresDataProvider - Event Trigger
 
 The following trigger must exist to update the event ETag:
 
@@ -288,7 +288,7 @@ BEFORE INSERT OR UPDATE ON "test-items-events"
 FOR EACH ROW EXECUTE FUNCTION update_test_items_events_etag();
 ```
 
-#### PostgresCommandProvider - IAM Authentication
+#### PostgresDataProvider - IAM Authentication
 
 The provider uses AWS IAM authentication to connect to RDS PostgreSQL instances. Instead of storing static passwords, it generates dynamic authentication tokens using AWS credentials:
 

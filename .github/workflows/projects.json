@@ -31,6 +31,7 @@
       "dotnet_version": "9.0.x",
       "workflows": [ "build", "nuget" ],
       "tag_prefix": "trelnex-core-",
+      "tests": "Trelnex.Core.Tests",
       "paths": [
           "Trelnex.Core/**"
       ]

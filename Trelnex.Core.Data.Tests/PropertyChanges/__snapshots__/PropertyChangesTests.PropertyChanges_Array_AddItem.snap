@@ -1,0 +1,17 @@
+﻿[
+  {
+    "PropertyName": "/trackedSettingsArray/2/primaryValue",
+    "OldValue": null,
+    "NewValue": "Primary Value #3"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/2/secondaryValue",
+    "OldValue": null,
+    "NewValue": "Secondary Value #3"
+  },
+  {
+    "PropertyName": "/trackedSettingsArray/2/settingId",
+    "OldValue": null,
+    "NewValue": 103
+  }
+]

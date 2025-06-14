@@ -5,7 +5,7 @@
     "RelatedTypeName": "test-item",
     "Changes": [
       {
-        "PropertyName": "publicId",
+        "PropertyName": "/publicId",
         "OldValue": {
           "ValueKind": "Number"
         },
@@ -14,24 +14,24 @@
         }
       },
       {
-        "PropertyName": "publicMessage",
+        "PropertyName": "/publicMessage",
         "OldValue": null,
         "NewValue": {
           "ValueKind": "String"
         }
       }
     ],
-    "TraceContext": "00-25a13aa765905d990a8b883a77520407-5a14a3b66d3cbec4-01",
-    "TraceId": "25a13aa765905d990a8b883a77520407",
-    "SpanId": "5a14a3b66d3cbec4",
-    "Id": "87d023a3-f484-4872-a066-0fd6493e279a",
+    "TraceContext": "00-2c446caea7f38a2ea287c3fba4d6678d-c3d82d710ef78f3e-01",
+    "TraceId": "2c446caea7f38a2ea287c3fba4d6678d",
+    "SpanId": "c3d82d710ef78f3e",
+    "Id": "350d237d-e476-4f7d-80ca-a31a7e6e8b27",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-05-21T04:56:31.972684+00:00",
-    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.972684+00:00",
+    "CreatedDateTimeOffset": "2025-06-14T03:29:46.6896+00:00",
+    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.6896+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "7322f051-bda0-4b84-9ac0-a7fe4f4a4ec1"
+    "ETag": "6938ab63-ba9d-4e0b-9714-a8a092c232df"
   },
   {
     "SaveAction": "UPDATED",
@@ -39,7 +39,7 @@
     "RelatedTypeName": "test-item",
     "Changes": [
       {
-        "PropertyName": "publicId",
+        "PropertyName": "/publicId",
         "OldValue": {
           "ValueKind": "Number"
         },
@@ -48,7 +48,7 @@
         }
       },
       {
-        "PropertyName": "publicMessage",
+        "PropertyName": "/publicMessage",
         "OldValue": {
           "ValueKind": "String"
         },
@@ -57,16 +57,16 @@
         }
       }
     ],
-    "TraceContext": "00-25a13aa765905d990a8b883a77520407-5a14a3b66d3cbec4-01",
-    "TraceId": "25a13aa765905d990a8b883a77520407",
-    "SpanId": "5a14a3b66d3cbec4",
-    "Id": "85886f6f-6fee-4e71-82e9-674cdf1391a8",
+    "TraceContext": "00-2c446caea7f38a2ea287c3fba4d6678d-c3d82d710ef78f3e-01",
+    "TraceId": "2c446caea7f38a2ea287c3fba4d6678d",
+    "SpanId": "c3d82d710ef78f3e",
+    "Id": "f0b0a900-7012-4558-8819-36a9b41354c6",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-05-21T04:56:31.973464+00:00",
-    "UpdatedDateTimeOffset": "2025-05-21T04:56:31.973464+00:00",
+    "CreatedDateTimeOffset": "2025-06-14T03:29:46.689756+00:00",
+    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.689756+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "131ef884-cb0e-4613-877a-81dede44835b"
+    "ETag": "6a57e6a7-c00b-4f7c-91ff-67779b9bda8b"
   }
 ]

@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record GetRoleAssignmentRequest
     /// This is typically an API or service name for which you want to see all principals
     /// that have been assigned a specific role.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -37,7 +37,7 @@ public record GetRoleAssignmentRequest
     /// This request will return all principals that have been assigned this role
     /// for the specified resource, potentially across different scopes.
     /// </remarks>
-    [JsonPropertyName("roleName")]
+    [FromQuery(Name = "roleName")]
     [SwaggerSchema("The name of the role.", Nullable = false)]
     public required string RoleName { get; init; }
 

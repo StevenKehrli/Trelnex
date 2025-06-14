@@ -14,7 +14,8 @@ public class SwaggerTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/swagger/v1/swagger.json");
 
         // Send the request to the swagger endpoint
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
         Assert.That(response, Is.Not.Null);
 
         // Read the content of the response and verify it's not empty

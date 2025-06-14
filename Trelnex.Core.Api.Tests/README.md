@@ -39,7 +39,7 @@ The framework includes tests for several key areas:
 3. **Exception Tests**: Ensure proper error handling and status codes
 4. **HealthCheck Tests**: Verify API health endpoint functionality
 5. **Swagger Tests**: Validate API documentation generation
-6. **CommandProvider Tests**: Test in-memory command provider functionality
+6. **DataProvider Tests**: Test in-memory data provider functionality
 
 ## Technical Design
 

@@ -60,10 +60,7 @@ internal static class CreateScopeAssignmentEndpoint
     /// Handles requests to the Create Scope Assignment endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="scopeNameValidator">Validates scope name format and compliance.</param>
-    /// <param name="roleNameValidator">Validates role name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing principal, resource, and scope information.</param>
+    /// <param name="request">The request body containing principal, resource, and scope information.</param>
     /// <returns>A response containing the principal's updated scope assignments after creating the assignment.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as missing principal ID,

@@ -14,7 +14,8 @@ public class HealthChecksTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/healthz");
 
         // Send the request to the healthz endpoint
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
         Assert.That(response, Is.Not.Null);
 
         // Read the content of the response

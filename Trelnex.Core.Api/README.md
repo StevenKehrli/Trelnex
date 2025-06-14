@@ -89,16 +89,16 @@ The configuration system uses a layered approach with well-defined precedence:
 3. User-specific settings (`appsettings.User.json`) for local development
 4. Environment variables (highest precedence)
 
-### Command Provider Integration
+### Data Provider Integration
 
-The framework integrates with Trelnex.Core.Data command providers for data access:
+The framework integrates with Trelnex.Core.Data data providers for data access:
 
 ```csharp
-// Register command provider factories
-services.AddInMemoryCommandProviders(
+// Register data provider factories
+services.AddInMemoryDataProviders(
     configuration,
     logger,
-    options => options.AddCustomerCommandProviders());
+    options => options.AddCustomerDataProviders());
 ```
 
 ## Configuration
@@ -242,7 +242,7 @@ public class YourService
 
 - **Custom Authentication**: Extend `JwtBearerPermission` or `MicrosoftIdentityPermission`
 - **Typed HTTP Clients**: Implement `IClientFactory<T>` for custom client creation logic
-- **Command Providers**: Register custom command provider factories for data access
+- **Data Providers**: Register custom data provider factories for data access
 
 ## Related Libraries
 

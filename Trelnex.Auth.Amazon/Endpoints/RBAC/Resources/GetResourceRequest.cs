@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -25,7 +25,7 @@ public record GetResourceRequest
     /// from the RBAC system. This is the primary key used to locate the resource entity.
     /// If no resource with this name exists, a 404 Not Found response will typically be returned.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 

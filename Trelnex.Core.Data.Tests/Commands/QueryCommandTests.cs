@@ -13,14 +13,15 @@ public class QueryCommandTests
         var id2 = "46046bff-12ff-42bc-850a-50da59e264c3";
         var partitionKey2 = "0ab56811-b146-4465-948e-3c0816021954";
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -31,7 +32,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -43,10 +44,10 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return both items
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -62,14 +63,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -81,13 +83,13 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.Where(i => i.PublicMessage == "Public #1");
 
         var cts = new CancellationTokenSource();
 
         // create the async enumerable
-        var enumerable = queryCommand.ToAsyncEnumerable().WithCancellation(cts.Token);
+        var enumerable = queryCommand.ToAsyncDisposableEnumerable().WithCancellation(cts.Token);
 
         // but cancel
         await cts.CancelAsync();
@@ -107,14 +109,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -125,7 +128,7 @@ public class QueryCommandTests
         var created = (await createCommand.SaveAsync(
             cancellationToken: default))!;
 
-        var deleteCommand = await commandProvider.DeleteAsync(
+        using var deleteCommand = await dataProvider.DeleteAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -134,10 +137,10 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return no items
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(read);
     }
@@ -151,14 +154,15 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -169,7 +173,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -181,11 +185,11 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.OrderBy(i => i.PublicMessage);
 
         // should return first item first
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -206,14 +210,15 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -224,7 +229,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -236,11 +241,11 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.OrderByDescending(i => i.PublicMessage);
 
         // should return second item first
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -258,14 +263,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -277,19 +283,19 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return item
-        var reads = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.Multiple(() =>
         {
             Assert.Throws<InvalidOperationException>(
-                () => reads[0].Item.PublicMessage = "Public #2",
+                () => read[0].Item.PublicMessage = "Public #2",
                 $"The '{typeof(ITestItem)}' is read-only");
 
             Assert.Throws<InvalidOperationException>(
-                () => reads[0].Item.PrivateMessage = "Private #2",
+                () => read[0].Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
         });
     }
@@ -303,14 +309,15 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -321,7 +328,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -333,11 +340,11 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.OrderBy(i => i.PublicMessage).Skip(1);
 
         // should return second item
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -358,14 +365,15 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -376,7 +384,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -388,11 +396,11 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.OrderBy(i => i.PublicMessage).Take(1);
 
         // should return first item
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -413,14 +421,15 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand1 = commandProvider.Create(
+        using var createCommand1 = dataProvider.Create(
             id: id1,
             partitionKey: partitionKey1);
 
@@ -431,7 +440,7 @@ public class QueryCommandTests
         await createCommand1.SaveAsync(
             cancellationToken: default);
 
-        var createCommand2 = commandProvider.Create(
+        using var createCommand2 = dataProvider.Create(
             id: id2,
             partitionKey: partitionKey2);
 
@@ -443,11 +452,11 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
         queryCommand.Where(i => i.PublicMessage == "Public #1");
 
         // should return first item
-        var read = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read,
@@ -465,14 +474,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -484,18 +494,18 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and delete
-        var deleteCommand = read1[0].Delete();
+        using var deleteCommand = read1[0].Delete();
 
-        var result = await deleteCommand.SaveAsync(
+        using var result = await deleteCommand.SaveAsync(
             cancellationToken: default);
 
         Snapshot.Match(
@@ -509,7 +519,7 @@ public class QueryCommandTests
                 .IgnoreField("**.ETag"));
 
         // should return empty
-        var read2 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read2 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read2, Is.Not.Null);
         Assert.That(read2, Has.Length.EqualTo(0));
@@ -521,14 +531,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -540,16 +551,16 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and delete
-        var deleteCommand = read1[0].Delete();
+        using var deleteCommand = read1[0].Delete();
 
         // try to delete again
         Assert.Throws<InvalidOperationException>(
@@ -563,14 +574,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -582,16 +594,16 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and delete
-        var deleteCommand = read1[0].Delete();
+        using var deleteCommand = read1[0].Delete();
 
         // try to update
         Assert.Throws<InvalidOperationException>(
@@ -605,14 +617,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -624,25 +637,25 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and update
-        var updateCommand = read1[0].Update();
+        using var updateCommand = read1[0].Update();
 
         updateCommand.Item.PublicMessage = "Public #2";
         updateCommand.Item.PrivateMessage = "Private #2";
 
-        var result = await updateCommand.SaveAsync(
+        using var result = await updateCommand.SaveAsync(
             cancellationToken: default);
 
         // should return empty
-        var read2 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read2 = await queryCommand.ToDisposableEnumerableAsync();
 
         Snapshot.Match(
             read2,
@@ -652,7 +665,6 @@ public class QueryCommandTests
                 .IgnoreField("**.CreatedDateTimeOffset")
                 .IgnoreField("**.UpdatedDateTimeOffset")
                 .IgnoreField("**.ETag"));
-
     }
 
     [Test]
@@ -661,14 +673,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -680,16 +693,16 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and update
-        var updateCommand = read1[0].Update();
+        using var updateCommand = read1[0].Update();
 
         // try to delete
         Assert.Throws<InvalidOperationException>(
@@ -703,14 +716,15 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -722,16 +736,16 @@ public class QueryCommandTests
             cancellationToken: default);
 
         // query
-        var queryCommand = commandProvider.Query();
+        var queryCommand = dataProvider.Query();
 
         // should return first item
-        var read1 = await queryCommand.ToAsyncEnumerable().ToArrayAsync();
+        using var read1 = await queryCommand.ToDisposableEnumerableAsync();
 
         Assert.That(read1, Is.Not.Null);
         Assert.That(read1, Has.Length.EqualTo(1));
 
         // get the first item and update
-        var updateCommand = read1[0].Update();
+        using var updateCommand = read1[0].Update();
 
         // try to update again
         Assert.Throws<InvalidOperationException>(

@@ -12,19 +12,19 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 ## Key Features
 
-- **Data Access Integration** - SQL Server and Cosmos DB command providers for the Trelnex.Core.Data system
-- **Command Provider Factories** - Simplified registration of Azure-based data stores
+- **Data Access Integration** - SQL Server and Cosmos DB data providers for the Trelnex.Core.Data system
+- **Data Provider Factories** - Simplified registration of Azure-based data stores
 - **Azure Identity Integration** - Managed credential handling for Azure services with automatic token refresh
 
 ## Overview
 
 Trelnex.Core.Azure bridges the gap between the Trelnex framework and Azure services, providing implementations that follow the patterns and interfaces defined in the core libraries while leveraging Azure-specific functionality.
 
-## CommandProviders
+## DataProviders
 
-The library includes command providers for Azure data services that implement the `ICommandProvider` interface from Trelnex.Core.Data.
+The library includes data providers for Azure data services that implement the `IDataProvider` interface from Trelnex.Core.Data.
 
-### CosmosCommandProvider - CosmosDB NoSQL
+### CosmosDataProvider - CosmosDB NoSQL
 
 <details>
 
@@ -32,11 +32,11 @@ The library includes command providers for Azure data services that implement th
 
 &nbsp;
 
-`CosmosCommandProvider` is an `ICommandProvider` that uses Azure Cosmos DB NoSQL API as a backing store, providing scalable, globally distributed data access.
+`CosmosDataProvider` is an `IDataProvider` that uses Azure Cosmos DB NoSQL API as a backing store, providing scalable, globally distributed data access.
 
-#### CosmosCommandProvider - Dependency Injection
+#### CosmosDataProvider - Dependency Injection
 
-The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate configures the necessary `ICommandProvider` instances for the application.
+The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
     public static void Add(
@@ -53,16 +53,16 @@ The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>`
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddCosmosCommandProviders(
+            .AddCosmosDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 
 ```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
+    public static IDataProviderOptions AddUsersDataProviders(
+        this IDataProviderOptions options)
     {
         return options
             .Add<IUser, User>(
@@ -72,12 +72,12 @@ The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>`
     }
 ```
 
-#### CosmosCommandProvider - Configuration
+#### CosmosDataProvider - Configuration
 
-`appsettings.json` specifies the configuration of a `CosmosCommandProvider`. Values like connection strings can be sourced from environment variables for security.
+`appsettings.json` specifies the configuration of a `CosmosDataProvider`. Values like connection strings can be sourced from environment variables for security.
 
 ```json
-  "Azure.CosmosCommandProviders": {
+  "Azure.CosmosDataProviders": {
     "EndpointUri": "FROM_ENV",
     "DatabaseId": "trelnex-core-data-tests",
     "Containers": {
@@ -94,7 +94,7 @@ The `AddCosmosCommandProviders` method takes a `Action<ICommandProviderOptions>`
 
 The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
-#### CosmosCommandProvider - Container Schema
+#### CosmosDataProvider - Container Schema
 
 The document schema in Cosmos DB follows these conventions:
   - Document id = `/id`
@@ -104,7 +104,7 @@ The document schema in Cosmos DB follows these conventions:
 
 </details>
 
-### SqlCommandProvider - SQL Server
+### SqlDataProvider - SQL Server
 
 <details>
 
@@ -112,11 +112,11 @@ The document schema in Cosmos DB follows these conventions:
 
 &nbsp;
 
-`SqlCommandProvider` is an `ICommandProvider` that uses Azure SQL Database or SQL Server as a backing store, providing relational database capabilities while maintaining the same command-based interface.
+`SqlDataProvider` is an `IDataProvider` that uses Azure SQL Database or SQL Server as a backing store, providing relational database capabilities while maintaining the same command-based interface.
 
-#### SqlCommandProvider - Dependency Injection
+#### SqlDataProvider - Dependency Injection
 
-The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate configures the necessary `ICommandProvider` instances for the application.
+The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
     public static void Add(
@@ -133,16 +133,16 @@ The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `c
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddSqlCommandProviders(
+            .AddSqlDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 
 ```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
+    public static IDataProviderOptions AddUsersDataProviders(
+        this IDataProviderOptions options)
     {
         return options
             .Add<IUser, User>(
@@ -152,12 +152,12 @@ The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `c
     }
 ```
 
-#### SqlCommandProvider - Configuration
+#### SqlDataProvider - Configuration
 
-`appsettings.json` specifies the configuration of a `SqlCommandProvider`. Connection strings can be securely loaded from environment variables.
+`appsettings.json` specifies the configuration of a `SqlDataProvider`. Connection strings can be securely loaded from environment variables.
 
 ```json
-  "Azure.SqlCommandProviders": {
+  "Azure.SqlDataProviders": {
     "DataSource": "FROM_ENV",
     "InitialCatalog": "trelnex-core-data-tests",
     "Tables": {
@@ -174,7 +174,7 @@ The `AddSqlCommandProviders` method takes a `Action<ICommandProviderOptions>` `c
 
 The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
-#### SqlCommandProvider - Item Schema
+#### SqlDataProvider - Item Schema
 
 The table for the items must follow the following schema.
 
@@ -195,7 +195,7 @@ CREATE TABLE [test-items] (
 );
 ```
 
-#### SqlCommandProvider - Event Schema
+#### SqlDataProvider - Event Schema
 
 The table for the events must use the following schema to track changes.
 
@@ -221,7 +221,7 @@ CREATE TABLE [test-items-events] (
 );
 ```
 
-#### SqlCommandProvider - Item Trigger
+#### SqlDataProvider - Item Trigger
 
 The following trigger must exist to check and update the item ETag for optimistic concurrency control.
 
@@ -251,7 +251,7 @@ BEGIN
 END;
 ```
 
-#### SqlCommandProvider - Event Trigger
+#### SqlDataProvider - Event Trigger
 
 The following trigger must exist to update the event ETag.
 

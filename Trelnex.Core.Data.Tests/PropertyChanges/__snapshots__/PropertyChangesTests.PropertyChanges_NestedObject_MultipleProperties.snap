@@ -1,0 +1,12 @@
+﻿[
+  {
+    "PropertyName": "/trackedSettingsWithAttribute/primaryValue",
+    "OldValue": "Primary Value #1",
+    "NewValue": "Primary Value #2"
+  },
+  {
+    "PropertyName": "/trackedSettingsWithAttribute/settingId",
+    "OldValue": 101,
+    "NewValue": 201
+  }
+]

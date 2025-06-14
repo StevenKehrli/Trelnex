@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record CreateScopeAssignmentRequest
     /// This is typically an API or service name that the principal needs to access.
     /// The resource must exist in the system before scope assignments can be created for it.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -36,7 +36,7 @@ public record CreateScopeAssignmentRequest
     /// Common examples include "Global", "Department", or "Project".
     /// The scope must exist for the specified resource before it can be assigned.
     /// </remarks>
-    [JsonPropertyName("scopeName")]
+    [FromQuery(Name = "scopeName")]
     [SwaggerSchema("The name of the scope.", Nullable = false)]
     public required string ScopeName { get; init; }
 
@@ -48,7 +48,7 @@ public record CreateScopeAssignmentRequest
     /// identity provider's unique identifier for the entity. This is the subject that will
     /// receive the scope boundaries defined by the scope.
     /// </remarks>
-    [JsonPropertyName("principalId")]
+    [FromQuery(Name = "principalId")]
     [SwaggerSchema("The principal id.", Nullable = false)]
     public required string PrincipalId { get; init; }
 

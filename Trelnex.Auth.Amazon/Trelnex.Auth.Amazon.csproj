@@ -11,8 +11,8 @@
     <ItemGroup>
         <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.0" />
         <PackageReference Include="JWT" Version="11.0.0" />
-        <PackageReference Include="PostSharp" Version="2025.1.4" PrivateAssets="All" />
-        <PackageReference Include="Trelnex.Core.Amazon" Version="0.1.0" />
+        <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="0.1.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
     </ItemGroup>
 
 </Project>

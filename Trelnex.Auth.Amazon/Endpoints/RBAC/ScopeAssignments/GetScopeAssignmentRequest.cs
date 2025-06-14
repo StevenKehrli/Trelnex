@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;
@@ -24,7 +24,7 @@ public record GetScopeAssignmentRequest
     /// This is typically an API or service name for which you want to see all principals
     /// that have been assigned a specific scope.
     /// </remarks>
-    [JsonPropertyName("resourceName")]
+    [FromQuery(Name = "resourceName")]
     [SwaggerSchema("The name of the resource.", Nullable = false)]
     public required string ResourceName { get; init; }
 
@@ -37,7 +37,7 @@ public record GetScopeAssignmentRequest
     /// This request will return all principals that have been assigned this scope
     /// for the specified resource.
     /// </remarks>
-    [JsonPropertyName("scopeName")]
+    [FromQuery(Name = "scopeName")]
     [SwaggerSchema("The name of the scope.", Nullable = false)]
     public required string ScopeName { get; init; }
 

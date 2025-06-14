@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Core;
@@ -48,7 +47,6 @@ internal static class GetScopeAssignmentEndpoint
                 "/assignments/scopes",
                 HandleRequest)
             .RequirePermission<RBACPermission.RBACReadPolicy>()
-            .Accepts<GetScopeAssignmentRequest>(MediaTypeNames.Application.Json)
             .Produces<GetScopeAssignmentResponse>()
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized)
@@ -64,9 +62,7 @@ internal static class GetScopeAssignmentEndpoint
     /// Handles requests to the Get Scope Assignment endpoint.
     /// </summary>
     /// <param name="rbacRepository">The repository for Role-Based Access Control operations.</param>
-    /// <param name="resourceNameValidator">Validates resource name format and compliance.</param>
-    /// <param name="scopeNameValidator">Validates scope name format and compliance.</param>
-    /// <param name="parameters">The request parameters containing resource and scope information.</param>
+    /// <param name="request">The request parameters containing resource and scope information.</param>
     /// <returns>A response containing information about all principals assigned to the specified scope for the resource.</returns>
     /// <exception cref="ValidationException">
     /// Thrown when the request parameters fail validation, such as invalid resource name or scope name.
@@ -83,10 +79,9 @@ internal static class GetScopeAssignmentEndpoint
     /// </remarks>
     public static async Task<GetScopeAssignmentResponse> HandleRequest(
         [FromServices] IRBACRepository rbacRepository,
-        [FromBody] GetScopeAssignmentRequest? request)
+        [AsParameters] GetScopeAssignmentRequest request)
     {
         // Validate the request.
-        if (request is null) throw _validationException;
         if (request.ResourceName is null) throw _validationException;
         if (request.ScopeName is null) throw _validationException;
 

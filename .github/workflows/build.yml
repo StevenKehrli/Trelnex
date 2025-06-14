@@ -140,7 +140,7 @@ jobs:
               { tests: .tests, dotnet_version: .dotnet_version } ] |
               unique_by(.tests)
           ')
-          
+
           echo "test_matrix={\"component\":$(echo $TEST_PROJECTS)}" >> $GITHUB_OUTPUT
 
   build:

@@ -81,18 +81,30 @@ internal partial class RBACRepository
         var getItem = new ResourceItem(resourceName: normalizedResourceName!);
 
         // Attempt to retrieve the resource from DynamoDB.
-        var resourceItem = await GetAsync(
+        var resourceItemTask = GetAsync(
             getItem,
             ResourceItem.FromAttributeMap,
             cancellationToken);
 
+        var scopeNamesTask = GetScopesAsync(
+            resourceName: normalizedResourceName!,
+            cancellationToken: cancellationToken);
+
+        var roleNamesTask = GetRolesAsync(
+            resourceName: normalizedResourceName!,
+            cancellationToken: cancellationToken);
+
+        await Task.WhenAll(resourceItemTask, scopeNamesTask, roleNamesTask);
+
         // Return null if the resource does not exist.
-        if (resourceItem is null) return null;
+        if (resourceItemTask.Result is null) return null;
 
         // Convert the resource item to the public model.
         return new Resource
         {
-            ResourceName = resourceItem.ResourceName
+            ResourceName = resourceItemTask.Result.ResourceName,
+            ScopeNames = scopeNamesTask.Result,
+            RoleNames = roleNamesTask.Result
         };
     }
 

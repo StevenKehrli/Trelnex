@@ -16,7 +16,8 @@ public class AuthenticationTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/anonymous");
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns "anonymous"
         Assert.That(
@@ -32,7 +33,8 @@ public class AuthenticationTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy1");
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Unauthorized
         Assert.That(
@@ -48,7 +50,8 @@ public class AuthenticationTests : BaseApiTests
         var request = new HttpRequestMessage(HttpMethod.Get, "/testRolePolicy2");
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Unauthorized
         Assert.That(
@@ -78,7 +81,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -108,7 +112,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -137,7 +142,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -166,7 +172,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -195,7 +202,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Unauthorized
         Assert.That(
@@ -224,7 +232,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Unauthorized
         Assert.That(
@@ -253,7 +262,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -282,7 +292,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -311,7 +322,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -340,7 +352,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response status code is Forbidden
         Assert.That(
@@ -369,7 +382,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
@@ -402,7 +416,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
@@ -435,7 +450,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
@@ -468,7 +484,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
@@ -501,7 +518,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
@@ -533,7 +551,8 @@ public class AuthenticationTests : BaseApiTests
         request.Headers.Authorization = authorizationHeader;
 
         // Send the request
-        var response = await _httpClient.SendAsync(request);
+        using var httpClient = CreateAnonymousHttpClient();
+        var response = await httpClient.SendAsync(request);
 
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
