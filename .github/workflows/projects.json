@@ -33,7 +33,8 @@
       "tag_prefix": "trelnex-core-",
       "tests": "Trelnex.Core.Tests",
       "paths": [
-          "Trelnex.Core/**"
+          "Trelnex.Core/**",
+          "Trelnex.Core.Tests/**"
       ]
     },
     {
