@@ -19,17 +19,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -64,17 +64,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -104,17 +104,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -147,17 +147,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -191,17 +191,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -235,17 +235,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -271,17 +271,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -302,17 +302,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -336,17 +336,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -371,17 +371,17 @@ public class CreateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type with validator
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type with validator
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             validator: validator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

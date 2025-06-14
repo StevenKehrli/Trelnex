@@ -1,8 +1,10 @@
 ﻿{
   "resourceAfter": {
     "ResourceName": "urn://resource-getresource-withrole",
-    "ScopeNames": null,
-    "RoleNames": null
+    "ScopeNames": [],
+    "RoleNames": [
+      "role-getresource-withrole"
+    ]
   },
   "items": [
     {

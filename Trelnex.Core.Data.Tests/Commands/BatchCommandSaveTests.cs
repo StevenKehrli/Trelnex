@@ -10,16 +10,16 @@ public class BatchCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -28,7 +28,7 @@ public class BatchCommandSaveTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = commandProvider.Batch();
+        var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save the batch command (which also saves the contained create command)

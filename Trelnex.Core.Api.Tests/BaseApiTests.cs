@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Trelnex.Core.Api.Authentication;
-using Trelnex.Core.Api.CommandProviders;
+using Trelnex.Core.Api.DataProviders;
 using Trelnex.Core.Api.Swagger;
 using Trelnex.Core.Client;
 using Trelnex.Core.Identity;
@@ -119,7 +119,7 @@ public abstract class BaseApiTests
     ///    - TestServer for in-memory HTTP hosting
     ///    - Authentication services with TestPermission1 and TestPermission2
     ///    - Swagger documentation services
-    ///    - In-memory command providers for data operations
+    ///    - In-memory data providers for data operations
     ///
     /// 3. Endpoint Configuration - Defines various test endpoints:
     ///    - Authentication test endpoints (/anonymous, /testRolePolicy1, /testRolePolicy2)
@@ -176,10 +176,10 @@ public abstract class BaseApiTests
                     .AddPermissions<TestPermission1>(logger)
                     .AddPermissions<TestPermission2>(logger);
 
-                // Add Swagger and in-memory command providers for testing
+                // Add Swagger and in-memory data providers for testing
                 services
                     .AddSwaggerToServices()
-                    .AddInMemoryCommandProviders(
+                    .AddInMemoryDataProviders(
                         configuration,
                         logger,
                         options => { }); // No specific options for in-memory provider in base test

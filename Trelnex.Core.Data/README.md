@@ -28,13 +28,13 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 Trelnex.Core.Data is built around several core concepts:
 
-### Command Pattern
+### Data Provider Interface and Command Pattern
 
-The library uses the Command pattern to encapsulate data operations. Each command is an object that maintains its own state and handles validation and execution.
+The library uses the Command Pattern to encapsulate data operations. Each command is an object that maintains its own state and handles validation and execution.
 
-### Command Providers
+### Data Providers
 
-Command providers are the main entry point for generating commands to interact with data. They implement the `ICommandProvider<TInterface>` interface and determine which operations are permitted through the `CommandOperations` flags enum:
+Data providers are the main entry point for generating commands to interact with data. They implement the `IDataProvider<TInterface>` interface and determine which operations are permitted through the `DataOperations` flags enum:
 
 - **Read** - Default permission, allows read operations only
 - **Create** - Allows creation of new items
@@ -84,7 +84,7 @@ See [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-
 
 ## Usage
 
-The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryCommandProvider<TInterface, TItem>`. In practice, the ASP.NET startup will inject a singleton of `ICommandProvider<TInterface, TItem>` for each requested type name.
+The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryDataProvider<TInterface, TItem>`. In practice, the ASP.NET startup will inject a singleton of `IDataProvider<TInterface, TItem>` for each requested type name.
 
 ### Create
 
@@ -94,14 +94,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Allow all operations
 
 // Create an ISaveCommand<ITestItem> to create the item
-using var createCommand = commandProvider.Create(
+using var createCommand = dataProvider.Create(
     id: id,
     partitionKey: partitionKey);
 
@@ -128,13 +128,13 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName);
 
 // Get the IReadResult<TItem>
-using var result = await commandProvider.ReadAsync(
+using var result = await dataProvider.ReadAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -150,14 +150,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Need Update permission
 
 // Create an ISaveCommand<ITestItem> to update the item
-using var updateCommand = await commandProvider.UpdateAsync(
+using var updateCommand = await dataProvider.UpdateAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -186,14 +186,14 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All); // Need Delete permission
 
 // Create an ISaveCommand<ITestItem> to delete the item
-using var deleteCommand = await commandProvider.DeleteAsync(
+using var deleteCommand = await dataProvider.DeleteAsync(
     id: id,
     partitionKey: partitionKey);
 
@@ -215,13 +215,13 @@ using var result = await deleteCommand.SaveAsync(
 using Trelnex.Core.Data;
 using Trelnex.Core.Disposables;
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName);
 
 // Build the query with LINQ expressions
-var queryCommand = commandProvider.Query();
+var queryCommand = dataProvider.Query();
 queryCommand.Where(i => i.PublicMessage == "Public #1");
 
 // Option 1: Lazy async enumeration - items materialized one by one
@@ -246,22 +246,22 @@ foreach (var item in eagerResults)
 ```csharp
 using Trelnex.Core.Data;
 
-// Create our ICommandProvider<ITestItem, TestItem>
-var commandProvider =
-    InMemoryCommandProvider.Create<ITestItem, TestItem>(
+// Create our IDataProvider<ITestItem, TestItem>
+var dataProvider =
+    InMemoryDataProvider.Create<ITestItem, TestItem>(
         typeName: _typeName,
         commandOperations: CommandOperations.All);
 
 // Create a batch command
-var batchCommand = commandProvider.Batch();
+var batchCommand = dataProvider.Batch();
 
 // Create commands to add to the batch (all must have the same partitionKey)
-var createCommand1 = commandProvider.Create(
+var createCommand1 = dataProvider.Create(
     id: "id1",
     partitionKey: partitionKey);
 createCommand1.Item.PublicMessage = "Public #1";
 
-var createCommand2 = commandProvider.Create(
+var createCommand2 = dataProvider.Create(
     id: "id2",
     partitionKey: partitionKey);
 createCommand2.Item.PublicMessage = "Public #2";
@@ -287,34 +287,17 @@ var results = await batchCommand.SaveAsync(
 // If any operation fails, the entire batch is rolled back
 ```
 
-## Dependency Injection
+## Creating Custom Data Providers
 
-To use Trelnex.Core.Data with dependency injection in ASP.NET Core:
-
-```csharp
-using Trelnex.Core.Data;
-
-// Register the command provider factory
-services.AddCommandProviderFactory(
-    new YourCommandProviderFactory());
-
-// Optional - register specific command providers
-services.AddSingleton<ICommandProvider<IUser, User>>(
-    serviceProvider => serviceProvider.GetRequiredService<ICommandProviderFactory>()
-        .CreateCommandProvider<IUser, User>("user"));
-```
-
-## Creating Custom Command Providers
-
-To implement your own data store, create a custom command provider:
+To implement your own data store, create a custom data provider:
 
 ```csharp
-public class CustomCommandProvider<TInterface, TItem>
-    : CommandProvider<TInterface, TItem>
+public class CustomDataProvider<TInterface, TItem>
+    : DataProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
-    public CustomCommandProvider(
+    public CustomDataProvider(
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null)
@@ -351,14 +334,14 @@ public class CustomCommandProvider<TInterface, TItem>
     }
 }
 
-public class CustomCommandProviderFactory : ICommandProviderFactory
+public class CustomDataProviderFactory : IDataProviderFactory
 {
-    public ICommandProvider<TInterface, TItem> CreateCommandProvider<TInterface, TItem>(
+    public IDataProvider<TInterface, TItem> CreateDataProvider<TInterface, TItem>(
         string typeName)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
-        return new CustomCommandProvider<TInterface, TItem>(
+        return new CustomDataProvider<TInterface, TItem>(
             typeName,
             validator: GetValidator<TItem>(),
             commandOperations: CommandOperations.All);

@@ -21,33 +21,33 @@
         }
       }
     ],
-    "TraceContext": "00-1a7b6ad7c9498a523a91ac42960a1a13-c0680b7b0907b62b-01",
-    "TraceId": "1a7b6ad7c9498a523a91ac42960a1a13",
-    "SpanId": "c0680b7b0907b62b",
-    "Id": "6d0148ac-ccff-42b1-9063-56073fbcd683",
+    "TraceContext": "00-ed1340a23ab8fd05354e2dd33dd66e2b-6ab659ec309dd8ca-01",
+    "TraceId": "ed1340a23ab8fd05354e2dd33dd66e2b",
+    "SpanId": "6ab659ec309dd8ca",
+    "Id": "7299b06f-18c6-4b65-af80-7b2d7f999b49",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-06-10T23:54:13.611849+00:00",
-    "UpdatedDateTimeOffset": "2025-06-10T23:54:13.611849+00:00",
+    "CreatedDateTimeOffset": "2025-06-14T03:29:46.680823+00:00",
+    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.680823+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "1e955514-a010-4520-88e6-4bda37126377"
+    "ETag": "cf78374f-09e2-42b4-a31e-63abcd82f25e"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-1a7b6ad7c9498a523a91ac42960a1a13-c0680b7b0907b62b-01",
-    "TraceId": "1a7b6ad7c9498a523a91ac42960a1a13",
-    "SpanId": "c0680b7b0907b62b",
-    "Id": "1aa5e784-a2bc-407d-8b55-87946c7c7e9e",
+    "TraceContext": "00-ed1340a23ab8fd05354e2dd33dd66e2b-6ab659ec309dd8ca-01",
+    "TraceId": "ed1340a23ab8fd05354e2dd33dd66e2b",
+    "SpanId": "6ab659ec309dd8ca",
+    "Id": "4e027f7f-d7c0-40f7-9a7c-64f093035ad5",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-06-10T23:54:13.612008+00:00",
-    "UpdatedDateTimeOffset": "2025-06-10T23:54:13.612008+00:00",
+    "CreatedDateTimeOffset": "2025-06-14T03:29:46.680993+00:00",
+    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.680993+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "8854655b-70e3-44f3-95a6-ca691649b520"
+    "ETag": "8c7a0fdb-a7fc-4a29-a24b-37789c66035a"
   }
 ]

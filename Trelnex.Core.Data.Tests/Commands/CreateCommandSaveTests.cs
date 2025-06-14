@@ -10,16 +10,16 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -51,17 +51,17 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider with no supported operations
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider with no supported operations
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Read);
 
         // Attempt to create an create command, which should throw
         Assert.Throws<NotSupportedException>(
-            () => commandProvider.Create(id: id, partitionKey: partitionKey),
+            () => dataProvider.Create(id: id, partitionKey: partitionKey),
             "The requested Create operation is not supported.");
     }
 
@@ -72,16 +72,16 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -116,16 +116,16 @@ public class CreateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

@@ -33,7 +33,7 @@ The REST API is defined in the `Map` method where it maps the `POST /users` endp
 The business logic and data access are defined in the `HandleRequest` method.
 
 1. Create a new user id
-2. Create the new `IUser` DTO using the `ICommandProvider<IUser>`. See [Command Pattern](#command-pattern) for more information.
+2. Create the new `IUser` DTO using the `IDataProvider<IUser>`. See [Command Pattern](#command-pattern) for more information.
 3. Set the user name.
 4. Save the `IUser` DTO to the data store.
 5. Convert the `IUser` DTO to a `UserModel` and return.
@@ -75,7 +75,7 @@ internal static class CreateUserEndpoint
     }
 
     public static async Task<UserModel> HandleRequest(
-        [FromServices] ICommandProvider<IUser> userProvider,
+        [FromServices] IDataProvider<IUser> userProvider,
         [FromServices] IRequestContext requestContext,
         [AsParameters] RequestParameters parameters)
     {
@@ -326,11 +326,11 @@ These data access operations and the DTOs on which they operate are encapsulated
 
 This encapsulation ensures data integrity of the DTO. In addition, the command can invoke related business logic, such as creating and saving an audit event within `ISaveCommand`.
 
-### ICommandProvider
+### IDataProvider
 
-An `ICommandProvider` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a command provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements command providers for DynamoDB and Postgres. Trelnex.Core.Azure implements command providers for CosmosDB NoSQL and SqlServer.
+An `IDataProvider` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a data provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements data providers for DynamoDB and Postgres. Trelnex.Core.Azure implements data providers for CosmosDB NoSQL and SqlServer.
 
-The `ICommandProvider` interface defines five methods:
+The `IDataProvider` interface defines five methods:
 
 - `ISaveCommand<TInterface> Create()`: create an `ISaveCommand<TInterface>` to create a new item
 - `ISaveCommand<TInterface>?> UpdateAsync()`: create an `ISaveCommand<TInterface>` to update the specified item
@@ -444,7 +444,7 @@ All generic type definitions above are `TInterface` which is constrained to `IBa
 
 Using `TInterface` (an `interface`) instead of `TItem` (a `class` that implements `TInterface`) enforces the data integrity of the DTO.
 
-The `IBaseItem` interface does not expose any set accessors for its properties. This makes it impossible for a developer to set a property incorrectly. Instead, it is the responsibility of the `ICommandProvider` to set these properties correctly.
+The `IBaseItem` interface does not expose any set accessors for its properties. This makes it impossible for a developer to set a property incorrectly. Instead, it is the responsibility of the `IDataProvider` to set these properties correctly.
 
 ### DispatchProxy
 
@@ -460,7 +460,7 @@ The `TrackChangeAttribute` on any property informs the `DispatchProxy` to track 
 
 #### TInterface and TItem
 
-Create a new `TInterface` and `TItem`. Notice the `TrackChangeAttribute` and `JsonPropertyNameAttribute` are on the `TItem`. The `TItem` is the DTO for the `ICommandProvider`; the `TInterface` is the proxy for the developer.
+Create a new `TInterface` and `TItem`. Notice the `TrackChangeAttribute` and `JsonPropertyNameAttribute` are on the `TItem`. The `TItem` is the DTO for the `IDataProvider`; the `TInterface` is the proxy for the developer.
 
 ```csharp
 internal interface ITestItem : IBaseItem
@@ -483,10 +483,10 @@ internal class TestItem : BaseItem, ITestItem
 
 #### Create an Item
 
-Call the `ICommandProvider` `Create()` method to create the `ISaveCommand<TInterface>`.
+Call the `IDataProvider` `Create()` method to create the `ISaveCommand<TInterface>`.
 
 ```csharp
-    var createCommand = commandProvider.Create(
+    var createCommand = dataProvider.Create(
         id: id,
         partitionKey: partitionKey);
 
@@ -506,7 +506,7 @@ Call the `SaveAsync()` method to save the item. This returns an `IReadResult<TIn
 
 #### Behind the Scenes
 
-The `ICommandProvider` will save the item to the backing data store.
+The `IDataProvider` will save the item to the backing data store.
 
 ```json
 {
@@ -559,7 +559,7 @@ Notice the `Changes` element does not include a property change for `privateMess
 
 </details>
 
-## Command Providers
+## Data Providers
 
 <details>
 
@@ -567,15 +567,15 @@ Notice the `Changes` element does not include a property change for `privateMess
 
 &nbsp;
 
-### InMemoryCommandProvider
+### InMemoryDataProvider
 
-`InMemoryCommandProvider` is an `ICommandProvider` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
+`InMemoryDataProvider` is an `IDataProvider` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
 
-#### InMemoryCommandProvider - Dependency Injection
+#### InMemoryDataProvider - Dependency Injection
 
-The `AddInMemoryCommandProviders` method takes a `Action<ICommandProviderOptions>` `configureCommandProviders` delegate. This delegate will configure any necessary [Command Providers](#icommandprovider) for the application.
+The `AddInMemoryDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate will configure any necessary [Data Providers](#idataprovider) for the application.
 
-In this example, we configure a command provider for the `IUser` interface and its `User` DTO.
+In this example, we configure a data provider for the `IUser` interface and its `User` DTO.
 
 ```csharp
     public static void Add(
@@ -589,16 +589,16 @@ In this example, we configure a command provider for the `IUser` interface and i
 
         services
             .AddSwaggerToServices()
-            .AddInMemoryCommandProviders(
+            .AddInMemoryDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 
 ```csharp
-    public static ICommandProviderOptions AddUsersCommandProviders(
-        this ICommandProviderOptions options)
+    public static IDataProviderOptions AddUsersDataProviders(
+        this IDataProviderOptions options)
     {
         return options
             .Add<IUser, User>(
@@ -620,7 +620,7 @@ In this example, we configure a command provider for the `IUser` interface and i
 
 Much of an ASP.NET Core application startup is boilerplate: Serilog, configuration, exception handlers, metrics, Swagger, etc.
 
-Trelnex.Core.Api handles this boilerplate, leaving the developer to focus on the business logic: [Authentication and Authorization](#authentication-and-authorization), [Command Providers](#icommandprovider), and the endpoints.
+Trelnex.Core.Api handles this boilerplate, leaving the developer to focus on the business logic: [Authentication and Authorization](#authentication-and-authorization), [Data Providers](#idataprovider), and the endpoints.
 
 ### Application.Run
 
@@ -638,7 +638,7 @@ Application.Run(args, UsersApplication.Add, UsersApplication.Use);
 
 ### addApplication Delegate
 
-This delegate is called to inject necessary services to `IServiceCollection`. This is generally [Authentication and Authorization](#authentication-and-authorization), [Command Providers](#icommandprovider), and Swagger.
+This delegate is called to inject necessary services to `IServiceCollection`. This is generally [Authentication and Authorization](#authentication-and-authorization), [Data Providers](#idataprovider), and Swagger.
 
 ```csharp
     public static void Add(
@@ -652,10 +652,10 @@ This delegate is called to inject necessary services to `IServiceCollection`. Th
 
         services
             .AddSwaggerToServices()
-            .AddCosmosCommandProviders(
+            .AddCosmosDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.AddUsersCommandProviders());
+                options => options.AddUsersDataProviders());
     }
 ```
 

@@ -26,16 +26,16 @@ public class CreateCommandEventTests
 
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
-        // Create our in-memory command provider factory
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // Create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        // Get a command provider for our test item type
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -48,8 +48,8 @@ public class CreateCommandEventTests
         await createCommand.SaveAsync(
             cancellationToken: default);
 
-        // Get the events from the command provider
-        var events = (commandProvider as InMemoryCommandProvider<ITestItem, TestItem>)!.GetEvents();
+        // Get the events from the data provider
+        var events = (dataProvider as InMemoryDataProvider<ITestItem, TestItem>)!.GetEvents();
 
         // Verify the changes in the events
         // Snapshooter does a poor job of the serialization of dynamic

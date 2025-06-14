@@ -12,14 +12,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -34,7 +35,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -61,14 +62,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -94,14 +96,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -116,7 +119,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -142,14 +145,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -165,7 +169,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -191,14 +195,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -214,7 +219,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -242,14 +247,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -264,7 +270,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -290,14 +296,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -312,7 +319,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -334,14 +341,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -366,14 +374,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -402,14 +411,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -434,14 +444,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -456,7 +467,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -483,14 +494,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -516,14 +528,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -538,7 +551,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -564,14 +577,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -587,7 +601,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -614,14 +628,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -636,7 +651,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -662,14 +677,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -684,7 +700,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -706,14 +722,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -740,14 +757,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -763,7 +781,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -785,14 +803,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -808,7 +827,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -834,14 +853,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -857,7 +877,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -885,14 +905,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -908,7 +929,7 @@ public class PropertyChangesTests
         await createCommand.SaveAsync(CancellationToken.None);
 
         // create an update command to modify the existing item
-        using var updateCommand = await commandProvider.UpdateAsync(
+        using var updateCommand = await dataProvider.UpdateAsync(
             id: id,
             partitionKey: partitionKey);
 
@@ -932,14 +953,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -967,14 +989,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 
@@ -1002,14 +1025,15 @@ public class PropertyChangesTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our command provider
-        var factory = await InMemoryCommandProviderFactory.Create();
+        // get a data provider for our test item type
+        var factory = await InMemoryDataProviderFactory.Create();
 
-        var commandProvider = factory.Create<ITestItem, TestItem>(
+        // Get a data provider for our test item type
+        var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
-        using var createCommand = commandProvider.Create(
+        using var createCommand = dataProvider.Create(
             id: id,
             partitionKey: partitionKey);
 

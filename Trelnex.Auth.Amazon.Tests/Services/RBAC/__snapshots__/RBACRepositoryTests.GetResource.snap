@@ -1,8 +1,8 @@
 ﻿{
   "resourceAfter": {
     "ResourceName": "urn://resource-getresource",
-    "ScopeNames": null,
-    "RoleNames": null
+    "ScopeNames": [],
+    "RoleNames": []
   },
   "items": [
     {
