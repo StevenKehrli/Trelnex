@@ -76,7 +76,6 @@ internal static class CreateUserEndpoint
 
     public static async Task<UserModel> HandleRequest(
         [FromServices] IDataProvider<IUser> userProvider,
-        [FromServices] IRequestContext requestContext,
         [AsParameters] RequestParameters parameters)
     {
         // create a new user id
@@ -91,7 +90,7 @@ internal static class CreateUserEndpoint
         userCreateCommand.Item.UserName = parameters.Request.UserName;
 
         // save in data store
-        var userCreateResult = await userCreateCommand.SaveAsync(requestContext, default);
+        var userCreateResult = await userCreateCommand.SaveAsync(default);
 
         // return the user model
         return userCreateResult.Item.ConvertToModel();
@@ -330,15 +329,15 @@ This encapsulation ensures data integrity of the DTO. In addition, the command c
 
 An `IDataProvider` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a data provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements data providers for DynamoDB and Postgres. Trelnex.Core.Azure implements data providers for CosmosDB NoSQL and SqlServer.
 
-The `IDataProvider` interface defines five methods:
+The `IDataProvider` interface defines six methods:
 
 - `ISaveCommand<TInterface> Create()`: create an `ISaveCommand<TInterface>` to create a new item
-- `ISaveCommand<TInterface>?> UpdateAsync()`: create an `ISaveCommand<TInterface>` to update the specified item
-- `ISaveCommand<TInterface>?> DeleteAsync()`: create an `ISaveCommand<TInterface>` to delete the specified item
+- `Task<ISaveCommand<TInterface>?> UpdateAsync()`: create an `ISaveCommand<TInterface>` to update the specified item, or null if not found
+- `Task<ISaveCommand<TInterface>?> DeleteAsync()`: create an `ISaveCommand<TInterface>` to delete the specified item, or null if not found
 
-- `IBatchCommand<TInterface>?> Batch()`: create an `IBatchCommand<TInterface>` to save a batch of `ISaveCommand<TInterface>`
+- `IBatchCommand<TInterface> Batch()`: create an `IBatchCommand<TInterface>` to save a batch of `ISaveCommand<TInterface>`
 
-- `IReadResult<TInterface>?> ReadAsync()`: read the specified item
+- `Task<IReadResult<TInterface>?> ReadAsync()`: read the specified item, or null if not found
 
 - `IQueryCommand<TInterface> Query()`: create a LINQ query for items
 
@@ -347,23 +346,23 @@ The `IDataProvider` interface defines five methods:
 The `ISaveCommand<TInterface>` interface defines one property and two methods:
 
 - `TInterface Item`: the item to create, update, or delete
-- `IReadResult<TInterface> SaveAsync()`: save the item and return the saved item as a `IReadResult<TInterface>`
-- `ValidationResult ValidateAsync()`: validate the item
+- `Task<IReadResult<TInterface>> SaveAsync(CancellationToken cancellationToken)`: save the item and return the saved item as a `IReadResult<TInterface>`
+- `Task<ValidationResult> ValidateAsync(CancellationToken cancellationToken)`: validate the item
 
 ### IBatchCommand\<TInterface\>
 
 The `IBatchCommand<TInterface>` interface defines three methods:
 
 - `IBatchCommand<TInterface> Add(ISaveCommand<TInterface> saveCommand)`: add the specified `ISaveCommand<TInterface>` to the batch
-- `IBatchResult<TInterface>[] SaveAsync()`: save the batch and return the saved items as an array of `IBatchResult<TInterface>`
-- `ValidationResult[] ValidateAsync()`: validate the batch
+- `Task<IBatchResult<TInterface>[]> SaveAsync(CancellationToken cancellationToken)`: save the batch and return the saved items as an array of `IBatchResult<TInterface>`
+- `Task<ValidationResult[]> ValidateAsync(CancellationToken cancellationToken)`: validate the batch
 
 ### IReadResult\<TInterface\>
 
 The `IReadResult<TInterface>` interface defines one property and one method:
 
 - `TInterface Item`: the item read
-- `ValidationResult ValidateAsync()`: validate the item
+- `Task<ValidationResult> ValidateAsync(CancellationToken cancellationToken)`: validate the item
 
 ### IBatchResult\<TInterface\>
 
@@ -500,7 +499,6 @@ Call the `SaveAsync()` method to save the item. This returns an `IReadResult<TIn
 
 ```csharp
     var result = await createCommand.SaveAsync(
-            requestContext: requestContext,
             cancellationToken: default);
 ```
 
