@@ -87,10 +87,8 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       "encrypted-test-item": {
         "TableName": "test-items",
         "Encryption": {
-          "Algorithm": "AesGcm",
-          "Settings": {
-            "Secret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
-          }
+          "CipherName": "AesGcm",
+          "Secret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
         }
       }
     }
@@ -197,10 +195,8 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
       "encrypted-test-item": {
         "TableName": "test-items",
         "Encryption": {
-          "Algorithm": "AesGcm",
-          "Settings": {
-            "Secret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
-          }
+          "CipherName": "AesGcm",
+          "Secret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
         }
       }
     }

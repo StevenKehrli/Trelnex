@@ -40,7 +40,7 @@ public class ReadCommandReadTests
         Assert.That(read!.Item, Is.Not.Null);
 
         // Verify the result is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => read.Item.PublicMessage = "Public #2",
@@ -49,6 +49,6 @@ public class ReadCommandReadTests
             Assert.Throws<InvalidOperationException>(
                 () => read.Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 }

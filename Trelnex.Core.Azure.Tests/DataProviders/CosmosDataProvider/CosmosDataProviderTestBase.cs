@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Data.Tests.DataProviders;
 using Trelnex.Core.Encryption;
 
@@ -112,15 +113,9 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
 
         // Create the encryption service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
-        var encryptionServiceFactory = configuration
+        _encryptionService = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:Encryption")
-            .Get<EncryptionServiceFactory>(options =>
-            {
-                options.BindNonPublicProperties = true;
-                options.ErrorOnUnknownConfiguration = true;
-            })!;
-
-        _encryptionService = encryptionServiceFactory.GetEncryptionService();
+            .CreateEncryptionService()!;
 
         // Create a token credential for authentication.
         _tokenCredential = new DefaultAzureCredential();

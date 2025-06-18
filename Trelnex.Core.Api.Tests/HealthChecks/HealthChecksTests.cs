@@ -28,7 +28,7 @@ public class HealthChecksTests : BaseApiTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         // duration
                         Assert.That(
@@ -44,7 +44,7 @@ public class HealthChecksTests : BaseApiTests
                         Assert.That(
                             fieldOption.Field<string>("info[1].duration"),
                             Is.Not.Default);
-                    });
+                    }
                 }));
     }
 }

@@ -10,6 +10,7 @@ using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Encryption;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
@@ -56,18 +57,14 @@ public static class SqlDataProvidersExtensions
                 var tableName = t.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
-                var encryptionServiceFactory = t
+                var encryptionService = t
                     .GetSection("Encryption")
-                    .Get<EncryptionServiceFactory>(options =>
-                    {
-                        options.BindNonPublicProperties = true;
-                        options.ErrorOnUnknownConfiguration = true;
-                    });
+                    .CreateEncryptionService();
 
                 return new TableConfiguration(
                     TypeName: t.Key,
                     TableName: tableName,
-                    EncryptionServiceFactory: encryptionServiceFactory);
+                    EncryptionService: encryptionService);
             })
             .ToArray();
 
@@ -203,16 +200,13 @@ public static class SqlDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if encryption was specified
-            var encryptionService = tableConfiguration.EncryptionServiceFactory?.GetEncryptionService();
-
             // Create a new data provider instance for this entity type via the factory.
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: encryptionService);
+                encryptionService: tableConfiguration.EncryptionService);
 
             // Register the provider in the DI container as a singleton.
             services.AddSingleton(dataProvider);
@@ -248,11 +242,11 @@ public static class SqlDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="TableName">The table name in SQL Server.</param>
-    /// <param name="EncryptionServiceFactory">Optional factory for creating encryption services.</param>
+    /// <param name="EncryptionService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        EncryptionServiceFactory? EncryptionServiceFactory);
+        IEncryptionService? EncryptionService);
 
     #endregion
 

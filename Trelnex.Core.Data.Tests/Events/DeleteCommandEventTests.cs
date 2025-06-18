@@ -66,7 +66,7 @@ public class DeleteCommandEventTests
         // Verify the changes in the events
         // Snapshooter does a poor job of the serialization of dynamic
         // so we do explicit checks of the changes array
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             // Check first event changes (create event)
             Assert.That(
@@ -94,7 +94,7 @@ public class DeleteCommandEventTests
             Assert.That(
                 events[1].Changes!,
                 Is.Null);
-        });
+        }
 
         // Use Snapshooter to verify the event structure
         // Ignoring the Changes field as it's verified separately above
@@ -104,7 +104,7 @@ public class DeleteCommandEventTests
                 .IgnoreField("**.Changes")
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -190,7 +190,7 @@ public class DeleteCommandEventTests
                         Assert.That(
                             fieldOption.Field<string>("[1].SpanId"),
                             Is.EqualTo(fieldOption.Field<string>("[0].SpanId")));
-                    });
+                    }
                 }));
     }
 }

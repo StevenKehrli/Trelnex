@@ -32,7 +32,7 @@ public class CreateCommandSaveTests
             cancellationToken: default);
 
         // Verify the item is read-only after save
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => createCommand.Item.PublicMessage = "Public #2",
@@ -41,7 +41,7 @@ public class CreateCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => createCommand.Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]
@@ -97,7 +97,7 @@ public class CreateCommandSaveTests
         Assert.That(created.Item, Is.Not.Null);
 
         // Verify the result is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => created.Item.PublicMessage = "Public #2",
@@ -106,7 +106,7 @@ public class CreateCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => created.Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]

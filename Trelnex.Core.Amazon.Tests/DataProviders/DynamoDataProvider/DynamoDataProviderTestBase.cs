@@ -6,6 +6,7 @@ using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Data.Tests.DataProviders;
 using Trelnex.Core.Encryption;
 
@@ -104,15 +105,9 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
 
         // Create the encryption service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
-        var encryptionServiceFactory = configuration
-            .GetSection("Amazon.SqlDataPrDynamoDataProvidersviders:Tables:encrypted-test-item:Encryption")
-            .Get<EncryptionServiceFactory>(options =>
-            {
-                options.BindNonPublicProperties = true;
-                options.ErrorOnUnknownConfiguration = true;
-            })!;
-
-        _encryptionService = encryptionServiceFactory.GetEncryptionService();
+        _encryptionService = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:Encryption")
+            .CreateEncryptionService()!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();

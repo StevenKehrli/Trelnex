@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.DataProviders;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
@@ -55,18 +56,14 @@ public static class CosmosDataProvidersExtensions
                 var containerId = c.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
-                var encryptionServiceFactory = c
+                var encryptionService = c
                     .GetSection("Encryption")
-                    .Get<EncryptionServiceFactory>(options =>
-                    {
-                        options.BindNonPublicProperties = true;
-                        options.ErrorOnUnknownConfiguration = true;
-                    });
+                    .CreateEncryptionService();
 
                 return new ContainerConfiguration(
                     TypeName: c.Key,
                     ContainerId: containerId,
-                    EncryptionServiceFactory: encryptionServiceFactory);
+                    EncryptionService: encryptionService);
             })
             .ToArray();
 
@@ -195,16 +192,13 @@ public static class CosmosDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if encryption was specified
-            var encryptionService = containerConfiguration.EncryptionServiceFactory?.GetEncryptionService();
-
             // Create the data provider and inject
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 containerId: containerConfiguration.ContainerId,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: encryptionService);
+                encryptionService: containerConfiguration.EncryptionService);
 
             // Register the data provider
             services.AddSingleton(dataProvider);
@@ -239,11 +233,11 @@ public static class CosmosDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="ContainerId">The container ID in Cosmos DB.</param>
-    /// <param name="EncryptionServiceFactory">Optional factory for creating encryption services.</param>
+    /// <param name="EncryptionService">Optional encryption service for the container.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
-        EncryptionServiceFactory? EncryptionServiceFactory);
+        IEncryptionService? EncryptionService);
 
     #endregion
 

@@ -87,10 +87,8 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       "encrypted-test-item": {
         "ContainerId": "test-items",
         "Encryption": {
-          "Algorithm": "AesGcm",
-          "Settings": {
-            "Secret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
-          }
+          "CipherName": "AesGcm",
+          "Secret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
         }
       }
     }
@@ -172,10 +170,8 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
       "encrypted-test-item": {
         "TableName": "test-items",
         "Encryption": {
-          "Algorithm": "AesGcm",
-          "Settings": {
-            "Secret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
-          }
+          "CipherName": "AesGcm",
+          "Secret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
         }
       }
     }

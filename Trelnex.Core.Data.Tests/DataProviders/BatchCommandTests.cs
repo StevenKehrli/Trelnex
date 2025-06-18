@@ -49,7 +49,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -77,7 +77,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("[*].ReadResult.Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 
@@ -153,7 +153,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -176,7 +176,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("read.[*].Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 
@@ -249,7 +249,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -282,7 +282,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("[*].ReadResult.Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 
@@ -381,7 +381,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -404,7 +404,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("read.[*].Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 
@@ -485,7 +485,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -513,7 +513,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("[*].ReadResult.Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 
@@ -624,7 +624,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -652,7 +652,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Fields<string>("read.[*].Item.ETag"),
                             Has.All.Not.Default);
-                    });
+                    }
                 }));
     }
 }

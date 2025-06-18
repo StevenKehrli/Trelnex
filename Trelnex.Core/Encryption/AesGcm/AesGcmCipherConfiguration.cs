@@ -3,7 +3,7 @@ namespace Trelnex.Core.Encryption;
 /// <summary>
 /// Configuration settings for AES-GCM encryption.
 /// </summary>
-internal record AesGcmEncryptionConfiguration
+internal record AesGcmCipherConfiguration
 {
     /// <summary>
     /// Gets or sets the secret used for key derivation.

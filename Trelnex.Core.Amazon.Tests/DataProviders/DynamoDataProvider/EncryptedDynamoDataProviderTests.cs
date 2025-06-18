@@ -103,11 +103,13 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
             item.OptionalMessage,
             _encryptionService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.Not.EqualTo("Optional Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -154,11 +156,12 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
             item.PrivateMessage,
             _encryptionService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
-        });
+        }
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

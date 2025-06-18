@@ -18,7 +18,7 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-[Ignore("Requires a CosmosDB instance.")]
+// [Ignore("Requires a CosmosDB instance.")]
 [Category("CosmosDataProvider")]
 public class CosmosDataProviderTests : CosmosDataProviderTestBase
 {
@@ -82,11 +82,11 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -119,11 +119,11 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.Null);
-        });
+        }
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

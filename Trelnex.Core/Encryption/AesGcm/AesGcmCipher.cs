@@ -13,13 +13,13 @@ namespace Trelnex.Core.Encryption;
 /// This implementation uses a 256-bit key, 96-bit IV, 128-bit authentication tag, and 128-bit HKDF salt.
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="AesGcmEncryptionService"/> class with the specified configuration.
+/// Initializes a new instance of the <see cref="AesGcmCipher"/> class with the specified configuration.
 /// The service uses HKDF (HMAC-based Key Derivation Function) with SHA-256 for secure key derivation from the provided secret.
 /// </remarks>
 /// <param name="configuration">The AES-GCM encryption configuration containing the secret key and other settings.</param>
-internal class AesGcmEncryptionService(
-    AesGcmEncryptionConfiguration configuration)
-    : IEncryptionService
+internal class AesGcmCipher(
+    AesGcmCipherConfiguration configuration)
+    : ICipher
 {
     #region Private Static Fields
 
@@ -32,44 +32,66 @@ internal class AesGcmEncryptionService(
 
     #endregion
 
-    /// <summary>
-    /// Decrypts the specified ciphertext using AES-256-GCM with authenticated decryption.
+    #region Private Fields
+
+    private readonly Lazy<int> _id = new(() =>
+    {
+        var hashCode = new HashCode();
+
+        hashCode.Add(nameof(AesGcmCipher));
+        hashCode.Add(configuration.Secret);
+
+        return hashCode.ToHashCode();
+    });
+
+    #endregion Private Fields
+
+    #region Public Properties
+
+    /// <inheritdoc />
+    public int Id => _id.Value;
+
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// This implementation uses AES-256-GCM with authenticated decryption.
     /// The ciphertext must contain the HKDF salt, IV, encrypted data, and authentication tag in that order.
-    /// </summary>
-    /// <param name="ciphertext">The ciphertext to decrypt, including the prepended HKDF salt and IV.</param>
-    /// <returns>The decrypted plaintext as a byte array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ciphertext"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the ciphertext is too short to contain the required components.</exception>
-    /// <exception cref="InvalidCipherTextException">Thrown when decryption fails due to invalid ciphertext or authentication tag verification failure.</exception>
+    /// Format: [16-byte HKDF salt][12-byte IV][encrypted data + 16-byte auth tag]
+    /// The startIndex parameter allows decryption to begin at a specific offset within the ciphertext array.
+    /// </remarks>
     public byte[] Decrypt(
-        byte[] ciphertext)
+        byte[] ciphertext,
+        int startIndex = 0)
     {
         // Extract the HKDF salt from combined data
         var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
-        Array.Copy(
-            sourceArray: ciphertext,
-            sourceIndex: 0,
-            destinationArray: hkdfSalt,
-            destinationIndex: 0,
-            length: hkdfSalt.Length);
+        Buffer.BlockCopy(
+            src: ciphertext,
+            srcOffset: startIndex,
+            dst: hkdfSalt,
+            dstOffset: 0,
+            count: hkdfSalt.Length);
 
         // Extract the random IV from combined data
         var iv = new byte[_ivLengthInBytes];
-        Array.Copy(
-            sourceArray: ciphertext,
-            sourceIndex: hkdfSalt.Length,
-            destinationArray: iv,
-            destinationIndex: 0,
-            length: iv.Length);
+        Buffer.BlockCopy(
+            src: ciphertext,
+            srcOffset: startIndex + hkdfSalt.Length,
+            dst: iv,
+            dstOffset: 0,
+            count: iv.Length);
 
         // Extract ciphertext
-        var cipherBlock = new byte[ciphertext.Length - _hkdfSaltLengthInBytes - iv.Length];
-        Array.Copy(
-            sourceArray: ciphertext,
-            sourceIndex: hkdfSalt.Length + iv.Length,
-            destinationArray: cipherBlock,
-            destinationIndex: 0,
-            length: cipherBlock.Length);
+        var cipherBlock = new byte[ciphertext.Length - startIndex - _hkdfSaltLengthInBytes - iv.Length];
+        Buffer.BlockCopy(
+            src: ciphertext,
+            srcOffset: startIndex + hkdfSalt.Length + iv.Length,
+            dst: cipherBlock,
+            dstOffset: 0,
+            count: cipherBlock.Length);
 
         // Derive the encryption key from the secret and salt using HKDF.
         var key = DeriveKey(
@@ -95,19 +117,16 @@ internal class AesGcmEncryptionService(
         return plaintextBlock;
     }
 
-    /// <summary>
-    /// Encrypts the specified plaintext using AES-256-GCM with authenticated encryption.
+    /// <inheritdoc />
+    /// <remarks>
+    /// This implementation uses AES-256-GCM with authenticated encryption.
     /// Generates a random HKDF salt and IV for each encryption operation to ensure semantic security.
-    /// </summary>
-    /// <param name="plaintext">The plaintext data to encrypt.</param>
-    /// <returns>
-    /// The encrypted ciphertext as a byte array, with the HKDF salt and IV prepended to the encrypted data.
-    /// Format: [16-byte HKDF salt][12-byte IV][encrypted data + 16-byte auth tag]
-    /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="plaintext"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when encryption fails due to cryptographic engine errors.</exception>
+    /// Output format: [16-byte HKDF salt][12-byte IV][encrypted data + 16-byte auth tag]
+    /// The startIndex parameter allows encryption to begin at a specific offset within the plaintext array.
+    /// </remarks>
     public byte[] Encrypt(
-        byte[] plaintext)
+        byte[] plaintext,
+        int startIndex = 0)
     {
         // Generate a random salt for HKDF
         var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
@@ -132,35 +151,35 @@ internal class AesGcmEncryptionService(
         cipher.Init(true, parameters);
 
         // Process the data
-        var size = cipher.GetOutputSize(plaintext.Length);
+        var size = cipher.GetOutputSize(plaintext.Length - startIndex);
         var cipherBlock = new byte[size];
 
-        var offset = cipher.ProcessBytes(plaintext, 0, plaintext.Length, cipherBlock, 0);
+        var offset = cipher.ProcessBytes(plaintext, startIndex, plaintext.Length - startIndex, cipherBlock, 0);
         offset += cipher.DoFinal(cipherBlock, offset);
 
         // Combine the HKDF salt, random IV and ciphertext
         var ciphertext = new byte[hkdfSalt.Length + iv.Length + cipherBlock.Length];
 
-        Array.Copy(
-            sourceArray: hkdfSalt,
-            sourceIndex: 0,
-            destinationArray: ciphertext,
-            destinationIndex: 0,
-            length: hkdfSalt.Length);
+        Buffer.BlockCopy(
+            src: hkdfSalt,
+            srcOffset: 0,
+            dst: ciphertext,
+            dstOffset: 0,
+            count: hkdfSalt.Length);
 
-        Array.Copy(
-            sourceArray: iv,
-            sourceIndex: 0,
-            destinationArray: ciphertext,
-            destinationIndex: hkdfSalt.Length,
-            length: iv.Length);
+        Buffer.BlockCopy(
+            src: iv,
+            srcOffset: 0,
+            dst: ciphertext,
+            dstOffset: hkdfSalt.Length,
+            count: iv.Length);
 
-        Array.Copy(
-            sourceArray: cipherBlock,
-            sourceIndex: 0,
-            destinationArray: ciphertext,
-            destinationIndex: hkdfSalt.Length + iv.Length,
-            length: cipherBlock.Length);
+        Buffer.BlockCopy(
+            src: cipherBlock,
+            srcOffset: 0,
+            dst: ciphertext,
+            dstOffset: hkdfSalt.Length + iv.Length,
+            count: cipherBlock.Length);
 
         return ciphertext;
     }
@@ -197,4 +216,6 @@ internal class AesGcmEncryptionService(
 
         return key;
     }
+
+    #endregion
 }

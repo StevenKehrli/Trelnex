@@ -101,11 +101,11 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
             encryptedOptionalMessage,
             _encryptionService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -146,10 +146,10 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
             encryptedPrivateMessage,
             _encryptionService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(reader.IsDBNull(1), Is.True);
-        });
+        }
     }
 }

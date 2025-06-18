@@ -388,11 +388,11 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_1"));
             Assert.That(testResponse.Roles, Is.EqualTo(["test.role.1"]));
-        });
+        }
     }
 
     [Test]
@@ -422,11 +422,11 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2b"));
             Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2a", "test.role.2b"]));
-        });
+        }
     }
 
     [Test]
@@ -456,11 +456,11 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2a"));
             Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2a"]));
-        });
+        }
     }
 
     [Test]
@@ -490,11 +490,11 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("PrincipalId.RequirePermission_Response_2b"));
             Assert.That(testResponse.Roles, Is.EqualTo(["test.role.2b"]));
-        });
+        }
     }
 
     [Test]
@@ -524,10 +524,10 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("hasPolicy1: True, hasPolicy2: False"));
-        });
+        }
     }
 
     [Test]
@@ -557,9 +557,9 @@ public class AuthenticationTests : BaseApiTests
         // Verify that the response is successful and returns the correct principal ID and role
         var testResponse = await response.Content.ReadFromJsonAsync<TestResponse>();
         Assert.That(testResponse, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(testResponse.Message, Is.EqualTo("hasPolicy1: False, hasPolicy2: True"));
-        });
+        }
     }
 }
