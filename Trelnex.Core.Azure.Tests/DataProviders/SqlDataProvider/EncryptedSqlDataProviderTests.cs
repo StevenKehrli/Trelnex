@@ -22,8 +22,6 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 [Category("SqlDataProvider")]
 public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 {
-    private EncryptionService _encryptionService = null!;
-
     /// <summary>
     /// Sets up the SqlDataProvider for testing using the direct factory instantiation approach.
     /// </summary>
@@ -46,8 +44,6 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
         var factory = await SqlDataProviderFactory.Create(
             _serviceConfiguration,
             sqlClientOptions);
-
-        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(

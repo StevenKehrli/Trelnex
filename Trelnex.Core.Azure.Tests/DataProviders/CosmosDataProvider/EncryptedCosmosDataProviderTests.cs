@@ -1,8 +1,5 @@
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.DataProviders;
-using Trelnex.Core.Azure.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
 using Trelnex.Core.Encryption;
@@ -10,67 +7,56 @@ using Trelnex.Core.Encryption;
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the extension methods used to register and configure CosmosDataProviders
-/// in the dependency injection container.
+/// Tests for the CosmosDataProvider implementation using direct factory instantiation.
 /// </summary>
 /// <remarks>
 /// This class inherits from <see cref="CosmosDataProviderTestBase"/> to leverage the shared
 /// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
 ///
-/// This class focuses on testing the extension methods for DI registration rather than
-/// direct factory instantiation. It also adds an additional test for duplicate registration handling.
+/// This approach tests the factory pattern and provider implementation directly.
 ///
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
 /// </remarks>
-[Ignore("Requires a CosmosDB instance.")]
+// [Ignore("Requires a CosmosDB instance.")]
 [Category("CosmosDataProvider")]
-public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
+public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
 {
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the dependency injection approach.
+    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
-        // Create the service collection.
-        var services = new ServiceCollection();
-
         // Initialize shared resources from configuration
-        var configuration = TestSetup();
+        TestSetup();
 
-        services.AddSingleton(_serviceConfiguration);
+        // Create the data provider using direct factory instantiation.
+        var cosmosClientOptions = new CosmosClientOptions(
+            TokenCredential: _tokenCredential,
+            AccountEndpoint: _endpointUri,
+            DatabaseId: _databaseId,
+            ContainerIds: [ _encryptedContainerId ]
+        );
 
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
+        // Create the CosmosDataProviderFactory.
+        var factory = await CosmosDataProviderFactory.Create(
+            cosmosClientOptions);
 
-        // Add Azure Identity and CosmosDataProviders to the service collection.
-        services
-            .AddAzureIdentity(
-                configuration,
-                bootstrapLogger)
-            .AddCosmosDataProviders(
-                configuration,
-                bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
-                    typeName: "encrypted-test-item",
-                    validator: TestItem.Validator,
-                    commandOperations: CommandOperations.All));
-
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        // Create the data provider instance.
+        _dataProvider = factory.Create<ITestItem, TestItem>(
+            _encryptedContainerId,
+            "encrypted-test-item",
+            TestItem.Validator,
+            CommandOperations.All,
+            _encryptionService);
     }
 
     [Test]
-    [Description("Tests CosmosDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
-    public async Task CosmosDataProvider_WithEncryption()
+    [Description("Tests CosmosDataProvider with an optional message and encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task CosmosDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -101,14 +87,14 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.PrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         // Decrypt the optional message
         Assert.That(item.Resource.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.OptionalMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {
@@ -118,11 +104,9 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
     }
 
     [Test]
-    [Description("Tests CosmosDataProvider with optional message and encryption to ensure data is properly encrypted and decrypted.")]
-    public async Task CosmosDataProvider_OptionalMessage_WithEncryption()
+    [Description("Tests CosmosDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
+    public async Task CosmosDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -152,7 +136,7 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.PrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {

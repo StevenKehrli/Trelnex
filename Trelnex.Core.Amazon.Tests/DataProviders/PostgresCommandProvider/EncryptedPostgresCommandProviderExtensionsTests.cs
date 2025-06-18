@@ -72,8 +72,6 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
     [Description("Tests PostgresDataProvider with an optional message and encryption to ensure data is properly encrypted and decrypted.")]
     public async Task PostgresDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -107,13 +105,13 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         // Decrypt the optional message
         var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {
@@ -126,8 +124,6 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
     [Description("Tests PostgresDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task PostgresDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -160,7 +156,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {

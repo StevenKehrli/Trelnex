@@ -75,8 +75,6 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
     [Description("Tests DynamoDataProvider with optional message and encryption to ensure data is properly encrypted and decrypted.")]
     public async Task DynamoDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -116,14 +114,14 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         // Decrypt the optional message
         Assert.That(item.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.OptionalMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {
@@ -136,8 +134,6 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
     [Description("Tests DynamoDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task DynamoDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -176,7 +172,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {

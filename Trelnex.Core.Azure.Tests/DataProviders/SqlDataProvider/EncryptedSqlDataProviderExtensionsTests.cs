@@ -71,8 +71,6 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
     [Description("Tests SqlDataProvider with an optional message and encryption to ensure data is properly encrypted and decrypted.")]
     public async Task SqlDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -115,13 +113,13 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         // Decrypt the optional message
         var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {
@@ -134,8 +132,6 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
     [Description("Tests SqlDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task SqlDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -177,7 +173,7 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _encryptionService);
 
         Assert.Multiple(() =>
         {

@@ -25,8 +25,6 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 [Category("DynamoDataProvider")]
 public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
 {
-    private EncryptionService _encryptionService = null!;
-
     /// <summary>
     /// Sets up the <see cref="DynamoDataProvider"/> with encryption for testing using the direct factory instantiation approach.
     /// </summary>
@@ -45,8 +43,6 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
 
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
-
-        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
 
         _dataProvider = factory.Create<ITestItem, TestItem>(
             _encryptedTableName,

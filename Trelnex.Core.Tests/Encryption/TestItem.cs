@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using Trelnex.Core.Encryption;
 
-namespace Trelnex.Core.Encryption.Tests;
+namespace Trelnex.Core.Tests.Encryption;
 
 internal class TestItem
 {

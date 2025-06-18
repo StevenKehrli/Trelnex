@@ -4,6 +4,7 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data.Tests.DataProviders;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
@@ -51,9 +52,9 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     protected string _encryptedContainerId = null!;
 
     /// <summary>
-    /// The encryption secret used for encryption testing.
+    /// The encryption service used for encrypting and decrypting test data.
     /// </summary>
-    protected string _encryptionSecret = null!;
+    protected IEncryptionService _encryptionService = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -109,11 +110,17 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:ContainerId")
             .Get<string>()!;
 
-        // Get the encryption secret from the configuration.
-        // Example: "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
-        _encryptionSecret = configuration
-            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:EncryptionSecret")
-            .Get<string>()!;
+        // Create the encryption service from configuration using the factory pattern.
+        // This deserializes the algorithm type and settings, then creates the appropriate service.
+        var encryptionServiceFactory = configuration
+            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:Encryption")
+            .Get<EncryptionServiceFactory>(options =>
+            {
+                options.BindNonPublicProperties = true;
+                options.ErrorOnUnknownConfiguration = true;
+            })!;
+
+        _encryptionService = encryptionServiceFactory.GetEncryptionService();
 
         // Create a token credential for authentication.
         _tokenCredential = new DefaultAzureCredential();

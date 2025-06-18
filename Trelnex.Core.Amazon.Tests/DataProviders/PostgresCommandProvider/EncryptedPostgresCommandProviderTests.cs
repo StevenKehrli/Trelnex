@@ -22,8 +22,6 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 [Category("PostgresDataProvider")]
 public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
 {
-    private EncryptionService _encryptionService = null!;
-
     /// <summary>
     /// Sets up the PostgresDataProvider for testing using the direct factory instantiation approach.
     /// </summary>
@@ -48,8 +46,6 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         var factory = await PostgresDataProviderFactory.Create(
             _serviceConfiguration,
             postgresClientOptions);
-
-        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(

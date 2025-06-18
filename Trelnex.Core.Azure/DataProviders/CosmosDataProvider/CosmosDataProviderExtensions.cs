@@ -55,12 +55,18 @@ public static class CosmosDataProvidersExtensions
                 var containerId = c.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
-                var encryptionSecret = c.GetValue<string?>("EncryptionSecret");
+                var encryptionServiceFactory = c
+                    .GetSection("Encryption")
+                    .Get<EncryptionServiceFactory>(options =>
+                    {
+                        options.BindNonPublicProperties = true;
+                        options.ErrorOnUnknownConfiguration = true;
+                    });
 
                 return new ContainerConfiguration(
                     TypeName: c.Key,
                     ContainerId: containerId,
-                    EncryptionSecret: encryptionSecret);
+                    EncryptionServiceFactory: encryptionServiceFactory);
             })
             .ToArray();
 
@@ -189,10 +195,8 @@ public static class CosmosDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (containerConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(containerConfiguration.EncryptionSecret)
-                : null;
+            // Create the encryption service if encryption was specified
+            var encryptionService = containerConfiguration.EncryptionServiceFactory?.GetEncryptionService();
 
             // Create the data provider and inject
             var dataProvider = providerFactory.Create<TInterface, TItem>(
@@ -235,12 +239,11 @@ public static class CosmosDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="ContainerId">The container ID in Cosmos DB.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
-    /// <remarks>Defines the mapping between logical type names and physical containers.</remarks>
+    /// <param name="EncryptionServiceFactory">Optional factory for creating encryption services.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
-        string? EncryptionSecret);
+        EncryptionServiceFactory? EncryptionServiceFactory);
 
     #endregion
 

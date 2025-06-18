@@ -32,7 +32,8 @@
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.52.0" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-        <PackageReference Include="Trelnex.Core.Api" Version="0.2.0" />
+        <!-- <PackageReference Include="Trelnex.Core.Api" Version="0.2.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Api\Trelnex.Core.Api.csproj" />
     </ItemGroup>
 
 </Project>

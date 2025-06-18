@@ -1,28 +1,33 @@
 using System.Text;
+using Trelnex.Core.Encryption;
 
-namespace Trelnex.Core.Encryption.Tests;
+namespace Trelnex.Core.Tests.Encryption;
 
 /// <summary>
-/// Contains tests for the <see cref="EncryptionService"/> class.
+/// Contains tests for the <see cref="AesGcmEncryptionService"/> class.
 /// </summary>
 [Category("Encryption")]
-public class EncryptionServiceTests
+public class AesGcmEncryptionServiceTests
 {
     /// <summary>
-    /// Verifies that different instances of EncryptionService produce different ciphertexts for the same plaintext,
+    /// Verifies that different instances of AesGcmEncryptionService produce different ciphertexts for the same plaintext,
     /// but can still decrypt each other's ciphertexts.
     /// </summary>
     [Test]
-    [Description("Verifies that different instances of EncryptionService produce different ciphertexts for the same plaintext, but can still decrypt each other's ciphertexts.")]
+    [Description("Verifies that different instances of AesGcmEncryptionService produce different ciphertexts for the same plaintext, but can still decrypt each other's ciphertexts.")]
     public void EncryptionService_DifferentInstance()
     {
         // Define a secret key and a plaintext input string for testing.
-        var secret = "bdca5de6-c8d7-4095-99d4-bc7e62aec848";
         var sIn = "9910bcc0-cc49-4c9b-b804-fc6f05e5993f";
         var plaintextBytesIn = Encoding.UTF8.GetBytes(sIn);
 
-        // Create the first EncryptionService instance with the defined secret.
-        var encryptionService1 = EncryptionService.Create(secret);
+        var aesGcmEncryptionConfiguration = new AesGcmEncryptionConfiguration
+        {
+            Secret = "bdca5de6-c8d7-4095-99d4-bc7e62aec848"
+        };
+
+        // Create the first AesGcmEncryptionService instance with the defined secret.
+        var encryptionService1 = new AesGcmEncryptionService(aesGcmEncryptionConfiguration);
         // Encrypt the plaintext using the first service instance.
         var ciphertext1 = encryptionService1.Encrypt(plaintextBytesIn);
         // Decrypt the ciphertext using the first service instance.
@@ -30,8 +35,8 @@ public class EncryptionServiceTests
         // Convert the decrypted bytes back to a string.
         var sOutFromService1ciphertext1 = Encoding.UTF8.GetString(plaintextBytesOutFromService1ciphertext1);
 
-        // Create the second EncryptionService instance with the same secret.
-        var encryptionService2 = EncryptionService.Create(secret);
+        // Create the second AesGcmEncryptionService instance with the same secret.
+        var encryptionService2 = new AesGcmEncryptionService(aesGcmEncryptionConfiguration);
         // Encrypt the plaintext using the second service instance.
         var ciphertext2 = encryptionService2.Encrypt(plaintextBytesIn);
         // Decrypt the ciphertext using the second service instance.
@@ -61,19 +66,23 @@ public class EncryptionServiceTests
     }
 
     /// <summary>
-    /// Verifies that the same instance of EncryptionService produces different ciphertexts for the same plaintext on multiple encryptions.
+    /// Verifies that the same instance of AesGcmEncryptionService produces different ciphertexts for the same plaintext on multiple encryptions.
     /// </summary>
     [Test]
-    [Description("Verifies that the same instance of EncryptionService produces different ciphertexts for the same plaintext on multiple encryptions.")]
+    [Description("Verifies that the same instance of AesGcmEncryptionService produces different ciphertexts for the same plaintext on multiple encryptions.")]
     public void EncryptionService_SameInstance()
     {
         // Define a secret key and a plaintext input string for testing.
-        var secret = "ee956b63-a94a-40ee-8c99-ced8427083a6";
         var sIn = "12de9c30-3405-42d5-a417-cbb033e7997e";
         var plaintextBytesIn = Encoding.UTF8.GetBytes(sIn);
 
-        // Create an EncryptionService instance with the defined secret.
-        var encryptionService = EncryptionService.Create(secret);
+        var aesGcmEncryptionConfiguration = new AesGcmEncryptionConfiguration
+        {
+            Secret = "ee956b63-a94a-40ee-8c99-ced8427083a6"
+        };
+
+        // Create an AesGcmEncryptionService instance with the defined secret.
+        var encryptionService = new AesGcmEncryptionService(aesGcmEncryptionConfiguration);
 
         // Encrypt the plaintext using the service instance.
         var ciphertext1 = encryptionService.Encrypt(plaintextBytesIn);

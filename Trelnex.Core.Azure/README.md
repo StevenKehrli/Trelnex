@@ -86,13 +86,18 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       },
       "encrypted-test-item": {
         "ContainerId": "test-items",
-        "EncryptionSecret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
+        "Encryption": {
+          "Algorithm": "AesGcm",
+          "Settings": {
+            "Secret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
+          }
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### CosmosDataProvider - Container Schema
 
@@ -166,13 +171,18 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
+        "Encryption": {
+          "Algorithm": "AesGcm",
+          "Settings": {
+            "Secret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
+          }
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### SqlDataProvider - Item Schema
 

@@ -57,12 +57,18 @@ public static class DynamoDataProvidersExtensions
                 var tableName = t.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
-                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+                var encryptionServiceFactory = t
+                    .GetSection("Encryption")
+                    .Get<EncryptionServiceFactory>(options =>
+                    {
+                        options.BindNonPublicProperties = true;
+                        options.ErrorOnUnknownConfiguration = true;
+                    });
 
                 return new TableConfiguration(
                     TypeName: t.Key,
                     TableName: tableName,
-                    EncryptionSecret: encryptionSecret);
+                    EncryptionServiceFactory: encryptionServiceFactory);
             })
             .ToArray();
 
@@ -177,10 +183,8 @@ public static class DynamoDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
-                : null;
+            // Create the encryption service if encryption was specified
+            var encryptionService = tableConfiguration.EncryptionServiceFactory?.GetEncryptionService();
 
             // Create the data provider and inject it into the service collection
             var dataProvider = providerFactory.Create<TInterface, TItem>(
@@ -220,11 +224,11 @@ public static class DynamoDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in DynamoDB.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <param name="EncryptionServiceFactory">Optional factory for creating encryption services.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        string? EncryptionSecret);
+        EncryptionServiceFactory? EncryptionServiceFactory);
 
     #endregion
 

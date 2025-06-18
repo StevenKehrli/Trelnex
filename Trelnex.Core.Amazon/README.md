@@ -86,13 +86,18 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        "Encryption": {
+          "Algorithm": "AesGcm",
+          "Settings": {
+            "Secret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+          }
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### DynamoDataProvider - Table Schema
 
@@ -191,13 +196,18 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
+        "Encryption": {
+          "Algorithm": "AesGcm",
+          "Settings": {
+            "Secret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
+          }
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### PostgresDataProvider - Item Schema
 

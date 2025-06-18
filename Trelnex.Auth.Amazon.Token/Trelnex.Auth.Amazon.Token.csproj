@@ -10,7 +10,8 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
-        <PackageReference Include="Trelnex.Core.Amazon" Version="0.2.0" />
+        <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="0.2.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
     </ItemGroup>
 
 </Project>

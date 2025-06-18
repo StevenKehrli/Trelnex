@@ -56,12 +56,18 @@ public static class SqlDataProvidersExtensions
                 var tableName = t.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
-                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+                var encryptionServiceFactory = t
+                    .GetSection("Encryption")
+                    .Get<EncryptionServiceFactory>(options =>
+                    {
+                        options.BindNonPublicProperties = true;
+                        options.ErrorOnUnknownConfiguration = true;
+                    });
 
                 return new TableConfiguration(
                     TypeName: t.Key,
                     TableName: tableName,
-                    EncryptionSecret: encryptionSecret);
+                    EncryptionServiceFactory: encryptionServiceFactory);
             })
             .ToArray();
 
@@ -197,10 +203,8 @@ public static class SqlDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
-                : null;
+            // Create the encryption service if encryption was specified
+            var encryptionService = tableConfiguration.EncryptionServiceFactory?.GetEncryptionService();
 
             // Create a new data provider instance for this entity type via the factory.
             var dataProvider = providerFactory.Create<TInterface, TItem>(
@@ -240,15 +244,15 @@ public static class SqlDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Table configuration mapping type names to table names.
+    /// Table configuration mapping type names to table names and optional encryption settings.
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="TableName">The table name in SQL Server.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <param name="EncryptionServiceFactory">Optional factory for creating encryption services.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        string? EncryptionSecret);
+        EncryptionServiceFactory? EncryptionServiceFactory);
 
     #endregion
 
