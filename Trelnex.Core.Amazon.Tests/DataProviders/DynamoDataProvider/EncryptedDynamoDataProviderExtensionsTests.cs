@@ -129,7 +129,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Not.EqualTo("Optional Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        };
+        }
     }
 
     [Test]

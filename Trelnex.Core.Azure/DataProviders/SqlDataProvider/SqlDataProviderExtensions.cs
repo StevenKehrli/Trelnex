@@ -52,17 +52,17 @@ public static class SqlDataProvidersExtensions
 
         var tables = configuration.GetSection("Azure.SqlDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
-                var encryptionService = t
+                var encryptionService = section
                     .GetSection("Encryption")
                     .CreateEncryptionService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
                     EncryptionService: encryptionService);
             })

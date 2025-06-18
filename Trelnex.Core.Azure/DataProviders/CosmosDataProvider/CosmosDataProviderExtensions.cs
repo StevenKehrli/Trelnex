@@ -51,17 +51,17 @@ public static class CosmosDataProvidersExtensions
 
         var containers = configuration.GetSection("Azure.CosmosDataProviders:Containers").GetChildren();
         var containerConfigurations = containers
-            .Select(c =>
+            .Select(section =>
             {
-                var containerId = c.GetValue<string>("ContainerId")
+                var containerId = section.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
-                var encryptionService = c
+                var encryptionService = section
                     .GetSection("Encryption")
                     .CreateEncryptionService();
 
                 return new ContainerConfiguration(
-                    TypeName: c.Key,
+                    TypeName: section.Key,
                     ContainerId: containerId,
                     EncryptionService: encryptionService);
             })

@@ -53,17 +53,17 @@ public static class DynamoDataProvidersExtensions
 
         var tables = configuration.GetSection("Amazon.DynamoDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
-                var encryptionService = t
+                var encryptionService = section
                     .GetSection("Encryption")
                     .CreateEncryptionService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
                     EncryptionService: encryptionService);
             })

@@ -65,17 +65,17 @@ public static partial class PostgresDataProvidersExtensions
 
         var tables = configuration.GetSection("Amazon.PostgresDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
 
-                var encryptionService = t
+                var encryptionService = section
                     .GetSection("Encryption")
                     .CreateEncryptionService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
                     EncryptionService: encryptionService);
             })
