@@ -20,13 +20,13 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="typeName">The type name used to filter items.</param>
 /// <param name="validator">Optional validator for items before they are saved.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors.</param>
-/// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+/// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
 internal class DynamoDataProvider<TInterface, TItem>(
     Table table,
     string typeName,
     IValidator<TItem>? validator = null,
     CommandOperations? commandOperations = null,
-    IEncryptionService? encryptionService = null)
+    IBlockCipherService? blockCipherService = null)
     : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -52,8 +52,8 @@ internal class DynamoDataProvider<TInterface, TItem>(
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = encryptionService is not null
-            ? new EncryptedJsonTypeInfoResolver(encryptionService)
+        TypeInfoResolver = blockCipherService is not null
+            ? new EncryptedJsonTypeInfoResolver(blockCipherService)
             : null
     };
 
@@ -228,12 +228,14 @@ internal class DynamoDataProvider<TInterface, TItem>(
                 }
             };
 
+            var etag = Guid.NewGuid().ToString();
+
             // round-trip the item to update the etag
             var responseItem = JsonSerializer.Deserialize<TItem>(
                 json: JsonSerializer.Serialize(request.Item, _jsonSerializerOptions),
                 options: _jsonSerializerOptions);
 
-            _etagProperty.SetValue(responseItem, Guid.NewGuid().ToString());
+            _etagProperty.SetValue(responseItem, etag);
 
             results[index] = new SaveResult<TInterface, TItem>(
                 HttpStatusCode: HttpStatusCode.OK,
@@ -246,8 +248,16 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             batch.AddDocumentToUpdate(documentItem, config);
 
+            // round-trip the event to update the etag
+            var responseEvent = JsonSerializer.Deserialize<TItem>(
+                json: JsonSerializer.Serialize(request.Event, _jsonSerializerOptions),
+                options: _jsonSerializerOptions);
+
+            _etagProperty.SetValue(responseEvent, etag);
+
             // serialize the event to the document
-            var jsonEvent = JsonSerializer.Serialize(request.Event, _jsonSerializerOptions);
+            // use responseEvent to save the updated ETag
+            var jsonEvent = JsonSerializer.Serialize(responseEvent, _jsonSerializerOptions);
             var documentEvent = Document.FromJson(jsonEvent);
 
             batch.AddDocumentToUpdate(documentEvent);

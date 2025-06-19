@@ -87,11 +87,11 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
 
         Assert.That(reader.Read(), Is.True);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
             Assert.That(reader["optionalMessage"], Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -126,10 +126,10 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
 
         Assert.That(reader.Read(), Is.True);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reader["privateMessage"], Is.EqualTo("Private Message #1"));
             Assert.That(reader.IsDBNull(1), Is.True);
-        });
+        }
     }
 }

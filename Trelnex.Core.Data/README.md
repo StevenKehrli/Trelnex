@@ -489,7 +489,7 @@ Properties marked with `[Encrypt]` are automatically encrypted before storage an
 - **Risk Assessment** - If audit trails are required, ensure event logs have appropriate access controls
 - **Compliance** - Consider data privacy regulations when tracking changes to encrypted properties
 
-The `EncryptionService` uses:
+The `BlockCipherService` uses:
 - Authenticated encryption with AES-GCM
 - HKDF for secure key derivation
 - Random salt and IV generation for each encryption operation

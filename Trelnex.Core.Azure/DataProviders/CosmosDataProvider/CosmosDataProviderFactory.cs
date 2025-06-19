@@ -119,7 +119,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
     /// <param name="typeName">The type name to filter items by.</param>
     /// <param name="validator">An optional validator for items.</param>
     /// <param name="commandOperations">The operations allowed for this provider.</param>
-    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+    /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
     /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
     /// <remarks>Uses the specified container for all operations on the given type.</remarks>
     public IDataProvider<TInterface> Create<TInterface, TItem>(
@@ -127,7 +127,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null,
-        IEncryptionService? encryptionService = null)
+        IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -142,7 +142,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
             typeName,
             validator,
             commandOperations,
-            encryptionService);
+            blockCipherService);
     }
 
     /// <summary>

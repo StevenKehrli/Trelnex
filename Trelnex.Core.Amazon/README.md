@@ -86,13 +86,24 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+        "Encryption": {
+          "Primary": {
+            "CipherName": "AesGcm",
+            "Secret": "2ff9347d-0566-499a-b2d3-3aeaf3fe7ae5"
+          },
+          "Secondary": [
+            {
+              "CipherName": "AesGcm",
+              "Secret": "411c80b9-ef25-4414-bb45-d87851eb4d95"
+            }
+          ]
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### DynamoDataProvider - Table Schema
 
@@ -191,13 +202,24 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
+        "Encryption": {
+          "Primary": {
+            "CipherName": "AesGcm",
+            "Secret": "f22c4c5d-1b1d-4f03-95b5-1ebd71413f77"
+          },
+          "Secondary": [
+            {
+              "CipherName": "AesGcm",
+              "Secret": "3abe602b-5e45-4f4e-81c4-9f30b9f7840d"
+            }
+          ]
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### PostgresDataProvider - Item Schema
 

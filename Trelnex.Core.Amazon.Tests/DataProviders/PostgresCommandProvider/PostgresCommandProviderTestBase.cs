@@ -5,7 +5,9 @@ using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Data.Tests.DataProviders;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.Tests.DataProviders;
 
@@ -80,9 +82,9 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     protected string _encryptedTableName = null!;
 
     /// <summary>
-    /// The encryption secret used for encryption testing.
+    /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
-    protected string _encryptionSecret = null!;
+    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for PostgreSQL data provider tests.
@@ -142,11 +144,11 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:TableName")
             .Get<string>()!;
 
-        // Get the encryption secret from the configuration.
-        // Example: "b5d34a7e-42e1-4cba-8bec-2ab15cb27885"
-        _encryptionSecret = configuration
-            .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:EncryptionSecret")
-            .Get<string>()!;
+        // Create the block cipher service from configuration using the factory pattern.
+        // This deserializes the algorithm type and settings, then creates the appropriate service.
+        _blockCipherService = configuration
+            .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item")
+            .CreateBlockCipherService()!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();

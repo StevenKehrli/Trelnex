@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.DataProviders;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
@@ -52,17 +53,17 @@ public static class DynamoDataProvidersExtensions
 
         var tables = configuration.GetSection("Amazon.DynamoDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
-                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
-                    EncryptionSecret: encryptionSecret);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -177,18 +178,13 @@ public static class DynamoDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
-                : null;
-
             // Create the data provider and inject it into the service collection
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: encryptionService);
+                blockCipherService: tableConfiguration.BlockCipherService);
 
             services.AddSingleton(dataProvider);
 
@@ -220,11 +216,11 @@ public static class DynamoDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in DynamoDB.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        string? EncryptionSecret);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

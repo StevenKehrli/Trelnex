@@ -25,8 +25,6 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 [Category("DynamoDataProvider")]
 public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
 {
-    private EncryptionService _encryptionService = null!;
-
     /// <summary>
     /// Sets up the <see cref="DynamoDataProvider"/> with encryption for testing using the direct factory instantiation approach.
     /// </summary>
@@ -46,14 +44,12 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
 
-        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
-
         _dataProvider = factory.Create<ITestItem, TestItem>(
             _encryptedTableName,
             "encrypted-test-item",
             TestItem.Validator,
             CommandOperations.All,
-            _encryptionService);
+            _blockCipherService);
     }
 
     [Test]
@@ -99,19 +95,21 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         Assert.That(item.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.OptionalMessage,
-            _encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.Not.EqualTo("Optional Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -156,13 +154,14 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
-        });
+        }
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

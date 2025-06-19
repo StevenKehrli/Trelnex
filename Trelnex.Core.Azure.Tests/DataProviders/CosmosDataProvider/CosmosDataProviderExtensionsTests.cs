@@ -133,11 +133,11 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -170,12 +170,11 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.Null);
-        });
-
+        }
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

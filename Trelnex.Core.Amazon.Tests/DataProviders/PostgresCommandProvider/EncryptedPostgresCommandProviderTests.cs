@@ -22,8 +22,6 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 [Category("PostgresDataProvider")]
 public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
 {
-    private EncryptionService _encryptionService = null!;
-
     /// <summary>
     /// Sets up the PostgresDataProvider for testing using the direct factory instantiation approach.
     /// </summary>
@@ -49,15 +47,13 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
             _serviceConfiguration,
             postgresClientOptions);
 
-        _encryptionService = EncryptionService.Create(Guid.NewGuid().ToString());
-
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
             _encryptedTableName,
             "encrypted-test-item",
             TestItem.Validator,
             CommandOperations.All,
-            _encryptionService);
+            _blockCipherService);
     }
 
     [Test]
@@ -97,19 +93,19 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
-            _encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -148,12 +144,12 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(reader.IsDBNull(1), Is.True);
-        });
+        }
     }
 }

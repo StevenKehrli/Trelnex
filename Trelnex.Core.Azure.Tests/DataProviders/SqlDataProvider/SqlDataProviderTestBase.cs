@@ -3,7 +3,9 @@ using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Api.Encryption;
 using Trelnex.Core.Data.Tests.DataProviders;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
@@ -60,9 +62,9 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     protected string _encryptedTableName = null!;
 
     /// <summary>
-    /// The encryption secret used for encryption testing.
+    /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
-    protected string _encryptionSecret = null!;
+    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// The token credential used to authenticate with Azure.
@@ -106,11 +108,11 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
             .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:TableName")
             .Get<string>()!;
 
-        // Get the encryption secret from the configuration.
-        // Example: "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
-        _encryptionSecret = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:EncryptionSecret")
-            .Get<string>()!;
+        // Create the block cipher service from configuration using the factory pattern.
+        // This deserializes the algorithm type and settings, then creates the appropriate service.
+        _blockCipherService = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item")
+            .CreateBlockCipherService()!;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()

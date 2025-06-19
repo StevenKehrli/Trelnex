@@ -12,6 +12,7 @@ using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Encryption;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
@@ -64,17 +65,17 @@ public static partial class PostgresDataProvidersExtensions
 
         var tables = configuration.GetSection("Amazon.PostgresDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
 
-                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
-                    EncryptionSecret: encryptionSecret);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -201,18 +202,13 @@ public static partial class PostgresDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
-                : null;
-
             // create the data provider and inject
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: encryptionService);
+                blockCipherService: tableConfiguration.BlockCipherService);
 
             services.AddSingleton(dataProvider);
 
@@ -246,11 +242,11 @@ public static partial class PostgresDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in PostgreSQL.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        string? EncryptionSecret);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

@@ -51,7 +51,7 @@ public abstract partial class DataProviderTests
             matchOptions => matchOptions
                 .Assert(fieldOption =>
                 {
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
 
@@ -74,7 +74,7 @@ public abstract partial class DataProviderTests
                         Assert.That(
                             fieldOption.Field<string>("Item.ETag"),
                             Is.Not.Default);
-                    });
+                    }
                 }));
     }
 

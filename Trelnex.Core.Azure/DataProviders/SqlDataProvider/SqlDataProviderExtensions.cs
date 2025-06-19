@@ -10,6 +10,7 @@ using Trelnex.Core.Api.Identity;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 using Trelnex.Core.Identity;
+using Trelnex.Core.Api.Encryption;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
@@ -51,17 +52,17 @@ public static class SqlDataProvidersExtensions
 
         var tables = configuration.GetSection("Azure.SqlDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
-            .Select(t =>
+            .Select(section =>
             {
-                var tableName = t.GetValue<string>("TableName")
+                var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
-                var encryptionSecret = t.GetValue<string?>("EncryptionSecret");
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
-                    TypeName: t.Key,
+                    TypeName: section.Key,
                     TableName: tableName,
-                    EncryptionSecret: encryptionSecret);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -197,18 +198,13 @@ public static class SqlDataProvidersExtensions
                     $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
             }
 
-            // Create the encryption service if a secret is provided
-            var encryptionService = (tableConfiguration.EncryptionSecret is not null)
-                ? EncryptionService.Create(tableConfiguration.EncryptionSecret)
-                : null;
-
             // Create a new data provider instance for this entity type via the factory.
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: encryptionService);
+                blockCipherService: tableConfiguration.BlockCipherService);
 
             // Register the provider in the DI container as a singleton.
             services.AddSingleton(dataProvider);
@@ -240,15 +236,15 @@ public static class SqlDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Table configuration mapping type names to table names.
+    /// Table configuration mapping type names to table names and optional encryption settings.
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="TableName">The table name in SQL Server.</param>
-    /// <param name="EncryptionSecret">Optional secret for encryption.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        string? EncryptionSecret);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

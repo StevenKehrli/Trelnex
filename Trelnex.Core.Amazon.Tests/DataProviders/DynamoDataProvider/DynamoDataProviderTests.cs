@@ -90,11 +90,11 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
@@ -136,11 +136,11 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
 
         Assert.That(item, Is.Not.Null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
-        });
+        };
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

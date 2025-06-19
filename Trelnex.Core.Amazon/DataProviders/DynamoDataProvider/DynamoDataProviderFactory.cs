@@ -95,7 +95,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     /// <param name="typeName">Type name to filter items by.</param>
     /// <param name="validator">Optional validator for items.</param>
     /// <param name="commandOperations">Operations allowed for this provider.</param>
-    /// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+    /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
     /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
     /// <remarks>
     /// Creates a <see cref="DynamoDataProvider{TInterface, TItem}"/> that operates on the specified DynamoDB table.
@@ -105,7 +105,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null,
-        IEncryptionService? encryptionService = null)
+        IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -118,7 +118,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
             typeName,
             validator,
             commandOperations,
-            encryptionService);
+            blockCipherService);
     }
 
     /// <summary>

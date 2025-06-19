@@ -72,8 +72,6 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
     [Description("Tests PostgresDataProvider with an optional message and encryption to ensure data is properly encrypted and decrypted.")]
     public async Task PostgresDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -107,27 +105,27 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
-            encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(encryptedPrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(encryptedOptionalMessage, Is.Not.EqualTo("Optional Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
     [Description("Tests PostgresDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task PostgresDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -160,12 +158,13 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(encryptedPrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(reader.IsDBNull(1), Is.True);
-        });
+        }
     }
 }

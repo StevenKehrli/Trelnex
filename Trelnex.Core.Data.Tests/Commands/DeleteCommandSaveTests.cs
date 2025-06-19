@@ -40,7 +40,7 @@ public class DeleteCommandSaveTests
         Assert.That(deleteCommand!.Item, Is.Not.Null);
 
         // Verify the item is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => deleteCommand.Item.PublicMessage = "Public #2",
@@ -49,7 +49,7 @@ public class DeleteCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => deleteCommand.Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]
@@ -117,7 +117,7 @@ public class DeleteCommandSaveTests
         Assert.That(deleted.Item, Is.Not.Null);
 
         // Verify the result is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => deleted.Item.PublicMessage = "Public #3",
@@ -126,7 +126,7 @@ public class DeleteCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => deleted.Item.PrivateMessage = "Private #3",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]

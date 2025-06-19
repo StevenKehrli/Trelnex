@@ -86,13 +86,24 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       },
       "encrypted-test-item": {
         "ContainerId": "test-items",
-        "EncryptionSecret": "a2ab1424-f686-453a-9bb9-a3a65f902d6d"
+        "Encryption": {
+          "Primary": {
+            "CipherName": "AesGcm",
+            "Secret": "5709bb5e-8dc6-49cf-919c-7483acca06be"
+          },
+          "Secondary": [
+            {
+              "CipherName": "AesGcm",
+              "Secret": "fa577f5c-4b7c-460f-ba56-9d3ec024b3d4"
+            }
+          ]
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### CosmosDataProvider - Container Schema
 
@@ -166,13 +177,24 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
       },
       "encrypted-test-item": {
         "TableName": "test-items",
-        "EncryptionSecret": "e8e9a655-e77d-49bd-ad80-a21ffa21499c"
+        "Encryption": {
+          "Primary": {
+            "CipherName": "AesGcm",
+            "Secret": "cf6d4e78-f4c6-4569-a6d0-de62d3aa6227"
+          },
+          "Secondary": [
+            {
+              "CipherName": "AesGcm",
+              "Secret": "1c7595fe-8c36-456c-893f-f8208226249b"
+            }
+          ]
+        }
       }
     }
   }
 ```
 
-The `EncryptionSecret` property is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
 #### SqlDataProvider - Item Schema
 
@@ -213,9 +235,9 @@ CREATE TABLE [test-items-events] (
 	[relatedId] nvarchar(255) NOT NULL,
 	[relatedTypeName] nvarchar(max) NOT NULL,
 	[changes] json NULL,
-    [traceContext] nvarchar(55) NULL,
-    [traceId] nvarchar(32) NULL,
-    [spanId] nvarchar(16) NULL,
+  [traceContext] nvarchar(55) NULL,
+  [traceId] nvarchar(32) NULL,
+  [spanId] nvarchar(16) NULL,
 	PRIMARY KEY ([id], [partitionKey]),
 	FOREIGN KEY ([relatedId], [partitionKey]) REFERENCES [test-items]([id], [partitionKey])
 );

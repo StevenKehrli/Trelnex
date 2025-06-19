@@ -2,13 +2,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Snapshooter.NUnit;
+using Trelnex.Core.Encryption;
 
-namespace Trelnex.Core.Encryption.Tests;
+namespace Trelnex.Core.Tests.Encryption;
 
 [Category("Encryption")]
 public class EncryptedJsonTypeInfoResolverTests
 {
-    private class TestEncryptionService : IEncryptionService
+    private class TestBlockCipherService : IBlockCipherService
     {
         public byte[] Encrypt(byte[] data)
         {
@@ -31,7 +32,7 @@ public class EncryptedJsonTypeInfoResolverTests
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            TypeInfoResolver = new EncryptedJsonTypeInfoResolver(new TestEncryptionService()),
+            TypeInfoResolver = new EncryptedJsonTypeInfoResolver(new TestBlockCipherService()),
             WriteIndented = true
         };
     }

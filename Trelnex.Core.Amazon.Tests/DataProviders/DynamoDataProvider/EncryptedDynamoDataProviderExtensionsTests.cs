@@ -75,8 +75,6 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
     [Description("Tests DynamoDataProvider with optional message and encryption to ensure data is properly encrypted and decrypted.")]
     public async Task DynamoDataProvider_OptionalMessage_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -116,28 +114,28 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         Assert.That(item.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.OptionalMessage,
-            encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
+            Assert.That(item.OptionalMessage, Is.Not.EqualTo("Optional Message #1"));
             Assert.That(optionalMessage, Is.EqualTo("Optional Message #1"));
-        });
+        }
     }
 
     [Test]
     [Description("Tests DynamoDataProvider with encryption to ensure data is properly encrypted and decrypted.")]
     public async Task DynamoDataProvider_WithEncryption()
     {
-        var encryptionService = EncryptionService.Create(_encryptionSecret);
-
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
@@ -176,13 +174,14 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            encryptionService);
+            _blockCipherService);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
+            Assert.That(item.PrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
-        });
+        }
     }
 
     private class ValidateTestItem : BaseItem, ITestItem, IBaseItem

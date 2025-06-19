@@ -51,7 +51,7 @@ public class UpdateCommandSaveTests
         Assert.That(updated.Item, Is.Not.Null);
 
         // Verify the item is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => updated.Item.PublicMessage = "Public #3",
@@ -60,7 +60,7 @@ public class UpdateCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => updated.Item.PrivateMessage = "Private #3",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]
@@ -132,7 +132,7 @@ public class UpdateCommandSaveTests
         Assert.That(updated.Item, Is.Not.Null);
 
         // Verify the result is read-only
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => updated.Item.PublicMessage = "Public #3",
@@ -141,7 +141,7 @@ public class UpdateCommandSaveTests
             Assert.Throws<InvalidOperationException>(
                 () => updated.Item.PrivateMessage = "Private #3",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]

@@ -288,7 +288,7 @@ public class QueryCommandTests
         // should return item
         using var read = await queryCommand.ToDisposableEnumerableAsync();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.Throws<InvalidOperationException>(
                 () => read[0].Item.PublicMessage = "Public #2",
@@ -297,7 +297,7 @@ public class QueryCommandTests
             Assert.Throws<InvalidOperationException>(
                 () => read[0].Item.PrivateMessage = "Private #2",
                 $"The '{typeof(ITestItem)}' is read-only");
-        });
+        }
     }
 
     [Test]
