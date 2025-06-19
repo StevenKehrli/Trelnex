@@ -62,9 +62,9 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     protected string _encryptedTableName = null!;
 
     /// <summary>
-    /// The encryption service used for encrypting and decrypting test data.
+    /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
-    protected IEncryptionService _encryptionService = null!;
+    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// The token credential used to authenticate with Azure.
@@ -108,11 +108,11 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
             .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:TableName")
             .Get<string>()!;
 
-        // Create the encryption service from configuration using the factory pattern.
+        // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
-        _encryptionService = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:Encryption")
-            .CreateEncryptionService()!;
+        _blockCipherService = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item")
+            .CreateBlockCipherService()!;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()

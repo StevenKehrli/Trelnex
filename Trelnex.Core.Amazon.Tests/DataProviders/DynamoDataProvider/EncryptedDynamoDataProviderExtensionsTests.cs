@@ -114,14 +114,14 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         Assert.That(item.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.OptionalMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {
@@ -174,7 +174,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {

@@ -54,9 +54,9 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     protected string _encryptedTableName = null!;
 
     /// <summary>
-    /// The encryption service used for encrypting and decrypting test data.
+    /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
-    protected IEncryptionService _encryptionService = null!;
+    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// The DynamoDB table used for testing.
@@ -103,11 +103,11 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
             .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:TableName")
             .Get<string>()!;
 
-        // Create the encryption service from configuration using the factory pattern.
+        // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
-        _encryptionService = configuration
-            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:Encryption")
-            .CreateEncryptionService()!;
+        _blockCipherService = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item")
+            .CreateBlockCipherService()!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();

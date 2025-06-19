@@ -105,13 +105,13 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {
@@ -158,7 +158,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {

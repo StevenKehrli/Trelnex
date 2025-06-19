@@ -8,7 +8,7 @@ namespace Trelnex.Core.Encryption;
 /// </summary>
 /// <typeparam name="TProperty">The type of the property to encrypt/decrypt.</typeparam>
 internal class EncryptedJsonConverter<TProperty>(
-    IEncryptionService encryptionService)
+    IBlockCipherService blockCipherService)
     : JsonConverter<TProperty>
 {
     /// <summary>
@@ -35,7 +35,7 @@ internal class EncryptedJsonConverter<TProperty>(
         // Decrypt and deserialize the value using the encrypted JSON service.
         return EncryptedJsonService.DecryptFromBase64<TProperty>(
             encryptedString,
-            encryptionService)!;
+            blockCipherService)!;
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ internal class EncryptedJsonConverter<TProperty>(
         // Serialize and encrypt the value to a Base64 string using the encrypted JSON service.
         var encryptedString = EncryptedJsonService.EncryptToBase64(
             value,
-            encryptionService);
+            blockCipherService);
 
         // Write the encrypted Base64 string to the JSON writer.
         writer.WriteStringValue(encryptedString);

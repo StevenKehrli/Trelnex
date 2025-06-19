@@ -1,14 +1,14 @@
 namespace Trelnex.Core.Encryption;
 
 /// <summary>
-/// Identifies the supported cipher implementations used by encryption services.
-/// Each cipher name corresponds to a specific ICipher implementation with its own
+/// Identifies the supported block cipher implementations used by encryption services.
+/// Each block cipher name corresponds to a specific IBlockCipher implementation with its own
 /// encryption algorithm and configuration.
 /// </summary>
-public enum CipherName
+public enum BlockCipherName
 {
     /// <summary>
-    /// Represents an undefined or unspecified cipher type.
+    /// Represents an undefined or unspecified block cipher type.
     /// </summary>
     Undefined,
 

@@ -20,14 +20,14 @@ namespace Trelnex.Core.Azure.DataProviders;
 /// <param name="typeName">The type name used to filter items.  Must not be null or empty.</param>
 /// <param name="validator">Optional validator for items before they are saved.  Can be null.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors. Can be null.</param>
-/// <param name="encryptionService">Optional encryption service for encrypting sensitive data.</param>
+/// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
 /// <exception cref="ArgumentNullException">Thrown when <paramref name="container"/> or <paramref name="typeName"/> is null.</exception>
 internal class CosmosDataProvider<TInterface, TItem>(
     Container container,
     string typeName,
     IValidator<TItem>? validator = null,
     CommandOperations? commandOperations = null,
-    IEncryptionService? encryptionService = null)
+    IBlockCipherService? blockCipherService = null)
     : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -41,8 +41,8 @@ internal class CosmosDataProvider<TInterface, TItem>(
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = encryptionService is not null
-            ? new EncryptedJsonTypeInfoResolver(encryptionService)
+        TypeInfoResolver = blockCipherService is not null
+            ? new EncryptedJsonTypeInfoResolver(blockCipherService)
             : null
     };
 

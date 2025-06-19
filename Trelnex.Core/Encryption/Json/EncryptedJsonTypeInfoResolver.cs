@@ -8,9 +8,9 @@ namespace Trelnex.Core.Encryption;
 /// A custom <see cref="IJsonTypeInfoResolver"/> that adds a custom <see cref="JsonConverter"/>
 /// for properties decorated with the <see cref="EncryptAttribute"/>.
 /// </summary>
-/// <param name="encryptionService">The <see cref="IEncryptionService"/> to use for encryption and decryption.</param>
+/// <param name="blockCipherService">The <see cref="IBlockCipherService"/> to use for encryption and decryption.</param>
 public class EncryptedJsonTypeInfoResolver(
-    IEncryptionService encryptionService)
+    IBlockCipherService blockCipherService)
     : IJsonTypeInfoResolver
 {
     // Use the default resolver as a base
@@ -50,7 +50,7 @@ public class EncryptedJsonTypeInfoResolver(
             var converterType = typeof(EncryptedJsonConverter<>).MakeGenericType(property.PropertyType);
 
             // Create the converter instance
-            var converter = (Activator.CreateInstance(converterType, encryptionService) as JsonConverter)!;
+            var converter = (Activator.CreateInstance(converterType, blockCipherService) as JsonConverter)!;
 
             // Set the custom converter
             property.CustomConverter = converter;

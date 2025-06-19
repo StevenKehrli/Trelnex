@@ -58,14 +58,12 @@ public static class DynamoDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
-                var encryptionService = section
-                    .GetSection("Encryption")
-                    .CreateEncryptionService();
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
-                    EncryptionService: encryptionService);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -186,7 +184,7 @@ public static class DynamoDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: tableConfiguration.EncryptionService);
+                blockCipherService: tableConfiguration.BlockCipherService);
 
             services.AddSingleton(dataProvider);
 
@@ -218,11 +216,11 @@ public static class DynamoDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in DynamoDB.</param>
-    /// <param name="EncryptionService">Optional encryption service for the table.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        IEncryptionService? EncryptionService);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

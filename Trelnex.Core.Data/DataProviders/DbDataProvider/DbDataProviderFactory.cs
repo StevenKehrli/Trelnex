@@ -87,7 +87,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null,
-        IEncryptionService? encryptionService = null)
+        IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -107,7 +107,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             .Property(item => item.Id).IsPrimaryKey()
             .Property(item => item.PartitionKey).IsPrimaryKey();
 
-        MapItemProperties<TInterface, TItem>(builder, encryptionService);
+        MapItemProperties<TInterface, TItem>(builder, blockCipherService);
 
         // Map the event to its table ("<tableName>-events")
         var eventsTableName = GetEventsTableName(tableName);
@@ -283,10 +283,10 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
     /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
     /// <param name="builder">The LinqToDB entity mapping builder.</param>
-    /// <param name="encryptionService">Optional encryption service for sensitive properties.</param>
+    /// <param name="blockCipherService">Optional block cipher service for sensitive properties.</param>
     private static void MapItemProperties<TInterface, TItem>(
         EntityMappingBuilder<TItem> builder,
-        IEncryptionService? encryptionService)
+        IBlockCipherService? blockCipherService)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -309,7 +309,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             // Invoke the MapItemProperty method for the current property
             mapItemPropertyMethod.Invoke(
                 null,
-                [builder, itemProperty, encryptionService]);
+                [builder, itemProperty, blockCipherService]);
         }
     }
 
@@ -321,7 +321,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <typeparam name="TProperty">The property type being mapped.</typeparam>
     /// <param name="builder">The LinqToDB entity mapping builder.</param>
     /// <param name="propertyInfo">Reflection information about the property being mapped.</param>
-    /// <param name="encryptionService">Optional encryption service for properties marked with EncryptAttribute.</param>
+    /// <param name="blockCipherService">Optional block cipher service for properties marked with EncryptAttribute.</param>
     /// <remarks>
     /// Handles three mapping scenarios: encrypted properties, complex types requiring JSON serialization,
     /// and simple types mapped directly to database columns.
@@ -329,7 +329,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     private static void MapItemProperty<TInterface, TItem, TProperty>(
         EntityMappingBuilder<TItem> builder,
         PropertyInfo propertyInfo,
-        IEncryptionService? encryptionService)
+        IBlockCipherService? blockCipherService)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
@@ -344,15 +344,15 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         var property = Expression.Property(parameter, propertyInfo.Name);
         var lambda = Expression.Lambda<Func<TItem, TProperty>>(property, parameter);
 
-        // If encryption service is available and the property should be encrypted
-        if (encryptionService is not null && IsEncryptProperty(propertyInfo))
+        // If block cipher service is available and the property should be encrypted
+        if (blockCipherService is not null && IsEncryptProperty(propertyInfo))
         {
             // Configure the property to use encryption and decryption converters
             builder
                 .Property(lambda)
                 .HasConversion(
-                    value => EncryptedJsonService.EncryptToBase64(value, encryptionService),
-                    encryptedValue => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedValue, encryptionService)!);
+                    value => EncryptedJsonService.EncryptToBase64(value, blockCipherService),
+                    encryptedValue => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedValue, blockCipherService)!);
         }
         // If the property is a complex type
         else if (IsComplexProperty(propertyInfo))

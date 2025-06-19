@@ -57,14 +57,12 @@ public static class SqlDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
-                var encryptionService = section
-                    .GetSection("Encryption")
-                    .CreateEncryptionService();
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
-                    EncryptionService: encryptionService);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -206,7 +204,7 @@ public static class SqlDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: tableConfiguration.EncryptionService);
+                blockCipherService: tableConfiguration.BlockCipherService);
 
             // Register the provider in the DI container as a singleton.
             services.AddSingleton(dataProvider);
@@ -242,11 +240,11 @@ public static class SqlDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="TableName">The table name in SQL Server.</param>
-    /// <param name="EncryptionService">Optional encryption service for the table.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
-        IEncryptionService? EncryptionService);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

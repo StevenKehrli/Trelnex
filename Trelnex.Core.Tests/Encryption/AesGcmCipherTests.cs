@@ -25,28 +25,28 @@ public class AesGcmCipherTests
         // Create the first AesGcmCipher instance with the defined secret.
         var cipher1 = new AesGcmCipher(cipherConfiguration);
         // Encrypt the plaintext using the first cipher.
-        var ciphertext1 = cipher1.Encrypt(plaintextBytesIn);
+        var ciphertext1 = Encrypt(cipher1, plaintextBytesIn);
         // Decrypt the ciphertext using the first cipher.
-        var plaintextBytesOutFromCipher1ciphertext1 = cipher1.Decrypt(ciphertext1);
+        var plaintextBytesOutFromCipher1ciphertext1 = Decrypt(cipher1, ciphertext1);
         // Convert the decrypted bytes back to a string.
         var sOutFromCipher1ciphertext1 = Encoding.UTF8.GetString(plaintextBytesOutFromCipher1ciphertext1);
 
         // Create the second AesGcmCipher instance with the same secret.
         var cipher2 = new AesGcmCipher(cipherConfiguration);
         // Encrypt the plaintext using the second cipher.
-        var ciphertext2 = cipher2.Encrypt(plaintextBytesIn);
+        var ciphertext2 = Encrypt(cipher2, plaintextBytesIn);
         // Decrypt the ciphertext using the second cipher.
-        var plaintextBytesOutFromCipher2ciphertext2 = cipher2.Decrypt(ciphertext2);
+        var plaintextBytesOutFromCipher2ciphertext2 = Decrypt(cipher2, ciphertext2);
         // Convert the decrypted bytes back to a string.
         var sOutFromCipher2ciphertext2 = Encoding.UTF8.GetString(plaintextBytesOutFromCipher2ciphertext2);
 
         // Attempt to decrypt ciphertext2 using the first cipher.
-        var plaintextBytesOutFromCipher1ciphertext2 = cipher1.Decrypt(ciphertext2);
+        var plaintextBytesOutFromCipher1ciphertext2 = Decrypt(cipher1, ciphertext2);
         // Convert the decrypted bytes back to a string.
         var sOutFromCipher1ciphertext2 = Encoding.UTF8.GetString(plaintextBytesOutFromCipher1ciphertext2);
 
         // Attempt to decrypt ciphertext1 using the second cipher.
-        var plaintextBytesOutFromCipher2ciphertext1 = cipher2.Decrypt(ciphertext1);
+        var plaintextBytesOutFromCipher2ciphertext1 = Decrypt(cipher2, ciphertext1);
         // Convert the decrypted bytes back to a string.
         var sOutFromCipher2ciphertext1 = Encoding.UTF8.GetString(plaintextBytesOutFromCipher2ciphertext1);
 
@@ -81,15 +81,15 @@ public class AesGcmCipherTests
         var cipher = new AesGcmCipher(cipherConfiguration);
 
         // Encrypt the plaintext using the cipher instance.
-        var ciphertext1 = cipher.Encrypt(plaintextBytesIn);
+        var ciphertext1 = Encrypt(cipher, plaintextBytesIn);
         // Decrypt the ciphertext and convert the decrypted bytes back to a string.
-        var plaintextBytesOut1 = cipher.Decrypt(ciphertext1);
+        var plaintextBytesOut1 = Decrypt(cipher, ciphertext1);
         var sOut1 = Encoding.UTF8.GetString(plaintextBytesOut1);
 
         // Encrypt the plaintext again using the same cipher instance.
-        var ciphertext2 = cipher.Encrypt(plaintextBytesIn);
+        var ciphertext2 = Encrypt(cipher, plaintextBytesIn);
         // Decrypt the ciphertext and convert the decrypted bytes back to a string.
-        var plaintextBytesOut2 = cipher.Decrypt(ciphertext2);
+        var plaintextBytesOut2 = Decrypt(cipher, ciphertext2);
         var sOut2 = Encoding.UTF8.GetString(plaintextBytesOut2);
 
         // Assert multiple conditions to verify the encryption and decryption process.
@@ -99,5 +99,33 @@ public class AesGcmCipherTests
             Assert.That(sIn, Is.EqualTo(sOut2), "The decrypted text from ciphertext 2 should match the original input.");
             Assert.That(ciphertext1, Is.Not.EqualTo(ciphertext2), "ciphertext 1 and ciphertext 2 should not be equal, demonstrating different ciphertexts for each encryption.");
         }
+    }
+
+    private static byte[] Decrypt(
+        IBlockCipher blockCipher,
+        byte[] ciphertext)
+    {
+        var blockBuffer = blockCipher.Decrypt(
+            ciphertext,
+            0,
+            requiredSize => new BlockBuffer(
+                buffer: new byte[requiredSize],
+                offset: 0));
+
+        return blockBuffer.Buffer;
+    }
+
+    private static byte[] Encrypt(
+        IBlockCipher blockCipher,
+        byte[] plaintext)
+    {
+        var blockBuffer = blockCipher.Encrypt(
+            plaintext,
+            0,
+            requiredSize => new BlockBuffer(
+                buffer: new byte[requiredSize],
+                offset: 0));
+
+        return blockBuffer.Buffer;
     }
 }

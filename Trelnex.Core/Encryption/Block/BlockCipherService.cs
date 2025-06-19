@@ -1,11 +1,11 @@
 namespace Trelnex.Core.Encryption;
 
 /// <summary>
-/// Provides encryption and decryption services using a primary cipher and zero or more secondary ciphers.
+/// Provides encryption and decryption services using a primary block cipher and zero or more secondary block ciphers.
 /// The service uses the primary cipher for all encryption operations and identifies the correct cipher
 /// for decryption by reading the cipher ID from the encrypted data.
 /// </summary>
-public interface IEncryptionService
+public interface IBlockCipherService
 {
     /// <summary>
     /// Decrypts the given encrypted data by reading the cipher ID from the data
@@ -24,17 +24,19 @@ public interface IEncryptionService
 }
 
 /// <summary>
-/// Provides encryption and decryption services using a primary cipher and zero or more secondary ciphers.
+/// Provides encryption and decryption services using a primary block cipher and zero or more secondary block ciphers.
 /// The service uses the primary cipher for all encryption operations and identifies the correct cipher
 /// for decryption by reading the cipher ID from the encrypted data.
 /// </summary>
 /// <param name="primaryCipher">The primary cipher used for all encryption operations.</param>
 /// <param name="secondaryCiphers">Optional secondary ciphers used for decryption during key rotation scenarios.</param>
-public class EncryptionService(
-    ICipher primaryCipher,
-    ICipher[]? secondaryCiphers = null)
-     : IEncryptionService
+public class BlockCipherService(
+    IBlockCipher primaryCipher,
+    IBlockCipher[]? secondaryCiphers = null)
+     : IBlockCipherService
 {
+    private static readonly int _cipherIdSize = sizeof(int);
+
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when no cipher is found with the specified ID.</exception>
     public byte[] Decrypt(
@@ -45,37 +47,36 @@ public class EncryptionService(
 
         // Get the cipher with cipher ID
         var cipher = GetCipher(cipherId)
-            ?? throw new InvalidOperationException($"No ICipher found with id '0x{cipherId:X8}'.");
+            ?? throw new InvalidOperationException($"No IBlockCipher found with id '0x{cipherId:X8}'.");
 
         // Use the cipher to decrypt starting after the cipher ID
-        return cipher.Decrypt(cipherText, sizeof(int));
+        var blockBuffer = cipher.Decrypt(cipherText, _cipherIdSize, requiredSize =>
+        {
+            return new BlockBuffer(
+                buffer: new byte[requiredSize],
+                offset: 0);
+        });
+
+        return blockBuffer.Buffer;
     }
 
     /// <inheritdoc />
     public byte[] Encrypt(
         byte[] plainText)
     {
-        var cipherText = primaryCipher.Encrypt(plainText);
+        // Use the new IBlockCipher Encrypt method with allocateBlock function
+        var blockBuffer = primaryCipher.Encrypt(plainText, 0, requiredSize =>
+        {
+            return new BlockBuffer(
+                buffer: new byte[_cipherIdSize + requiredSize],
+                offset: _cipherIdSize);
+        });
 
-        var dst = new byte[sizeof(int) + cipherText.Length];
+        // Write cipher ID at the beginning
+        var cipherIdBytes = BitConverter.GetBytes(primaryCipher.Id);
+        Buffer.BlockCopy(cipherIdBytes, 0, blockBuffer.Buffer, 0, _cipherIdSize);
 
-        var cipherId = BitConverter.GetBytes(primaryCipher.Id);
-
-        Buffer.BlockCopy(
-            src: cipherId,
-            srcOffset: 0,
-            dst: dst,
-            dstOffset: 0,
-            count: cipherId.Length);
-
-        Buffer.BlockCopy(
-            src: cipherText,
-            srcOffset: 0,
-            dst: dst,
-            dstOffset: cipherId.Length,
-            count: cipherText.Length);
-
-        return dst;
+        return blockBuffer.Buffer;
     }
 
     /// <summary>
@@ -83,7 +84,7 @@ public class EncryptionService(
     /// </summary>
     /// <param name="cipherId">The cipher ID to find.</param>
     /// <returns>The matching cipher instance, or null if no cipher is found with the specified ID.</returns>
-    private ICipher? GetCipher(
+    private IBlockCipher? GetCipher(
         int cipherId)
     {
         if (primaryCipher.Id == cipherId) return primaryCipher;

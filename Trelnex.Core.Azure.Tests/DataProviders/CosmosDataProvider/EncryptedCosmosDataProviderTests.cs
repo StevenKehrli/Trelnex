@@ -50,7 +50,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
             "encrypted-test-item",
             TestItem.Validator,
             CommandOperations.All,
-            _encryptionService);
+            _blockCipherService);
     }
 
     [Test]
@@ -87,14 +87,14 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         // Decrypt the optional message
         Assert.That(item.Resource.OptionalMessage, Is.Not.Null);
 
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.OptionalMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {
@@ -138,7 +138,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         // Decrypt the private message
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             item.Resource.PrivateMessage,
-            _encryptionService);
+            _blockCipherService);
 
         using (Assert.EnterMultipleScope())
         {

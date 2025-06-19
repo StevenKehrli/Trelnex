@@ -53,9 +53,9 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     protected string _encryptedContainerId = null!;
 
     /// <summary>
-    /// The encryption service used for encrypting and decrypting test data.
+    /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
-    protected IEncryptionService _encryptionService = null!;
+    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -111,11 +111,11 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:ContainerId")
             .Get<string>()!;
 
-        // Create the encryption service from configuration using the factory pattern.
+        // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
-        _encryptionService = configuration
-            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:Encryption")
-            .CreateEncryptionService()!;
+        _blockCipherService = configuration
+            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item")
+            .CreateBlockCipherService()!;
 
         // Create a token credential for authentication.
         _tokenCredential = new DefaultAzureCredential();

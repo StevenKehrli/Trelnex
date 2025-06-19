@@ -56,14 +56,12 @@ public static class CosmosDataProvidersExtensions
                 var containerId = section.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
-                var encryptionService = section
-                    .GetSection("Encryption")
-                    .CreateEncryptionService();
+                var blockCipherService = section.CreateBlockCipherService();
 
                 return new ContainerConfiguration(
                     TypeName: section.Key,
                     ContainerId: containerId,
-                    EncryptionService: encryptionService);
+                    BlockCipherService: blockCipherService);
             })
             .ToArray();
 
@@ -198,7 +196,7 @@ public static class CosmosDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
-                encryptionService: containerConfiguration.EncryptionService);
+                blockCipherService: containerConfiguration.BlockCipherService);
 
             // Register the data provider
             services.AddSingleton(dataProvider);
@@ -233,11 +231,11 @@ public static class CosmosDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="ContainerId">The container ID in Cosmos DB.</param>
-    /// <param name="EncryptionService">Optional encryption service for the container.</param>
+    /// <param name="BlockCipherService">Optional block cipher service for the container.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
-        IEncryptionService? EncryptionService);
+        IBlockCipherService? BlockCipherService);
 
     #endregion
 

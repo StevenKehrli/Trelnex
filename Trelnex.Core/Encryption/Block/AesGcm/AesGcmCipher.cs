@@ -19,7 +19,7 @@ namespace Trelnex.Core.Encryption;
 /// <param name="configuration">The AES-GCM encryption configuration containing the secret key and other settings.</param>
 internal class AesGcmCipher(
     AesGcmCipherConfiguration configuration)
-    : ICipher
+    : IBlockCipher
 {
     #region Private Static Fields
 
@@ -57,14 +57,16 @@ internal class AesGcmCipher(
 
     /// <inheritdoc />
     /// <remarks>
-    /// This implementation uses AES-256-GCM with authenticated decryption.
+    /// This implementation uses AES-256-GCM with authenticated decryption and caller-controlled block allocation.
     /// The ciphertext must contain the HKDF salt, IV, encrypted data, and authentication tag in that order.
     /// Format: [16-byte HKDF salt][12-byte IV][encrypted data + 16-byte auth tag]
+    /// The allocateBlock function receives the required size for the decrypted output and returns a BlockBuffer where decryption results will be written.
     /// The startIndex parameter allows decryption to begin at a specific offset within the ciphertext array.
     /// </remarks>
-    public byte[] Decrypt(
+    public BlockBuffer Decrypt(
         byte[] ciphertext,
-        int startIndex = 0)
+        int startIndex,
+        Func<int, BlockBuffer> allocateBlock)
     {
         // Extract the HKDF salt from combined data
         var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
@@ -84,15 +86,6 @@ internal class AesGcmCipher(
             dstOffset: 0,
             count: iv.Length);
 
-        // Extract ciphertext
-        var cipherBlock = new byte[ciphertext.Length - startIndex - _hkdfSaltLengthInBytes - iv.Length];
-        Buffer.BlockCopy(
-            src: ciphertext,
-            srcOffset: startIndex + hkdfSalt.Length + iv.Length,
-            dst: cipherBlock,
-            dstOffset: 0,
-            count: cipherBlock.Length);
-
         // Derive the encryption key from the secret and salt using HKDF.
         var key = DeriveKey(
             secret: configuration.Secret,
@@ -107,26 +100,33 @@ internal class AesGcmCipher(
             nonce: iv);
         cipher.Init(false, parameters);
 
-        // Process the data
-        var size = cipher.GetOutputSize(cipherBlock.Length);
-        var plaintextBlock = new byte[size];
+        // Calculate cipher block offset and length
+        var cipherBlockOffset = startIndex + hkdfSalt.Length + iv.Length;
+        var cipherBlockLength = ciphertext.Length - cipherBlockOffset;
 
-        var offset = cipher.ProcessBytes(cipherBlock, 0, cipherBlock.Length, plaintextBlock, 0);
-        offset += cipher.DoFinal(plaintextBlock, offset);
+        // Calculate output size and allocate the block buffer
+        var outputSize = cipher.GetOutputSize(cipherBlockLength);
+        var blockBuffer = allocateBlock(outputSize);
 
-        return plaintextBlock;
+        // Decrypt directly into the buffer from the original ciphertext array
+        blockBuffer.Offset += cipher.ProcessBytes(ciphertext, cipherBlockOffset, cipherBlockLength, blockBuffer.Buffer, blockBuffer.Offset);
+        blockBuffer.Offset += cipher.DoFinal(blockBuffer.Buffer, blockBuffer.Offset);
+
+        return blockBuffer;
     }
 
     /// <inheritdoc />
     /// <remarks>
-    /// This implementation uses AES-256-GCM with authenticated encryption.
+    /// This implementation uses AES-256-GCM with authenticated encryption and caller-controlled block allocation.
     /// Generates a random HKDF salt and IV for each encryption operation to ensure semantic security.
     /// Output format: [16-byte HKDF salt][12-byte IV][encrypted data + 16-byte auth tag]
+    /// The allocateBlock function receives the total required size and returns a BlockBuffer where encryption results will be written.
     /// The startIndex parameter allows encryption to begin at a specific offset within the plaintext array.
     /// </remarks>
-    public byte[] Encrypt(
+    public BlockBuffer Encrypt(
         byte[] plaintext,
-        int startIndex = 0)
+        int startIndex,
+        Func<int, BlockBuffer> allocateBlock)
     {
         // Generate a random salt for HKDF
         var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
@@ -150,38 +150,36 @@ internal class AesGcmCipher(
             nonce: iv);
         cipher.Init(true, parameters);
 
-        // Process the data
-        var size = cipher.GetOutputSize(plaintext.Length - startIndex);
-        var cipherBlock = new byte[size];
+        // Calculate total output size: salt + IV + encrypted data with auth tag
+        var cipherBlockSize = cipher.GetOutputSize(plaintext.Length - startIndex);
+        var totalSize = hkdfSalt.Length + iv.Length + cipherBlockSize;
 
-        var offset = cipher.ProcessBytes(plaintext, startIndex, plaintext.Length - startIndex, cipherBlock, 0);
-        offset += cipher.DoFinal(cipherBlock, offset);
+        // Allocate the block buffer
+        var blockBuffer = allocateBlock(totalSize);
 
-        // Combine the HKDF salt, random IV and ciphertext
-        var ciphertext = new byte[hkdfSalt.Length + iv.Length + cipherBlock.Length];
-
+        // Write HKDF salt to the buffer
         Buffer.BlockCopy(
             src: hkdfSalt,
             srcOffset: 0,
-            dst: ciphertext,
-            dstOffset: 0,
+            dst: blockBuffer.Buffer,
+            dstOffset: blockBuffer.Offset,
             count: hkdfSalt.Length);
+        blockBuffer.Offset += hkdfSalt.Length;
 
+        // Write IV to the buffer
         Buffer.BlockCopy(
             src: iv,
             srcOffset: 0,
-            dst: ciphertext,
-            dstOffset: hkdfSalt.Length,
+            dst: blockBuffer.Buffer,
+            dstOffset: blockBuffer.Offset,
             count: iv.Length);
+        blockBuffer.Offset += iv.Length;
 
-        Buffer.BlockCopy(
-            src: cipherBlock,
-            srcOffset: 0,
-            dst: ciphertext,
-            dstOffset: hkdfSalt.Length + iv.Length,
-            count: cipherBlock.Length);
+        // Encrypt directly into the buffer
+        blockBuffer.Offset += cipher.ProcessBytes(plaintext, startIndex, plaintext.Length - startIndex, blockBuffer.Buffer, blockBuffer.Offset);
+        blockBuffer.Offset += cipher.DoFinal(blockBuffer.Buffer, blockBuffer.Offset);
 
-        return ciphertext;
+        return blockBuffer;
     }
 
     /// <summary>
