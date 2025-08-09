@@ -202,8 +202,8 @@ The table for the items must follow the following schema.
 
 ```sql
 CREATE TABLE [test-items] (
-	[id] nvarchar(255) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(255) NOT NULL,
+	[id] nvarchar(max) NOT NULL UNIQUE,
+	[partitionKey] nvarchar(max) NOT NULL,
 	[typeName] nvarchar(max) NOT NULL,
 	[createdDateTimeOffset] datetimeoffset NOT NULL,
 	[updatedDateTimeOffset] datetimeoffset NOT NULL,
@@ -223,8 +223,8 @@ The table for the events must use the following schema to track changes.
 
 ```sql
 CREATE TABLE [test-items-events] (
-	[id] nvarchar(255) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(255) NOT NULL,
+	[id] nvarchar(max) NOT NULL UNIQUE,
+	[partitionKey] nvarchar(max) NOT NULL,
 	[typeName] nvarchar(max) NOT NULL,
 	[createdDateTimeOffset] datetimeoffset NOT NULL,
 	[updatedDateTimeOffset] datetimeoffset NOT NULL,
@@ -232,7 +232,7 @@ CREATE TABLE [test-items-events] (
 	[isDeleted] bit NULL,
 	[_etag] nvarchar(255) NULL,
 	[saveAction] nvarchar(max) NOT NULL,
-	[relatedId] nvarchar(255) NOT NULL,
+	[relatedId] nvarchar(max) NOT NULL,
 	[relatedTypeName] nvarchar(max) NOT NULL,
 	[changes] json NULL,
   [traceContext] nvarchar(55) NULL,
