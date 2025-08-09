@@ -7,13 +7,13 @@
     {
       "_resourceName": "urn://resource-createscope-alreadyexists",
       "_scopeName": "scope-createscope-alreadyexists",
-      "entityName": "#RESOURCE#urn://resource-createscope-alreadyexists",
-      "subjectName": "#SCOPE#scope-createscope-alreadyexists"
+      "entityName": "RESOURCE#urn://resource-createscope-alreadyexists",
+      "subjectName": "SCOPE#scope-createscope-alreadyexists"
     },
     {
       "_resourceName": "urn://resource-createscope-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createscope-alreadyexists"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createscope-alreadyexists"
     }
   ],
   "scopeAfterSecond": {
@@ -24,13 +24,13 @@
     {
       "_resourceName": "urn://resource-createscope-alreadyexists",
       "_scopeName": "scope-createscope-alreadyexists",
-      "entityName": "#RESOURCE#urn://resource-createscope-alreadyexists",
-      "subjectName": "#SCOPE#scope-createscope-alreadyexists"
+      "entityName": "RESOURCE#urn://resource-createscope-alreadyexists",
+      "subjectName": "SCOPE#scope-createscope-alreadyexists"
     },
     {
       "_resourceName": "urn://resource-createscope-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createscope-alreadyexists"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createscope-alreadyexists"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "items": [
     {
       "_resourceName": "urn://resource-createresource",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createresource"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createresource"
     }
   ]
 }

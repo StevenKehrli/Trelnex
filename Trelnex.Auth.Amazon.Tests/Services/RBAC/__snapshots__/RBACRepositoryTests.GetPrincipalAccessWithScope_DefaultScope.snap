@@ -14,46 +14,46 @@
       "_principalId": "principal-getprincipalaccesswithscope-defaultscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_roleName": "role-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope#ROLE#role-getprincipalaccesswithscope-defaultscope"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope##ROLE#role-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_scopeName": "scope-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope#SCOPE#scope-getprincipalaccesswithscope-defaultscope"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope##SCOPE#scope-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_roleName": "role-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#ROLE#role-getprincipalaccesswithscope-defaultscope"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "ROLE#role-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_roleName": "role-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscope#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscope##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_scopeName": "scope-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#SCOPE#scope-getprincipalaccesswithscope-defaultscope"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "SCOPE#scope-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
       "_scopeName": "scope-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
-      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccesswithscope-defaultscope#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope",
+      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccesswithscope-defaultscope##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscope",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscope"
     }
   ]
 }

@@ -15,25 +15,25 @@
     {
       "_resourceName": "urn://resource-createscope-multiplescopesinresource",
       "_scopeName": "scope-1-createscope-multiplescopesinresource",
-      "entityName": "#RESOURCE#urn://resource-createscope-multiplescopesinresource",
-      "subjectName": "#SCOPE#scope-1-createscope-multiplescopesinresource"
+      "entityName": "RESOURCE#urn://resource-createscope-multiplescopesinresource",
+      "subjectName": "SCOPE#scope-1-createscope-multiplescopesinresource"
     },
     {
       "_resourceName": "urn://resource-createscope-multiplescopesinresource",
       "_scopeName": "scope-2-createscope-multiplescopesinresource",
-      "entityName": "#RESOURCE#urn://resource-createscope-multiplescopesinresource",
-      "subjectName": "#SCOPE#scope-2-createscope-multiplescopesinresource"
+      "entityName": "RESOURCE#urn://resource-createscope-multiplescopesinresource",
+      "subjectName": "SCOPE#scope-2-createscope-multiplescopesinresource"
     },
     {
       "_resourceName": "urn://resource-createscope-multiplescopesinresource",
       "_scopeName": "scope-3-createscope-multiplescopesinresource",
-      "entityName": "#RESOURCE#urn://resource-createscope-multiplescopesinresource",
-      "subjectName": "#SCOPE#scope-3-createscope-multiplescopesinresource"
+      "entityName": "RESOURCE#urn://resource-createscope-multiplescopesinresource",
+      "subjectName": "SCOPE#scope-3-createscope-multiplescopesinresource"
     },
     {
       "_resourceName": "urn://resource-createscope-multiplescopesinresource",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createscope-multiplescopesinresource"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createscope-multiplescopesinresource"
     }
   ]
 }

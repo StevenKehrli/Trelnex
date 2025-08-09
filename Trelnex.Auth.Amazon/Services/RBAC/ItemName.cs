@@ -13,37 +13,37 @@ internal static class ItemName
     /// <summary>
     /// The marker prefix used to identify principal-related entries.
     /// </summary>
-    public const string PRINCIPAL_MARKER = "#PRINCIPAL#";
+    public const string PRINCIPAL_MARKER = "PRINCIPAL#";
 
     /// <summary>
     /// The marker prefix used to identify resource-related entries.
     /// </summary>
-    public const string RESOURCE_MARKER = "#RESOURCE#";
+    public const string RESOURCE_MARKER = "RESOURCE#";
 
     /// <summary>
     /// The marker prefix used to identify role assignment entries.
     /// </summary>
-    public const string ROLEASSIGNMENT_MARKER = "#ROLEASSIGNMENT#";
+    public const string ROLEASSIGNMENT_MARKER = "ROLEASSIGNMENT##";
 
     /// <summary>
     /// The marker prefix used to identify role-related entries.
     /// </summary>
-    public const string ROLE_MARKER = "#ROLE#";
+    public const string ROLE_MARKER = "ROLE#";
 
     /// <summary>
     /// The marker prefix used to identify root-level entries.
     /// </summary>
-    public const string ROOT_MARKER = "#ROOT#";
+    public const string ROOT_MARKER = "ROOT#";
 
     /// <summary>
     /// The marker prefix used to identify scope assignment entries.
     /// </summary>
-    public const string SCOPEASSIGNMENT_MARKER = "#SCOPEASSIGNMENT#";
+    public const string SCOPEASSIGNMENT_MARKER = "SCOPEASSIGNMENT##";
 
     /// <summary>
     /// The marker prefix used to identify scope-related entries.
     /// </summary>
-    public const string SCOPE_MARKER = "#SCOPE#";
+    public const string SCOPE_MARKER = "SCOPE#";
 
     /// <summary>
     /// Formats a principal identifier for use as a DynamoDB entity name.
@@ -51,7 +51,7 @@ internal static class ItemName
     /// <param name="principalId">The unique identifier of the principal, such as "arn:aws:iam::123456789012:user/john".</param>
     /// <returns>A formatted entity name with the principal marker prefix.</returns>
     /// <example>
-    /// Returns: "#PRINCIPAL#arn:aws:iam::123456789012:user/john"
+    /// Returns: "PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
     public static string FormatPrincipal(
         string principalId)
@@ -65,7 +65,7 @@ internal static class ItemName
     /// <param name="resourceName">The name of the resource, such as "api://amazon.auth.trelnex.com".</param>
     /// <returns>A formatted entity name with the resource marker prefix.</returns>
     /// <example>
-    /// Returns: "#RESOURCE#api://amazon.auth.trelnex.com"
+    /// Returns: "RESOURCE#api://amazon.auth.trelnex.com"
     /// </example>
     public static string FormatResource(
         string resourceName)
@@ -80,13 +80,15 @@ internal static class ItemName
     /// <param name="principalId">The unique identifier of the principal (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by principal.</returns>
     /// <example>
-    /// Returns: "#ROLEASSIGNMENT##ROLE#rbac.create#PRINCIPAL#arn:aws:iam::123456789012:user/john"
+    /// Returns: "ROLEASSIGNMENT##ROLE#rbac.create##PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
     public static string FormatRoleAssignmentByPrincipal(
         string roleName,
         string? principalId = null)
     {
-        return $"{ROLEASSIGNMENT_MARKER}{ROLE_MARKER}{roleName}{PRINCIPAL_MARKER}{principalId}";
+        var rolePart = FormatRole(roleName);
+        var principalPart = FormatPrincipal(principalId ?? string.Empty);
+        return $"{ROLEASSIGNMENT_MARKER}{rolePart}##{principalPart}";
     }
 
     /// <summary>
@@ -96,13 +98,15 @@ internal static class ItemName
     /// <param name="roleName">The name of the role (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by role.</returns>
     /// <example>
-    /// Returns: "#ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#ROLE#rbac.create"
+    /// Returns: "ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##ROLE#rbac.create"
     /// </example>
     public static string FormatRoleAssignmentByRole(
         string resourceName,
         string? roleName = null)
     {
-        return $"{ROLEASSIGNMENT_MARKER}{RESOURCE_MARKER}{resourceName}{ROLE_MARKER}{roleName}";
+        var resourcePart = FormatResource(resourceName);
+        var rolePart = FormatRole(roleName ?? string.Empty);
+        return $"{ROLEASSIGNMENT_MARKER}{resourcePart}##{rolePart}";
     }
 
     /// <summary>
@@ -111,7 +115,7 @@ internal static class ItemName
     /// <param name="roleName">The name of the role, such as "rbac.create" or "rbac.read".</param>
     /// <returns>A formatted entity name with the role marker prefix.</returns>
     /// <example>
-    /// Returns: "#ROLE#rbac.create"
+    /// Returns: "ROLE#rbac.create"
     /// </example>
     public static string FormatRole(
         string roleName)
@@ -126,13 +130,15 @@ internal static class ItemName
     /// <param name="principalId">The unique identifier of the principal (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by principal.</returns>
     /// <example>
-    /// Returns: "#SCOPEASSIGNMENT##SCOPE#rbac#PRINCIPAL#arn:aws:iam::123456789012:user/john"
+    /// Returns: "SCOPEASSIGNMENT##SCOPE#rbac##PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
     public static string FormatScopeAssignmentByPrincipal(
         string scopeName,
         string? principalId = null)
     {
-        return $"{SCOPEASSIGNMENT_MARKER}{SCOPE_MARKER}{scopeName}{PRINCIPAL_MARKER}{principalId}";
+        var scopePart = FormatScope(scopeName);
+        var principalPart = FormatPrincipal(principalId ?? string.Empty);
+        return $"{SCOPEASSIGNMENT_MARKER}{scopePart}##{principalPart}";
     }
 
     /// <summary>
@@ -142,13 +148,15 @@ internal static class ItemName
     /// <param name="scopeName">The name of the scope (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by scope.</returns>
     /// <example>
-    /// Returns: "#SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#SCOPE#rbac"
+    /// Returns: "SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##SCOPE#rbac"
     /// </example>
     public static string FormatScopeAssignmentByScope(
         string resourceName,
         string? scopeName = null)
     {
-        return $"{SCOPEASSIGNMENT_MARKER}{RESOURCE_MARKER}{resourceName}{SCOPE_MARKER}{scopeName}";
+        var resourcePart = FormatResource(resourceName);
+        var scopePart = FormatScope(scopeName ?? string.Empty);
+        return $"{SCOPEASSIGNMENT_MARKER}{resourcePart}##{scopePart}";
     }
 
     /// <summary>
@@ -157,7 +165,7 @@ internal static class ItemName
     /// <param name="scopeName">The name of the scope, such as "rbac".</param>
     /// <returns>A formatted entity name with the scope marker prefix.</returns>
     /// <example>
-    /// Returns: "#SCOPE#rbac"
+    /// Returns: "SCOPE#rbac"
     /// </example>
     public static string FormatScope(
         string scopeName)

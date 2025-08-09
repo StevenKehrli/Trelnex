@@ -14,46 +14,46 @@
       "_principalId": "principal-getprincipalaccess",
       "_resourceName": "urn://resource-getprincipalaccess",
       "_roleName": "role-getprincipalaccess",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccess",
-      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess#ROLE#role-getprincipalaccess"
+      "entityName": "PRINCIPAL#principal-getprincipalaccess",
+      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess##ROLE#role-getprincipalaccess"
     },
     {
       "_principalId": "principal-getprincipalaccess",
       "_resourceName": "urn://resource-getprincipalaccess",
       "_scopeName": "scope-getprincipalaccess",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccess",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess#SCOPE#scope-getprincipalaccess"
+      "entityName": "PRINCIPAL#principal-getprincipalaccess",
+      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess##SCOPE#scope-getprincipalaccess"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess",
       "_roleName": "role-getprincipalaccess",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccess",
-      "subjectName": "#ROLE#role-getprincipalaccess"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccess",
+      "subjectName": "ROLE#role-getprincipalaccess"
     },
     {
       "_principalId": "principal-getprincipalaccess",
       "_resourceName": "urn://resource-getprincipalaccess",
       "_roleName": "role-getprincipalaccess",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccess",
-      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalaccess#PRINCIPAL#principal-getprincipalaccess"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccess",
+      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccess##PRINCIPAL#principal-getprincipalaccess"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess",
       "_scopeName": "scope-getprincipalaccess",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccess",
-      "subjectName": "#SCOPE#scope-getprincipalaccess"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccess",
+      "subjectName": "SCOPE#scope-getprincipalaccess"
     },
     {
       "_principalId": "principal-getprincipalaccess",
       "_resourceName": "urn://resource-getprincipalaccess",
       "_scopeName": "scope-getprincipalaccess",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccess",
-      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccess#PRINCIPAL#principal-getprincipalaccess"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccess",
+      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccess##PRINCIPAL#principal-getprincipalaccess"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccess"
     }
   ]
 }

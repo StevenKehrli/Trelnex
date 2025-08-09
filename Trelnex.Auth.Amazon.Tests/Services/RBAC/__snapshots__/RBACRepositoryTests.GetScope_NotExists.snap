@@ -3,8 +3,8 @@
   "items": [
     {
       "_resourceName": "urn://resource-getscope-notexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getscope-notexists"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getscope-notexists"
     }
   ]
 }

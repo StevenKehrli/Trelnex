@@ -10,13 +10,13 @@
     {
       "_resourceName": "urn://resource-getresource-withrole",
       "_roleName": "role-getresource-withrole",
-      "entityName": "#RESOURCE#urn://resource-getresource-withrole",
-      "subjectName": "#ROLE#role-getresource-withrole"
+      "entityName": "RESOURCE#urn://resource-getresource-withrole",
+      "subjectName": "ROLE#role-getresource-withrole"
     },
     {
       "_resourceName": "urn://resource-getresource-withrole",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getresource-withrole"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getresource-withrole"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "itemsAfterFirst": [
     {
       "_resourceName": "urn://resource-createresource-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createresource-alreadyexists"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createresource-alreadyexists"
     }
   ],
   "resourcesAfterSecond": [
@@ -15,8 +15,8 @@
   "itemsAfterSecond": [
     {
       "_resourceName": "urn://resource-createresource-alreadyexists",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createresource-alreadyexists"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createresource-alreadyexists"
     }
   ]
 }

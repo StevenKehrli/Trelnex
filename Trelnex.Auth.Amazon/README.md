@@ -193,39 +193,39 @@ The RBAC system uses a single DynamoDB table with a composite key structure opti
 ### Item Types and Key Patterns
 
 1. **Resources**:
-   - `entityName`: `"#RESOURCE#"`
-   - `subjectName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
+   - `entityName`: `"RESOURCE#"`
+   - `subjectName`: `"RESOURCE#api://amazon.auth.trelnex.com"`
 
 2. **Scopes**:
-   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
-   - `subjectName`: `"#SCOPE#rbac"`
+   - `entityName`: `"RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"SCOPE#rbac"`
 
 3. **Scope Assignments (By Principal)**:
-   - `entityName`: `"#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
-   - `subjectName`: `"#SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#SCOPE#rbac"`
+   - `entityName`: `"PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `subjectName`: `"SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##SCOPE#rbac"`
 
 4. **Scope Assignments (By Scope)**:
-   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
-   - `subjectName`: `"#SCOPEASSIGNMENT##SCOPE#rbac#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `entityName`: `"RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"SCOPEASSIGNMENT##SCOPE#rbac##PRINCIPAL#arn:aws:iam::123456789012:user/john"`
 
 5. **Roles**:
-   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
-   - `subjectName`: `"#ROLE#rbac.create"`
+   - `entityName`: `"RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"ROLE#rbac.create"`
 
 6. **Role Assignments (By Principal)**:
-   - `entityName`: `"#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
-   - `subjectName`: `"#ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com#ROLE#rbac.create"`
+   - `entityName`: `"PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `subjectName`: `"ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##ROLE#rbac.create"`
 
 7. **Role Assignments (By Role)**:
-   - `entityName`: `"#RESOURCE#api://amazon.auth.trelnex.com"`
-   - `subjectName`: `"#ROLEASSIGNMENT##ROLE#rbac.create#PRINCIPAL#arn:aws:iam::123456789012:user/john"`
+   - `entityName`: `"RESOURCE#api://amazon.auth.trelnex.com"`
+   - `subjectName`: `"ROLEASSIGNMENT##ROLE#rbac.create##PRINCIPAL#arn:aws:iam::123456789012:user/john"`
 
 This dual storage pattern enables efficient queries both by principal (to get all assignments for a user) and by role/scope (to get all principals with a specific permission).
 
 ### Key Design Benefits
 
 - **Optimized queries**: The dual storage approach allows efficient lookups in both directions
-- **Standardized formatting**: All keys use consistent marker prefixes (`#RESOURCE#`, `#ROLE#`, `#SCOPE#`, etc.)
+- **Standardized formatting**: All keys use consistent marker prefixes (`RESOURCE#`, `ROLE#`, `SCOPE#`, etc.)
 - **Hierarchical structure**: Complex subject names enable prefix-based queries
 - **Data locality**: Related items are stored near each other for efficient range queries
 

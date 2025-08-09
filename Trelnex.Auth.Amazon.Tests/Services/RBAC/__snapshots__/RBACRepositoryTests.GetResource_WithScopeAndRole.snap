@@ -12,19 +12,19 @@
     {
       "_resourceName": "urn://resource-getresource-withscopeandrole",
       "_roleName": "role-getresource-withscopeandrole",
-      "entityName": "#RESOURCE#urn://resource-getresource-withscopeandrole",
-      "subjectName": "#ROLE#role-getresource-withscopeandrole"
+      "entityName": "RESOURCE#urn://resource-getresource-withscopeandrole",
+      "subjectName": "ROLE#role-getresource-withscopeandrole"
     },
     {
       "_resourceName": "urn://resource-getresource-withscopeandrole",
       "_scopeName": "scope-getresource-withscopeandrole",
-      "entityName": "#RESOURCE#urn://resource-getresource-withscopeandrole",
-      "subjectName": "#SCOPE#scope-getresource-withscopeandrole"
+      "entityName": "RESOURCE#urn://resource-getresource-withscopeandrole",
+      "subjectName": "SCOPE#scope-getresource-withscopeandrole"
     },
     {
       "_resourceName": "urn://resource-getresource-withscopeandrole",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getresource-withscopeandrole"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getresource-withscopeandrole"
     }
   ]
 }

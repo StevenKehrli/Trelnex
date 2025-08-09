@@ -12,19 +12,19 @@
     {
       "_resourceName": "urn://resource-deletescope-frommultiplescopes",
       "_scopeName": "scope-1-deletescope-frommultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-deletescope-frommultiplescopes",
-      "subjectName": "#SCOPE#scope-1-deletescope-frommultiplescopes"
+      "entityName": "RESOURCE#urn://resource-deletescope-frommultiplescopes",
+      "subjectName": "SCOPE#scope-1-deletescope-frommultiplescopes"
     },
     {
       "_resourceName": "urn://resource-deletescope-frommultiplescopes",
       "_scopeName": "scope-3-deletescope-frommultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-deletescope-frommultiplescopes",
-      "subjectName": "#SCOPE#scope-3-deletescope-frommultiplescopes"
+      "entityName": "RESOURCE#urn://resource-deletescope-frommultiplescopes",
+      "subjectName": "SCOPE#scope-3-deletescope-frommultiplescopes"
     },
     {
       "_resourceName": "urn://resource-deletescope-frommultiplescopes",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-deletescope-frommultiplescopes"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deletescope-frommultiplescopes"
     }
   ]
 }

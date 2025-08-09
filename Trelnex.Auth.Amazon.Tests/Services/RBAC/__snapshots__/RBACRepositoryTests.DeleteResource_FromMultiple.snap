@@ -11,13 +11,13 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleteresource-frommultiple-1",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-1"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleteresource-frommultiple-1"
     },
     {
       "_resourceName": "urn://resource-deleteresource-frommultiple-3",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-deleteresource-frommultiple-3"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleteresource-frommultiple-3"
     }
   ]
 }
