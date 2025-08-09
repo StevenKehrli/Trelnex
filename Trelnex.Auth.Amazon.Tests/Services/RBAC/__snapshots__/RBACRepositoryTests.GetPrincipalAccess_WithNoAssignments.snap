@@ -8,8 +8,8 @@
   "items": [
     {
       "_resourceName": "urn://resource-getprincipalaccess-withnoassignments",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccess-withnoassignments"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccess-withnoassignments"
     }
   ]
 }

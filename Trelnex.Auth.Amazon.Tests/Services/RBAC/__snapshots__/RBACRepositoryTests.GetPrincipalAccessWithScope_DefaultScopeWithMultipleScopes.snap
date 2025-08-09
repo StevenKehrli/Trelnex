@@ -15,66 +15,66 @@
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes#ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes##ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes#SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes##SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes#SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes##SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscopewithmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccesswithscope-defaultscopewithmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
       "_scopeName": "scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "subjectName": "#SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
+      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccesswithscope-defaultscopewithmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopewithmultiplescopes"
     }
   ]
 }

@@ -10,13 +10,13 @@
     {
       "_resourceName": "urn://resource-getresource-withscope",
       "_scopeName": "scope-getresource-withscope",
-      "entityName": "#RESOURCE#urn://resource-getresource-withscope",
-      "subjectName": "#SCOPE#scope-getresource-withscope"
+      "entityName": "RESOURCE#urn://resource-getresource-withscope",
+      "subjectName": "SCOPE#scope-getresource-withscope"
     },
     {
       "_resourceName": "urn://resource-getresource-withscope",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getresource-withscope"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getresource-withscope"
     }
   ]
 }

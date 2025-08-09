@@ -10,26 +10,26 @@
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "entityName": "#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "subjectName": "#ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments#ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments",
+      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments##ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "subjectName": "#ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
+      "subjectName": "ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "entityName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "subjectName": "#ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
+      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     }
   ]
 }

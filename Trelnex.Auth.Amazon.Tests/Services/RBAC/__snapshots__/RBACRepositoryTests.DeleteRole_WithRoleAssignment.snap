@@ -8,8 +8,8 @@
   "items": [
     {
       "_resourceName": "urn://resource-deleterole-withroleassignment",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-deleterole-withroleassignment"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleterole-withroleassignment"
     }
   ]
 }

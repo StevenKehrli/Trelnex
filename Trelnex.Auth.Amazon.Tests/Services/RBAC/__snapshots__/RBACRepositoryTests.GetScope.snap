@@ -7,13 +7,13 @@
     {
       "_resourceName": "urn://resource-getscope",
       "_scopeName": "scope-getscope",
-      "entityName": "#RESOURCE#urn://resource-getscope",
-      "subjectName": "#SCOPE#scope-getscope"
+      "entityName": "RESOURCE#urn://resource-getscope",
+      "subjectName": "SCOPE#scope-getscope"
     },
     {
       "_resourceName": "urn://resource-getscope",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-getscope"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getscope"
     }
   ]
 }

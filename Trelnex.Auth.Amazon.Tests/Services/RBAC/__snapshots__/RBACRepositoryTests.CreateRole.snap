@@ -7,13 +7,13 @@
     {
       "_resourceName": "urn://resource-createrole",
       "_roleName": "role-createrole",
-      "entityName": "#RESOURCE#urn://resource-createrole",
-      "subjectName": "#ROLE#role-createrole"
+      "entityName": "RESOURCE#urn://resource-createrole",
+      "subjectName": "ROLE#role-createrole"
     },
     {
       "_resourceName": "urn://resource-createrole",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-createrole"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createrole"
     }
   ]
 }

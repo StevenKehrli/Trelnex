@@ -7,19 +7,19 @@
     {
       "_resourceName": "urn://resource-deletescopeassignment",
       "_roleName": "role-deletescopeassignment",
-      "entityName": "#RESOURCE#urn://resource-deletescopeassignment",
-      "subjectName": "#ROLE#role-deletescopeassignment"
+      "entityName": "RESOURCE#urn://resource-deletescopeassignment",
+      "subjectName": "ROLE#role-deletescopeassignment"
     },
     {
       "_resourceName": "urn://resource-deletescopeassignment",
       "_scopeName": "scope-deletescopeassignment",
-      "entityName": "#RESOURCE#urn://resource-deletescopeassignment",
-      "subjectName": "#SCOPE#scope-deletescopeassignment"
+      "entityName": "RESOURCE#urn://resource-deletescopeassignment",
+      "subjectName": "SCOPE#scope-deletescopeassignment"
     },
     {
       "_resourceName": "urn://resource-deletescopeassignment",
-      "entityName": "#ROOT#",
-      "subjectName": "#RESOURCE#urn://resource-deletescopeassignment"
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deletescopeassignment"
     }
   ]
 }
