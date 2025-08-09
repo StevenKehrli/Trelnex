@@ -89,7 +89,9 @@ public sealed class ItemEvent<TItem>
 
         return new ItemEvent<TItem>
         {
-            Id = Guid.NewGuid().ToString(),
+            // Generate a unique ID for the event
+            // Format: EVENT##{related.Id}##EVENTID#beb8a516-007f-4e7d-91fa-56ad839965e1
+            Id = $"EVENT##{related.Id}##EVENTID#{Guid.NewGuid().ToString()}",
             PartitionKey = related.PartitionKey,
 
             TypeName = ReservedTypeNames.Event,

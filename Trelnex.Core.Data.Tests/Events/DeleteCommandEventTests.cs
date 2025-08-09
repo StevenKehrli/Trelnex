@@ -107,12 +107,13 @@ public class DeleteCommandEventTests
                     using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
+                        var idPattern = $@"^EVENT##{id}##EVENTID#[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{12}}$";
 
                         // Verify first event properties (create event)
                         // id
                         Assert.That(
-                            fieldOption.Field<Guid>("[0].Id"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[0].Id"),
+                            Does.Match(idPattern));
 
                         // createdDate
                         Assert.That(
@@ -152,8 +153,8 @@ public class DeleteCommandEventTests
                         // Verify second event properties (delete event)
                         // id
                         Assert.That(
-                            fieldOption.Field<Guid>("[1].Id"),
-                            Is.Not.Default);
+                            fieldOption.Field<string>("[1].Id"),
+                            Does.Match(idPattern));
 
                         // createdDate
                         Assert.That(
