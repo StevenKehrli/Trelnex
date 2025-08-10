@@ -1,14 +1,15 @@
 ﻿[
   {
     "Item": {
-      "Id": "a70da918-45d8-4742-8424-c90a0b98dd60",
-      "PartitionKey": "12dcd250-b8a9-4b59-935b-6db44fb2f241",
+      "Id": "815f7dda-71a5-4493-8603-7c9a8f906296",
+      "PartitionKey": "b077917d-fb3e-445e-a835-5e41d59fa100",
       "TypeName": "encrypted-test-item",
-      "CreatedDateTimeOffset": "2025-06-14T03:35:02.619603+00:00",
-      "UpdatedDateTimeOffset": "2025-06-14T03:35:02.619603+00:00",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-10T21:53:40.470289+00:00",
+      "UpdatedDateTimeOffset": "2025-08-10T21:53:40.470289+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "21dd78e2-bfcb-43bb-b2ce-6e0779dc14ce",
+      "ETag": "9c8d7586-3b1f-49d2-89a2-1ff2ba02792c",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
       "OptionalMessage": null
@@ -16,14 +17,15 @@
   },
   {
     "Item": {
-      "Id": "560563ab-18dc-45b9-833f-475242ff7240",
-      "PartitionKey": "167bafae-ed31-4938-9c16-080267031e39",
+      "Id": "10476595-8eeb-45bd-8573-0ecd9dc6758a",
+      "PartitionKey": "c249dfa0-c37d-4ac0-96ae-15d750da657b",
       "TypeName": "encrypted-test-item",
-      "CreatedDateTimeOffset": "2025-06-14T03:35:02.70594+00:00",
-      "UpdatedDateTimeOffset": "2025-06-14T03:35:02.70594+00:00",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-10T21:53:40.503124+00:00",
+      "UpdatedDateTimeOffset": "2025-08-10T21:53:40.503124+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "b0aff62a-243e-47cc-b74b-e8fe9b87e2fc",
+      "ETag": "f1cc20a7-bf1c-4374-b7ec-57519fc66612",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
       "OptionalMessage": null

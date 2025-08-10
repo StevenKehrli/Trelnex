@@ -89,7 +89,7 @@ public class CreateCommandEventTests
                     using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
-                        var idPattern = $@"^EVENT##{id}##EVENTID#[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{12}}$";
+                        var idPattern = $@"^EVENT##{id}#00000001$";
 
                         // Verify event properties (create event)
                         // id

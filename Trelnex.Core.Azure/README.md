@@ -202,18 +202,19 @@ The table for the items must follow the following schema.
 
 ```sql
 CREATE TABLE [test-items] (
-	[id] nvarchar(max) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(max) NOT NULL,
-	[typeName] nvarchar(max) NOT NULL,
-	[createdDateTimeOffset] datetimeoffset NOT NULL,
-	[updatedDateTimeOffset] datetimeoffset NOT NULL,
-	[deletedDateTimeOffset] datetimeoffset NULL,
-	[isDeleted] bit NULL,
-	[_etag] nvarchar(255) NULL,
+    [id] nvarchar(255) NOT NULL UNIQUE,
+    [partitionKey] nvarchar(255) NOT NULL,
+    [typeName] nvarchar(max) NOT NULL,
+    [version] int NOT NULL,
+    [createdDateTimeOffset] datetimeoffset NOT NULL,
+    [updatedDateTimeOffset] datetimeoffset NOT NULL,
+    [deletedDateTimeOffset] datetimeoffset NULL,
+    [isDeleted] bit NULL,
+    [_etag] nvarchar(255) NULL,
 
-	..., // TItem specific columns
+    ..., // TItem specific columns
 
-	PRIMARY KEY ([id], [partitionKey])
+    PRIMARY KEY ([id], [partitionKey])
 );
 ```
 
@@ -223,23 +224,24 @@ The table for the events must use the following schema to track changes.
 
 ```sql
 CREATE TABLE [test-items-events] (
-	[id] nvarchar(max) NOT NULL UNIQUE,
-	[partitionKey] nvarchar(max) NOT NULL,
-	[typeName] nvarchar(max) NOT NULL,
-	[createdDateTimeOffset] datetimeoffset NOT NULL,
-	[updatedDateTimeOffset] datetimeoffset NOT NULL,
-	[deletedDateTimeOffset] datetimeoffset NULL,
-	[isDeleted] bit NULL,
-	[_etag] nvarchar(255) NULL,
-	[saveAction] nvarchar(max) NOT NULL,
-	[relatedId] nvarchar(max) NOT NULL,
-	[relatedTypeName] nvarchar(max) NOT NULL,
-	[changes] json NULL,
-  [traceContext] nvarchar(55) NULL,
-  [traceId] nvarchar(32) NULL,
-  [spanId] nvarchar(16) NULL,
-	PRIMARY KEY ([id], [partitionKey]),
-	FOREIGN KEY ([relatedId], [partitionKey]) REFERENCES [test-items]([id], [partitionKey])
+    [id] nvarchar(255) NOT NULL UNIQUE,
+    [partitionKey] nvarchar(255) NOT NULL,
+    [typeName] nvarchar(max) NOT NULL,
+    [version] int NOT NULL,
+    [createdDateTimeOffset] datetimeoffset NOT NULL,
+    [updatedDateTimeOffset] datetimeoffset NOT NULL,
+    [deletedDateTimeOffset] datetimeoffset NULL,
+    [isDeleted] bit NULL,
+    [_etag] nvarchar(255) NULL,
+    [saveAction] nvarchar(max) NOT NULL,
+    [relatedId] nvarchar(255) NOT NULL,
+    [relatedTypeName] nvarchar(max) NOT NULL,
+    [changes] json NULL,
+    [traceContext] nvarchar(55) NULL,
+    [traceId] nvarchar(32) NULL,
+    [spanId] nvarchar(16) NULL,
+    PRIMARY KEY ([id], [partitionKey]),
+    FOREIGN KEY ([relatedId], [partitionKey]) REFERENCES [test-items]([id], [partitionKey])
 );
 ```
 
@@ -253,7 +255,7 @@ ON [test-items]
 AFTER INSERT, UPDATE
 AS
 BEGIN
-	SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
     IF EXISTS (
         SELECT 1
@@ -264,10 +266,10 @@ BEGIN
         WHERE [i].[_etag] != [d].[_etag]
     ) THROW 2147418524, 'Precondition Failed.', 1;
 
-	UPDATE [test-items]
-	SET [_etag] = CONVERT(nvarchar(max), NEWID())
-	FROM [inserted] AS [i]
-	WHERE
+    UPDATE [test-items]
+    SET [_etag] = CONVERT(nvarchar(max), NEWID())
+    FROM [inserted] AS [i]
+    WHERE
         [test-items].[id] = [i].[id] AND
         [test-items].[partitionKey] = [i].[partitionKey]
 END;
@@ -283,12 +285,12 @@ ON [test-items-events]
 AFTER INSERT, UPDATE
 AS
 BEGIN
-	SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-	UPDATE [test-items-events]
-	SET [_etag] = CONVERT(nvarchar(max), NEWID())
-	FROM [inserted] AS [i]
-	WHERE [test-items-events].[id] = [i].[id] AND [test-items-events].[partitionKey] = [i].[partitionKey]
+    UPDATE [test-items-events]
+    SET [_etag] = CONVERT(nvarchar(max), NEWID())
+    FROM [inserted] AS [i]
+    WHERE [test-items-events].[id] = [i].[id] AND [test-items-events].[partitionKey] = [i].[partitionKey]
 END;
 ```
 

@@ -227,9 +227,10 @@ The table for the items must follow the following schema:
 
 ```sql
 CREATE TABLE "test-items" (
-    "id" varchar NOT NULL,
-    "partitionKey" varchar NOT NULL,
+    "id" varchar(255) NOT NULL,
+    "partitionKey" varchar(255) NOT NULL,
     "typeName" varchar NOT NULL,
+    "version" int NOT NULL,
     "createdDateTimeOffset" timestamptz NOT NULL,
     "updatedDateTimeOffset" timestamptz NOT NULL,
     "deletedDateTimeOffset" timestamptz NULL,
@@ -248,16 +249,17 @@ The table for the events must use the following schema to track changes:
 
 ```sql
 CREATE TABLE "test-items-events" (
-    "id" varchar NOT NULL,
-    "partitionKey" varchar NOT NULL,
+    "id" varchar(255) NOT NULL,
+    "partitionKey" varchar(255) NOT NULL,
     "typeName" varchar NOT NULL,
+    "version" int NOT NULL,
     "createdDateTimeOffset" timestamptz NOT NULL,
     "updatedDateTimeOffset" timestamptz NOT NULL,
     "deletedDateTimeOffset" timestamptz NULL,
     "isDeleted" boolean NULL,
     "_etag" varchar NULL,
     "saveAction" varchar NOT NULL,
-    "relatedId" varchar NOT NULL,
+    "relatedId" varchar(255) NOT NULL,
     "relatedTypeName" varchar NOT NULL,
     "changes" varchar NULL,
     "traceContext" varchar(55) NULL,

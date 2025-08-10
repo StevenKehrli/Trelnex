@@ -90,11 +90,13 @@ public sealed class ItemEvent<TItem>
         return new ItemEvent<TItem>
         {
             // Generate a unique ID for the event
-            // Format: EVENT##{related.Id}##EVENTID#beb8a516-007f-4e7d-91fa-56ad839965e1
-            Id = $"EVENT##{related.Id}##EVENTID#{Guid.NewGuid().ToString()}",
+            // Format: EVENT##{related.Id}#00000001
+            Id = $"EVENT##{related.Id}#{related.Version:X8}",
             PartitionKey = related.PartitionKey,
 
             TypeName = ReservedTypeNames.Event,
+
+            Version = related.Version,
 
             CreatedDateTimeOffset = dateTimeOffsetUtcNow,
             UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
