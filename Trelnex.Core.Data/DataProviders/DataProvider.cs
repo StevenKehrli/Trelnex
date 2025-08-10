@@ -205,6 +205,7 @@ public abstract partial class DataProvider<TInterface, TItem>
             Id = id,
             PartitionKey = partitionKey,
             TypeName = _typeName,
+            Version = 1,
             CreatedDateTimeOffset = dateTimeOffsetUtcNow,
             UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
         };
@@ -395,6 +396,8 @@ public abstract partial class DataProvider<TInterface, TItem>
     private ISaveCommand<TInterface> CreateDeleteCommand(
         TItem item)
     {
+        item.Version = item.Version + 1;
+
         item.DeletedDateTimeOffset = DateTimeOffset.UtcNow;
         item.IsDeleted = true;
 
@@ -414,6 +417,8 @@ public abstract partial class DataProvider<TInterface, TItem>
     private ISaveCommand<TInterface> CreateUpdateCommand(
         TItem item)
     {
+        item.Version = item.Version + 1;
+
         item.UpdatedDateTimeOffset = DateTimeOffset.UtcNow;
 
         return SaveCommand<TInterface, TItem>.Create(

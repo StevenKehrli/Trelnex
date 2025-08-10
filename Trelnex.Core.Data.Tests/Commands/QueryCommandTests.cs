@@ -290,6 +290,8 @@ public class QueryCommandTests
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(read[0].Item.Version, Is.EqualTo(1));
+
             Assert.Throws<InvalidOperationException>(
                 () => read[0].Item.PublicMessage = "Public #2",
                 $"The '{typeof(ITestItem)}' is read-only");
@@ -526,7 +528,7 @@ public class QueryCommandTests
     }
 
     [Test]
-    public async Task QueryCommand_ToAsyncEnumerable_Delete_Delete()
+    public async Task QueryCommand_ToAsyncEnumerable_Delete_ThenDelete()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -569,7 +571,7 @@ public class QueryCommandTests
     }
 
     [Test]
-    public async Task QueryCommand_ToAsyncEnumerable_Delete_Update()
+    public async Task QueryCommand_ToAsyncEnumerable_Delete_ThenUpdate()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -668,7 +670,7 @@ public class QueryCommandTests
     }
 
     [Test]
-    public async Task QueryCommand_ToAsyncEnumerable_Update_Delete()
+    public async Task QueryCommand_ToAsyncEnumerable_Update_ThenDelete()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -711,7 +713,7 @@ public class QueryCommandTests
     }
 
     [Test]
-    public async Task QueryCommand_ToAsyncEnumerable_Update_Update()
+    public async Task QueryCommand_ToAsyncEnumerable_Update_ThenUpdate()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();

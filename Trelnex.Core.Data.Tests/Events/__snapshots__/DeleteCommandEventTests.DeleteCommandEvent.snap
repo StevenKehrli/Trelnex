@@ -21,33 +21,35 @@
         }
       }
     ],
-    "TraceContext": "00-ed1340a23ab8fd05354e2dd33dd66e2b-6ab659ec309dd8ca-01",
-    "TraceId": "ed1340a23ab8fd05354e2dd33dd66e2b",
-    "SpanId": "6ab659ec309dd8ca",
-    "Id": "7299b06f-18c6-4b65-af80-7b2d7f999b49",
+    "TraceContext": "00-996a45690dcce677fc1328ebc2f7f525-0f45af058db3168e-01",
+    "TraceId": "996a45690dcce677fc1328ebc2f7f525",
+    "SpanId": "0f45af058db3168e",
+    "Id": "EVENT##bc4971e4-6dae-45ba-b3ee-43c036e0d957#00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-06-14T03:29:46.680823+00:00",
-    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.680823+00:00",
+    "Version": 1,
+    "CreatedDateTimeOffset": "2025-08-10T21:54:21.087434+00:00",
+    "UpdatedDateTimeOffset": "2025-08-10T21:54:21.087434+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "cf78374f-09e2-42b4-a31e-63abcd82f25e"
+    "ETag": "6fb0af3c-a2a8-4277-8f8f-049da8d9aabc"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-ed1340a23ab8fd05354e2dd33dd66e2b-6ab659ec309dd8ca-01",
-    "TraceId": "ed1340a23ab8fd05354e2dd33dd66e2b",
-    "SpanId": "6ab659ec309dd8ca",
-    "Id": "4e027f7f-d7c0-40f7-9a7c-64f093035ad5",
+    "TraceContext": "00-996a45690dcce677fc1328ebc2f7f525-0f45af058db3168e-01",
+    "TraceId": "996a45690dcce677fc1328ebc2f7f525",
+    "SpanId": "0f45af058db3168e",
+    "Id": "EVENT##bc4971e4-6dae-45ba-b3ee-43c036e0d957#00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-06-14T03:29:46.680993+00:00",
-    "UpdatedDateTimeOffset": "2025-06-14T03:29:46.680993+00:00",
+    "Version": 2,
+    "CreatedDateTimeOffset": "2025-08-10T21:54:21.087599+00:00",
+    "UpdatedDateTimeOffset": "2025-08-10T21:54:21.087599+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "8c7a0fdb-a7fc-4a29-a24b-37789c66035a"
+    "ETag": "b2b839ec-c9a0-4a25-8031-4de26f8989ec"
   }
 ]

@@ -1,14 +1,15 @@
 ﻿[
   {
     "Item": {
-      "Id": "38bf73df-3373-43e5-9492-b491bf775b3f",
-      "PartitionKey": "ad1100c4-2339-494d-916a-b4eeec19c7e0",
+      "Id": "fda02035-9c42-4d4c-a7c5-7ff2487f5e73",
+      "PartitionKey": "897fd78b-64e8-462a-9634-56a451ef6d84",
       "TypeName": "test-item",
-      "CreatedDateTimeOffset": "2025-06-14T03:27:56.210046+00:00",
-      "UpdatedDateTimeOffset": "2025-06-14T03:27:56.210046+00:00",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-10T21:54:18.964492+00:00",
+      "UpdatedDateTimeOffset": "2025-08-10T21:54:18.964492+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "0180fdd9-a232-441e-a7bc-6a4481722be7",
+      "ETag": "7ad45ca9-0e98-473b-b2b1-1531a686ce18",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
       "OptionalMessage": null

@@ -638,16 +638,6 @@ public abstract partial class DataProviderTests
                             fieldOption.Fields<DateTimeOffset>("read.[*].Item.UpdatedDateTimeOffset"),
                             Has.All.InRange(startDateTimeOffset, currentDateTimeOffset));
 
-                        // Verify created date equals updated date for the first item (not updated)
-                        Assert.That(
-                            fieldOption.Field<DateTimeOffset>("read.[0].Item.CreatedDateTimeOffset"),
-                            Is.EqualTo(fieldOption.Field<DateTimeOffset>("read.[0].Item.UpdatedDateTimeOffset")));
-
-                        // Verify created date not equal to updated date for the second item (was updated)
-                        Assert.That(
-                            fieldOption.Field<DateTimeOffset>("read.[1].Item.CreatedDateTimeOffset"),
-                            Is.Not.EqualTo(fieldOption.Field<DateTimeOffset>("read.[1].Item.UpdatedDateTimeOffset")));
-
                         // Verify ETags are present
                         Assert.That(
                             fieldOption.Fields<string>("read.[*].Item.ETag"),

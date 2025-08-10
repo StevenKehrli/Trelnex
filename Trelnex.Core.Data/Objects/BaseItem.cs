@@ -32,6 +32,14 @@ public interface IBaseItem
     string TypeName { get; }
 
     /// <summary>
+    /// Gets the version number of the item.
+    /// </summary>
+    /// <value>
+    /// An integer representing the current version of the item.
+    /// </value>
+    int Version { get; }
+
+    /// <summary>
     /// Creation timestamp.
     /// </summary>
     DateTimeOffset CreatedDateTimeOffset { get; }
@@ -81,6 +89,10 @@ public abstract class BaseItem : IBaseItem
     [JsonInclude]
     [JsonPropertyName("typeName")]
     public string TypeName { get; internal set; } = null!;
+
+    [JsonInclude]
+    [JsonPropertyName("version")]
+    public int Version { get; internal set; } = 0;
 
     [JsonInclude]
     [JsonPropertyName("createdDateTimeOffset")]

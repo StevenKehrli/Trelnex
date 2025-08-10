@@ -36,12 +36,14 @@ public class ReadCommandReadTests
             id: id,
             partitionKey: partitionKey);
 
-        Assert.That(read, Is.Not.Null);
-        Assert.That(read!.Item, Is.Not.Null);
-
         // Verify the result is read-only
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(read, Is.Not.Null);
+            Assert.That(read!.Item, Is.Not.Null);
+
+            Assert.That(read.Item.Version, Is.EqualTo(1));
+
             Assert.Throws<InvalidOperationException>(
                 () => read.Item.PublicMessage = "Public #2",
                 $"The '{typeof(ITestItem)}' is read-only");
