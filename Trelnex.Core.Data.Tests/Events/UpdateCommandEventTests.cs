@@ -123,14 +123,14 @@ public class UpdateCommandEventTests
                     using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
-                        var idPattern1 = $@"^EVENT##{id}#00000001$";
-                        var idPattern2 = $@"^EVENT##{id}#00000002$";
+                        var eventId1 = $@"EVENT^^{id}^00000001";
+                        var eventId2 = $@"EVENT^^{id}^00000002";
 
                         // Verify first event properties (create event)
                         // id
                         Assert.That(
                             fieldOption.Field<string>("[0].Id"),
-                            Does.Match(idPattern1));
+                            Is.EqualTo(eventId1));
 
                         // createdDate
                         Assert.That(
@@ -171,7 +171,7 @@ public class UpdateCommandEventTests
                         // id
                         Assert.That(
                             fieldOption.Field<string>("[1].Id"),
-                            Does.Match(idPattern2));
+                            Is.EqualTo(eventId2));
 
                         // createdDate
                         Assert.That(

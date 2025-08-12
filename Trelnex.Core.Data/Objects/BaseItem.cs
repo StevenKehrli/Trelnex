@@ -74,7 +74,7 @@ public interface IBaseItem
 /// <remarks>
 /// Implements <see cref="IBaseItem"/> with common properties.
 /// </remarks>
-public abstract class BaseItem : IBaseItem
+public abstract record BaseItem : IBaseItem
 {
     #region Public Properties
 

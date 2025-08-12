@@ -106,7 +106,7 @@ public abstract partial class DataProvider<TInterface, TItem>
     #region Private Fields
 
     /// <summary>
-    /// Validator for common base item properties like Id, PartitionKey, and timestamps.
+    /// Validator for item base properties like Id, PartitionKey, and timestamps.
     /// </summary>
     private readonly IValidator<TItem> _baseItemValidator;
 
@@ -167,7 +167,7 @@ public abstract partial class DataProvider<TInterface, TItem>
         // Store the validated type name for use in item creation and queries.
         _typeName = typeName;
 
-        // Set up validators for both base properties and custom item properties.
+        // Set up validators for both base properties and custom properties.
         _baseItemValidator = CreateBaseItemValidator(typeName);
         _itemValidator = validator;
 
@@ -345,7 +345,7 @@ public abstract partial class DataProvider<TInterface, TItem>
     #region Private Static Methods
 
     /// <summary>
-    /// Creates a FluentValidation validator for required base item properties.
+    /// Creates a FluentValidation validator for required item base properties.
     /// </summary>
     /// <param name="typeName">The expected type name for validation.</param>
     /// <returns>A validator that checks Id, PartitionKey, TypeName, and timestamp properties.</returns>
@@ -457,7 +457,7 @@ public abstract partial class DataProvider<TInterface, TItem>
     }
 
     /// <summary>
-    /// Validates an item using both base property rules and custom domain validators.
+    /// Validates an item using both base item validator and item validator
     /// </summary>
     /// <param name="item">The item to validate.</param>
     /// <param name="cancellationToken">Token to cancel the validation operation.</param>

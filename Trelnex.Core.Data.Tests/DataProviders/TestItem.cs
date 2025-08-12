@@ -13,7 +13,7 @@ public interface ITestItem : IBaseItem
     string? OptionalMessage { get; set; }
 }
 
-internal class TestItem : BaseItem, ITestItem
+internal record TestItem : BaseItem, ITestItem
 {
     [TrackChange]
     [JsonPropertyName("publicMessage")]
