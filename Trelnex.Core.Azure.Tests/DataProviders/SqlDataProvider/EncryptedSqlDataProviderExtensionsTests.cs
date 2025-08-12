@@ -1,5 +1,3 @@
-using Azure.Core;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.DataProviders;
@@ -90,22 +88,9 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
 
         Assert.That(created, Is.Not.Null);
 
-        // Establish a SQL connection using token authentication.
-        using var sqlConnection = new SqlConnection(_connectionString);
-
-        var tokenRequestContext = new TokenRequestContext([_scope]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
-
-        sqlConnection.Open();
-
-        // Define the SQL command to get the private message and optional message.
-        var cmdText = $"SELECT [privateMessage], [optionalMessage] FROM [{_encryptedTableName}] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
-
-        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-        sqlCommand.Parameters.AddWithValue("@id", id);
-        sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
-
-        using var reader = await sqlCommand.ExecuteReaderAsync();
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -152,22 +137,9 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
 
         Assert.That(created, Is.Not.Null);
 
-        // Establish a SQL connection using token authentication.
-        using var sqlConnection = new SqlConnection(_connectionString);
-
-        var tokenRequestContext = new TokenRequestContext([_scope]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
-
-        sqlConnection.Open();
-
-        // Define the SQL command to get the private message and optional message.
-        var cmdText = $"SELECT [privateMessage], [optionalMessage] FROM [{_encryptedTableName}] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
-
-        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-        sqlCommand.Parameters.AddWithValue("@id", id);
-        sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
-
-        using var reader = await sqlCommand.ExecuteReaderAsync();
+        // Retrieve the private and optional messages using the helper method.
+        using var sqlConnection = GetConnection();
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
 
         Assert.That(reader.Read(), Is.True);
 

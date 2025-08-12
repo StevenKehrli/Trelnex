@@ -57,11 +57,14 @@ public static class SqlDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
+                var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
+
                 var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
+                    EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
             .ToArray();
@@ -204,6 +207,7 @@ public static class SqlDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
+                eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService);
 
             // Register the provider in the DI container as a singleton.
@@ -240,10 +244,12 @@ public static class SqlDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="TableName">The table name in SQL Server.</param>
+    /// <param name="EventTimeToLive">Optional event time-to-live for the table.</param>
     /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
+        int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 
     #endregion

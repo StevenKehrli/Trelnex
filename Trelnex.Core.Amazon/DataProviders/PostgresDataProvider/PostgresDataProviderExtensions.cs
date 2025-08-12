@@ -70,11 +70,14 @@ public static partial class PostgresDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
 
+                var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
+
                 var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
+                    EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
             .ToArray();
@@ -208,6 +211,7 @@ public static partial class PostgresDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
+                eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService);
 
             services.AddSingleton(dataProvider);
@@ -242,10 +246,12 @@ public static partial class PostgresDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in PostgreSQL.</param>
+    /// <param name="EventTimeToLive">Optional event time-to-live for the table.</param>
     /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
+        int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 
     #endregion

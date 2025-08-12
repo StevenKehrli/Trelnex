@@ -48,10 +48,10 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _tableName,
-            "test-item",
-            TestItem.Validator,
-            CommandOperations.All);
+            tableName: _tableName,
+            typeName: "test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All);
     }
 
     [Test]

@@ -49,11 +49,11 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _encryptedTableName,
-            "encrypted-test-item",
-            TestItem.Validator,
-            CommandOperations.All,
-            _blockCipherService);
+            tableName: _encryptedTableName,
+            typeName: "encrypted-test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All,
+            blockCipherService: _blockCipherService);
     }
 
     [Test]

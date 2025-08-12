@@ -20,12 +20,14 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="typeName">The type name used to filter items.</param>
 /// <param name="validator">Optional validator for items before they are saved.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors.</param>
+/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
 internal class DynamoDataProvider<TInterface, TItem>(
     Table table,
     string typeName,
     IValidator<TItem>? validator = null,
     CommandOperations? commandOperations = null,
+    int? eventTimeToLive = null,
     IBlockCipherService? blockCipherService = null)
     : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
@@ -230,11 +232,8 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             var etag = Guid.NewGuid().ToString();
 
-            // round-trip the item to update the etag
-            var responseItem = JsonSerializer.Deserialize<TItem>(
-                json: JsonSerializer.Serialize(request.Item, _jsonSerializerOptions),
-                options: _jsonSerializerOptions);
-
+            // set new eTag
+            var responseItem = request.Item with { };
             _etagProperty.SetValue(responseItem, etag);
 
             results[index] = new SaveResult<TInterface, TItem>(
@@ -248,11 +247,11 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             batch.AddDocumentToUpdate(documentItem, config);
 
-            // round-trip the event to update the etag
-            var responseEvent = JsonSerializer.Deserialize<TItem>(
-                json: JsonSerializer.Serialize(request.Event, _jsonSerializerOptions),
-                options: _jsonSerializerOptions);
-
+            // set expireAt and same etag
+            var eventExpireAt = (eventTimeToLive is null)
+                ? null
+                : request.Event.CreatedDateTimeOffset.ToUnixTimeSeconds() + eventTimeToLive;
+            var responseEvent = new ItemEventWithExpiration(request.Event, eventExpireAt);
             _etagProperty.SetValue(responseEvent, etag);
 
             // serialize the event to the document

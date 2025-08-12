@@ -27,12 +27,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Identity" Version="1.14.2" />
+        <PackageReference Include="Azure.Identity" Version="1.15.0" />
         <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.8.0" />
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.52.1" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-        <PackageReference Include="Trelnex.Core.Api" Version="0.5.0" />
+        <PackageReference Include="Trelnex.Core.Api" Version="0.6.0" />
     </ItemGroup>
 
 </Project>

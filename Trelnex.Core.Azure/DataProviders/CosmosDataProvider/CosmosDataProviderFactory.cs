@@ -119,6 +119,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
     /// <param name="typeName">The type name to filter items by.</param>
     /// <param name="validator">An optional validator for items.</param>
     /// <param name="commandOperations">The operations allowed for this provider.</param>
+    /// <param name="eventTimeToLive">Optional time-to-live for events in the container.</param>
     /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
     /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
     /// <remarks>Uses the specified container for all operations on the given type.</remarks>
@@ -127,6 +128,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null,
+        int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
@@ -138,11 +140,12 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
 
         // Instantiate a new data provider.
         return new CosmosDataProvider<TInterface, TItem>(
-            container,
-            typeName,
-            validator,
-            commandOperations,
-            blockCipherService);
+            container: container,
+            typeName: typeName,
+            validator: validator,
+            commandOperations: commandOperations,
+            eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService);
     }
 
     /// <summary>

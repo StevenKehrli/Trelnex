@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.DataProviders;
@@ -64,9 +63,6 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
         _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
     }
 
-    /// <summary>
-    /// Tests that registering the same type with the CosmosDataProvider twice results in an exception.
-    /// </summary>
     [Test]
     [Description("Tests that registering the same type with the CosmosDataProvider twice results in an exception.")]
     public void CosmosDataProvider_AlreadyRegistered()
@@ -126,7 +122,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -163,7 +159,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -175,17 +171,5 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
             Assert.That(item.Resource.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.Null);
         }
-    }
-
-    private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
-    {
-        [JsonPropertyName("publicMessage")]
-        public string PublicMessage { get; set; } = null!;
-
-        [JsonPropertyName("privateMessage")]
-        public string PrivateMessage { get; set; } = null!;
-
-        [JsonPropertyName("optionalMessage")]
-        public string? OptionalMessage { get; set; }
     }
 }

@@ -82,7 +82,8 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
     "Region": "FROM_ENV",
     "Tables": {
       "test-item": {
-        "TableName": "test-items"
+        "TableName": "test-items",
+        "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "TableName": "test-items",
@@ -102,6 +103,8 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
     }
   }
 ```
+
+The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from DynamoDB. The value is expressed in seconds.
 
 The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
@@ -198,7 +201,8 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
     "DbUser": "FROM_ENV",
     "Tables": {
       "test-item": {
-        "TableName": "test-items"
+        "TableName": "test-items",
+        "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "TableName": "test-items",
@@ -218,6 +222,8 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
     }
   }
 ```
+
+The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from PostgreSQL. The value is expressed in seconds.
 
 The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
@@ -256,6 +262,7 @@ CREATE TABLE "test-items-events" (
     "createdDateTimeOffset" timestamptz NOT NULL,
     "updatedDateTimeOffset" timestamptz NOT NULL,
     "deletedDateTimeOffset" timestamptz NULL,
+    "expireAtDateTimeOffset" timestamptz NULL,
     "isDeleted" boolean NULL,
     "_etag" varchar NULL,
     "saveAction" varchar NOT NULL,
