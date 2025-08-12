@@ -13,7 +13,7 @@ namespace Trelnex.Core.Data;
 /// </remarks>
 public record SaveRequest<TInterface, TItem>(
     TItem Item,
-    ItemEvent<TItem> Event,
+    ItemEvent Event,
     SaveAction SaveAction)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface;

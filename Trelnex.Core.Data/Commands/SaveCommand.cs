@@ -232,8 +232,8 @@ internal class SaveCommand<TInterface, TItem>
         }
 
         // Create the event to record the operation
-        var itemEvent = ItemEvent<TItem>.Create(
-            related: _item,
+        var itemEvent = ItemEvent.Create(
+            relatedItem: _item,
             saveAction: _saveAction,
             changes: GetPropertyChanges());
 

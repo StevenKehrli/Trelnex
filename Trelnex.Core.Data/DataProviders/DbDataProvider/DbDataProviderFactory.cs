@@ -87,6 +87,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? validator = null,
         CommandOperations? commandOperations = null,
+        int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
@@ -111,7 +112,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
 
         // Map the event to its table ("<tableName>-events")
         var eventsTableName = GetEventsTableName(tableName);
-        fmBuilder.Entity<ItemEvent<TItem>>()
+        fmBuilder.Entity<ItemEventWithExpiration>()
             .HasTableName(eventsTableName)
             .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
             .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
@@ -128,10 +129,11 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
 
         // Create the specific data provider implementation
         return CreateDataProvider<TInterface, TItem>(
-            dataProviderDataOptions,
-            typeName,
-            validator,
-            commandOperations);
+            dataOptions: dataProviderDataOptions,
+            typeName: typeName,
+            validator: validator,
+            commandOperations: commandOperations,
+            eventTimeToLive: eventTimeToLive);
     }
 
     /// <inheritdoc/>
@@ -232,12 +234,14 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <param name="typeName">Type name identifier for the entity.</param>
     /// <param name="validator">Optional validator for domain-specific validation rules.</param>
     /// <param name="commandOperations">Permitted CRUD operations for this provider.</param>
+    /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
     /// <returns>A database-specific data provider implementation.</returns>
     protected abstract IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
         DataOptions dataOptions,
         string typeName,
         IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        CommandOperations? commandOperations = null,
+        int? eventTimeToLive = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();
 
@@ -267,9 +271,9 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     }
 
     /// <summary>
-    /// Generates the events table name by appending '-events' suffix to the base table name.
+    /// Generates the events table name by appending '-events' suffix to the item table name.
     /// </summary>
-    /// <param name="tableName">The base table name for items.</param>
+    /// <param name="tableName">The table name for items.</param>
     /// <returns>The corresponding events table name for audit trail storage.</returns>
     private static string GetEventsTableName(
         string tableName)

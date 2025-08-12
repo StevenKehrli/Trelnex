@@ -16,6 +16,7 @@ namespace Trelnex.Core.Data;
 /// <param name="typeName">Type name identifier used for filtering items.</param>
 /// <param name="validator">Optional FluentValidation validator for domain-specific rules.</param>
 /// <param name="commandOperations">Permitted CRUD operations. Defaults to Read-only if not specified.</param>
+/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 /// <remarks>
 /// Provides transactional data persistence with optimistic concurrency control and audit trail support.
 /// Database-specific exception handling must be implemented in derived classes.
@@ -24,7 +25,8 @@ public abstract class DbDataProvider<TInterface, TItem>(
     DataOptions dataOptions,
     string typeName,
     IValidator<TItem>? validator = null,
-    CommandOperations? commandOperations = null)
+    CommandOperations? commandOperations = null,
+    int? eventTimeToLive = null)
     : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
@@ -240,7 +242,13 @@ public abstract class DbDataProvider<TInterface, TItem>(
         }
 
         // Save event record for auditing
-        dataConnection.Insert(request.Event);
+        var eventExpireAt = (eventTimeToLive is null)
+            ? null as DateTimeOffset?
+            : request.Event.CreatedDateTimeOffset.AddSeconds(eventTimeToLive.Value);
+
+        var eventWithExpiration = new ItemEventWithExpiration(request.Event, eventExpireAt);
+
+        dataConnection.Insert(eventWithExpiration);
 
         // Retrieve and return the saved item
         return dataConnection

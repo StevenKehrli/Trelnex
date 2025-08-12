@@ -236,7 +236,7 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     /// <remarks>
     /// Thread-safe read operation that provides insight into the complete audit trail.
     /// </remarks>
-    internal ItemEvent<TItem>[] GetEvents()
+    internal ItemEvent[] GetEvents()
     {
         try
         {
@@ -306,13 +306,189 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     #region Nested Types
 
     /// <summary>
+    /// Thread-safe in-memory data store supporting CRUD operations and LINQ queries.
+    /// </summary>
+    /// <remarks>
+    /// Implements optimistic concurrency control and maintains audit trail through events.
+    /// Supports deep copying for transactional batch operations.
+    /// </remarks>
+    private class InMemoryStore : IEnumerable<TItem>
+    {
+        #region Private Fields
+
+        /// <summary>
+        /// Items dictionary.
+        /// </summary>
+        private readonly Dictionary<string, SerializedItem> _items = [];
+
+        /// <summary>
+        /// Events list.
+        /// </summary>
+        private readonly List<SerializedEvent> _events = [];
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new store instance, optionally copying from an existing store.
+        /// </summary>
+        /// <param name="store">Optional existing store to deep copy from for transactional operations.</param>
+        public InMemoryStore(
+            InMemoryStore? store = null)
+        {
+            if (store is not null)
+            {
+                _items = new Dictionary<string, SerializedItem>(store._items);
+                _events = new List<SerializedEvent>(store._events);
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Creates a new item in the store with conflict detection.
+        /// </summary>
+        /// <param name="item">The item to create.</param>
+        /// <param name="itemEvent">The creation event for audit trail.</param>
+        /// <returns>The created item with assigned ETag.</returns>
+        /// <exception cref="CommandException">Thrown when an item with the same key already exists.</exception>
+        public TItem CreateItem(
+            TItem item,
+            ItemEvent itemEvent)
+        {
+            // Generate the composite key for this item
+            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
+
+            // Serialize the item and attempt to add it to the backing store
+            var serializedItem = SerializedItem.Create(item);
+            if (_items.TryAdd(itemKey, serializedItem) is false)
+            {
+                throw new CommandException(HttpStatusCode.Conflict);
+            }
+
+            // Serialize the event and add to the event log
+            var serializedEvent = SerializedEvent.Create(itemEvent);
+            _events.Add(serializedEvent);
+
+            // Return the item with its assigned ETag
+            return serializedItem.Resource;
+        }
+
+        /// <summary>
+        /// Reads item.
+        /// </summary>
+        /// <param name="id">Item identifier.</param>
+        /// <param name="partitionKey">Partition key.</param>
+        /// <returns>Requested item or null if not found.</returns>
+        public TItem? ReadItem(
+            string id,
+            string partitionKey)
+        {
+            // Generate the composite key for this item
+            var itemKey = GetItemKey(
+                partitionKey: partitionKey,
+                id: id);
+
+            // Attempt to retrieve the item from the backing store
+            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
+            {
+                // Item not found
+                return null;
+            }
+
+            // Return the deserialized item
+            return serializedItem.Resource;
+        }
+
+        /// <summary>
+        /// Updates an existing item with optimistic concurrency control.
+        /// </summary>
+        /// <param name="item">The item with updated values and current ETag.</param>
+        /// <param name="itemEvent">The update event for audit trail.</param>
+        /// <returns>The updated item with new ETag.</returns>
+        /// <exception cref="CommandException">
+        /// Thrown when item is not found (NotFound) or ETag doesn't match (PreconditionFailed).
+        /// </exception>
+        public TItem UpdateItem(
+            TItem item,
+            ItemEvent itemEvent)
+        {
+            // Generate the composite key for this item
+            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
+
+            // Check if the item exists in the backing store
+            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
+            {
+                // not found
+                throw new CommandException(HttpStatusCode.NotFound);
+            }
+
+            // Check if the ETag matches (optimistic concurrency check)
+            if (string.Equals(serializedItem.ETag, item.ETag) is false)
+            {
+                throw new CommandException(HttpStatusCode.PreconditionFailed);
+            }
+
+            // Serialize the updated item and replace the existing one
+            serializedItem = SerializedItem.Create(item);
+            _items[itemKey] = serializedItem;
+
+            // Serialize the event and add to the event log
+            var serializedEvent = SerializedEvent.Create(itemEvent);
+            _events.Add(serializedEvent);
+
+            // Return the updated item with its new ETag
+            return serializedItem.Resource;
+        }
+
+        /// <summary>
+        /// Retrieves all stored events for audit and debugging purposes.
+        /// </summary>
+        /// <returns>An array of all events in chronological order.</returns>
+        public ItemEvent[] GetEvents()
+        {
+            return _events.Select(se => se.Resource).ToArray();
+        }
+
+        #endregion
+
+        #region IEnumerable Implementation
+
+        /// <summary>
+        /// Returns an enumerator for all items in the store.
+        /// </summary>
+        /// <returns>An enumerator that iterates through all stored items.</returns>
+        public IEnumerator<TItem> GetEnumerator()
+        {
+            foreach (var serializedItem in _items.Values)
+            {
+                yield return serializedItem.Resource;
+            }
+        }
+
+        /// <summary>
+        /// Returns a non-generic enumerator for all items in the store.
+        /// </summary>
+        /// <returns>A non-generic enumerator that iterates through all stored items.</returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
+    }
+
+    /// <summary>
     /// Abstract base class for JSON serialization of items and events with ETag support.
     /// </summary>
     /// <typeparam name="T">The type being serialized, must inherit from BaseItem.</typeparam>
     /// <remarks>
     /// Provides consistent serialization behavior and optimistic concurrency control through ETags.
     /// </remarks>
-    private abstract class BaseSerialized<T> where T : BaseItem
+    private abstract class SerializedBase<T> where T : BaseItem
     {
         #region Private Static Fields
 
@@ -376,8 +552,8 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         /// <typeparam name="TSerialized">The concrete serialized type to create.</typeparam>
         /// <param name="resource">The resource to serialize.</param>
         /// <returns>A new serialized instance with JSON data and unique ETag.</returns>
-        protected static TSerialized BaseCreate<TSerialized>(
-            T resource) where TSerialized : BaseSerialized<T>, new()
+        protected static TSerialized CreateBase<TSerialized>(
+            T resource) where TSerialized : SerializedBase<T>, new()
         {
             // Create an instance of TSerialized
             var serialized = new TSerialized()
@@ -396,27 +572,9 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Serialized representation of an item with JSON storage and ETag.
-    /// </summary>
-    private class SerializedItem : BaseSerialized<TItem>
-    {
-        #region Public Static Methods
-
-        /// <summary>
-        /// Creates a serialized item instance from the provided item.
-        /// </summary>
-        /// <param name="item">The item to serialize.</param>
-        /// <returns>A new serialized item with JSON representation and ETag.</returns>
-        public static SerializedItem Create(
-            TItem item) => BaseCreate<SerializedItem>(item);
-
-        #endregion
-    }
-
-    /// <summary>
     /// Serialized representation of an event with JSON storage and ETag.
     /// </summary>
-    private class SerializedEvent : BaseSerialized<ItemEvent<TItem>>
+    private class SerializedEvent : SerializedBase<ItemEvent>
     {
         #region Public Static Methods
 
@@ -426,183 +584,25 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         /// <param name="itemEvent">The event to serialize.</param>
         /// <returns>A new serialized event with JSON representation and ETag.</returns>
         public static SerializedEvent Create(
-            ItemEvent<TItem> itemEvent) => BaseCreate<SerializedEvent>(itemEvent);
+            ItemEvent itemEvent) => CreateBase<SerializedEvent>(itemEvent);
 
         #endregion
     }
 
     /// <summary>
-    /// Thread-safe in-memory data store supporting CRUD operations and LINQ queries.
+    /// Serialized representation of an item with JSON storage and ETag.
     /// </summary>
-    /// <remarks>
-    /// Implements optimistic concurrency control and maintains audit trail through events.
-    /// Supports deep copying for transactional batch operations.
-    /// </remarks>
-    private class InMemoryStore : IEnumerable<TItem>
+    private class SerializedItem : SerializedBase<TItem>
     {
-        #region Private Fields
+        #region Public Static Methods
 
         /// <summary>
-        /// Items dictionary.
+        /// Creates a serialized item instance from the provided item.
         /// </summary>
-        private readonly Dictionary<string, SerializedItem> _items = [];
-
-        /// <summary>
-        /// Events list.
-        /// </summary>
-        private readonly List<SerializedEvent> _events = [];
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new store instance, optionally copying from an existing store.
-        /// </summary>
-        /// <param name="store">Optional existing store to deep copy from for transactional operations.</param>
-        public InMemoryStore(
-            InMemoryStore? store = null)
-        {
-            if (store is not null)
-            {
-                _items = new Dictionary<string, SerializedItem>(store._items);
-                _events = new List<SerializedEvent>(store._events);
-            }
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Creates a new item in the store with conflict detection.
-        /// </summary>
-        /// <param name="item">The item to create.</param>
-        /// <param name="itemEvent">The creation event for audit trail.</param>
-        /// <returns>The created item with assigned ETag.</returns>
-        /// <exception cref="CommandException">Thrown when an item with the same key already exists.</exception>
-        public TItem CreateItem(
-            TItem item,
-            ItemEvent<TItem> itemEvent)
-        {
-            // Generate the composite key for this item
-            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
-
-            // Serialize the item and attempt to add it to the backing store
-            var serializedItem = SerializedItem.Create(item);
-            if (_items.TryAdd(itemKey, serializedItem) is false)
-            {
-                throw new CommandException(HttpStatusCode.Conflict);
-            }
-
-            // Serialize the event and add to the event log
-            var serializedEvent = SerializedEvent.Create(itemEvent);
-            _events.Add(serializedEvent);
-
-            // Return the item with its assigned ETag
-            return serializedItem.Resource;
-        }
-
-        /// <summary>
-        /// Reads item.
-        /// </summary>
-        /// <param name="id">Item identifier.</param>
-        /// <param name="partitionKey">Partition key.</param>
-        /// <returns>Requested item or null if not found.</returns>
-        public TItem? ReadItem(
-            string id,
-            string partitionKey)
-        {
-            // Generate the composite key for this item
-            var itemKey = GetItemKey(
-                partitionKey: partitionKey,
-                id: id);
-
-            // Attempt to retrieve the item from the backing store
-            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
-            {
-                // Item not found
-                return null;
-            }
-
-            // Return the deserialized item
-            return serializedItem.Resource;
-        }
-
-        /// <summary>
-        /// Updates an existing item with optimistic concurrency control.
-        /// </summary>
-        /// <param name="item">The item with updated values and current ETag.</param>
-        /// <param name="itemEvent">The update event for audit trail.</param>
-        /// <returns>The updated item with new ETag.</returns>
-        /// <exception cref="CommandException">
-        /// Thrown when item is not found (NotFound) or ETag doesn't match (PreconditionFailed).
-        /// </exception>
-        public TItem UpdateItem(
-            TItem item,
-            ItemEvent<TItem> itemEvent)
-        {
-            // Generate the composite key for this item
-            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
-
-            // Check if the item exists in the backing store
-            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
-            {
-                // not found
-                throw new CommandException(HttpStatusCode.NotFound);
-            }
-
-            // Check if the ETag matches (optimistic concurrency check)
-            if (string.Equals(serializedItem.ETag, item.ETag) is false)
-            {
-                throw new CommandException(HttpStatusCode.PreconditionFailed);
-            }
-
-            // Serialize the updated item and replace the existing one
-            serializedItem = SerializedItem.Create(item);
-            _items[itemKey] = serializedItem;
-
-            // Serialize the event and add to the event log
-            var serializedEvent = SerializedEvent.Create(itemEvent);
-            _events.Add(serializedEvent);
-
-            // Return the updated item with its new ETag
-            return serializedItem.Resource;
-        }
-
-        /// <summary>
-        /// Retrieves all stored events for audit and debugging purposes.
-        /// </summary>
-        /// <returns>An array of all events in chronological order.</returns>
-        public ItemEvent<TItem>[] GetEvents()
-        {
-            return _events.Select(se => se.Resource).ToArray();
-        }
-
-        #endregion
-
-        #region IEnumerable Implementation
-
-        /// <summary>
-        /// Returns an enumerator for all items in the store.
-        /// </summary>
-        /// <returns>An enumerator that iterates through all stored items.</returns>
-        public IEnumerator<TItem> GetEnumerator()
-        {
-            foreach (var serializedItem in _items.Values)
-            {
-                yield return serializedItem.Resource;
-            }
-        }
-
-        /// <summary>
-        /// Returns a non-generic enumerator for all items in the store.
-        /// </summary>
-        /// <returns>A non-generic enumerator that iterates through all stored items.</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        /// <param name="item">The item to serialize.</param>
+        /// <returns>A new serialized item with JSON representation and ETag.</returns>
+        public static SerializedItem Create(
+            TItem item) => CreateBase<SerializedItem>(item);
 
         #endregion
     }
