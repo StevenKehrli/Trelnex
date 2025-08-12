@@ -58,11 +58,14 @@ public static class DynamoDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
+                var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
+
                 var blockCipherService = section.CreateBlockCipherService();
 
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
+                    EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
             .ToArray();
@@ -184,6 +187,7 @@ public static class DynamoDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
+                eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService);
 
             services.AddSingleton(dataProvider);
@@ -216,10 +220,12 @@ public static class DynamoDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name.</param>
     /// <param name="TableName">The table name in DynamoDB.</param>
+    /// <param name="EventTimeToLive">Optional time-to-live for events in the container.</param>
     /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
+        int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 
     #endregion

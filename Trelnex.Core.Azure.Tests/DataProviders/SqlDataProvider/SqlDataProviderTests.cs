@@ -46,10 +46,10 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _tableName,
-            "test-item",
-            TestItem.Validator,
-            CommandOperations.All);
+            tableName: _tableName,
+            typeName: "test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All);
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey);
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -112,7 +112,7 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey);
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
 
         Assert.That(reader.Read(), Is.True);
 

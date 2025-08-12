@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Amazon.DataProviders;
@@ -16,15 +15,8 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 /// in the dependency injection container.
 /// </summary>
 /// <remarks>
-/// This class inherits from <see cref="DynamoDataProviderTestBase"/> to leverage the shared
-/// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
-/// the extensive test suite defined in that base class.
-///
-/// This class focuses on testing the extension methods for DI registration rather than
-/// direct factory instantiation. It also adds an additional test for duplicate registration handling.
-///
-/// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual DynamoDB instance
-/// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
+/// Inherits from <see cref="DynamoDataProviderTestBase"/> to utilize shared test setup and infrastructure.
+/// These tests require a live DynamoDB instance and are not suitable for CI/CD environments without proper infrastructure.
 /// </remarks>
 [Ignore("Requires a DynamoDB table.")]
 [Category("DynamoDataProvider")]
@@ -107,7 +99,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         var json = document.ToJson();
 
         // Deserialize the item
-        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+        var item = JsonSerializer.Deserialize<TestItem>(json);
 
         Assert.That(item, Is.Not.Null);
 
@@ -167,7 +159,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
         var json = document.ToJson();
 
         // Deserialize the item
-        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+        var item = JsonSerializer.Deserialize<TestItem>(json);
 
         Assert.That(item, Is.Not.Null);
 
@@ -182,17 +174,5 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
         }
-    }
-
-    private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
-    {
-        [JsonPropertyName("publicMessage")]
-        public string PublicMessage { get; set; } = null!;
-
-        [JsonPropertyName("privateMessage")]
-        public string PrivateMessage { get; set; } = null!;
-
-        [JsonPropertyName("optionalMessage")]
-        public string? OptionalMessage { get; set; }
     }
 }

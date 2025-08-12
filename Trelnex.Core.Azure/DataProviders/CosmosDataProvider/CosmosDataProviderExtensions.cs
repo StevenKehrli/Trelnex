@@ -56,11 +56,14 @@ public static class CosmosDataProvidersExtensions
                 var containerId = section.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
+                var eventTimeToLive = section.GetValue<int?>("eventTimeToLive");
+
                 var blockCipherService = section.CreateBlockCipherService();
 
                 return new ContainerConfiguration(
                     TypeName: section.Key,
                     ContainerId: containerId,
+                    EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
             .ToArray();
@@ -196,6 +199,7 @@ public static class CosmosDataProvidersExtensions
                 typeName: typeName,
                 validator: itemValidator,
                 commandOperations: commandOperations,
+                eventTimeToLive: containerConfiguration.EventTimeToLive,
                 blockCipherService: containerConfiguration.BlockCipherService);
 
             // Register the data provider
@@ -231,10 +235,12 @@ public static class CosmosDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The type name used for filtering items.</param>
     /// <param name="ContainerId">The container ID in Cosmos DB.</param>
+    /// <param name="EventTimeToLive">Optional time-to-live for events in the container.</param>
     /// <param name="BlockCipherService">Optional block cipher service for the container.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
+        int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 
     #endregion

@@ -47,11 +47,11 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _encryptedTableName,
-            "encrypted-test-item",
-            TestItem.Validator,
-            CommandOperations.All,
-            _blockCipherService);
+            tableName: _encryptedTableName,
+            typeName: "encrypted-test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All,
+            blockCipherService: _blockCipherService);
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey);
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -128,7 +128,7 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey);
+        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -140,6 +140,7 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(encryptedPrivateMessage, Is.Not.EqualTo("Private Message #1"));
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(reader.IsDBNull(1), Is.True);
         }

@@ -3,9 +3,8 @@ using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
-using Trelnex.Core.Api.Encryption;
+using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
-using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
@@ -19,7 +18,7 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 /// - Token credential management
 /// - Test cleanup logic
 /// </remarks>
-public abstract class SqlDataProviderTestBase : DataProviderTests
+public abstract class SqlDataProviderEventTestBase
 {
     /// <summary>
     /// The scope for the Azure token credential.
@@ -52,24 +51,24 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the table used for testing.
+    /// The name of the table used for expiration testing.
     /// </summary>
-    protected string _tableName = null!;
+    protected string _expirationTableName = null!;
 
     /// <summary>
-    /// The name of the encrypted table used for testing.
+    /// The name of the encrypted table used for persistence testing.
     /// </summary>
-    protected string _encryptedTableName = null!;
-
-    /// <summary>
-    /// The block cipher service used for encrypting and decrypting test data.
-    /// </summary>
-    protected IBlockCipherService _blockCipherService = null!;
+    protected string _persistenceTableName = null!;
 
     /// <summary>
     /// The token credential used to authenticate with Azure.
     /// </summary>
     protected TokenCredential _tokenCredential = null!;
+
+    /// <summary>
+    /// The data provider used for testing.
+    /// </summary>
+    protected IDataProvider<ITestItem> _dataProvider = null!;
 
     protected IConfiguration TestSetup()
     {
@@ -96,23 +95,17 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
             .GetSection("Azure.SqlDataProviders:InitialCatalog")
             .Get<string>()!;
 
-        // Get the table name from the configuration.
+        // Get the expiration table name from the configuration.
+        // Example: "expiration-test-items"
+        _expirationTableName = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:TableName")
+            .Get<string>()!;
+
+        // Get the persistence table name from the configuration.
         // Example: "test-items"
-        _tableName = configuration
+        _persistenceTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:TableName")
             .Get<string>()!;
-
-        // Get the encrypted table name from the configuration.
-        // Example: "test-items"
-        _encryptedTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:TableName")
-            .Get<string>()!;
-
-        // Create the block cipher service from configuration using the factory pattern.
-        // This deserializes the algorithm type and settings, then creates the appropriate service.
-        _blockCipherService = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item")
-            .CreateBlockCipherService()!;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()
@@ -141,8 +134,8 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     [TearDown]
     public void TestCleanup()
     {
-        TableCleanup(_tableName);
-        TableCleanup(_encryptedTableName);
+        TableCleanup(_expirationTableName);
+        TableCleanup(_persistenceTableName);
     }
 
     [OneTimeTearDown]
@@ -184,11 +177,11 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
         string partitionKey,
         string tableName)
     {
-        // Define the SQL command to get the private message and optional message.
-        var cmdText = $"SELECT [privateMessage], [optionalMessage] FROM [{tableName}] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
+        // Define the SQL command to get the expireAtDateTimeOffset
+        var cmdText = $"SELECT [expireAtDateTimeOffset] FROM [{tableName}-events] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
 
         var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-        sqlCommand.Parameters.AddWithValue("@id", id);
+        sqlCommand.Parameters.AddWithValue("@id", $"EVENT^^{id}^00000001");
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();

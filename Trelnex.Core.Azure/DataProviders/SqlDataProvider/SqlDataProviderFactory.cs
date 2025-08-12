@@ -102,14 +102,16 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
         DataOptions dataOptions,
         string typeName,
         IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        CommandOperations? commandOperations = null,
+        int? eventTimeToLive = null)
     {
         // Create and return a new SqlDataProvider instance.
         return new SqlDataProvider<TInterface, TItem>(
-            dataOptions,
-            typeName,
-            validator,
-            commandOperations);
+            dataOptions: dataOptions,
+            typeName: typeName,
+            validator: validator,
+            commandOperations: commandOperations,
+            eventTimeToLive: eventTimeToLive);
     }
 
     /// <inheritdoc />

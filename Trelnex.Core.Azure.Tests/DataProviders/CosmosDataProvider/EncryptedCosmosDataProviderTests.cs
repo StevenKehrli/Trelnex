@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
@@ -46,11 +45,11 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
 
         // Create the data provider instance.
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _encryptedContainerId,
-            "encrypted-test-item",
-            TestItem.Validator,
-            CommandOperations.All,
-            _blockCipherService);
+            containerId: _encryptedContainerId,
+            typeName: "encrypted-test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All,
+            blockCipherService: _blockCipherService);
     }
 
     [Test]
@@ -77,7 +76,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -128,7 +127,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<ValidateTestItem>(
+        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -146,17 +145,5 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
             Assert.That(privateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.Resource.OptionalMessage, Is.Null);
         }
-    }
-
-    private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
-    {
-        [JsonPropertyName("publicMessage")]
-        public string PublicMessage { get; set; } = null!;
-
-        [JsonPropertyName("privateMessage")]
-        public string PrivateMessage { get; set; } = null!;
-
-        [JsonPropertyName("optionalMessage")]
-        public string? OptionalMessage { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Data;
@@ -11,14 +10,8 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 /// Tests for the DynamoDataProvider implementation using direct factory instantiation.
 /// </summary>
 /// <remarks>
-/// This class inherits from <see cref="DynamoDataProviderTestBase"/> to leverage the shared
-/// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
-/// the extensive test suite defined in that base class.
-///
-/// This approach tests the factory pattern and provider implementation directly.
-///
-/// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual DynamoDB table
-/// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
+/// Inherits from <see cref="DynamoDataProviderTestBase"/> to utilize shared test setup and infrastructure.
+/// These tests require a live DynamoDB instance and are not suitable for CI/CD environments without proper infrastructure.
 /// </remarks>
 [Ignore("Requires a DynamoDB table.")]
 [Category("DynamoDataProvider")]
@@ -44,10 +37,10 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
             dynamoClientOptions);
 
         _dataProvider = factory.Create<ITestItem, TestItem>(
-            _tableName,
-            "test-item",
-            TestItem.Validator,
-            CommandOperations.All);
+            tableName: _tableName,
+            typeName: "test-item",
+            validator: TestItem.Validator,
+            commandOperations: CommandOperations.All);
     }
 
     [Test]
@@ -86,7 +79,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
         var json = document.ToJson();
 
         // Deserialize the item
-        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+        var item = JsonSerializer.Deserialize<TestItem>(json);
 
         Assert.That(item, Is.Not.Null);
 
@@ -132,7 +125,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
         var json = document.ToJson();
 
         // Deserialize the item
-        var item = JsonSerializer.Deserialize<ValidateTestItem>(json);
+        var item = JsonSerializer.Deserialize<TestItem>(json);
 
         Assert.That(item, Is.Not.Null);
 
@@ -141,17 +134,5 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
             Assert.That(item.PrivateMessage, Is.EqualTo("Private Message #1"));
             Assert.That(item.OptionalMessage, Is.Null);
         };
-    }
-
-    private class ValidateTestItem : BaseItem, ITestItem, IBaseItem
-    {
-        [JsonPropertyName("publicMessage")]
-        public string PublicMessage { get; set; } = null!;
-
-        [JsonPropertyName("privateMessage")]
-        public string PrivateMessage { get; set; } = null!;
-
-        [JsonPropertyName("optionalMessage")]
-        public string? OptionalMessage { get; set; }
     }
 }

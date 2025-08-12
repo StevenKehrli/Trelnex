@@ -82,7 +82,8 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
     "DatabaseId": "trelnex-core-data-tests",
     "Containers": {
       "test-item": {
-        "ContainerId": "test-items"
+        "ContainerId": "test-items",
+        "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "ContainerId": "test-items",
@@ -102,6 +103,8 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
     }
   }
 ```
+
+The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from CosmosDB. The value is expressed in seconds.
 
 The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
@@ -173,7 +176,8 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
     "InitialCatalog": "trelnex-core-data-tests",
     "Tables": {
       "test-item": {
-        "TableName": "test-items"
+        "TableName": "test-items",
+        "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "TableName": "test-items",
@@ -193,6 +197,8 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
     }
   }
 ```
+
+The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from SQL. The value is expressed in seconds.
 
 The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
 
@@ -231,6 +237,7 @@ CREATE TABLE [test-items-events] (
     [createdDateTimeOffset] datetimeoffset NOT NULL,
     [updatedDateTimeOffset] datetimeoffset NOT NULL,
     [deletedDateTimeOffset] datetimeoffset NULL,
+    [expireAtDateTimeOffset] datetimeoffset NULL,
     [isDeleted] bit NULL,
     [_etag] nvarchar(255) NULL,
     [saveAction] nvarchar(max) NOT NULL,

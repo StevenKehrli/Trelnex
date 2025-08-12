@@ -13,12 +13,14 @@ namespace Trelnex.Core.Azure.DataProviders;
 /// <param name="typeName">The type name used to filter items.</param>
 /// <param name="validator">Optional validator for items before they are saved.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors.</param>
+/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 internal partial class SqlDataProvider<TInterface, TItem>(
     DataOptions dataOptions,
     string typeName,
     IValidator<TItem>? validator = null,
-    CommandOperations? commandOperations = null)
-    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, validator, commandOperations)
+    CommandOperations? commandOperations = null,
+    int? eventTimeToLive = null)
+    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, validator, commandOperations, eventTimeToLive)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {

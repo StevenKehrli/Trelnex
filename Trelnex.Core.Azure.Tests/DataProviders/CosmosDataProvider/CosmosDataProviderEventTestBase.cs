@@ -3,9 +3,8 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
-using Trelnex.Core.Api.Encryption;
+using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
-using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
@@ -18,17 +17,17 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 /// - Container management
 /// - Test cleanup logic
 /// </remarks>
-public abstract class CosmosDataProviderTestBase : DataProviderTests
+public abstract class CosmosDataProviderEventTestBase
 {
     /// <summary>
-    /// The CosmosDB container used for testing.
+    /// The CosmosDB container used for expiration testing.
     /// </summary>
-    protected Container _container = null!;
+    protected Container _expirationContainer = null!;
 
     /// <summary>
-    /// The CosmosDB container used for encryption testing.
+    /// The CosmosDB container used for persistence testing.
     /// </summary>
-    protected Container _encryptedContainer = null!;
+    protected Container _persistenceContainer = null!;
 
     /// <summary>
     /// The endpoint URI for the Cosmos DB account.
@@ -43,19 +42,14 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     protected string _databaseId = null!;
 
     /// <summary>
-    /// The container id used for testing.
+    /// The container id used for expiration testing.
     /// </summary>
-    protected string _containerId = null!;
+    protected string _expirationContainerId = null!;
 
     /// <summary>
-    /// The container id used for encryption testing.
+    /// The container id used for persistence testing.
     /// </summary>
-    protected string _encryptedContainerId = null!;
-
-    /// <summary>
-    /// The block cipher service used for encrypting and decrypting test data.
-    /// </summary>
-    protected IBlockCipherService _blockCipherService = null!;
+    protected string _persistenceContainerId = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -71,11 +65,17 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     protected DefaultAzureCredential _tokenCredential = null!;
 
     /// <summary>
+    /// The data provider used for testing.
+    /// </summary>
+    protected IDataProvider<ITestItem> _dataProvider = null!;
+
+    /// <summary>
     /// Initializes shared test resources from configuration.
     /// </summary>
     /// <returns>The loaded configuration</returns>
     protected IConfiguration TestSetup()
     {
+        // Initialize shared test resources from configuration
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -100,22 +100,16 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             .Get<string>()!;
 
         // Get the container ID from the configuration.
-        // Example: "test-items"
-        _containerId = configuration
-            .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
+        // Example: "expiration-test-items"
+        _expirationContainerId = configuration
+            .GetSection("Azure.CosmosDataProviders:Containers:expiration-test-item:ContainerId")
             .Get<string>()!;
 
         // Get the encypted container ID from the configuration.
-        // Example: "encrypted-test-items"
-        _encryptedContainerId = configuration
-            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:ContainerId")
+        // Example: "test-items"
+        _persistenceContainerId = configuration
+            .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
             .Get<string>()!;
-
-        // Create the block cipher service from configuration using the factory pattern.
-        // This deserializes the algorithm type and settings, then creates the appropriate service.
-        _blockCipherService = configuration
-            .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item")
-            .CreateBlockCipherService()!;
 
         // Create a token credential for authentication.
         _tokenCredential = new DefaultAzureCredential();
@@ -126,13 +120,13 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             tokenCredential: _tokenCredential);
 
         // Get a reference to the container.
-        _container = cosmosClient.GetContainer(
+        _expirationContainer = cosmosClient.GetContainer(
             databaseId: _databaseId,
-            containerId: _containerId);
+            containerId: _expirationContainerId);
 
-        _encryptedContainer = cosmosClient.GetContainer(
+        _persistenceContainer = cosmosClient.GetContainer(
             databaseId: _databaseId,
-            containerId: _encryptedContainerId);
+            containerId: _persistenceContainerId);
 
         return configuration;
     }
@@ -147,8 +141,8 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     [TearDown]
     public async Task TearDown()
     {
-        await ContainerCleanup(_container);
-        await ContainerCleanup(_encryptedContainer);
+        await ContainerCleanup(_expirationContainer);
+        await ContainerCleanup(_persistenceContainer);
     }
 
     private static async Task ContainerCleanup(
