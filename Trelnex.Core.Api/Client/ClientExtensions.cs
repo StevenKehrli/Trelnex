@@ -30,7 +30,7 @@ public static class ClientExtensions
         this IServiceCollection services,
         IConfiguration configuration)
         where IClient : class
-        where TClient: BaseClient, IClient
+        where TClient : BaseClient, IClient
     {
         // Extract the client name from the TClient type name to locate configuration
         var clientName = typeof(TClient).Name;

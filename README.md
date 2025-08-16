@@ -451,15 +451,15 @@ The `TInterface Item` property on each command is a [DispatchProxy](https://lear
 
 For example, the `TInterface Item` for `IReadResult<TInterface>` is set as read-only. Any call to a set accessor will throw an `InvalidOperationException`.
 
-### TrackChangeAttribute
+### TrackAttribute
 
-The `TrackChangeAttribute` on any property informs the `DispatchProxy` to track any changes to that property value. These changes are then added to the audit event that is created and saved within `ISaveCommand`.
+The `TrackAttribute` on any property informs the `DispatchProxy` to track any changes to that property value. These changes are then added to the audit event that is created and saved within `ISaveCommand`.
 
 ### Usage
 
 #### TInterface and TItem
 
-Create a new `TInterface` and `TItem`. Notice the `TrackChangeAttribute` and `JsonPropertyNameAttribute` are on the `TItem`. The `TItem` is the DTO for the `IDataProvider`; the `TInterface` is the proxy for the developer.
+Create a new `TInterface` and `TItem`. Notice the `TrackAttribute` and `JsonPropertyNameAttribute` are on the `TItem`. The `TItem` is the DTO for the `IDataProvider`; the `TInterface` is the proxy for the developer.
 
 ```csharp
 internal interface ITestItem : IBaseItem
@@ -471,7 +471,7 @@ internal interface ITestItem : IBaseItem
 
 internal class TestItem : BaseItem, ITestItem
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 
@@ -523,9 +523,9 @@ The `IDataProvider` will save the item to the backing data store.
 
 It will concurrently save an audit event to the backing data store.
 
-Notice the `Changes` element includes a property change for `publicMessage` from `null` to `Public #1`. The `PublicMessage` property is decorated with the `TrackChangeAttribute`.
+Notice the `Changes` element includes a property change for `publicMessage` from `null` to `Public #1`. The `PublicMessage` property is decorated with the `TrackAttribute`.
 
-Notice the `Changes` element does not include a property change for `privateMessage`. The `PrivateMessage` property is not decorated with the `TrackChangeAttribute`.
+Notice the `Changes` element does not include a property change for `privateMessage`. The `PrivateMessage` property is not decorated with the `TrackAttribute`.
 
 ```json
 {

@@ -17,7 +17,7 @@ namespace Trelnex.Core.Encryption;
 /// The service uses HKDF (HMAC-based Key Derivation Function) with SHA-256 for secure key derivation from the provided secret.
 /// </remarks>
 /// <param name="configuration">The AES-GCM encryption configuration containing the secret key and other settings.</param>
-internal class AesGcmCipher(
+public class AesGcmCipher(
     AesGcmCipherConfiguration configuration)
     : IBlockCipher
 {
