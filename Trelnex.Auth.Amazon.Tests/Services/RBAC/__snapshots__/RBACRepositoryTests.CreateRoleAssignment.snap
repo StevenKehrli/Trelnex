@@ -8,7 +8,7 @@
       "_resourceName": "urn://resource-createroleassignment",
       "_roleName": "role-createroleassignment",
       "entityName": "PRINCIPAL#principal-createroleassignment",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-createroleassignment##ROLE#role-createroleassignment"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-createroleassignment#ROLE#role-createroleassignment"
     },
     {
       "_resourceName": "urn://resource-createroleassignment",
@@ -21,7 +21,7 @@
       "_resourceName": "urn://resource-createroleassignment",
       "_roleName": "role-createroleassignment",
       "entityName": "RESOURCE#urn://resource-createroleassignment",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-createroleassignment##PRINCIPAL#principal-createroleassignment"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-createroleassignment#PRINCIPAL#principal-createroleassignment"
     },
     {
       "_resourceName": "urn://resource-createroleassignment",

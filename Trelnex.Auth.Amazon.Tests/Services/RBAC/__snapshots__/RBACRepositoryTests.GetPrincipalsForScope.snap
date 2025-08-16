@@ -8,7 +8,7 @@
       "_resourceName": "urn://resource-getprincipalsforscope",
       "_scopeName": "scope-getprincipalsforscope",
       "entityName": "PRINCIPAL#principal-getprincipalsforscope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforscope##SCOPE#scope-getprincipalsforscope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalsforscope#SCOPE#scope-getprincipalsforscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforscope",
@@ -21,7 +21,7 @@
       "_resourceName": "urn://resource-getprincipalsforscope",
       "_scopeName": "scope-getprincipalsforscope",
       "entityName": "RESOURCE#urn://resource-getprincipalsforscope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope##PRINCIPAL#principal-getprincipalsforscope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalsforscope#PRINCIPAL#principal-getprincipalsforscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforscope",

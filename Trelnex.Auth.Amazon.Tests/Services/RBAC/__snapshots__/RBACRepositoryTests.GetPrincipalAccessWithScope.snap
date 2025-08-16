@@ -15,14 +15,14 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
       "_roleName": "role-getprincipalaccesswithscope",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope##ROLE#role-getprincipalaccesswithscope"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope#ROLE#role-getprincipalaccesswithscope"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
       "_scopeName": "scope-getprincipalaccesswithscope",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope##SCOPE#scope-getprincipalaccesswithscope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope#SCOPE#scope-getprincipalaccesswithscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
@@ -35,7 +35,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
       "_roleName": "role-getprincipalaccesswithscope",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope##PRINCIPAL#principal-getprincipalaccesswithscope"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalaccesswithscope#PRINCIPAL#principal-getprincipalaccesswithscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
@@ -48,7 +48,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope",
       "_scopeName": "scope-getprincipalaccesswithscope",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccesswithscope##PRINCIPAL#principal-getprincipalaccesswithscope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalaccesswithscope#PRINCIPAL#principal-getprincipalaccesswithscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope",

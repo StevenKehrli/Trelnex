@@ -11,21 +11,21 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes##ROLE#role-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes#ROLE#role-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_scopeName": "scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes##SCOPE#scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes#SCOPE#scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_scopeName": "scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes##SCOPE#scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes#SCOPE#scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
@@ -38,7 +38,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-nomatchingmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalaccesswithscope-nomatchingmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
@@ -63,14 +63,14 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_scopeName": "scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-1-getprincipalaccesswithscope-nomatchingmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "_scopeName": "scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes##PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-2-getprincipalaccesswithscope-nomatchingmultiplescopes#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingmultiplescopes"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingmultiplescopes",

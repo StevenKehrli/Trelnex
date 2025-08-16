@@ -11,14 +11,14 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope##ROLE#role-getprincipalaccesswithscope-nomatchingscope"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope#ROLE#role-getprincipalaccesswithscope-nomatchingscope"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-nomatchingscope",
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_scopeName": "scope-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope##SCOPE#scope-getprincipalaccesswithscope-nomatchingscope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope#SCOPE#scope-getprincipalaccesswithscope-nomatchingscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
@@ -31,7 +31,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_roleName": "role-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-nomatchingscope##PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalaccesswithscope-nomatchingscope#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
@@ -50,7 +50,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",
       "_scopeName": "scope-getprincipalaccesswithscope-nomatchingscope",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-nomatchingscope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalaccesswithscope-nomatchingscope##PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalaccesswithscope-nomatchingscope#PRINCIPAL#principal-getprincipalaccesswithscope-nomatchingscope"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-nomatchingscope",

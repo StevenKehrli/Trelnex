@@ -11,7 +11,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments##ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments#ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
@@ -24,7 +24,7 @@
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "_roleName": "role-getprincipalaccesswithscope-defaultscopenoscopeassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments##PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalaccesswithscope-defaultscopenoscopeassignments#PRINCIPAL#principal-getprincipalaccesswithscope-defaultscopenoscopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccesswithscope-defaultscopenoscopeassignments",

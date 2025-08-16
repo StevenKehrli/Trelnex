@@ -9,14 +9,14 @@
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
       "_scopeName": "scope-deletescopeassignment-frommultipleassignments",
       "entityName": "PRINCIPAL#principal-1-deletescopeassignment-frommultipleassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments##SCOPE#scope-deletescopeassignment-frommultipleassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments#SCOPE#scope-deletescopeassignment-frommultipleassignments"
     },
     {
       "_principalId": "principal-3-deletescopeassignment-frommultipleassignments",
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
       "_scopeName": "scope-deletescopeassignment-frommultipleassignments",
       "entityName": "PRINCIPAL#principal-3-deletescopeassignment-frommultipleassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments##SCOPE#scope-deletescopeassignment-frommultipleassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments#SCOPE#scope-deletescopeassignment-frommultipleassignments"
     },
     {
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
@@ -29,14 +29,14 @@
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
       "_scopeName": "scope-deletescopeassignment-frommultipleassignments",
       "entityName": "RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-deletescopeassignment-frommultipleassignments##PRINCIPAL#principal-1-deletescopeassignment-frommultipleassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-deletescopeassignment-frommultipleassignments#PRINCIPAL#principal-1-deletescopeassignment-frommultipleassignments"
     },
     {
       "_principalId": "principal-3-deletescopeassignment-frommultipleassignments",
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",
       "_scopeName": "scope-deletescopeassignment-frommultipleassignments",
       "entityName": "RESOURCE#urn://resource-deletescopeassignment-frommultipleassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-deletescopeassignment-frommultipleassignments##PRINCIPAL#principal-3-deletescopeassignment-frommultipleassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-deletescopeassignment-frommultipleassignments#PRINCIPAL#principal-3-deletescopeassignment-frommultipleassignments"
     },
     {
       "_resourceName": "urn://resource-deletescopeassignment-frommultipleassignments",

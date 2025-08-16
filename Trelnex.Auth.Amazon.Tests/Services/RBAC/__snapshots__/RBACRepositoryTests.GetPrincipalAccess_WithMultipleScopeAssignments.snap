@@ -16,21 +16,21 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_roleName": "role-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments##ROLE#role-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments#ROLE#role-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments##SCOPE#scope-1-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments#SCOPE#scope-1-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments##SCOPE#scope-2-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments#SCOPE#scope-2-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
@@ -43,7 +43,7 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_roleName": "role-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalaccess-withmultiplescopeassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalaccess-withmultiplescopeassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
@@ -62,14 +62,14 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccess-withmultiplescopeassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-1-getprincipalaccess-withmultiplescopeassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",
       "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccess-withmultiplescopeassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-2-getprincipalaccess-withmultiplescopeassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeassignments",

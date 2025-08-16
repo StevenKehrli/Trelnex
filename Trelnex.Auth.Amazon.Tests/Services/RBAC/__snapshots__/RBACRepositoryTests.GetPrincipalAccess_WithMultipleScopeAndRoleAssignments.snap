@@ -17,28 +17,28 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_roleName": "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments##ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_roleName": "role-2-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments##ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments##SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments##SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments#SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
@@ -57,14 +57,14 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_roleName": "role-1-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-1-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_roleName": "role-2-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-2-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
@@ -83,14 +83,14 @@
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_scopeName": "scope-1-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-1-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_principalId": "principal-getprincipalaccess-withmultiplescopeandroleassignments",
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
       "_scopeName": "scope-2-getprincipalaccess-withmultiplescopeandroleassignments",
       "entityName": "RESOURCE#urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments##PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-2-getprincipalaccess-withmultiplescopeandroleassignments#PRINCIPAL#principal-getprincipalaccess-withmultiplescopeandroleassignments"
     },
     {
       "_resourceName": "urn://resource-getprincipalaccess-withmultiplescopeandroleassignments",
