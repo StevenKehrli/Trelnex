@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "14abd6b8-fe12-4aa6-9315-4dcc355c9102",
-      "PartitionKey": "ff79a981-c756-4fba-8c8e-8fe6980768ba",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:18.935334+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:18.935334+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "31d206ce-cd60-4e9f-ac0a-6fa711d13a47",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "caa83cf3-30ed-4331-a52f-2a4c47f511db",
+      "PartitionKey": "343cbdc7-9191-4fc5-9f64-e30ceac4c0f4",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:23:50.114469+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:23:50.114469+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "dd5184dd-2e37-4ae1-bf1b-b1e2e20f5bdf"
     }
   },
   {
     "Item": {
-      "Id": "31551c8c-84ab-4218-8ded-29ec05a2522d",
-      "PartitionKey": "093045f7-1797-437b-b992-c71bdd8ffd03",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:18.935507+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:18.935507+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "cf78b9b5-928d-466f-9721-91e69373a402",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "7bf234bf-8aad-4e9e-9d3b-c717a7a36ade",
+      "PartitionKey": "d23e256c-8269-49c2-ac82-0365eefff98c",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:23:50.114661+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:23:50.114661+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "07ea0966-0123-4d25-8040-3986c762e28d"
     }
   }
 ]

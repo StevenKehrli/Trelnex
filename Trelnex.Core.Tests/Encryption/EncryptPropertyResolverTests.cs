@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Snapshooter.NUnit;
 using Trelnex.Core.Encryption;
+using Trelnex.Core.Json;
 
 namespace Trelnex.Core.Tests.Encryption;
 
@@ -28,11 +29,14 @@ public class EncryptPropertyResolverTests
 
     private static JsonSerializerOptions CreateSerializerOptions()
     {
+        var blockCipherService = new TestBlockCipherService();
+        var encryptPropertyResolver = new EncryptPropertyResolver(blockCipherService);
+        var compositeJsonResolver = new CompositeJsonResolver([encryptPropertyResolver]);
         return new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            TypeInfoResolver = new EncryptPropertyResolver(new TestBlockCipherService()),
+            TypeInfoResolver = compositeJsonResolver,
             WriteIndented = true
         };
     }

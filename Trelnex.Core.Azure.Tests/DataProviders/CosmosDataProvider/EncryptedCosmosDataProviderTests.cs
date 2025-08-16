@@ -44,9 +44,9 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
             cosmosClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            containerId: _encryptedContainerId,
+        _dataProvider = factory.Create(
             typeName: "encrypted-test-item",
+            containerId: _encryptedContainerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);

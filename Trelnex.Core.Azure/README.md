@@ -22,7 +22,7 @@ Trelnex.Core.Azure bridges the gap between the Trelnex framework and Azure servi
 
 ## DataProviders
 
-The library includes data providers for Azure data services that implement the `IDataProvider` interface from Trelnex.Core.Data.
+The library includes data providers for Azure data services that implement the `IDataProvider<TItem>` interface from Trelnex.Core.Data.
 
 ### CosmosDataProvider - CosmosDB NoSQL
 
@@ -32,7 +32,7 @@ The library includes data providers for Azure data services that implement the `
 
 &nbsp;
 
-`CosmosDataProvider` is an `IDataProvider` that uses Azure Cosmos DB NoSQL API as a backing store, providing scalable, globally distributed data access.
+`CosmosDataProvider` is an `IDataProvider<TItem>` that uses Azure Cosmos DB NoSQL API as a backing store, providing scalable, globally distributed data access.
 
 #### CosmosDataProvider - Dependency Injection
 
@@ -65,9 +65,9 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
         this IDataProviderOptions options)
     {
         return options
-            .Add<IUser, User>(
+            .Add<User>(
                 typeName: "user",
-                validator: User.Validator,
+                itemValidator: User.Validator,
                 commandOperations: CommandOperations.All);
     }
 ```
@@ -126,7 +126,7 @@ The document schema in Cosmos DB follows these conventions:
 
 &nbsp;
 
-`SqlDataProvider` is an `IDataProvider` that uses Azure SQL Database or SQL Server as a backing store, providing relational database capabilities while maintaining the same command-based interface.
+`SqlDataProvider` is an `IDataProvider<TItem>` that uses Azure SQL Database or SQL Server as a backing store, providing relational database capabilities while maintaining the same command-based interface.
 
 #### SqlDataProvider - Dependency Injection
 
@@ -159,9 +159,9 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
         this IDataProviderOptions options)
     {
         return options
-            .Add<IUser, User>(
+            .Add<User>(
                 typeName: "user",
-                validator: User.Validator,
+                itemValidator: User.Validator,
                 commandOperations: CommandOperations.All);
     }
 ```
@@ -349,8 +349,6 @@ Refer to the [Security best practices for SQL Database](https://learn.microsoft.
 
 </details>
 
-</details>
-
 ## Identity
 
 Azure Identity integration provides managed authentication for Azure services.
@@ -430,9 +428,8 @@ Add Azure Identity to your service collection:
 Register clients that require access tokens:
 
 ```csharp
-    // get the credential provider and access token provider
-    services.AddClient<IUsersClient, UsersClient>(
-        configuration: configuration);
+    // Example of registering a client that uses access tokens
+    services.AddScoped<IUsersClient, UsersClient>();
 ```
 
 #### IAccessTokenProvider - Usage
@@ -440,19 +437,23 @@ Register clients that require access tokens:
 Use the token provider in your HTTP clients:
 
 ```csharp
+using System.Net.Http.Headers;
+
 internal class UsersClient(
     HttpClient httpClient,
-    IAccessTokenProvider<UsersClient> tokenProvider)
+    ICredentialProvider<TokenCredential> credentialProvider)
     : BaseClient(httpClient), IUsersClient
 {
     public async Task<UserResponse> GetUserAsync(string userId)
     {
-        // Get the authorization header from the token provider
-        var authorizationHeader = tokenProvider.GetAccessToken().GetAuthorizationHeader();
+        // Get access token provider from credential provider
+        var tokenProvider = credentialProvider.GetAccessTokenProvider("https://api.trelnex.com/.default");
+        var accessToken = tokenProvider.GetAccessToken();
+        var authorizationHeader = accessToken.GetAuthorizationHeader();
 
         // Add the authorization header to the request
         using var request = new HttpRequestMessage(HttpMethod.Get, $"users/{userId}");
-        request.Headers.Authorization = authorizationHeader;
+        request.Headers.Authorization = AuthenticationHeaderValue.Parse(authorizationHeader);
 
         // Send the request
         using var response = await httpClient.SendAsync(request);

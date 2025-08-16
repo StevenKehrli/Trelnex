@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "7a583a41-c60f-4044-bd00-0bc219ca572b",
-      "PartitionKey": "b69902ec-0aef-40dd-a454-be1d2429f628",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:57:38.615682+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:57:38.615682+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "C172418B-1919-400D-A185-7C09480CFA26",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "4248aff1-1732-43ca-96bb-34010c270df3",
+      "PartitionKey": "225eab82-edbc-4338-addf-2fa2c46fb052",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:32:45.074994+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:32:45.074994+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "231E0BD1-EABF-4A52-8E26-79DC2CD2B824"
     }
   },
   {
     "Item": {
-      "Id": "e5ac54d8-02c6-4450-adb2-4581f98b3d12",
-      "PartitionKey": "aa10acb7-f687-4e82-a4f5-4b15954f4372",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:57:39.129446+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:57:39.129446+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "D2D762E7-BE0D-43B2-99E2-F8EA623484A0",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "ad08d1fb-bfce-4a7a-bd53-fa2f9c168ed0",
+      "PartitionKey": "4ac882ac-e35c-4aed-a364-a22afc89eee9",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:32:45.583141+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:32:45.583141+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "CC718D60-AE17-4ED3-A80B-795AB71BE817"
     }
   }
 ]

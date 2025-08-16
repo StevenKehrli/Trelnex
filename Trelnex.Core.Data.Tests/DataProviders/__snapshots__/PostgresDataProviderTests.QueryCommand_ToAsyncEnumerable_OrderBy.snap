@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "4ef70af6-49e2-4bf0-8d7b-147cd950251a",
-      "PartitionKey": "4d10b3e8-b10d-42a9-9617-eb8c97c30f1c",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:14.759474+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:14.759474+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "e9116749-797f-443e-a4f2-2a3dba1c6e8f",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "2041e7af-0839-4a84-be56-630a6782a449",
+      "PartitionKey": "841e2c60-8053-4714-8c1d-9e2aba8e29b1",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:34:51.206074+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:34:51.206074+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "628cc42f-b4d5-4077-acd2-3b672527e09d"
     }
   },
   {
     "Item": {
-      "Id": "122ea19c-14c2-4c6c-bea6-6169ab206105",
-      "PartitionKey": "866e8584-9565-4039-b225-f9e4f9974ece",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:14.815203+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:14.815203+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "23c65717-466a-4c3c-9f76-93c6abc75fc3",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "70268375-61c0-4e44-af28-d06f96daf51d",
+      "PartitionKey": "c9f4f0ce-40c8-4c6b-9b10-e09615216def",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:34:51.404053+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:34:51.404053+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "24582a0f-3735-4110-a98b-5a1f6d086f20"
     }
   }
 ]

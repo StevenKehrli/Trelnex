@@ -1,0 +1,44 @@
+﻿[
+  {
+    "SaveAction": "CREATED",
+    "RelatedId": "569d9c11-f66f-46b9-98be-ff0cff833475",
+    "RelatedTypeName": "test-item",
+    "Changes": [
+      {
+        "PropertyName": "/encryptedMessage",
+        "OldValue": null,
+        "NewValue": {
+          "ValueKind": "String"
+        }
+      },
+      {
+        "PropertyName": "/publicId",
+        "OldValue": {
+          "ValueKind": "Number"
+        },
+        "NewValue": {
+          "ValueKind": "Number"
+        }
+      },
+      {
+        "PropertyName": "/publicMessage",
+        "OldValue": null,
+        "NewValue": {
+          "ValueKind": "String"
+        }
+      }
+    ],
+    "TraceContext": "00-5ffa059aee5daae5531058d56abdc6e0-82da2a921ff43589-01",
+    "TraceId": "5ffa059aee5daae5531058d56abdc6e0",
+    "SpanId": "82da2a921ff43589",
+    "Id": "EVENT^569d9c11-f66f-46b9-98be-ff0cff833475^00000001",
+    "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
+    "TypeName": "event",
+    "Version": 1,
+    "CreatedDateTimeOffset": "2025-08-16T22:29:24.69517+00:00",
+    "UpdatedDateTimeOffset": "2025-08-16T22:29:24.69517+00:00",
+    "DeletedDateTimeOffset": null,
+    "IsDeleted": null,
+    "ETag": "d52f1f51-4bd8-45e5-952c-5ce60aea0675"
+  }
+]

@@ -2,14 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data.Tests.Commands;
 
-internal interface ITestItem : IBaseItem
-{
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-}
-
-internal record TestItem : BaseItem, ITestItem
+internal record TestItem : BaseItem
 {
     [Track]
     [JsonPropertyName("publicMessage")]

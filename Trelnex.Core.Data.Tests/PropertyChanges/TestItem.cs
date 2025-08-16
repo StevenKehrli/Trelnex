@@ -2,29 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data.Tests.PropertyChanges;
 
-internal interface ITestItem : IBaseItem
-{
-    int PublicId { get; set; }
-
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-
-    // Tracked parent with tracked children - should track all changes
-    TrackedSettings TrackedSettingsWithAttribute { get; set; }
-
-    // Untracked parent with tracked children - should track nothing
-    UntrackedSettings UntrackedSettingsWithAttribute { get; set; }
-
-    // Tracked parent without attribute - should track nothing even though children have Track
-    TrackedSettings TrackedSettingsWithoutAttribute { get; set; }
-
-    TrackedSettings[] TrackedSettingsArray { get; set; }
-
-    Dictionary<string, TrackedSettings> TrackedSettingsDictionary { get; set; }
-}
-
-internal record TestItem : BaseItem, ITestItem
+internal record TestItem : BaseItem
 {
     [Track]
     [JsonPropertyName("publicId")]

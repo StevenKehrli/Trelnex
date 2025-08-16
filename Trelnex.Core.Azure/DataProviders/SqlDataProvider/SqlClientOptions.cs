@@ -3,14 +3,13 @@ using Azure.Core;
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Configuration options for connecting to SQL Server.
+/// Configuration settings for SQL Server database connection using Azure token authentication.
 /// </summary>
-/// <param name="TokenCredential">The credential used to authenticate SQL Server requests.</param>
-/// <param name="Scope">The authentication scope for the token request.</param>
-/// <param name="DataSource">The server name or network address.</param>
-/// <param name="InitialCatalog">The database name.</param>
-/// <param name="TableNames">The collection of table names in the database.</param>
-/// <remarks>Parameters to connect to SQL Server using token-based authentication.</remarks>
+/// <param name="TokenCredential">Azure credential for authenticating SQL Server requests.</param>
+/// <param name="Scope">Authentication scope for token requests.</param>
+/// <param name="DataSource">SQL Server instance name or network address.</param>
+/// <param name="InitialCatalog">SQL Server database name to connect to.</param>
+/// <param name="TableNames">Array of table names that will be accessed by this client.</param>
 internal record SqlClientOptions(
     TokenCredential TokenCredential,
     string Scope,

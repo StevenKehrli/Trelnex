@@ -3,18 +3,18 @@
     "HttpStatusCode": "OK",
     "ReadResult": {
       "Item": {
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null,
         "Id": "6704a3e2-1757-4540-aa07-16f36a567ce6",
         "PartitionKey": "75e5d19c-e809-49ed-a7ba-a89e96217ed3",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-10T21:54:11.611272+00:00",
-        "UpdatedDateTimeOffset": "2025-08-10T21:54:11.611272+00:00",
-        "DeletedDateTimeOffset": "2025-08-10T21:54:11.755298+00:00",
+        "CreatedDateTimeOffset": "2025-08-16T21:34:46.86683+00:00",
+        "UpdatedDateTimeOffset": "2025-08-16T21:34:46.86683+00:00",
+        "DeletedDateTimeOffset": "2025-08-16T21:34:47.031833+00:00",
         "IsDeleted": true,
-        "ETag": "0c7f01b4-f460-4956-9e19-7b22fba3be02",
-        "PublicMessage": "Public Message #1",
-        "PrivateMessage": "Private Message #1",
-        "OptionalMessage": null
+        "ETag": "712512bb-af95-4f51-a8a1-6fa71592728c"
       }
     }
   },
@@ -22,18 +22,18 @@
     "HttpStatusCode": "OK",
     "ReadResult": {
       "Item": {
+        "PublicMessage": "Public Message #2",
+        "PrivateMessage": "Private Message #2",
+        "OptionalMessage": null,
         "Id": "41981704-8fc4-4da1-b12a-e913f1dfa0dc",
         "PartitionKey": "75e5d19c-e809-49ed-a7ba-a89e96217ed3",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-10T21:54:11.611292+00:00",
-        "UpdatedDateTimeOffset": "2025-08-10T21:54:11.611292+00:00",
-        "DeletedDateTimeOffset": "2025-08-10T21:54:11.770889+00:00",
+        "CreatedDateTimeOffset": "2025-08-16T21:34:46.866857+00:00",
+        "UpdatedDateTimeOffset": "2025-08-16T21:34:46.866857+00:00",
+        "DeletedDateTimeOffset": "2025-08-16T21:34:47.229704+00:00",
         "IsDeleted": true,
-        "ETag": "eb1c1a38-0466-4d72-889d-8078b049f48c",
-        "PublicMessage": "Public Message #2",
-        "PrivateMessage": "Private Message #2",
-        "OptionalMessage": null
+        "ETag": "b1ecf7db-449b-49df-840f-83bc6a34833e"
       }
     }
   }

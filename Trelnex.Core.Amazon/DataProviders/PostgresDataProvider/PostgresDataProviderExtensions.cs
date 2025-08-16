@@ -17,40 +17,33 @@ using Trelnex.Core.Api.Encryption;
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// Extension methods for configuring PostgreSQL data providers.
+/// Extension methods for configuring PostgreSQL data providers with dependency injection.
 /// </summary>
-/// <remarks>
-/// Provides dependency injection integration.
-/// </remarks>
 public static partial class PostgresDataProvidersExtensions
 {
     #region Public Static Methods
 
     /// <summary>
-    /// Adds PostgreSQL data providers to the service collection.
+    /// Registers PostgreSQL data providers with the service collection using configuration.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">Application configuration.</param>
-    /// <param name="bootstrapLogger">Logger for initialization.</param>
-    /// <param name="configureDataProviders">Action to configure providers.</param>
-    /// <returns>The service collection.</returns>
-    /// <exception cref="ConfigurationErrorsException">When the PostgresDataProviders section is missing.</exception>
-    /// <exception cref="InvalidOperationException">When the ServiceConfiguration is not registered or when attempting to register the same data provider interface twice.</exception>
-    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
-    /// <remarks>
-    /// Configures PostgreSQL data providers for specific entity types.
-    /// Uses AWS credentials from the registered credential provider to authenticate with PostgreSQL through IAM.
-    /// </remarks>
+    /// <param name="services">Service collection to register providers with.</param>
+    /// <param name="configuration">Application configuration containing PostgreSQL settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
+    /// <param name="configureDataProviders">Delegate to configure which providers to register.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when required configuration sections are missing.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when ServiceConfiguration is not registered or duplicate providers are registered.</exception>
+    /// <exception cref="ArgumentException">Thrown when a type name has no associated table configuration.</exception>
     public static IServiceCollection AddPostgresDataProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<IDataProviderOptions> configureDataProviders)
     {
-        // get the token credential identity provider
+        // Get AWS credentials from registered credential provider
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
-        // Get the database and table configurations from the configuration
+        // Extract PostgreSQL configuration from application settings
         var host = configuration.GetSection("Amazon.PostgresDataProviders:Host").Get<string>()
             ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
 
@@ -82,14 +75,14 @@ public static partial class PostgresDataProvidersExtensions
             })
             .ToArray();
 
-        // get the service configuration
+        // Get service configuration from DI container
         var serviceDescriptor = services
             .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
 
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
-        // parse the postgres options
+        // Build provider options from configuration
         var providerOptions = PostgresDataProviderOptions.Parse(
             host: host,
             port: port,
@@ -97,7 +90,7 @@ public static partial class PostgresDataProvidersExtensions
             dbUser: dbUser,
             tableConfigurations: tableConfigurations);
 
-        // create our factory
+        // Configure PostgreSQL client with credentials and connection details
         var postgresClientOptions = GetPostgresClientOptions(credentialProvider, providerOptions);
 
         var providerFactory = PostgresDataProviderFactory
@@ -105,10 +98,10 @@ public static partial class PostgresDataProvidersExtensions
             .GetAwaiter()
             .GetResult();
 
-        // inject the factory as the status interface
+        // Register factory with DI container
         services.AddDataProviderFactory(providerFactory);
 
-        // create the data providers and inject
+        // Configure individual data providers using factory
         var dataProviderOptions = new DataProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
@@ -125,19 +118,16 @@ public static partial class PostgresDataProvidersExtensions
     #region Private Static Methods
 
     /// <summary>
-    /// Creates PostgreSQL client options with authentication.
+    /// Creates PostgreSQL client options with AWS credentials and connection settings.
     /// </summary>
     /// <param name="credentialProvider">Provider for AWS credentials.</param>
-    /// <param name="providerOptions">Configuration options for PostgreSQL.</param>
-    /// <returns>Fully configured PostgreSQL client options.</returns>
-    /// <remarks>
-    /// Retrieves AWS credentials and sets connection parameters.
-    /// </remarks>
+    /// <param name="providerOptions">PostgreSQL configuration options.</param>
+    /// <returns>Configured PostgreSQL client options.</returns>
     private static PostgresClientOptions GetPostgresClientOptions(
         ICredentialProvider<AWSCredentials> credentialProvider,
         PostgresDataProviderOptions providerOptions)
     {
-        // get the aws credentials
+        // Get AWS credentials and build client configuration
         var awsCredentials = credentialProvider.GetCredential();
 
         return new PostgresClientOptions(
@@ -156,11 +146,8 @@ public static partial class PostgresDataProvidersExtensions
     #region DataProviderOptions
 
     /// <summary>
-    /// Implementation of <see cref="IDataProviderOptions"/> for configuring PostgreSQL providers.
+    /// Handles registration of PostgreSQL data providers with type-to-table mapping.
     /// </summary>
-    /// <remarks>
-    /// Provides type-to-table mapping and data provider registration.
-    /// </remarks>
     private class DataProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -169,27 +156,22 @@ public static partial class PostgresDataProvidersExtensions
         : IDataProviderOptions
     {
         /// <summary>
-        /// Registers a data provider for a specific item type with table mapping.
+        /// Registers a PostgreSQL data provider for the specified entity type.
         /// </summary>
-        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-        /// <param name="typeName">Type name to map to a PostgreSQL table.</param>
-        /// <param name="itemValidator">Optional validator for items.</param>
-        /// <param name="commandOperations">Operations allowed for this provider.</param>
-        /// <returns>The options instance.</returns>
-        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
-        /// <exception cref="InvalidOperationException">When a data provider for the interface is already registered.</exception>
-        /// <remarks>
-        /// Maps a logical entity type with its physical PostgreSQL table location.
-        /// </remarks>
-        public IDataProviderOptions Add<TInterface, TItem>(
+        /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+        /// <param name="typeName">Type name identifier that maps to a PostgreSQL table.</param>
+        /// <param name="itemValidator">Optional validator for entity validation.</param>
+        /// <param name="commandOperations">Optional CRUD operations to enable.</param>
+        /// <returns>The options instance for method chaining.</returns>
+        /// <exception cref="ArgumentException">Thrown when no table is configured for the type name.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a provider for this type is already registered.</exception>
+        public IDataProviderOptions Add<TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
-            where TInterface : class, IBaseItem
-            where TItem : BaseItem, TInterface, new()
+            where TItem : BaseItem, new()
         {
-            // get the table configuration for the specified item type
+            // Look up table configuration for the specified type
             var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
             if (tableConfiguration is null)
@@ -199,16 +181,16 @@ public static partial class PostgresDataProvidersExtensions
                     nameof(typeName));
             }
 
-            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TItem>)))
             {
                 throw new InvalidOperationException(
-                    $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
+                    $"The DataProvider<{typeof(TItem).Name}> is already registered.");
             }
 
-            // create the data provider and inject
-            var dataProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableConfiguration.TableName,
+            // Create data provider instance using factory and table configuration
+            var dataProvider = providerFactory.Create(
                 typeName: typeName,
+                tableName: tableConfiguration.TableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
@@ -218,7 +200,6 @@ public static partial class PostgresDataProvidersExtensions
 
             object[] args =
             [
-                typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.Region, // region
                 providerOptions.Host, // host
@@ -228,9 +209,9 @@ public static partial class PostgresDataProvidersExtensions
                 tableConfiguration.TableName, // table
             ];
 
-            // log - the :l format parameter (l = literal) to avoid the quotes
+            // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added PostgresDataProvider<{TInterface:l}, {TItem:l}>: region = '{region:l}', host = '{host:l}', port = '{port:l}', database = '{database:l}', dbUser = '{dbUser:l}', tableName = '{tableName:l}'.",
+                message: "Added PostgresDataProvider<{TItem:l}>: region = '{region:l}', host = '{host:l}', port = '{port:l}', database = '{database:l}', dbUser = '{dbUser:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;
@@ -242,12 +223,12 @@ public static partial class PostgresDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Table configuration mapping type names to PostgreSQL table names.
+    /// Configuration mapping a type name to its PostgreSQL table and settings.
     /// </summary>
-    /// <param name="TypeName">The type name.</param>
-    /// <param name="TableName">The table name in PostgreSQL.</param>
-    /// <param name="EventTimeToLive">Optional event time-to-live for the table.</param>
-    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
+    /// <param name="TypeName">The logical type name identifier.</param>
+    /// <param name="TableName">The physical PostgreSQL table name.</param>
+    /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
+    /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
@@ -259,7 +240,7 @@ public static partial class PostgresDataProvidersExtensions
     #region Provider Options
 
     /// <summary>
-    /// Represents the PostgreSQL data provider options.
+    /// Configuration options for PostgreSQL data providers with type-to-table mappings.
     /// </summary>
     private partial class PostgresDataProviderOptions(
         RegionEndpoint region,
@@ -271,27 +252,27 @@ public static partial class PostgresDataProvidersExtensions
         #region Public Properties
 
         /// <summary>
-        /// Gets the database name.
+        /// Gets the PostgreSQL database name.
         /// </summary>
         public string Database => database;
 
         /// <summary>
-        /// Gets the database username.
+        /// Gets the PostgreSQL database username.
         /// </summary>
         public string DbUser => dbUser;
 
         /// <summary>
-        /// Gets the hostname of the PostgreSQL server.
+        /// Gets the PostgreSQL server hostname.
         /// </summary>
         public string Host => host;
 
         /// <summary>
-        /// Gets the port number of the PostgreSQL server.
+        /// Gets the PostgreSQL server port number.
         /// </summary>
         public int Port => port;
 
         /// <summary>
-        /// Gets the AWS region of the PostgreSQL server.
+        /// Gets the AWS region for the PostgreSQL server.
         /// </summary>
         public RegionEndpoint Region => region;
 
@@ -299,9 +280,7 @@ public static partial class PostgresDataProvidersExtensions
 
         #region Private Fields
 
-        /// <summary>
-        /// The collection of table configurations by item type.
-        /// </summary>
+        // Dictionary mapping type names to their table configurations
         private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
 
         #endregion
@@ -309,10 +288,10 @@ public static partial class PostgresDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Gets the table configuration for the specified item type.
+        /// Retrieves table configuration for a specified type name.
         /// </summary>
-        /// <param name="typeName">The logical type name.</param>
-        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        /// <param name="typeName">Type name to look up.</param>
+        /// <returns>Table configuration if found, null otherwise.</returns>
         public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
@@ -322,9 +301,9 @@ public static partial class PostgresDataProvidersExtensions
         }
 
         /// <summary>
-        /// Gets all configured table names.
+        /// Gets all configured PostgreSQL table names.
         /// </summary>
-        /// <returns>An array containing all table names, sorted alphabetically.</returns>
+        /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
             return _tableConfigurationsByTypeName
@@ -338,18 +317,16 @@ public static partial class PostgresDataProvidersExtensions
         #region Internal Static Methods
 
         /// <summary>
-        /// Parses configuration settings into a validated <see cref="PostgresDataProviderOptions"/> instance.
+        /// Parses configuration settings into validated provider options.
         /// </summary>
-        /// <param name="host">The PostgreSQL server host.</param>
-        /// <param name="port">The PostgreSQL server port.</param>
-        /// <param name="database">The PostgreSQL database name.</param>
-        /// <param name="dbUser">The PostgreSQL database username.</param>
-        /// <param name="tableConfigurations">An array of table configurations.</param>
-        /// <returns>A configured and validated <see cref="PostgresDataProviderOptions"/> instance.</returns>
-        /// <exception cref="AggregateException">Thrown when one or more configuration errors are detected.</exception>
-        /// <remarks>
-        /// Validates that each type name is mapped to exactly one table name.
-        /// </remarks>
+        /// <param name="host">PostgreSQL server hostname in AWS RDS format.</param>
+        /// <param name="port">PostgreSQL server port number.</param>
+        /// <param name="database">PostgreSQL database name.</param>
+        /// <param name="dbUser">PostgreSQL database username.</param>
+        /// <param name="tableConfigurations">Array of table configurations to validate.</param>
+        /// <returns>Validated provider options with type-to-table mappings.</returns>
+        /// <exception cref="ConfigurationErrorsException">Thrown when host format is invalid.</exception>
+        /// <exception cref="AggregateException">Thrown when configuration contains duplicate type mappings.</exception>
         internal static PostgresDataProviderOptions Parse(
             string host,
             int port,
@@ -357,19 +334,19 @@ public static partial class PostgresDataProvidersExtensions
             string dbUser,
             TableConfiguration[] tableConfigurations)
         {
-            // Apply regex pattern matching to extract components.
+            // Extract region from AWS RDS hostname format
             var match = HostRegex().Match(host);
             if (match.Success is false)
             {
                 throw new ConfigurationErrorsException($"The Host '{host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
             }
 
-            // Get the region from the regex match.
+            // Parse region from hostname
             var regionSystemName = match.Groups["region"].Value;
             var region = RegionEndpoint.GetBySystemName(regionSystemName)
                 ?? throw new ConfigurationErrorsException($"The Host '{host}' is not valid. It should be in the format '<instanceName>.<uniqueId>.<region>.rds.amazonaws.com'.");
 
-            // get the server and database
+            // Create options instance with connection details
             var options = new PostgresDataProviderOptions(
                 region: region,
                 host: host,
@@ -377,15 +354,14 @@ public static partial class PostgresDataProvidersExtensions
                 database: database,
                 dbUser: dbUser);
 
-            // group the tables by item type
+            // Group configurations by type name to detect duplicates
             var groups = tableConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
-            // any exceptions
+            // Validate configuration for duplicate type mappings
             var exs = new List<ConfigurationErrorsException>();
 
-            // enumerate each group - should be one
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -393,13 +369,13 @@ public static partial class PostgresDataProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
             });
 
-            // if there are any exceptions, then throw an aggregate exception of all exceptions
+            // Throw aggregate exception if validation errors found
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // enumerate each group and set the table (value) for each item type (key)
+            // Build type-to-table mapping dictionary
             Array.ForEach(groups, group =>
             {
                 options._tableConfigurationsByTypeName[group.Key] = group.Single();
@@ -413,9 +389,9 @@ public static partial class PostgresDataProvidersExtensions
         #region Private Static Methods
 
         /// <summary>
-        /// Creates a regular expression that parses the host strings.
+        /// Gets regex pattern for parsing AWS RDS PostgreSQL hostnames.
         /// </summary>
-        /// <returns>A <see cref="Regex"/> that matches valid host strings.</returns>
+        /// <returns>Compiled regex for extracting region from RDS hostname format.</returns>
         [GeneratedRegex(@"^(?<instanceName>[^.]+)\.(?<uniqueId>[^.]+)\.(?<region>[a-z]{2}-[a-z]+-\d)\.rds\.amazonaws\.com$")]
         private static partial Regex HostRegex();
 

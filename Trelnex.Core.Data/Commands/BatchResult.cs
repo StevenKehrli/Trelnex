@@ -3,42 +3,34 @@ using System.Net;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Results from batch operations.
+/// Defines the result of a single operation within a batch.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for items in result.</typeparam>
-/// <remarks>
-/// Represents outcome of a single item operation within a batch.
-/// </remarks>
-public interface IBatchResult<TInterface>
-    where TInterface : class, IBaseItem
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IBatchResult<TItem>
+    where TItem : BaseItem
 {
     /// <summary>
-    /// HTTP status code.
+    /// Gets the HTTP status code indicating the outcome of the operation.
     /// </summary>
     HttpStatusCode HttpStatusCode { get; }
 
     /// <summary>
-    /// Read-only result (null if failed).
+    /// Gets the result wrapper for the processed item, or null if the operation failed.
     /// </summary>
-    IReadResult<TInterface>? ReadResult { get; }
+    IReadResult<TItem>? ReadResult { get; }
 }
 
 /// <summary>
-/// Immutable batch operation result.
+/// Represents the result of a single operation within a batch.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for items.</typeparam>
-/// <typeparam name="TItem">Concrete item implementation type.</typeparam>
-/// <param name="httpStatusCode">Status code.</param>
-/// <param name="readResult">Processed item result (null for failures).</param>
-/// <remarks>
-/// Implements <see cref="IBatchResult{TInterface}"/>.
-/// </remarks>
-internal sealed class BatchResult<TInterface, TItem>(
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+/// <param name="httpStatusCode">HTTP status code indicating the operation outcome.</param>
+/// <param name="readResult">Result wrapper for the processed item, or null if failed.</param>
+internal sealed class BatchResult<TItem>(
     HttpStatusCode httpStatusCode,
-    IReadResult<TInterface>? readResult)
-    : IBatchResult<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface
+    IReadResult<TItem>? readResult)
+    : IBatchResult<TItem>
+    where TItem : BaseItem
 {
     #region Public Properties
 
@@ -46,7 +38,7 @@ internal sealed class BatchResult<TInterface, TItem>(
     public HttpStatusCode HttpStatusCode => httpStatusCode;
 
     /// <inheritdoc/>
-    public IReadResult<TInterface>? ReadResult => readResult;
+    public IReadResult<TItem>? ReadResult => readResult;
 
     #endregion
 }

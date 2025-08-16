@@ -1,115 +1,100 @@
-using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Operations for accessing and transitioning query results.
+/// Defines operations for accessing an item and creating commands for it.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for items.</typeparam>
-/// <remarks>
-/// Extends <see cref="IReadResult{TInterface}"/> with methods to transition to mutable commands.
-/// </remarks>
-public interface IQueryResult<TInterface>
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IQueryResult<TItem>
     : IDisposable
-    where TInterface : class, IBaseItem
+    where TItem : BaseItem
 {
     /// <summary>
-    /// Retrieved item with read-only access.
+    /// Gets the managed item.
     /// </summary>
-    TInterface Item { get; }
+    TItem Item { get; }
 
     /// <summary>
-    /// Transitions to a delete command.
+    /// Creates a delete command for the item and invalidates this query result.
     /// </summary>
-    /// <returns>Command for deleting the item.</returns>
+    /// <returns>A save command configured for deleting the item.</returns>
     /// <exception cref="InvalidOperationException">
-    /// When <see cref="Delete"/> or <see cref="Update"/> was already called.
+    /// Thrown if Delete() or Update() has already been called.
     /// </exception>
-    ISaveCommand<TInterface> Delete();
+    ISaveCommand<TItem> Delete();
 
     /// <summary>
-    /// Transitions to an update command.
+    /// Creates an update command for the item and invalidates this query result.
     /// </summary>
-    /// <returns>Command for updating the item.</returns>
+    /// <returns>A save command configured for updating the item.</returns>
     /// <exception cref="InvalidOperationException">
-    /// When <see cref="Update"/> or <see cref="Delete"/> was already called.
+    /// Thrown if Update() or Delete() has already been called.
     /// </exception>
-    ISaveCommand<TInterface> Update();
-
-    /// <summary>
-    /// Validates item state.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Validation result.</returns>
-    /// <exception cref="OperationCanceledException">
-    /// When operation is canceled.
-    /// </exception>
-    Task<ValidationResult> ValidateAsync(
-        CancellationToken cancellationToken);
+    ISaveCommand<TItem> Update();
 }
 
 /// <summary>
-/// Implements query result with state transition capabilities.
+/// Manages an item and provides factory methods for creating save commands.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type.</typeparam>
-/// <remarks>
-/// Concrete implementation of <see cref="IQueryResult{TInterface}"/>.
-/// </remarks>
-internal class QueryResult<TInterface, TItem>
-    : ProxyManager<TInterface, TItem>, IQueryResult<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+internal class QueryResult<TItem>
+    : ItemManager<TItem>, IQueryResult<TItem>
+    where TItem : BaseItem
 {
     #region Private Fields
 
-    /// <summary>
-    /// Factory method for creating delete commands.
-    /// </summary>
-    private Func<TItem, ISaveCommand<TInterface>> _createDeleteCommand = null!;
+    // Factory function for creating delete commands, nulled after use to invalidate
+    private Func<TItem, ISaveCommand<TItem>> _createDeleteCommand;
+
+    // Factory function for creating update commands, nulled after use to invalidate
+    private Func<TItem, ISaveCommand<TItem>> _createUpdateCommand;
+
+    #endregion
+
+    #region Constructor
 
     /// <summary>
-    /// Factory method for creating update commands.
+    /// Initializes the query result with the specified item, command factories, and optional logger.
     /// </summary>
-    private Func<TItem, ISaveCommand<TInterface>> _createUpdateCommand = null!;
+    /// <param name="item">The item to manage.</param>
+    /// <param name="createDeleteCommand">Factory for creating delete commands.</param>
+    /// <param name="createUpdateCommand">Factory for creating update commands.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    private QueryResult(
+        TItem item,
+        Func<TItem, ISaveCommand<TItem>> createDeleteCommand,
+        Func<TItem, ISaveCommand<TItem>> createUpdateCommand,
+        ILogger? logger = null)
+        : base(item, logger)
+    {
+        _createDeleteCommand = createDeleteCommand;
+        _createUpdateCommand = createUpdateCommand;
+    }
 
     #endregion
 
     #region Public Static Methods
 
     /// <summary>
-    /// Creates query result wrapping an item.
+    /// Factory method that creates a new query result instance.
     /// </summary>
-    /// <param name="item">Item to wrap in proxy.</param>
-    /// <param name="validateAsyncDelegate">Validation delegate.</param>
-    /// <param name="createDeleteCommand">Delete command factory.</param>
-    /// <param name="createUpdateCommand">Update command factory.</param>
-    /// <returns>Configured query result instance.</returns>
-    /// <exception cref="ArgumentNullException">When any parameter is null.</exception>
-    public static QueryResult<TInterface, TItem> Create(
+    /// <param name="item">The item to manage.</param>
+    /// <param name="createDeleteCommand">Factory for creating delete commands.</param>
+    /// <param name="createUpdateCommand">Factory for creating update commands.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <returns>A configured query result instance.</returns>
+    public static QueryResult<TItem> Create(
         TItem item,
-        ValidateAsyncDelegate<TInterface, TItem> validateAsyncDelegate,
-        Func<TItem, ISaveCommand<TInterface>> createDeleteCommand,
-        Func<TItem, ISaveCommand<TInterface>> createUpdateCommand)
+        Func<TItem, ISaveCommand<TItem>> createDeleteCommand,
+        Func<TItem, ISaveCommand<TItem>> createUpdateCommand,
+        ILogger? logger = null)
     {
-        // Create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
-        var proxyManager = new QueryResult<TInterface, TItem>
-        {
-            _item = item,
-            _isReadOnly = true,
-            _validateAsyncDelegate = validateAsyncDelegate,
-            _createDeleteCommand = createDeleteCommand,
-            _createUpdateCommand = createUpdateCommand,
-        };
-
-        // Create the proxy
-        var proxy = ItemProxy<TInterface, TItem>.Create(proxyManager.OnInvoke);
-
-        // Set our proxy
-        proxyManager._proxy = proxy;
-
-        // Return the proxy manager
-        return proxyManager;
+        return new QueryResult<TItem>(
+            item: item,
+            createDeleteCommand: createDeleteCommand,
+            createUpdateCommand: createUpdateCommand,
+            logger: logger);
     }
 
     #endregion
@@ -117,22 +102,22 @@ internal class QueryResult<TInterface, TItem>
     #region Public Methods
 
     /// <inheritdoc/>
-    public ISaveCommand<TInterface> Delete()
+    public ISaveCommand<TItem> Delete()
     {
         try
         {
-            // Ensure that only one operation that modifies the item is in progress at a time
-            _semaphore.Wait();
+            // Acquire lock to prevent concurrent transitions
+            Wait();
 
-            // Check if already converted
+            // Check if command factories have already been used
             if (_createDeleteCommand is null)
             {
                 throw new InvalidOperationException("The Delete() method cannot be called because either the Delete() or Update() method has already been called.");
             }
 
-            var deleteCommand = _createDeleteCommand(_item);
+            var deleteCommand = _createDeleteCommand(Item);
 
-            // Null out the convert delegates so we know that we have already converted and are no longer valid
+            // Invalidate this query result by clearing both command factories
             _createDeleteCommand = null!;
             _createUpdateCommand = null!;
 
@@ -140,27 +125,27 @@ internal class QueryResult<TInterface, TItem>
         }
         finally
         {
-            _semaphore.Release();
+            Release();
         }
     }
 
     /// <inheritdoc/>
-    public ISaveCommand<TInterface> Update()
+    public ISaveCommand<TItem> Update()
     {
         try
         {
-            // Ensure that only one operation that modifies the item is in progress at a time
-            _semaphore.Wait();
+            // Acquire lock to prevent concurrent transitions
+            Wait();
 
-            // Check if already converted
+            // Check if command factories have already been used
             if (_createUpdateCommand is null)
             {
                 throw new InvalidOperationException("The Update() method cannot be called because either the Delete() or Update() method has already been called.");
             }
 
-            var updateCommand = _createUpdateCommand(_item);
+            var updateCommand = _createUpdateCommand(Item);
 
-            // Null out the convert delegates so we know that we have already converted and are no longer valid
+            // Invalidate this query result by clearing both command factories
             _createDeleteCommand = null!;
             _createUpdateCommand = null!;
 
@@ -168,7 +153,7 @@ internal class QueryResult<TInterface, TItem>
         }
         finally
         {
-            _semaphore.Release();
+            Release();
         }
     }
 

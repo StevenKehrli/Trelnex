@@ -3,29 +3,23 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// Factory for creating DynamoDB data providers.
+/// Factory for creating DynamoDB data provider instances with table validation.
 /// </summary>
-/// <remarks>
-/// Manages DynamoDB client initialization, table validation, and provider creation.
-/// </remarks>
 internal class DynamoDataProviderFactory : IDataProviderFactory
 {
     #region Private Fields
 
-    /// <summary>
-    /// The DynamoDB client.
-    /// </summary>
+    // DynamoDB client for AWS operations
     private readonly AmazonDynamoDBClient _dynamoClient;
 
-    /// <summary>
-    /// The options used to configure the DynamoDB client.
-    /// </summary>
+    // Configuration options for the DynamoDB client
     private readonly DynamoClientOptions _dynamoClientOptions;
 
     #endregion
@@ -33,10 +27,10 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DynamoDataProviderFactory"/> class.
+    /// Initializes a new DynamoDB data provider factory with client and options.
     /// </summary>
-    /// <param name="dynamoClient">The configured DynamoDB client.</param>
-    /// <param name="dynamoClientOptions">The options used to configure the DynamoDB client.</param>
+    /// <param name="dynamoClient">Configured DynamoDB client.</param>
+    /// <param name="dynamoClientOptions">Client configuration options.</param>
     private DynamoDataProviderFactory(
         AmazonDynamoDBClient dynamoClient,
         DynamoClientOptions dynamoClientOptions)
@@ -50,31 +44,28 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     #region Public Static Methods
 
     /// <summary>
-    /// Creates and initializes a new instance of the <see cref="DynamoDataProviderFactory"/>.
+    /// Creates and validates a new DynamoDB data provider factory instance.
     /// </summary>
-    /// <param name="dynamoClientOptions">Options for DynamoDB client configuration.</param>
-    /// <returns>A fully initialized <see cref="DynamoDataProviderFactory"/> instance.</returns>
-    /// <exception cref="CommandException">Thrown when the DynamoDB connection cannot be established or tables are missing.</exception>
-    /// <remarks>
-    /// Initializes the DynamoDB client and validates that all required tables exist.
-    /// </remarks>
+    /// <param name="dynamoClientOptions">DynamoDB client configuration options.</param>
+    /// <returns>Validated factory instance ready for use.</returns>
+    /// <exception cref="CommandException">Thrown when DynamoDB connection fails or tables are missing.</exception>
     public static async Task<DynamoDataProviderFactory> Create(
         DynamoClientOptions dynamoClientOptions)
     {
-        // Create the DynamoDB client using the provided AWS credentials and region.
+        // Initialize DynamoDB client with AWS credentials and region
         var dynamoClient = new AmazonDynamoDBClient(
             dynamoClientOptions.AWSCredentials,
             RegionEndpoint.GetBySystemName(dynamoClientOptions.Region));
 
-        // Build and return the factory instance.
+        // Create factory instance
         var factory = new DynamoDataProviderFactory(
             dynamoClient,
             dynamoClientOptions);
 
-        // Get the operational status of the factory.
+        // Verify factory health and table availability
         var status = await factory.GetStatusAsync();
 
-        // Return the factory if it is healthy; otherwise, throw an exception.
+        // Return factory if healthy, otherwise throw exception with error details
         return (status.IsHealthy is true)
             ? factory
             : throw new CommandException(
@@ -87,52 +78,50 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     #region Public Methods
 
     /// <summary>
-    /// Creates a data provider for a specific item type.
+    /// Creates a DynamoDB data provider for the specified item type and table.
     /// </summary>
-    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-    /// <param name="tableName">Name of the DynamoDB table to use.</param>
-    /// <param name="typeName">Type name to filter items by.</param>
+    /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+    /// <param name="typeName">Type name identifier for filtering items.</param>
+    /// <param name="tableName">DynamoDB table name to operate on.</param>
     /// <param name="itemValidator">Optional validator for items.</param>
-    /// <param name="commandOperations">Operations allowed for this provider.</param>
-    /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-    /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
-    /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
-    /// <remarks>
-    /// Creates a <see cref="DynamoDataProvider{TInterface, TItem}"/> that operates on the specified DynamoDB table.
-    /// </remarks>
-    public IDataProvider<TInterface> Create<TInterface, TItem>(
-        string tableName,
+    /// <param name="commandOperations">Allowed CRUD operations for this provider.</param>
+    /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+    /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <returns>Configured DynamoDB data provider instance.</returns>
+    public IDataProvider<TItem> Create<TItem>(
         string typeName,
+        string tableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null,
-        IBlockCipherService? blockCipherService = null)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new()
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
+        where TItem : BaseItem, new()
     {
-        // Get a Table object with the standard key schema for the specified table name.
+        // Get DynamoDB table instance with standard key schema
         var table = _dynamoClient.GetTable(tableName);
 
-        // Create and return the data provider instance.
-        return new DynamoDataProvider<TInterface, TItem>(
-            table: table,
+        // Create and return configured data provider
+        return new DynamoDataProvider<TItem>(
             typeName: typeName,
+            table: table,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
             eventTimeToLive: eventTimeToLive,
-            blockCipherService: blockCipherService);
+            blockCipherService: blockCipherService,
+            logger: logger);
     }
 
     /// <summary>
-    /// Asynchronously gets the current operational status of the factory.
+    /// Retrieves the current operational status of the factory and DynamoDB connectivity.
     /// </summary>
-    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-    /// <returns>Status information including connectivity and table availability.</returns>
+    /// <param name="cancellationToken">Token to cancel the status check operation.</param>
+    /// <returns>Status information including health, connectivity, and table availability.</returns>
     public async Task<DataProviderFactoryStatus> GetStatusAsync(
         CancellationToken cancellationToken = default)
     {
-        // Initialize a dictionary to hold status data.
+        // Initialize status data with basic configuration
         var data = new Dictionary<string, object>
         {
             { "region", _dynamoClientOptions.Region },
@@ -141,40 +130,39 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
 
         try
         {
-            // Retrieve the table names from DynamoDB.
+            // Get list of existing tables from DynamoDB
             var tableNames = await GetTableNames(
                 _dynamoClient,
                 cancellationToken);
 
-            // Identify any required tables that are missing.
+            // Check for missing required tables
             var missingTableNames = new List<string>();
             foreach (var tableName in _dynamoClientOptions.TableNames.OrderBy(tableName => tableName))
             {
-                // Check if the table exists in DynamoDB.
+                // Verify table exists in DynamoDB
                 if (tableNames.Any(tn => tn == tableName) is false)
                 {
-                    // Add the missing table name to the list.
                     missingTableNames.Add(tableName);
                 }
             }
 
-            // If there are any missing table names, add an error message to the status data.
+            // Add error information if tables are missing
             if (0 != missingTableNames.Count)
             {
                 data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
             }
 
-            // Return a healthy status if there are no missing table names.
+            // Return status based on table availability
             return new DataProviderFactoryStatus(
                 IsHealthy: 0 == missingTableNames.Count,
                 Data: data);
         }
         catch (Exception ex)
         {
-            // If an exception occurs, add the error message to the status data.
+            // Add exception details to status data
             data["error"] = ex.Message;
 
-            // Return an unhealthy status with the error data.
+            // Return unhealthy status with error information
             return new DataProviderFactoryStatus(
                 IsHealthy: false,
                 Data: data);
@@ -186,25 +174,25 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     #region Private Static Methods
 
     /// <summary>
-    /// Retrieves an array of table names from DynamoDB.
+    /// Retrieves all table names from DynamoDB using paginated requests.
     /// </summary>
-    /// <param name="dynamoClient">The DynamoDB client.</param>
-    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-    /// <returns>An array of table names.</returns>
+    /// <param name="dynamoClient">DynamoDB client for AWS operations.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Array of all table names in the DynamoDB account.</returns>
     private static async Task<string[]> GetTableNames(
         AmazonDynamoDBClient dynamoClient,
         CancellationToken cancellationToken)
     {
-        // Initialize a list to hold the table names.
+        // Collect table names across all pages
         var tableNames = new List<string>();
 
-        // Initialize the last evaluated table name to null.
+        // Track pagination state
         string? lastEvaluatedTableName = null;
 
-        // Paginate through the table names.
+        // Process all pages of table listings
         do
         {
-            // Get the next batch of table names.
+            // Request next page of table names
             var request = new ListTablesRequest
             {
                 ExclusiveStartTableName = lastEvaluatedTableName
@@ -212,14 +200,13 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
 
             var response = await dynamoClient.ListTablesAsync(request);
 
-            // Add the table names to the list.
+            // Add table names from current page
             tableNames.AddRange(response.TableNames);
 
-            // Update the last evaluated table name.
+            // Update pagination marker for next iteration
             lastEvaluatedTableName = response.LastEvaluatedTableName;
-        } while (lastEvaluatedTableName is not null); // Continue while there are more tables to retrieve.
+        } while (lastEvaluatedTableName is not null);
 
-        // Return the table names as an array.
         return tableNames.ToArray();
     }
 

@@ -65,7 +65,7 @@ public abstract class DynamoDataProviderEventTestBase
     /// <summary>
     /// The data provider used for testing.
     /// </summary>
-    protected IDataProvider<ITestItem> _dataProvider = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for DynamoDB data provider tests.

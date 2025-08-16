@@ -1,11 +1,11 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using Trelnex.Core.Json;
 
 namespace Trelnex.Core.Encryption;
 
 /// <summary>
-/// A custom <see cref="IJsonTypeInfoResolver"/> that assigns an <see cref="EncryptedJsonConverter{T}"/>
+/// A JSON property resolver that assigns an <see cref="EncryptedJsonConverter{T}"/>
 /// to properties decorated with <see cref="EncryptAttribute"/>. This enables encryption and decryption
 /// of property values during JSON serialization and deserialization.
 /// </summary>
@@ -14,47 +14,31 @@ namespace Trelnex.Core.Encryption;
 /// </param>
 public class EncryptPropertyResolver(
     IBlockCipherService blockCipherService)
-    : DefaultJsonTypeInfoResolver
+    : JsonPropertyResolver
 {
-    /// <summary>
-    /// Customizes the JSON serialization metadata by assigning an <see cref="EncryptedJsonConverter{T}"/>
-    /// to properties marked with <see cref="EncryptAttribute"/>. Only object types are processed.
-    /// </summary>
-    /// <param name="type">The type being serialized.</param>
-    /// <param name="options">The JSON serializer options.</param>
-    /// <returns>
-    /// A <see cref="JsonTypeInfo"/> instance with custom converters assigned to encrypted properties.
-    /// </returns>
-    public override JsonTypeInfo GetTypeInfo(
-        Type type,
-        JsonSerializerOptions options)
+    public override IList<JsonPropertyInfo> ConfigureProperties(
+        IList<JsonPropertyInfo> properties)
     {
-        // Get the default type info from the base resolver.
-        var jsonTypeInfo = base.GetTypeInfo(type, options);
-
-        // Only process object types; skip primitives, arrays, and other non-object types.
-        if (jsonTypeInfo.Kind != JsonTypeInfoKind.Object) return jsonTypeInfo;
-
-        // Iterate over each property to check for EncryptAttribute.
-        foreach (var property in jsonTypeInfo.Properties)
+        // Configure encryption for properties marked with EncryptAttribute
+        foreach (var property in properties)
         {
-            // Check if the property has the EncryptAttribute.
+            // Check if the property has the EncryptAttribute
             var encryptAttribute = property.AttributeProvider?
                 .GetCustomAttributes(typeof(EncryptAttribute), true)
                 .FirstOrDefault();
 
-            // If EncryptAttribute is not present, skip this property.
+            // Skip properties without EncryptAttribute
             if (encryptAttribute is null) continue;
 
-            // Create an EncryptedJsonConverter for the property's type, passing blockCipherService.
+            // Create an EncryptedJsonConverter for the property's type
             var converterType = typeof(EncryptedJsonConverter<>).MakeGenericType(property.PropertyType);
 
             var converter = (Activator.CreateInstance(converterType, blockCipherService) as JsonConverter)!;
 
-            // Assign the custom converter to the property for encryption/decryption.
+            // Assign the encryption converter to the property
             property.CustomConverter = converter;
         }
 
-        return jsonTypeInfo;
+        return properties;
     }
 }

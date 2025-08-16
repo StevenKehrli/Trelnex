@@ -3,18 +3,13 @@ using FluentValidation.Results;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Delegate for validating items asynchronously.
+/// Delegate for asynchronously validating an item.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the item.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type.</typeparam>
-/// <param name="item">Item to validate.</param>
-/// <param name="cancellationToken">Cancellation token.</param>
-/// <returns>Validation result.</returns>
-/// <remarks>
-/// Abstracts validation to support flexible implementations.
-/// </remarks>
-internal delegate Task<ValidationResult> ValidateAsyncDelegate<TInterface, TItem>(
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+/// <param name="item">The item to validate.</param>
+/// <param name="cancellationToken">Token to cancel the validation operation.</param>
+/// <returns>Validation result indicating success or failure with details.</returns>
+internal delegate Task<ValidationResult> ValidateAsyncDelegate<TItem>(
     TItem item,
     CancellationToken cancellationToken)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface;
+    where TItem : BaseItem;

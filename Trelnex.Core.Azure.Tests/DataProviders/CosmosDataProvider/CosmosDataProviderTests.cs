@@ -43,9 +43,9 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
             cosmosClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            containerId: _containerId,
+        _dataProvider = factory.Create(
             typeName: "test-item",
+            containerId: _containerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }

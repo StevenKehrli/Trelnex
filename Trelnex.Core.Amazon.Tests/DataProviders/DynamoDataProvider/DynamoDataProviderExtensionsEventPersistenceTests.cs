@@ -50,7 +50,7 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
             .AddDynamoDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "test-item",
                     itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
@@ -58,7 +58,7 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]

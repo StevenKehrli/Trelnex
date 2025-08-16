@@ -3,31 +3,28 @@ using System.Text.Json.Serialization;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Type of save operation.
+/// Represents the type of save operation performed on an item.
 /// </summary>
-/// <remarks>
-/// Tracks entity lifecycle status. Serialized as a string in JSON.
-/// </remarks>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SaveAction
 {
     /// <summary>
-    /// Save action not specified.
+    /// The save action is unknown or not specified.
     /// </summary>
     UNKNOWN = 0,
 
     /// <summary>
-    /// New entity created.
+    /// A new item was created.
     /// </summary>
     CREATED = 1,
 
     /// <summary>
-    /// Existing entity modified.
+    /// An existing item was updated.
     /// </summary>
     UPDATED = 2,
 
     /// <summary>
-    /// Entity removed.
+    /// An existing item was deleted.
     /// </summary>
     DELETED = 3,
 }

@@ -23,7 +23,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -68,7 +68,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -108,7 +108,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -151,7 +151,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -195,7 +195,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -239,7 +239,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -289,7 +289,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -339,7 +339,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -388,7 +388,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -438,7 +438,7 @@ public class UpdateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);

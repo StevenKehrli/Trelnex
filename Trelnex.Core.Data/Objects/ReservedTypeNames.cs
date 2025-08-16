@@ -1,23 +1,18 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Reserved type names.
+/// Contains type names that are reserved for system use and cannot be used for user-defined types.
 /// </summary>
-/// <remarks>
-/// Prevents naming conflicts between user-defined and system types.
-/// </remarks>
 internal static class ReservedTypeNames
 {
     #region Static Fields
 
     /// <summary>
-    /// Reserved name "event" used to identify event records.
+    /// The reserved type name for event records.
     /// </summary>
     internal static readonly string Event = "event";
 
-    /// <summary>
-    /// All reserved type names.
-    /// </summary>
+    // Array containing all reserved type names for validation
     private static readonly string[] _reservedTypeNames = [ Event ];
 
     #endregion
@@ -25,10 +20,10 @@ internal static class ReservedTypeNames
     #region Public Methods
 
     /// <summary>
-    /// Checks if <paramref name="typeName"/> is reserved.
+    /// Determines whether the specified type name is reserved for system use.
     /// </summary>
-    /// <param name="typeName">Type name to check.</param>
-    /// <returns>True if the name is reserved.</returns>
+    /// <param name="typeName">The type name to check.</param>
+    /// <returns>True if the type name is reserved; otherwise, false.</returns>
     public static bool IsReserved(
         string typeName)
     {

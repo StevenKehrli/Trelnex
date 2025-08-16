@@ -53,7 +53,7 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
             .AddCosmosDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "encrypted-test-item",
                     itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
@@ -61,7 +61,7 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]

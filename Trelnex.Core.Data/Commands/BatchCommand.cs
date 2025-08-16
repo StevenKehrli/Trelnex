@@ -6,167 +6,149 @@ using Trelnex.Core.Validation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Saves a batch of items atomically.
+/// Defines operations for managing and executing a batch of save commands.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items.</typeparam>
-/// <remarks>
-/// Processes multiple data operations as a single transaction.
-/// </remarks>
-public interface IBatchCommand<TInterface>
-    where TInterface : class, IBaseItem
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IBatchCommand<TItem>
+    where TItem : BaseItem
 {
     /// <summary>
-    /// Adds a save command to the batch.
+    /// Adds a save command to the batch for later execution.
     /// </summary>
-    /// <param name="saveCommand">The save command to add.</param>
-    /// <returns>The current batch command instance.</returns>
-    /// <exception cref="ArgumentException">Thrown when saveCommand is not of the expected type.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the batch command has already been executed.</exception>
-    IBatchCommand<TInterface> Add(
-        ISaveCommand<TInterface> saveCommand);
+    /// <param name="saveCommand">The save command to add to the batch.</param>
+    /// <returns>The same batch command instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when saveCommand is not the expected concrete type.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the batch has already been executed.</exception>
+    IBatchCommand<TItem> Add(
+        ISaveCommand<TItem> saveCommand);
 
     /// <summary>
-    /// Executes the batch as a single atomic transaction.
+    /// Executes all save commands in the batch as an atomic operation.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>
-    /// Array of batch results.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when already executed.</exception>
-    /// <exception cref="OperationCanceledException">Thrown when canceled.</exception>
-    Task<IBatchResult<TInterface>[]> SaveAsync(
+    /// <param name="cancellationToken">Token to cancel the batch operation.</param>
+    /// <returns>Array of batch results corresponding to each save command.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the batch has already been executed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
+    Task<IBatchResult<TItem>[]> SaveAsync(
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Validates batch items without saving them.
+    /// Validates all items in the batch without executing the save operations.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>
-    /// Array of validation results.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">Thrown when canceled.</exception>
+    /// <param name="cancellationToken">Token to cancel the validation operation.</param>
+    /// <returns>Array of validation results for each item in the batch.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
     Task<ValidationResult[]> ValidateAsync(
         CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// Implements atomic batch operations.
+/// Implements batch processing for multiple save commands with atomic execution.
 /// </summary>
-/// <typeparam name="TInterface">Interface type of the items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type.</typeparam>
-/// <remarks>
-/// Handles collection, validation, and atomic execution of multiple data operations.
-/// </remarks>
-/// <param name="saveBatchAsyncDelegate">Delegate for storage-specific operations.</param>
-internal class BatchCommand<TInterface, TItem>(
-    SaveBatchAsyncDelegate<TInterface, TItem> saveBatchAsyncDelegate)
-    : IBatchCommand<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+/// <param name="saveBatchAsyncDelegate">Delegate that performs the actual batch save operation.</param>
+internal class BatchCommand<TItem>(
+    SaveBatchAsyncDelegate<TItem> saveBatchAsyncDelegate)
+    : IBatchCommand<TItem>
+    where TItem : BaseItem
 {
     #region Private Fields
 
-    /// <summary>
-    /// Ensures only one batch-modifying operation runs at a time.
-    /// </summary>
+    // Semaphore to ensure thread-safe modification of the batch
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    /// <summary>
-    /// Collection of save commands for this batch.
-    /// </summary>
-    private List<SaveCommand<TInterface, TItem>> _saveCommands = [];
+    // Collection of save commands to execute in the batch, nulled after execution
+    private List<SaveCommand<TItem>> _saveCommands = [];
 
     #endregion
 
     #region Public Methods
 
     /// <inheritdoc/>
-    public IBatchCommand<TInterface> Add(
-        ISaveCommand<TInterface> saveCommand)
+    public IBatchCommand<TItem> Add(
+        ISaveCommand<TItem> saveCommand)
     {
-        // Ensure that the save command is of the correct type
-        if (saveCommand is not SaveCommand<TInterface, TItem> sc)
+        // Verify the save command is the expected concrete type
+        if (saveCommand is not SaveCommand<TItem> sc)
         {
             throw new ArgumentException(
-                $"The {nameof(saveCommand)} must be of type {typeof(SaveCommand<TInterface, TItem>).Name}.",
+                $"The {nameof(saveCommand)} must be of type {typeof(SaveCommand<TItem>).Name}.",
                 nameof(saveCommand));
         }
 
         try
         {
-            // Ensure that only one operation that modifies the batch is in progress at a time
+            // Acquire lock to prevent concurrent modification of the batch
             _semaphore.Wait();
 
-            // Check if already saved
+            // Ensure the batch hasn't been executed yet
             if (_saveCommands is null)
             {
                 throw new InvalidOperationException("The Command is no longer valid because its SaveAsync method has already been called.");
             }
 
-            // Add the save command to the batch
+            // Add the save command to the batch collection
             _saveCommands.Add(sc);
 
             return this;
         }
         finally
         {
-            // Release the exclusive lock
+            // Always release the lock
             _semaphore.Release();
         }
     }
 
     /// <inheritdoc/>
-    public async Task<IBatchResult<TInterface>[]> SaveAsync(
+    public async Task<IBatchResult<TItem>[]> SaveAsync(
         CancellationToken cancellationToken)
     {
         try
         {
-            // Ensure that only one operation that modifies the batch is in progress at a time
+            // Acquire lock to prevent concurrent execution
             await _semaphore.WaitAsync(cancellationToken);
 
-            // Check if already saved
+            // Ensure the batch hasn't been executed yet
             if (_saveCommands is null)
             {
                 throw new InvalidOperationException("The Command is no longer valid because its SaveAsync method has already been called.");
             }
 
-            // If there are no save commands, return an empty array
+            // Return empty array if no commands to execute
             if (_saveCommands.Count == 0)
             {
                 return [];
             }
 
-            // Validate the save commands
+            // Validate all commands before attempting to save
             var validationResults = await ValidateAsyncInternal(cancellationToken);
             validationResults.ValidateOrThrow<TItem>();
 
-            // Acquire the save requests from each save command in parallel
+            // Acquire save requests from all commands concurrently
             var acquireTasks = _saveCommands
                 .Select(sc => sc.AcquireAsync(cancellationToken))
                 .ToArray();
 
-            // Wait for the acquire tasks to complete
-            // Do not propagate the cancellation token
-            // Each acquire task will handle the cancellation internally
+            // Wait for all acquisition attempts to complete
             Task.WaitAll(acquireTasks, CancellationToken.None);
 
-            // If cancellation requested, release the save commands and throw
+            // Handle cancellation after acquisition attempts
             if (cancellationToken.IsCancellationRequested)
             {
-                // Release all save commands to prevent resource leaks
+                // Release any successfully acquired commands
                 _saveCommands.ForEach(sc => sc.Release());
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            // Process results based on whether any acquire tasks faulted
+            // Execute batch or handle failures based on acquisition results
             return acquireTasks.Any(at => at.IsFaulted)
                 ? RevertBatch(acquireTasks)
                 : await SaveBatch(acquireTasks, cancellationToken);
         }
         finally
         {
-            // Release the exclusive lock
+            // Always release the lock
             _semaphore.Release();
         }
     }
@@ -177,15 +159,15 @@ internal class BatchCommand<TInterface, TItem>(
     {
         try
         {
-            // Ensure that only one operation that modifies the batch is in progress at a time
+            // Acquire lock to ensure consistent state during validation
             await _semaphore.WaitAsync(cancellationToken);
 
-            // Validate the save commands
+            // Perform the actual validation
             return await ValidateAsyncInternal(cancellationToken);
         }
         finally
         {
-            // Always release the exclusive lock
+            // Always release the lock
             _semaphore.Release();
         }
     }
@@ -195,31 +177,28 @@ internal class BatchCommand<TInterface, TItem>(
     #region Private Methods
 
     /// <summary>
-    /// Handles failed item acquisition and assigns appropriate status codes.
+    /// Creates batch results for failed acquisition attempts with appropriate status codes.
     /// </summary>
-    /// <param name="acquireTasks">Array of acquire tasks.</param>
-    /// <returns>Batch results with failure status codes.</returns>
-    private IBatchResult<TInterface>[] RevertBatch(
-        Task<SaveRequest<TInterface, TItem>>[] acquireTasks)
+    /// <param name="acquireTasks">Array of acquisition task results.</param>
+    /// <returns>Array of batch results indicating failure reasons.</returns>
+    private IBatchResult<TItem>[] RevertBatch(
+        Task<SaveRequest<TItem>>[] acquireTasks)
     {
-        // Allocate the array of batch results
-        var batchResults = new BatchResult<TInterface, TItem>[acquireTasks.Length];
+        // Create results array matching the number of commands
+        var batchResults = new BatchResult<TItem>[acquireTasks.Length];
 
         for (var index = 0; index < acquireTasks.Length; index++)
         {
-            // Get the acquire task
             var acquireTask = acquireTasks[index];
 
-            // If this task completed successfully, release the save command
+            // Release any successfully acquired commands
             if (acquireTask.IsCompletedSuccessfully)
             {
                 _saveCommands[index].Release();
             }
 
-            // Assign appropriate status code:
-            // - Bad request (400) if this specific task faulted
-            // - Failed dependency (424) if another task in the batch faulted
-            batchResults[index] = new BatchResult<TInterface, TItem>(
+            // Set status code based on whether this specific task failed or another did
+            batchResults[index] = new BatchResult<TItem>(
                 httpStatusCode: acquireTask.IsFaulted
                     ? HttpStatusCode.BadRequest
                     : HttpStatusCode.FailedDependency,
@@ -230,61 +209,61 @@ internal class BatchCommand<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Processes batch when all items were successfully acquired.
+    /// Executes the batch save operation when all commands were successfully acquired.
     /// </summary>
     /// <param name="acquireTasks">Successfully completed acquisition tasks.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Batch results with status codes.</returns>
-    /// <exception cref="OperationCanceledException">Thrown when canceled.</exception>
-    private async Task<IBatchResult<TInterface>[]> SaveBatch(
-        Task<SaveRequest<TInterface, TItem>>[] acquireTasks,
+    /// <param name="cancellationToken">Token to cancel the save operation.</param>
+    /// <returns>Array of batch results from the save operation.</returns>
+    private async Task<IBatchResult<TItem>[]> SaveBatch(
+        Task<SaveRequest<TItem>>[] acquireTasks,
         CancellationToken cancellationToken)
     {
-        // Extract the save requests from completed tasks
+        // Extract save requests from completed acquisition tasks
         var requests = acquireTasks
             .Select(at => at.Result)
             .ToArray();
 
-        // Execute the batch save operation
+        // Execute the batch save using the configured delegate
         var saveResults = await saveBatchAsyncDelegate(
             requests,
             cancellationToken);
 
-        // Allocate the batch results
-        var batchResults = new BatchResult<TInterface, TItem>[_saveCommands.Count];
+        // Create batch results array
+        var batchResults = new BatchResult<TItem>[_saveCommands.Count];
 
-        // Determine if all the save results were successful
+        // Check if all save operations succeeded
         var isCompletedSuccessfully = saveResults.All(sr => sr.HttpStatusCode == HttpStatusCode.OK);
 
         for (var index = 0; index < saveResults.Length; index++)
         {
-            // Get the save command and the save result
             var saveCommand = _saveCommands[index];
             var saveResult = saveResults[index];
 
-            // Update the save command and get the read result if all operations succeeded
+            // Update command with saved item only if all operations succeeded
             var readResult = isCompletedSuccessfully
-                ? saveCommand.Update(saveResult.Item!)
+                ? saveCommand.Saved(saveResult.Item!)
                 : null;
 
-            // Release the save command
+            // Release the command's resources
             saveCommand.Release();
 
-            // Create the batch result with appropriate status code and result
-            batchResults[index] = new BatchResult<TInterface, TItem>(
+            // Create batch result with save status and optional read result
+            batchResults[index] = new BatchResult<TItem>(
                 saveResult.HttpStatusCode,
                 readResult);
         }
 
-        // Invalidate the batch command to prevent reuse
+        // Prevent reuse of this batch command
         _saveCommands = null!;
 
         return batchResults;
     }
 
     /// <summary>
-    /// Internal validation implementation.
+    /// Validates all commands in the batch and ensures partition key consistency.
     /// </summary>
+    /// <param name="cancellationToken">Token to cancel the validation operation.</param>
+    /// <returns>Array of validation results for each command.</returns>
     public async Task<ValidationResult[]> ValidateAsyncInternal(
         CancellationToken cancellationToken = default)
     {
@@ -294,16 +273,16 @@ internal class BatchCommand<TInterface, TItem>(
             return [];
         }
 
-        // Get partition key from first item
+        // Use first item's partition key as the required batch partition key
         var partitionKey = _saveCommands.First().Item.PartitionKey;
 
-        // Create validator for partition key consistency
-        var validator = new InlineValidator<TInterface>();
+        // Create validator to ensure all items have the same partition key
+        var validator = new InlineValidator<TItem>();
         validator.RuleFor(item => item.PartitionKey)
             .Must(pk => string.Equals(pk, partitionKey))
             .WithMessage(item => $"The partition key '{item.PartitionKey}' does not match the batch partition key '{partitionKey}'.");
 
-        // Validate partition key consistency and command rules in parallel
+        // Validate both partition key consistency and individual command rules
         var validationResults = await Task.WhenAll(_saveCommands.Select(async sc =>
         {
             var vrPartitionKey = await validator.ValidateAsync(sc.Item, cancellationToken);
@@ -312,7 +291,7 @@ internal class BatchCommand<TInterface, TItem>(
             if (vrPartitionKey.IsValid) return vrSaveCommand;
             if (vrSaveCommand.IsValid) return vrPartitionKey;
 
-            // Merge errors if both validations failed
+            // Combine errors from both validations if both failed
             return new ValidationResult(vrPartitionKey.Errors.Concat(vrSaveCommand.Errors));
         }));
 

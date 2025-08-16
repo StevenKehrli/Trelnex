@@ -21,7 +21,7 @@ public class DeleteCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator and delete operations
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Delete);

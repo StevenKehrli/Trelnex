@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "a121f986-61bc-4f0d-a80b-5f8f265e76bf",
-      "PartitionKey": "87654c1e-bf52-4049-b751-2a54a42b94f5",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:56:50.094056+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:56:50.094056+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "91E05689-DAD6-4F11-AE80-5F6C440EF1F0",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "39ed865b-a302-434c-b2af-f14b756da29b",
+      "PartitionKey": "771afb3d-cca3-42d1-beaa-4dfcdae42939",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:31:46.360883+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:31:46.360883+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "CD2FDFB5-D2A5-4DBB-8EEA-6D72FA0A96F7"
     }
   },
   {
     "Item": {
-      "Id": "f25385ae-cbde-429c-b2d2-206cb9fc81ce",
-      "PartitionKey": "ba3d49de-ea13-46a5-891b-27d3fea649b6",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:56:50.604959+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:56:50.604959+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "884D6987-FD5F-4B02-A3B2-EE3272E13A5F",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "bd3ef62b-8344-4cfc-89cb-f0f67e2c12dd",
+      "PartitionKey": "ea506ffc-de20-49d4-b5aa-7b00befaf280",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:31:46.868164+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:31:46.868164+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "58D0D50D-FEED-4B05-A1E7-E15614D436AA"
     }
   }
 ]

@@ -36,9 +36,9 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
 
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _tableName,
+        _dataProvider = factory.Create(
             typeName: "test-item",
+            tableName: _tableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }

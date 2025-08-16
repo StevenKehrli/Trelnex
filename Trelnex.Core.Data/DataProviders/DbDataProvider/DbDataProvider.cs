@@ -3,39 +3,38 @@ using System.Transactions;
 using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Abstract base implementation for database-backed data providers using LinqToDB.
+/// Abstract base class for database-backed data providers using LinqToDB.
 /// </summary>
-/// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-/// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
+/// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
 /// <param name="dataOptions">LinqToDB connection and configuration options.</param>
-/// <param name="typeName">Type name identifier used for filtering items.</param>
-/// <param name="itemValidator">Optional FluentValidation validator for domain-specific rules.</param>
-/// <param name="commandOperations">Permitted CRUD operations. Defaults to Read-only if not specified.</param>
-/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-/// <remarks>
-/// Provides transactional data persistence with optimistic concurrency control and audit trail support.
-/// Database-specific exception handling must be implemented in derived classes.
-/// </remarks>
-public abstract class DbDataProvider<TInterface, TItem>(
-    DataOptions dataOptions,
+/// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemValidator">Optional validator for domain-specific rules.</param>
+/// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
+/// <param name="eventTimeToLive">Optional time-to-live for events in seconds.</param>
+/// <param name="logger">Optional logger for diagnostics.</param>
+public abstract class DbDataProvider<TItem>(
     string typeName,
+    DataOptions dataOptions,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
-    int? eventTimeToLive = null)
-    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+    int? eventTimeToLive = null,
+    ILogger? logger = null)
+    : DataProvider<TItem>(
+        typeName: typeName,
+        itemValidator: itemValidator,
+        commandOperations: commandOperations,
+        logger: logger)
+    where TItem : BaseItem, new()
 {
     #region Private Fields
 
-    /// <summary>
-    /// LinqToDB connection options for database operations.
-    /// </summary>
+    // LinqToDB configuration for database connections
     private readonly DataOptions _dataOptions = dataOptions;
 
     #endregion
@@ -45,7 +44,7 @@ public abstract class DbDataProvider<TInterface, TItem>(
     /// <inheritdoc/>
     protected override IQueryable<TItem> CreateQueryable()
     {
-        // Add typeName and isDeleted filters
+        // Return empty queryable with filters - actual data substitution happens in ExecuteQueryableAsync
         return Enumerable.Empty<TItem>()
             .AsQueryable()
             .Where(i => i.TypeName == TypeName)
@@ -59,16 +58,16 @@ public abstract class DbDataProvider<TInterface, TItem>(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
-        // Get database connection
+        // Create database connection
         using var dataConnection = new DataConnection(_dataOptions);
 
-        // Transform queryable into database-specific query
+        // Replace empty queryable with actual database table query
         var queryableFromExpression = dataConnection
             .GetTable<TItem>()
             .Provider
             .CreateQuery<TItem>(queryable.Expression);
 
-        // Execute query and stream results
+        // Stream results from database
         foreach (var item in queryableFromExpression)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -88,10 +87,10 @@ public abstract class DbDataProvider<TInterface, TItem>(
     {
         try
         {
-            // Get database connection
+            // Create database connection
             using var dataConnection = new DataConnection(_dataOptions);
 
-            // Query item by id and partition key
+            // Query for specific item by primary key
             var item = dataConnection
                 .GetTable<TItem>()
                 .Where(i => i.Id == id && i.PartitionKey == partitionKey && i.TypeName == TypeName)
@@ -101,7 +100,7 @@ public abstract class DbDataProvider<TInterface, TItem>(
         }
         catch (Exception ex) when (IsDatabaseException(ex))
         {
-            // Convert database exceptions to CommandExceptions
+            // Convert database errors to command exceptions
             throw new CommandException(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
@@ -109,29 +108,28 @@ public abstract class DbDataProvider<TInterface, TItem>(
 
     /// <inheritdoc/>
     [TraceMethod]
-    protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        SaveRequest<TInterface, TItem>[] requests,
+    protected override async Task<SaveResult<TItem>[]> SaveBatchAsync(
+        SaveRequest<TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
-        // Pre-allocate results array
-        var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
+        // Initialize results array
+        var saveResults = new SaveResult<TItem>[requests.Length];
 
-        // Create transaction scope for atomicity
+        // Use transaction scope for atomic batch operations
         using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        // Create single database connection for all operations
+        // Single connection for all operations in the batch
         using var dataConnection = new DataConnection(_dataOptions);
 
-        // Process each save request in sequence
+        // Process requests sequentially
         var saveRequestIndex = 0;
         for ( ; saveRequestIndex < requests.Length; saveRequestIndex++)
         {
-            // Fast-fail: skip saves if previous operation failed
+            // Skip processing if previous request failed
             if (saveRequestIndex > 0 && saveResults[saveRequestIndex - 1].HttpStatusCode != HttpStatusCode.OK)
             {
-                // Mark as dependency failure and skip
                 saveResults[saveRequestIndex] =
-                    new SaveResult<TInterface, TItem>(
+                    new SaveResult<TItem>(
                         HttpStatusCode.FailedDependency,
                         null);
 
@@ -142,115 +140,103 @@ public abstract class DbDataProvider<TInterface, TItem>(
 
             try
             {
-                // Perform database operation
+                // Save item to database
                 var saved = await SaveItemAsync(dataConnection, saveRequest, cancellationToken);
 
-                // Record successful operation
+                // Record success
                 saveResults[saveRequestIndex] =
-                    new SaveResult<TInterface, TItem>(
+                    new SaveResult<TItem>(
                         HttpStatusCode.OK,
                         saved);
             }
             catch (Exception ex) when (IsDatabaseException(ex))
             {
-                // Handle database-specific exceptions
+                // Handle database-specific errors
                 var httpStatusCode = HttpStatusCode.InternalServerError;
 
-                // Map optimistic concurrency failures
+                // Map specific error types to appropriate HTTP status codes
                 if (IsPreconditionFailedException(ex))
                 {
                     httpStatusCode = HttpStatusCode.PreconditionFailed;
                 }
 
-                // Map primary key violations
                 if (IsPrimaryKeyViolationException(ex))
                 {
                     httpStatusCode = HttpStatusCode.Conflict;
                 }
 
-                // Record operation failure
+                // Record failure
                 saveResults[saveRequestIndex] =
-                    new SaveResult<TInterface, TItem>(
+                    new SaveResult<TItem>(
                         httpStatusCode,
                         null);
 
-                // Stop processing further requests
+                // Stop processing on first failure
                 break;
             }
         }
 
-        // Check if all requests succeeded
+        // Commit or rollback based on success
         if (saveRequestIndex == requests.Length)
         {
-            // Commit transaction
             transactionScope.Complete();
         }
         else
         {
-            // Rollback transaction and mark failures
+            // Mark remaining requests as dependency failures
             for (var saveResultIndex = 0; saveResultIndex < saveResults.Length; saveResultIndex++)
             {
-                // Skip the item that failed
                 if (saveResultIndex == saveRequestIndex) continue;
 
-                // Mark other items as dependency failures
                 saveResults[saveResultIndex] =
-                    new SaveResult<TInterface, TItem>(
+                    new SaveResult<TItem>(
                         HttpStatusCode.FailedDependency,
                         null);
             }
         }
 
-        // Return results
         return saveResults;
     }
 
     /// <summary>
-    /// Persists an item to the database and creates an associated audit event record.
+    /// Saves an item to the database and records an audit event.
     /// </summary>
-    /// <param name="dataConnection">The active database connection within the current transaction.</param>
-    /// <param name="request">The save request containing item data, save action, and audit event.</param>
-    /// <param name="cancellationToken">Token to cancel the save operation.</param>
-    /// <returns>The saved item with any database-generated values like updated ETags.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the SaveAction is not recognized.</exception>
-    /// <remarks>
-    /// Performs INSERT for new items and UPDATE for modifications/deletions, followed by audit event insertion.
-    /// The item is re-queried after save to ensure all database-generated values are included.
-    /// </remarks>
+    /// <param name="dataConnection">Active database connection within transaction.</param>
+    /// <param name="request">Save request containing item and event data.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The saved item with database-generated values.</returns>
+    /// <exception cref="InvalidOperationException">Thrown for unrecognized save actions.</exception>
     protected virtual async Task<TItem> SaveItemAsync(
         DataConnection dataConnection,
-        SaveRequest<TInterface, TItem> request,
+        SaveRequest<TItem> request,
         CancellationToken cancellationToken)
     {
-        // Determine database operation based on save action
+        // Execute appropriate database operation based on save action
         switch (request.SaveAction)
         {
             case SaveAction.CREATED:
-                // Use INSERT for new items
                 await dataConnection.InsertAsync(obj: request.Item, token: cancellationToken);
                 break;
 
             case SaveAction.UPDATED:
             case SaveAction.DELETED:
-                // Use UPDATE for updates and deletes
                 await dataConnection.UpdateAsync(obj: request.Item, token: cancellationToken);
                 break;
 
             default:
-                // Handle unrecognized enum values
                 throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}");
         }
 
-        // Save event record for auditing
+        // Calculate event expiration time if TTL is configured
         var eventExpireAt = (eventTimeToLive is null)
             ? null as DateTimeOffset?
             : request.Event.CreatedDateTimeOffset.AddSeconds(eventTimeToLive.Value);
 
+        // Insert audit event with optional expiration
         var eventWithExpiration = new ItemEventWithExpiration(request.Event, eventExpireAt);
-
         dataConnection.Insert(eventWithExpiration);
 
-        // Retrieve and return the saved item
+        // Return saved item with any database-generated values
         return dataConnection
             .GetTable<TItem>()
             .Where(i => i.Id == request.Item.Id && i.PartitionKey == request.Item.PartitionKey)
@@ -258,36 +244,24 @@ public abstract class DbDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Determines whether an exception originates from the database layer.
+    /// Determines if an exception originates from the database layer.
     /// </summary>
-    /// <param name="ex">The exception to analyze.</param>
-    /// <returns>True if the exception is database-specific; otherwise, false.</returns>
-    /// <remarks>
-    /// Override this method to identify database provider-specific exceptions that should be handled
-    /// differently from general application exceptions.
-    /// </remarks>
+    /// <param name="ex">Exception to analyze.</param>
+    /// <returns>True if the exception is database-specific.</returns>
     protected abstract bool IsDatabaseException(Exception ex);
 
     /// <summary>
-    /// Determines whether an exception represents an optimistic concurrency failure.
+    /// Determines if an exception represents an optimistic concurrency failure.
     /// </summary>
-    /// <param name="ex">The exception to analyze.</param>
-    /// <returns>True if the exception indicates a precondition failure (ETag mismatch); otherwise, false.</returns>
-    /// <remarks>
-    /// Override this method to identify database-specific exceptions that indicate optimistic concurrency
-    /// violations, which should be mapped to HTTP 412 Precondition Failed status.
-    /// </remarks>
+    /// <param name="ex">Exception to analyze.</param>
+    /// <returns>True if the exception indicates ETag mismatch.</returns>
     protected abstract bool IsPreconditionFailedException(Exception ex);
 
     /// <summary>
-    /// Determines whether an exception represents a primary key constraint violation.
+    /// Determines if an exception represents a primary key constraint violation.
     /// </summary>
-    /// <param name="ex">The exception to analyze.</param>
-    /// <returns>True if the exception indicates a primary key violation; otherwise, false.</returns>
-    /// <remarks>
-    /// Override this method to identify database-specific exceptions that indicate primary key constraint
-    /// violations, which should be mapped to HTTP 409 Conflict status.
-    /// </remarks>
+    /// <param name="ex">Exception to analyze.</param>
+    /// <returns>True if the exception indicates primary key violation.</returns>
     protected abstract bool IsPrimaryKeyViolationException(Exception ex);
 
     #endregion

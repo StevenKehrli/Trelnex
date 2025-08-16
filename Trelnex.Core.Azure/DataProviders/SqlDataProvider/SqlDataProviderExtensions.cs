@@ -15,35 +15,33 @@ using Trelnex.Core.Api.Encryption;
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Extension methods for configuring and registering SQL Server data providers.
+/// Extension methods for configuring SQL Server data providers with dependency injection.
 /// </summary>
-/// <remarks>Provides dependency injection integration for SQL Server data providers.</remarks>
 public static class SqlDataProvidersExtensions
 {
     #region Public Static Methods
 
     /// <summary>
-    /// Adds SQL Server data providers to the service collection.
+    /// Registers SQL Server data providers with the service collection using configuration.
     /// </summary>
-    /// <param name="services">The service collection to add providers to.</param>
-    /// <param name="configuration">Application configuration containing provider settings.</param>
-    /// <param name="bootstrapLogger">Logger for recording provider initialization.</param>
-    /// <param name="configureDataProviders">Action to configure specific providers.</param>
+    /// <param name="services">Service collection to register providers with.</param>
+    /// <param name="configuration">Application configuration containing SQL Server settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
+    /// <param name="configureDataProviders">Delegate to configure which providers to register.</param>
     /// <returns>The service collection for method chaining.</returns>
-    /// <exception cref="ConfigurationErrorsException">When the SqlDataProviders section is missing from configuration.</exception>
-    /// <exception cref="InvalidOperationException">When the ServiceConfiguration is not registered or when attempting to register the same data provider interface twice.</exception>
-    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
-    /// <remarks>Registers data providers for specific types.</remarks>
+    /// <exception cref="ConfigurationErrorsException">Thrown when required configuration sections are missing.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when ServiceConfiguration is not registered or duplicate providers are registered.</exception>
+    /// <exception cref="ArgumentException">Thrown when a type name has no associated table configuration.</exception>
     public static IServiceCollection AddSqlDataProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<IDataProviderOptions> configureDataProviders)
     {
-        // Get the token credential provider.
+        // Get Azure credentials from registered credential provider
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        // Get the database and table configurations from the configuration
+        // Extract SQL Server configuration from application settings
         var dataSource = configuration.GetSection("Azure.SqlDataProviders:DataSource").Get<string>()
             ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
@@ -69,43 +67,39 @@ public static class SqlDataProvidersExtensions
             })
             .ToArray();
 
-        // Get the service configuration.
+        // Get service configuration from DI container
         var serviceDescriptor = services
             .FirstOrDefault(sd => sd.ServiceType == typeof(ServiceConfiguration))
             ?? throw new InvalidOperationException("ServiceConfiguration is not registered.");
 
-        // Cast the service descriptor.
         var serviceConfiguration = (serviceDescriptor.ImplementationInstance as ServiceConfiguration)!;
 
-        // Convert the raw configuration into a validated options object.
+        // Build provider options from configuration
         var providerOptions = SqlDataProviderOptions.Parse(
             dataSource: dataSource,
             initialCatalog: initialCatalog,
             tableConfigurations: tableConfigurations);
 
-        // Set up the SQL client options for AAD authentication.
+        // Configure SQL Server client with credentials and connection details
         var sqlClientOptions = GetSqlClientOptions(credentialProvider, providerOptions);
 
-        // Create and initialize the SQL data provider factory.
         var providerFactory = SqlDataProviderFactory
             .Create(serviceConfiguration, sqlClientOptions)
             .GetAwaiter()
             .GetResult();
 
-        // Register the factory in the DI container as an implementation of IDataProviderFactory.
+        // Register factory with DI container
         services.AddDataProviderFactory(providerFactory);
 
-        // Create a configuration object that will be used by the consumer to register specific providers.
+        // Configure individual data providers using factory
         var dataProviderOptions = new DataProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             providerFactory: providerFactory,
             providerOptions: providerOptions);
 
-        // Execute the consumer-supplied configuration action to register specific entity types.
         configureDataProviders(dataProviderOptions);
 
-        // Return the service collection to allow for method chaining in the calling code.
         return services;
     }
 
@@ -114,30 +108,27 @@ public static class SqlDataProvidersExtensions
     #region Private Static Methods
 
     /// <summary>
-    /// Creates SQL Server client options with properly configured authentication.
+    /// Creates SQL Server client options with Azure credentials and authentication scope.
     /// </summary>
-    /// <param name="credentialProvider">Provider for token-based authentication.</param>
-    /// <param name="providerOptions">Configuration options for SQL Server.</param>
-    /// <returns>Fully configured SQL client options.</returns>
-    /// <remarks>Initializes an access token with proper scope for SQL Server.</remarks>
+    /// <param name="credentialProvider">Provider for Azure credentials.</param>
+    /// <param name="providerOptions">SQL Server configuration options.</param>
+    /// <returns>Configured SQL Server client options.</returns>
     private static SqlClientOptions GetSqlClientOptions(
         ICredentialProvider<TokenCredential> credentialProvider,
         SqlDataProviderOptions providerOptions)
     {
-        // Retrieve the token credential from the provider that was registered during application startup.
+        // Get Azure credentials and configure authentication
         var tokenCredential = credentialProvider.GetCredential();
 
-        // Define the standard scope for Azure SQL Database access.
+        // Standard Azure SQL Database authentication scope
         var scope = "https://database.windows.net/.default";
 
-        // Create a token request context with the SQL Database scope.
         var tokenRequestContext = new TokenRequestContext(
             scopes: [scope]);
 
-        // Request a token now to "warm up" the credential provider and avoid cold start latency.
+        // Pre-authenticate to verify credentials
         tokenCredential.GetToken(tokenRequestContext, default);
 
-        // Construct and return the SQL client options with all necessary connection parameters.
         return new SqlClientOptions(
             TokenCredential: tokenCredential,
             Scope: scope,
@@ -152,9 +143,8 @@ public static class SqlDataProvidersExtensions
     #region DataProviderOptions
 
     /// <summary>
-    /// Implementation of <see cref="IDataProviderOptions"/> for configuring SQL Server providers.
+    /// Handles registration of SQL Server data providers with type-to-table mapping.
     /// </summary>
-    /// <remarks>Provides type-to-table mapping and data provider registration.</remarks>
     private class DataProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -165,28 +155,24 @@ public static class SqlDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Registers a data provider for a specific item type with table mapping.
+        /// Registers a SQL Server data provider for the specified entity type.
         /// </summary>
-        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-        /// <param name="typeName">Type name to map to a table.</param>
-        /// <param name="itemValidator">Optional validator for items.</param>
-        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+        /// <param name="typeName">Type name identifier that maps to a SQL Server table.</param>
+        /// <param name="itemValidator">Optional validator for entity validation.</param>
+        /// <param name="commandOperations">Optional CRUD operations to enable.</param>
         /// <returns>The options instance for method chaining.</returns>
-        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
-        /// <exception cref="InvalidOperationException">When a data provider for the interface is already registered.</exception>
-        /// <remarks>Maps a logical entity type with its physical storage location.</remarks>
-        public IDataProviderOptions Add<TInterface, TItem>(
+        /// <exception cref="ArgumentException">Thrown when no table is configured for the type name.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a provider for this type is already registered.</exception>
+        public IDataProviderOptions Add<TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
-            where TInterface : class, IBaseItem
-            where TItem : BaseItem, TInterface, new()
+            where TItem : BaseItem, new()
         {
-            // Look up the table configuration from the configured mappings using the provided type name.
+            // Look up table configuration for the specified type
             var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
-            // If no table mapping exists for this type name, we cannot continue.
             if (tableConfiguration is null)
             {
                 throw new ArgumentException(
@@ -194,41 +180,37 @@ public static class SqlDataProvidersExtensions
                     nameof(typeName));
             }
 
-            // Check if a data provider for this interface has already been registered.
-            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TItem>)))
             {
                 throw new InvalidOperationException(
-                    $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
+                    $"The DataProvider<{typeof(TItem).Name}> is already registered.");
             }
 
-            // Create a new data provider instance for this entity type via the factory.
-            var dataProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableConfiguration.TableName,
+            // Create data provider instance using factory and table configuration
+            var dataProvider = providerFactory.Create<TItem>(
                 typeName: typeName,
+                tableName: tableConfiguration.TableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
-                blockCipherService: tableConfiguration.BlockCipherService);
+                blockCipherService: tableConfiguration.BlockCipherService,
+                logger: bootstrapLogger);
 
-            // Register the provider in the DI container as a singleton.
             services.AddSingleton(dataProvider);
 
-            // Prepare logging parameters to record the registration.
             object[] args =
             [
-                typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.DataSource, // server
                 providerOptions.InitialCatalog, // database,
                 tableConfiguration.TableName, // table
             ];
 
-            // Log the successful registration with connection details.
+            // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added SqlDataProvider<{TInterface:l}, {TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
+                message: "Added SqlDataProvider<{TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
                 args: args);
 
-            // Return this instance to enable method chaining for fluent configuration.
             return this;
         }
 
@@ -240,12 +222,12 @@ public static class SqlDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Table configuration mapping type names to table names and optional encryption settings.
+    /// Configuration mapping a type name to its SQL Server table and settings.
     /// </summary>
-    /// <param name="TypeName">The type name used for filtering items.</param>
-    /// <param name="TableName">The table name in SQL Server.</param>
-    /// <param name="EventTimeToLive">Optional event time-to-live for the table.</param>
-    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
+    /// <param name="TypeName">The logical type name identifier.</param>
+    /// <param name="TableName">The physical SQL Server table name.</param>
+    /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
+    /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
@@ -257,20 +239,17 @@ public static class SqlDataProvidersExtensions
     #region Provider Options
 
     /// <summary>
-    /// Runtime options for SQL Server data providers.
+    /// Configuration options for SQL Server data providers with type-to-table mappings.
     /// </summary>
-    /// <param name="dataSource">The data source or server name for the SQL server.</param>
-    /// <param name="initialCatalog">The initial catalog or database name for the SQL server.</param>
-    /// <remarks>Provides validated, parsed configuration with table-to-type mappings.</remarks>
+    /// <param name="dataSource">SQL Server instance name or network address.</param>
+    /// <param name="initialCatalog">SQL Server database name.</param>
     private class SqlDataProviderOptions(
         string dataSource,
         string initialCatalog)
     {
         #region Private Fields
 
-        /// <summary>
-        /// The mappings from type names to table configurations.
-        /// </summary>
+        // Dictionary mapping type names to their table configurations
         private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
 
         #endregion
@@ -278,12 +257,12 @@ public static class SqlDataProvidersExtensions
         #region Public Properties
 
         /// <summary>
-        /// Gets the SQL Server name or network address.
+        /// Gets the SQL Server data source name.
         /// </summary>
         public string DataSource => dataSource;
 
         /// <summary>
-        /// Gets the database name.
+        /// Gets the SQL Server database name.
         /// </summary>
         public string InitialCatalog => initialCatalog;
 
@@ -292,33 +271,31 @@ public static class SqlDataProvidersExtensions
         #region Public Static Methods
 
         /// <summary>
-        /// Parses configuration into a validated options object.
+        /// Parses configuration arrays into validated provider options.
         /// </summary>
-        /// <param name="endpointUri">The SQL Server endpoint URI.</param>
-        /// <param name="databaseId">The database ID.</param>
-        /// <param name="tableConfigurations">Array of table configurations.</param>
-        /// <returns>Validated options with type-to-table mappings.</returns>
-        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
-        /// <remarks>Validates that no type name is mapped to multiple tables.</remarks>
+        /// <param name="dataSource">SQL Server data source name.</param>
+        /// <param name="initialCatalog">SQL Server database name.</param>
+        /// <param name="tableConfigurations">Array of table configurations to validate.</param>
+        /// <returns>Validated provider options with type-to-table mappings.</returns>
+        /// <exception cref="AggregateException">Thrown when configuration contains duplicate type mappings.</exception>
         public static SqlDataProviderOptions Parse(
             string dataSource,
             string initialCatalog,
             TableConfiguration[] tableConfigurations)
         {
-            // Create a new options instance with the connection information from configuration.
+            // Create options instance with connection details
             var providerOptions = new SqlDataProviderOptions(
                 dataSource: dataSource,
                 initialCatalog: initialCatalog);
 
-            // Group the table configurations by type name to detect duplicates.
+            // Group configurations by type name to detect duplicates
             var groups = tableConfigurations
                 .GroupBy(tableConfiguration => tableConfiguration.TypeName)
                 .ToArray();
 
-            // Prepare to collect any configuration errors for comprehensive reporting.
+            // Validate configuration for duplicate type mappings
             var exs = new List<ConfigurationErrorsException>();
 
-            // Check each group to ensure no type name is mapped to multiple tables.
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -326,19 +303,18 @@ public static class SqlDataProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
             });
 
-            // If any configuration errors were found, throw them as an aggregate exception.
+            // Throw aggregate exception if validation errors found
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // With validation complete, build the type-to-table mapping dictionary.
+            // Build type-to-table mapping dictionary
             Array.ForEach(groups, group =>
             {
                 providerOptions._tableConfigurationsByTypeName[group.Key] = group.Single();
             });
 
-            // Return the fully configured and validated options object.
             return providerOptions;
         }
 
@@ -347,26 +323,24 @@ public static class SqlDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Gets the table configuration for a specified type name.
+        /// Retrieves table configuration for a specified type name.
         /// </summary>
-        /// <param name="typeName">The type name to look up.</param>
-        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        /// <param name="typeName">Type name to look up.</param>
+        /// <returns>Table configuration if found, null otherwise.</returns>
         public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
-            // Try to retrieve the table configuration associated with the given type name.
             return _tableConfigurationsByTypeName.TryGetValue(typeName, out var tableConfiguration)
                 ? tableConfiguration
                 : null;
         }
 
         /// <summary>
-        /// Gets all configured table names.
+        /// Gets all configured SQL Server table names.
         /// </summary>
-        /// <returns>Array of distinct table names sorted alphabetically.</returns>
+        /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
-            // Extract all the table names from the mapping dictionary.
             return _tableConfigurationsByTypeName
                 .Select(tableConfiguration => tableConfiguration.Value.TableName)
                 .OrderBy(tableName => tableName)

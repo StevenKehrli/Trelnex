@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "a5e5277c-698a-4382-a894-9ab09b9f3b26",
-      "PartitionKey": "ef8c780c-99a1-4dc0-95e7-39a9726eb057",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:58:28.130461+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:58:28.130461+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "D22E26C5-8F2A-4CB4-B41C-C1BDD5ED8447",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "350cba28-20c4-43c5-a34f-b42dd04e867b",
+      "PartitionKey": "5a82112c-b811-438c-b0bc-e313eb67569b",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:33.385315+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:33.385315+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "981C2BCF-86ED-4024-975A-B1B8727F29A6"
     }
   },
   {
     "Item": {
-      "Id": "44794e2a-be29-4905-8592-09a17e87a3f5",
-      "PartitionKey": "3e2d17f7-c356-4f35-bd13-355ad35ef025",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:58:28.635438+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:58:28.635438+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "2E4E5C45-024C-4D9F-8E8A-F32D6339B15C",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "f43ed03f-5361-4d7e-938f-78126a86250f",
+      "PartitionKey": "25f72631-7c6a-4de4-b8ed-06c4dfd7ad30",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:33.888927+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:33.888927+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "9490ECCB-9D52-4BCD-9F7A-AD81826DD290"
     }
   }
 ]

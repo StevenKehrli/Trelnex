@@ -56,7 +56,7 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
             .AddPostgresDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "test-item",
                     itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
@@ -64,7 +64,7 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     /// <summary>
@@ -94,11 +94,11 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
                 configuration,
                 bootstrapLogger,
                 options => options
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
                         itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
                         itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));

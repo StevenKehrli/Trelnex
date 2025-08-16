@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 using Trelnex.Core.Observability;
@@ -10,38 +11,42 @@ using Trelnex.Core.Observability;
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Cosmos DB implementation of <see cref="DataProvider{TInterface, TItem}"/>.
+/// Cosmos DB implementation of data provider for storing and retrieving items.
 /// </summary>
-/// <typeparam name="TInterface">The interface that the item implements.</typeparam>
-/// <typeparam name="TItem">The type of the item to store in Cosmos DB.</typeparam>
-/// <param name="container">The Cosmos DB container to interact with.  Must not be null.</param>
-/// <param name="typeName">The type name used to filter items.  Must not be null or empty.</param>
-/// <param name="itemValidator">Optional validator for items before they are saved.  Can be null.</param>
-/// <param name="commandOperations">Optional command operations to override default behaviors. Can be null.</param>
-/// <param name="eventTimeToLive">Optional time-to-live for events in the container.</param>
-/// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="container"/> or <paramref name="typeName"/> is null.</exception>
-internal class CosmosDataProvider<TInterface, TItem>(
-    Container container,
+/// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+/// <param name="container">Cosmos DB container for data operations.</param>
+/// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemValidator">Optional validator for items before saving.</param>
+/// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+/// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
+/// <param name="logger">Optional logger for diagnostics.</param>
+/// <exception cref="ArgumentNullException">Thrown when container or typeName is null.</exception>
+internal class CosmosDataProvider<TItem>(
     string typeName,
+    Container container,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     int? eventTimeToLive = null,
-    IBlockCipherService? blockCipherService = null)
-    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations, blockCipherService)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+    IBlockCipherService? blockCipherService = null,
+    ILogger? logger = null)
+    : DataProvider<TItem>(
+        typeName: typeName,
+        itemValidator: itemValidator,
+        commandOperations: commandOperations,
+        blockCipherService: blockCipherService,
+        logger: logger)
+    where TItem : BaseItem, new()
 {
     #region Protected Methods
 
     /// <summary>
-    /// Creates a queryable for Cosmos DB that filters by type name and deleted status.
+    /// Creates a LINQ queryable for Cosmos DB with standard filters applied.
     /// </summary>
-    /// <returns>An <see cref="IQueryable{TItem}"/> for the container.</returns>
-    /// <remarks>Adds standard predicate filters to exclude deleted items and filter by type name.</remarks>
+    /// <returns>Queryable filtered by type name and deletion status.</returns>
     protected override IQueryable<TItem> CreateQueryable()
     {
-        // Add typeName and isDeleted predicates to filter items
+        // Apply type name and deletion status filters to container queryable
         return container
             .GetItemLinqQueryable<TItem>()
             .Where(item => item.TypeName == TypeName)
@@ -49,37 +54,34 @@ internal class CosmosDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Executes a query against Cosmos DB and returns the results.
+    /// Executes a LINQ query against Cosmos DB and streams results.
     /// </summary>
-    /// <param name="queryable">The queryable to execute.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>An enumerable of items matching the query.</returns>
-    /// <exception cref="CommandException">When a Cosmos DB exception occurs during query execution.</exception>
-    /// <remarks>Uses the Cosmos DB feed iterator to page through results.</remarks>
+    /// <param name="queryable">LINQ queryable to execute.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Asynchronous enumerable of matching items.</returns>
+    /// <exception cref="CommandException">Thrown when Cosmos DB operations fail.</exception>
 #pragma warning disable CS8425
     [TraceMethod]
     protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
-        // Convert the LINQ queryable to a SQL query definition for Cosmos DB
+        // Convert LINQ query to Cosmos DB SQL query
         var queryDefinition = queryable.ToQueryDefinition();
 
-        // Get the stream-based feed iterator
+        // Execute query using stream-based feed iterator
         using var feedIterator = container.GetItemQueryStreamIterator(queryDefinition);
 
-        // Iterate through results using the feed iterator
         while (feedIterator.HasMoreResults)
         {
             ResponseMessage? responseMessage = null;
 
             try
             {
-                // Execute the query and get the next page of stream results
-                // This is where cosmos will throw exceptions if there are issues with the query or connection
+                // Get next page of results from Cosmos DB
                 responseMessage = await feedIterator.ReadNextAsync(cancellationToken);
 
-                // Check if the response is successful.  If not, throw an exception.
+                // Verify response was successful
                 if (responseMessage.IsSuccessStatusCode is false)
                 {
                     throw new CommandException(responseMessage.StatusCode, responseMessage.ErrorMessage);
@@ -90,10 +92,9 @@ internal class CosmosDataProvider<TInterface, TItem>(
                 throw new CommandException(exception.StatusCode);
             }
 
-            // Parse the JSON response from the stream
+            // Parse JSON response and deserialize items
             using var jsonDocument = JsonDocument.Parse(responseMessage.Content);
 
-            // Enumerate the elements in the response and deserialize them into TItem objects
             foreach (var jsonElement in jsonDocument.RootElement.GetProperty("Documents").EnumerateArray())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -109,13 +110,13 @@ internal class CosmosDataProvider<TInterface, TItem>(
 #pragma warning restore CS8425
 
     /// <summary>
-    /// Reads an item from the Cosmos DB container.
+    /// Retrieves a single item from Cosmos DB using its identifiers.
     /// </summary>
-    /// <param name="id">The unique identifier of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>The item if found, or <see langword="null"/> if the item does not exist.</returns>
-    /// <exception cref="CommandException">When a Cosmos DB exception occurs during the read operation.</exception>
+    /// <param name="id">Item identifier.</param>
+    /// <param name="partitionKey">Partition key for the item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Item if found and matches type, null otherwise.</returns>
+    /// <exception cref="CommandException">Thrown when Cosmos DB operations fail.</exception>
     [TraceMethod]
     protected override async Task<TItem?> ReadItemAsync(
         string id,
@@ -124,33 +125,31 @@ internal class CosmosDataProvider<TInterface, TItem>(
     {
         try
         {
-            // Attempt to read the item as a stream from Cosmos DB.
+            // Read item from Cosmos DB as stream
             using var responseMessage = await container.ReadItemStreamAsync(
                 id: id,
                 partitionKey: new PartitionKey(partitionKey),
                 cancellationToken: cancellationToken);
 
-            // Check if the response is successful.
+            // Handle response based on status code
             if (responseMessage.IsSuccessStatusCode is false)
             {
-                // If the item is not found, return null. Otherwise, throw an exception.
                 return responseMessage.StatusCode == HttpStatusCode.NotFound
                     ? null
                     : throw new CommandException(responseMessage.StatusCode, responseMessage.ErrorMessage);
             }
 
-            // Deserialize the item from the response stream.
+            // Deserialize item from response stream
             using var sr = new StreamReader(responseMessage.Content);
             var item = DeserializeItem(sr.BaseStream);
 
-            // Ensure the item is of the expected type.
+            // Verify item matches expected type
             return item?.TypeName == TypeName
                 ? item
                 : null;
         }
         catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
         {
-            // Return default if the item is not found.
             return default;
         }
         catch (CosmosException cosmosException)
@@ -160,37 +159,34 @@ internal class CosmosDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Saves a batch of items in Cosmos DB as an atomic transaction.
+    /// Saves multiple items and events atomically using Cosmos DB transactional batch.
     /// </summary>
     /// <param name="requests">Array of save requests to process.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>Array of save results with status codes and saved items.</returns>
-    /// <exception cref="CommandException">When a Cosmos DB exception occurs during the batch operation.</exception>
-    /// <remarks>Uses the Cosmos DB transactional batch API to ensure atomicity.</remarks>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Array of save results for each request.</returns>
+    /// <exception cref="CommandException">Thrown when Cosmos DB operations fail.</exception>
     [TraceMethod]
-    protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        SaveRequest<TInterface, TItem>[] requests,
+    protected override async Task<SaveResult<TItem>[]> SaveBatchAsync(
+        SaveRequest<TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
-        // Initialize an array to hold the results of each save operation in the batch.
-        var saveResults = new SaveResult<TInterface, TItem>[requests.Length];
+        // Initialize results array for all requests
+        var saveResults = new SaveResult<TItem>[requests.Length];
 
-        // Extract the partition key from the first request.  All items in a batch must have the same partition key.
+        // All items in a batch must share the same partition key
         var partitionKey = requests.First().Item.PartitionKey;
 
-        // Create a transactional batch for the specified partition key.
+        // Create Cosmos DB transactional batch
         var batch = container.CreateTransactionalBatch(
             new PartitionKey(partitionKey));
 
-        // Add each item and its corresponding event to the batch.
+        // Convert requests to streams and add to batch
         var requestStreams = new SaveRequestStream[requests.Length];
         for (var index = 0; index < requests.Length; index++)
         {
-            // Create a stream for the item and event to be saved
             requestStreams[index] = ConvertSaveRequestToStream(
                 saveRequest: requests[index]);
 
-            // Add the item and event to the transactional batch
             AddItem(
                 batch: batch,
                 saveRequestStream: requestStreams[index]);
@@ -198,24 +194,18 @@ internal class CosmosDataProvider<TInterface, TItem>(
 
         try
         {
-            // Execute the batch as an atomic transaction
+            // Execute batch atomically
             using var response = await batch.ExecuteAsync(cancellationToken);
 
-            // Process the results of each operation in the batch
+            // Process results for each operation
             for (var index = 0; index < requests.Length; index++)
             {
-                // Get the returned item
-                // The operation results are interleaved between the item and event, so:
-                //   request 0 item is at index 0 and its event is at index 1
-                //   request 1 item is at index 2 and its event is at index 3
-                //   etc
+                // Results are interleaved: item at even indices, events at odd indices
                 var itemResult = response[index * 2];
 
-                // Parse the item response to get the HTTP status code and item
                 saveResults[index] = ParseSaveResult(itemResult);
             }
 
-            // Return the array of save results
             return saveResults;
         }
         catch (CosmosException cosmosException)
@@ -224,7 +214,7 @@ internal class CosmosDataProvider<TInterface, TItem>(
         }
         finally
         {
-            // Ensure all streams are disposed of to prevent memory leaks
+            // Clean up request streams to prevent memory leaks
             Array.ForEach(requestStreams, requestStream =>
             {
                 requestStream.Dispose();
@@ -237,25 +227,24 @@ internal class CosmosDataProvider<TInterface, TItem>(
     #region Private Static Methods
 
     /// <summary>
-    /// Adds an item and its event to a transactional batch.
+    /// Adds item and event operations to a transactional batch based on save action.
     /// </summary>
-    /// <param name="batch">The batch to add operations to.</param>
-    /// <param name="saveRequestStream">The save request stream containing the item and event.</param>
-    /// <returns>The transactional batch with operations added.</returns>
-    /// <exception cref="InvalidOperationException">When the <paramref name="saveRequestStream"/> has an unrecognized <see cref="SaveAction"/>.</exception>
-    /// <remarks>Handles different operations based on the save action.</remarks>
+    /// <param name="batch">Transactional batch to add operations to.</param>
+    /// <param name="saveRequestStream">Stream containing item and event data.</param>
+    /// <returns>Batch with operations added.</returns>
+    /// <exception cref="InvalidOperationException">Thrown for unrecognized save actions.</exception>
     private static TransactionalBatch AddItem(
         TransactionalBatch batch,
         SaveRequestStream saveRequestStream) => saveRequestStream.SaveAction switch
         {
-            // If the item is being created, create both the item and the event
+            // Create operations for new items
             SaveAction.CREATED => batch
                 .CreateItemStream(
                     streamPayload: saveRequestStream.ItemStream)
                 .CreateItemStream(
                     streamPayload: saveRequestStream.EventStream),
 
-            // If the item is being updated or deleted, replace the item and create the event
+            // Replace operations for updates and deletes with ETag check
             SaveAction.UPDATED or SaveAction.DELETED => batch
                 .ReplaceItemStream(
                     id: saveRequestStream.Id,
@@ -267,7 +256,6 @@ internal class CosmosDataProvider<TInterface, TItem>(
                 .CreateItemStream(
                     streamPayload: saveRequestStream.EventStream),
 
-            // If the SaveAction is not recognized, throw an exception
             _ => throw new InvalidOperationException($"Unknown SaveAction: {saveRequestStream.SaveAction}")
         };
 
@@ -276,21 +264,20 @@ internal class CosmosDataProvider<TInterface, TItem>(
     #region Private Methods
 
     /// <summary>
-    /// Converts a SaveRequest to a SaveRequestStream.
+    /// Converts a save request to stream format for Cosmos DB batch operations.
     /// </summary>
-    /// <param name="saveRequest">The save request to convert.</param>
-    /// <returns>A SaveRequestStream containing the serialized item and event streams.</returns>
+    /// <param name="saveRequest">Save request to convert.</param>
+    /// <returns>Stream representation with serialized item and event data.</returns>
     private SaveRequestStream ConvertSaveRequestToStream(
-        SaveRequest<TInterface, TItem> saveRequest)
+        SaveRequest<TItem> saveRequest)
     {
-        // Serialize the item to a stream
+        // Serialize item to memory stream
         var itemStream = new MemoryStream();
         SerializeItem(
             utf8Json: itemStream,
             item: saveRequest.Item);
 
-        // Create a new event with expiration ("ttl")
-        // Serialize the event to a stream
+        // Create event with TTL and serialize to memory stream
         var eventWithExpiration = new ItemEventWithExpiration(saveRequest.Event, eventTimeToLive);
         var eventStream = new MemoryStream();
         SerializeEvent(
@@ -298,7 +285,6 @@ internal class CosmosDataProvider<TInterface, TItem>(
             itemEvent: eventWithExpiration);
         eventStream.Position = 0;
 
-        // Create and return a new SaveRequestStream instance
         return new SaveRequestStream(
             Id: saveRequest.Item.Id,
             ETag: saveRequest.Item.ETag,
@@ -308,27 +294,26 @@ internal class CosmosDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Parses the result of a transactional batch operation and returns a SaveResult.
+    /// Parses batch operation result and creates save result with status and item.
     /// </summary>
-    /// <param name="itemResult">The result of the transactional batch operation.</param>
-    /// <returns>A SaveResult containing the status code and the deserialized item, or null if the operation was not successful.</returns>
-    private SaveResult<TInterface, TItem> ParseSaveResult(
+    /// <param name="itemResult">Batch operation result to parse.</param>
+    /// <returns>Save result with status code and deserialized item or null.</returns>
+    private SaveResult<TItem> ParseSaveResult(
         TransactionalBatchOperationResult itemResult)
     {
-        // If the operation was not successful, return the status code and null item
+        // Return failure status if operation was not successful
         if (itemResult.IsSuccessStatusCode is false)
         {
-            return new SaveResult<TInterface, TItem>(
+            return new SaveResult<TItem>(
                 itemResult.StatusCode,
                 null);
         }
 
-        // Deserialize the item from the response stream
+        // Deserialize successful result item
         using var sr = new StreamReader(itemResult.ResourceStream);
         var item = DeserializeItem(sr.BaseStream);
 
-        // Return the OK status code and the deserialized item
-        return new SaveResult<TInterface, TItem>(
+        return new SaveResult<TItem>(
             HttpStatusCode.OK,
             item);
     }
@@ -338,14 +323,13 @@ internal class CosmosDataProvider<TInterface, TItem>(
     #region Nested Types
 
     /// <summary>
-    /// A helper class to manage the streams for the item and event being saved.
-    /// Implements the <see cref="IDisposable"/> interface to ensure resources are released.
+    /// Disposable container for serialized item and event streams used in batch operations.
     /// </summary>
-    /// <param name="Id">The ID of the item.</param>
-    /// <param name="ETag">The ETag of the item.</param>
-    /// <param name="SaveAction">The save action being performed.</param>
-    /// <param name="ItemStream">The stream containing the item data.</param>
-    /// <param name="EventStream">The stream containing the event data.</param>
+    /// <param name="Id">Item identifier.</param>
+    /// <param name="ETag">Item ETag for optimistic concurrency.</param>
+    /// <param name="SaveAction">Type of save operation being performed.</param>
+    /// <param name="ItemStream">Stream containing serialized item data.</param>
+    /// <param name="EventStream">Stream containing serialized event data.</param>
     private record SaveRequestStream(
         string Id,
         string? ETag,
@@ -356,7 +340,7 @@ internal class CosmosDataProvider<TInterface, TItem>(
         #region IDisposable
 
         /// <summary>
-        /// Disposes of the resources held by this instance.
+        /// Disposes of managed resources held by this instance.
         /// </summary>
         public void Dispose()
         {
@@ -365,9 +349,9 @@ internal class CosmosDataProvider<TInterface, TItem>(
         }
 
         /// <summary>
-        /// Disposes of the resources held by this instance.
+        /// Releases managed resources when disposing.
         /// </summary>
-        /// <param name="disposing">True if called from the <see cref="Dispose()"/> method; otherwise, false.</param>
+        /// <param name="disposing">True when called from Dispose method.</param>
         protected virtual void Dispose(
             bool disposing)
         {

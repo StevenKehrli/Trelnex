@@ -48,7 +48,7 @@ public class PostgresDataProviderExtensionsEventExpirationTests : PostgresDataPr
             .AddPostgresDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "expiration-test-item",
                     itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
@@ -56,7 +56,7 @@ public class PostgresDataProviderExtensionsEventExpirationTests : PostgresDataPr
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]

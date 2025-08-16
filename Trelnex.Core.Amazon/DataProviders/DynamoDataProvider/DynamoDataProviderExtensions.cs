@@ -14,40 +14,33 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// Extension methods for configuring DynamoDB data providers.
+/// Extension methods for configuring DynamoDB data providers with dependency injection.
 /// </summary>
-/// <remarks>
-/// Provides dependency injection integration.
-/// </remarks>
 public static class DynamoDataProvidersExtensions
 {
     #region Public Static Methods
 
     /// <summary>
-    /// Adds DynamoDB data providers to the service collection.
+    /// Registers DynamoDB data providers with the service collection using configuration.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">Application configuration.</param>
-    /// <param name="bootstrapLogger">Logger for initialization.</param>
-    /// <param name="configureDataProviders">Action to configure providers.</param>
-    /// <returns>The service collection.</returns>
-    /// <exception cref="ConfigurationErrorsException">Thrown when the DynamoDataProviders section is missing.</exception>
-    /// <exception cref="ArgumentException">When a requested type name has no associated table.</exception>
-    /// <exception cref="InvalidOperationException">When attempting to register the same data provider interface twice.</exception>
-    /// <remarks>
-    /// Configures DynamoDB data providers for specific entity types.
-    /// Uses AWS credentials from the registered credential provider to authenticate with DynamoDB.
-    /// </remarks>
+    /// <param name="services">Service collection to register providers with.</param>
+    /// <param name="configuration">Application configuration containing DynamoDB settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
+    /// <param name="configureDataProviders">Delegate to configure which providers to register.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    /// <exception cref="ConfigurationErrorsException">Thrown when required configuration sections are missing.</exception>
+    /// <exception cref="ArgumentException">Thrown when a type name has no associated table configuration.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when attempting to register duplicate providers.</exception>
     public static IServiceCollection AddDynamoDataProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<IDataProviderOptions> configureDataProviders)
     {
-        // Retrieve the Amazon identity provider for AWS credentials
+        // Get AWS credentials from registered credential provider
         var credentialProvider = services.GetCredentialProvider<AWSCredentials>();
 
-        // Get the region and table configurations from the configuration
+        // Extract DynamoDB configuration from application settings
         var region = configuration.GetSection("Amazon.DynamoDataProviders:Region").Get<string>()
             ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
 
@@ -70,24 +63,23 @@ public static class DynamoDataProvidersExtensions
             })
             .ToArray();
 
-        // Parse the DynamoDB options from the configuration
+        // Build provider options from configuration
         var providerOptions = DynamoDataProviderOptions.Parse(
             region: region,
             tableConfigurations: tableConfigurations);
 
-        // Create DynamoDB client options with authentication
+        // Configure DynamoDB client with credentials and region
         var dynamoClientOptions = GetDynamoClientOptions(credentialProvider, providerOptions);
 
-        // Create the DynamoDB data provider factory
+        // Create and register DynamoDB provider factory
         var providerFactory = DynamoDataProviderFactory
             .Create(dynamoClientOptions)
             .GetAwaiter()
             .GetResult();
 
-        // Register the factory as the data provider interface
         services.AddDataProviderFactory(providerFactory);
 
-        // Create the data providers and inject them into the service collection
+        // Configure individual data providers using factory
         var dataProviderOptions = new DataProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
@@ -104,19 +96,16 @@ public static class DynamoDataProvidersExtensions
     #region Private Static Methods
 
     /// <summary>
-    /// Creates DynamoDB client options with authentication.
+    /// Creates DynamoDB client options with AWS credentials and connection settings.
     /// </summary>
     /// <param name="credentialProvider">Provider for AWS credentials.</param>
-    /// <param name="providerOptions">Configuration options for DynamoDB.</param>
-    /// <returns>Fully configured DynamoDB client options.</returns>
-    /// <remarks>
-    /// Retrieves AWS credentials and sets connection parameters.
-    /// </remarks>
+    /// <param name="providerOptions">DynamoDB configuration options.</param>
+    /// <returns>Configured DynamoDB client options.</returns>
     private static DynamoClientOptions GetDynamoClientOptions(
         ICredentialProvider<AWSCredentials> credentialProvider,
         DynamoDataProviderOptions providerOptions)
     {
-        // Retrieve AWS credentials and initialize the client options
+        // Get AWS credentials and build client configuration
         var awsCredentials = credentialProvider.GetCredential();
 
         return new DynamoClientOptions(
@@ -130,11 +119,8 @@ public static class DynamoDataProvidersExtensions
     #region DataProviderOptions
 
     /// <summary>
-    /// Implementation of <see cref="IDataProviderOptions"/> for configuring DynamoDB providers.
+    /// Handles registration of DynamoDB data providers with type-to-table mapping.
     /// </summary>
-    /// <remarks>
-    /// Provides type-to-table mapping and data provider registration.
-    /// </remarks>
     private class DataProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -145,27 +131,22 @@ public static class DynamoDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Registers a data provider for a specific item type with table mapping.
+        /// Registers a DynamoDB data provider for the specified entity type.
         /// </summary>
-        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-        /// <param name="typeName">Type name to map to a DynamoDB table.</param>
-        /// <param name="itemValidator">Optional validator for items.</param>
-        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+        /// <param name="typeName">Type name identifier that maps to a DynamoDB table.</param>
+        /// <param name="itemValidator">Optional validator for entity validation.</param>
+        /// <param name="commandOperations">Optional CRUD operations to enable.</param>
         /// <returns>The options instance for method chaining.</returns>
-        /// <exception cref="ArgumentException">When no table is configured for the specified type name.</exception>
-        /// <exception cref="InvalidOperationException">When a data provider for the interface is already registered.</exception>
-        /// <remarks>
-        /// Maps a logical entity type with its physical DynamoDB table location.
-        /// </remarks>
-        public IDataProviderOptions Add<TInterface, TItem>(
+        /// <exception cref="ArgumentException">Thrown when no table is configured for the type name.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a provider for this type is already registered.</exception>
+        public IDataProviderOptions Add<TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
-            where TInterface : class, IBaseItem
-            where TItem : BaseItem, TInterface, new()
+            where TItem : BaseItem, new()
         {
-            // Retrieve the table configuration for the specified item type
+            // Look up table configuration for the specified type
             var tableConfiguration = providerOptions.GetTableConfiguration(typeName);
 
             if (tableConfiguration is null)
@@ -175,34 +156,34 @@ public static class DynamoDataProvidersExtensions
                     nameof(typeName));
             }
 
-            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TItem>)))
             {
                 throw new InvalidOperationException(
-                    $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
+                    $"The DataProvider<{typeof(TItem).Name}> is already registered.");
             }
 
-            // Create the data provider and inject it into the service collection
-            var dataProvider = providerFactory.Create<TInterface, TItem>(
-                tableName: tableConfiguration.TableName,
+            // Create data provider instance using factory and table configuration
+            var dataProvider = providerFactory.Create<TItem>(
                 typeName: typeName,
+                tableName: tableConfiguration.TableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
-                blockCipherService: tableConfiguration.BlockCipherService);
+                blockCipherService: tableConfiguration.BlockCipherService,
+                logger: bootstrapLogger);
 
             services.AddSingleton(dataProvider);
 
             object[] args =
             [
-                typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.Region, // region
                 tableConfiguration.TableName // tableName
             ];
 
-            // Log the registration of the data provider
+            // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added DynamoDataProvider<{TInterface:l}, {TItem:l}>: region = '{region:l}', tableName = '{tableName:l}'.",
+                message: "Added DynamoDataProvider<{TItem:l}>: region = '{region:l}', tableName = '{tableName:l}'.",
                 args: args);
 
             return this;
@@ -216,12 +197,12 @@ public static class DynamoDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Table configuration mapping type names to DynamoDB table names.
+    /// Configuration mapping a type name to its DynamoDB table and settings.
     /// </summary>
-    /// <param name="TypeName">The type name.</param>
-    /// <param name="TableName">The table name in DynamoDB.</param>
-    /// <param name="EventTimeToLive">Optional time-to-live for events in the container.</param>
-    /// <param name="BlockCipherService">Optional block cipher service for the table.</param>
+    /// <param name="TypeName">The logical type name identifier.</param>
+    /// <param name="TableName">The physical DynamoDB table name.</param>
+    /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
+    /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
@@ -233,17 +214,15 @@ public static class DynamoDataProvidersExtensions
     #region Provider Options
 
     /// <summary>
-    /// Runtime options for DynamoDB data providers.
+    /// Configuration options for DynamoDB data providers with type-to-table mappings.
     /// </summary>
-    /// <param name="region">The AWS region where the DynamoDB tables are located.</param>
+    /// <param name="region">AWS region where DynamoDB tables are located.</param>
     private class DynamoDataProviderOptions(
         string region)
     {
         #region Private Fields
 
-        /// <summary>
-        /// The mappings from type names to table configurations.
-        /// </summary>
+        // Dictionary mapping type names to their table configurations
         private readonly Dictionary<string, TableConfiguration> _tableConfigurationsByTypeName = [];
 
         #endregion
@@ -251,7 +230,7 @@ public static class DynamoDataProvidersExtensions
         #region Public Properties
 
         /// <summary>
-        /// Gets the AWS region name.
+        /// Gets the AWS region name for DynamoDB operations.
         /// </summary>
         public string Region => region;
 
@@ -260,10 +239,10 @@ public static class DynamoDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Gets the table configuration for a specified type name.
+        /// Retrieves table configuration for a specified type name.
         /// </summary>
-        /// <param name="typeName">The type name to look up.</param>
-        /// <returns>The table configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        /// <param name="typeName">Type name to look up.</param>
+        /// <returns>Table configuration if found, null otherwise.</returns>
         public TableConfiguration? GetTableConfiguration(
             string typeName)
         {
@@ -273,9 +252,9 @@ public static class DynamoDataProvidersExtensions
         }
 
         /// <summary>
-        /// Gets all configured table names.
+        /// Gets all configured DynamoDB table names.
         /// </summary>
-        /// <returns>Array of distinct table names sorted alphabetically.</returns>
+        /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
             return _tableConfigurationsByTypeName
@@ -289,15 +268,12 @@ public static class DynamoDataProvidersExtensions
         #region Internal Static Methods
 
         /// <summary>
-        /// Parses configuration into a validated options object.
+        /// Parses configuration arrays into validated provider options.
         /// </summary>
-        /// <param name="region">The AWS region.</param>
-        /// <param name="tableConfigurations">Array of table configurations.</param>
-        /// <returns>Validated options with type-to-table mappings.</returns>
-        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
-        /// <remarks>
-        /// Validates that no type name is mapped to multiple tables.
-        /// </remarks>
+        /// <param name="region">AWS region for DynamoDB operations.</param>
+        /// <param name="tableConfigurations">Array of table configurations to validate.</param>
+        /// <returns>Validated provider options with type-to-table mappings.</returns>
+        /// <exception cref="AggregateException">Thrown when configuration contains duplicate type mappings.</exception>
         internal static DynamoDataProviderOptions Parse(
             string region,
             TableConfiguration[] tableConfigurations)
@@ -305,15 +281,14 @@ public static class DynamoDataProvidersExtensions
             var options = new DynamoDataProviderOptions(
                 region: region);
 
-            // Group the tables by item type
+            // Group configurations by type name to detect duplicates
             var groups = tableConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
-            // Collect any configuration errors
+            // Validate configuration for duplicate type mappings
             var exs = new List<ConfigurationErrorsException>();
 
-            // Validate that each type name maps to only one table
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -321,13 +296,13 @@ public static class DynamoDataProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Table for TypeName '{group.Key} is specified more than once."));
             });
 
-            // Throw an aggregate exception if there are any configuration errors
+            // Throw aggregate exception if validation errors found
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // Populate the type-to-table mapping
+            // Build type-to-table mapping dictionary
             Array.ForEach(groups, group =>
             {
                 options._tableConfigurationsByTypeName[group.Key] = group.Single();

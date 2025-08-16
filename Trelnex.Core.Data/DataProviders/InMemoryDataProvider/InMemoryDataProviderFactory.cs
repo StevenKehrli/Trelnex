@@ -1,20 +1,18 @@
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Factory for creating in-memory data providers for testing and development scenarios.
+/// Factory for creating in-memory data provider instances.
 /// </summary>
-/// <remarks>
-/// Provides non-persistent, thread-safe data storage implementation suitable for unit testing and prototyping.
-/// </remarks>
 public class InMemoryDataProviderFactory : IDataProviderFactory
 {
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the factory.
+    /// Initializes a new factory instance.
     /// </summary>
     private InMemoryDataProviderFactory()
     {
@@ -25,12 +23,9 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
     #region Public Static Methods
 
     /// <summary>
-    /// Creates a new factory instance asynchronously.
+    /// Creates a new factory instance.
     /// </summary>
-    /// <returns>A task containing the initialized factory instance.</returns>
-    /// <remarks>
-    /// The factory is always created in a healthy operational state since it requires no external dependencies.
-    /// </remarks>
+    /// <returns>A task containing the factory instance.</returns>
 #pragma warning disable CS1998
     public static async Task<InMemoryDataProviderFactory> Create()
     {
@@ -45,32 +40,29 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
     #region Public Methods
 
     /// <summary>
-    /// Creates a data provider for a specific item type.
+    /// Creates an in-memory data provider for the specified item type.
     /// </summary>
-    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-    /// <param name="tableName">Name of the DynamoDB table to use.</param>
-    /// <param name="typeName">Type name to filter items by.</param>
+    /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+    /// <param name="typeName">Type name identifier for the items.</param>
     /// <param name="itemValidator">Optional validator for items.</param>
-    /// <param name="commandOperations">Operations allowed for this provider.</param>
-    /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
-    /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
-    /// <remarks>
-    /// Creates a <see cref="InMemoryDataProvider{TInterface, TItem}"/> that operates on the in-memory data store.
-    /// </remarks>
-    public IDataProvider<TInterface> Create<TInterface, TItem>(
+    /// <param name="commandOperations">Allowed operations for this provider.</param>
+    /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <returns>A configured in-memory data provider instance.</returns>
+    public IDataProvider<TItem> Create<TItem>(
         string typeName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
-        IBlockCipherService? blockCipherService = null)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new()
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
+        where TItem : BaseItem, new()
     {
-        return new InMemoryDataProvider<TInterface, TItem>(
+        return new InMemoryDataProvider<TItem>(
             typeName: typeName,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
-            blockCipherService: blockCipherService);
+            blockCipherService: blockCipherService,
+            logger: logger);
     }
 
     /// <inheritdoc/>

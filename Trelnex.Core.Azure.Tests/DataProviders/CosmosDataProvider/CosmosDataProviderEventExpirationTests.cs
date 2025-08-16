@@ -43,9 +43,9 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
             cosmosClientOptions);
 
         // Create the data provider with event expiration set to 2 seconds
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            containerId: _expirationContainerId,
+        _dataProvider = factory.Create(
             typeName: "expiration-test-item",
+            containerId: _expirationContainerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);

@@ -7,19 +7,16 @@ using Microsoft.Azure.Cosmos;
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Custom serializer for Cosmos DB using System.Text.Json.
+/// Cosmos DB serializer implementation using System.Text.Json for JSON serialization.
 /// </summary>
-/// <remarks>Extends <see cref="CosmosLinqSerializer"/> for System.Text.Json serialization.</remarks>
-/// <param name="options">The JSON serializer options.</param>
+/// <param name="options">JSON serializer options for serialization configuration.</param>
 internal class SystemTextJsonSerializer(
     JsonSerializerOptions options)
     : CosmosLinqSerializer
 {
     #region Private Fields
 
-    /// <summary>
-    /// The underlying JSON serializer.
-    /// </summary>
+    // Azure JSON serializer wrapper for System.Text.Json
     private readonly JsonObjectSerializer _jsonObjectSerializer = new(options);
 
     #endregion
@@ -27,18 +24,18 @@ internal class SystemTextJsonSerializer(
     #region Public Methods
 
     /// <summary>
-    /// Deserializes a stream into an object of the specified type.
+    /// Deserializes a JSON stream into an object of the specified type.
     /// </summary>
-    /// <typeparam name="T">The type to deserialize into.</typeparam>
-    /// <param name="stream">The stream containing the JSON data.</param>
-    /// <returns>The deserialized object.</returns>
-    /// <exception cref="ArgumentNullException">When <paramref name="stream"/> is <see langword="null"/>.</exception>
+    /// <typeparam name="T">Type to deserialize the stream into.</typeparam>
+    /// <param name="stream">Stream containing JSON data to deserialize.</param>
+    /// <returns>Deserialized object of type T.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when stream is null.</exception>
     public override T FromStream<T>(
         Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
 
-        // Deserialize the stream using the underlying serializer.
+        // Deserialize stream using Azure JSON serializer wrapper
         using (stream)
         {
             return (T)_jsonObjectSerializer.Deserialize(stream, typeof(T), default)!;
@@ -46,22 +43,20 @@ internal class SystemTextJsonSerializer(
     }
 
     /// <summary>
-    /// Maps .NET member names to their corresponding JSON property names for Cosmos DB serialization.
+    /// Determines the JSON property name for a .NET member during Cosmos DB serialization.
     /// </summary>
-    /// <param name="memberInfo">The reflection member info representing a property or field to be serialized.</param>
-    /// <returns>The property name to use in the serialized JSON document, or <see langword="null"/> for extension data members.</returns>
-    /// <remarks>Uses <see cref="JsonPropertyNameAttribute"/> or the member's declared name.</remarks>
+    /// <param name="memberInfo">Member information for property or field being serialized.</param>
+    /// <returns>JSON property name to use, or null for extension data members.</returns>
     public override string SerializeMemberName(
         MemberInfo memberInfo)
     {
-        // First check if this member is marked as an extension data container.
+        // Check if member is marked as extension data container
         var dataAttribute = memberInfo.GetCustomAttribute<JsonExtensionDataAttribute>(true);
         if (dataAttribute is not null) return null!;
 
-        // Look for an explicit property name override using JsonPropertyName attribute.
+        // Use JsonPropertyName attribute if present, otherwise use member name
         var nameAttribute = memberInfo.GetCustomAttribute<JsonPropertyNameAttribute>(true);
 
-        // Determine the name to use for serialization:
         string memberName = string.IsNullOrEmpty(nameAttribute?.Name)
             ? memberInfo.Name
             : nameAttribute.Name;
@@ -70,21 +65,21 @@ internal class SystemTextJsonSerializer(
     }
 
     /// <summary>
-    /// Serializes an object into a stream.
+    /// Serializes an object into a JSON stream.
     /// </summary>
-    /// <typeparam name="T">The type of object to serialize.</typeparam>
-    /// <param name="item">The object to serialize.</param>
-    /// <returns>A stream containing the serialized JSON data.</returns>
+    /// <typeparam name="T">Type of object to serialize.</typeparam>
+    /// <param name="item">Object to serialize to JSON.</param>
+    /// <returns>Stream containing serialized JSON data.</returns>
     public override Stream ToStream<T>(
         T item)
     {
-        // Create a memory stream to hold the serialized data.
+        // Create memory stream for serialized output
         var memoryStream = new MemoryStream();
 
-        // Serialize the input object to the memory stream.
+        // Serialize object to memory stream
         _jsonObjectSerializer.Serialize(memoryStream, item, item.GetType(), default);
 
-        // Reset the stream position to the beginning.
+        // Reset position for reading
         memoryStream.Position = 0;
 
         return memoryStream;

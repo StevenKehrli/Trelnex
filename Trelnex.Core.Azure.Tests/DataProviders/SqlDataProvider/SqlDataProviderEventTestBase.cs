@@ -68,7 +68,7 @@ public abstract class SqlDataProviderEventTestBase
     /// <summary>
     /// The data provider used for testing.
     /// </summary>
-    protected IDataProvider<ITestItem> _dataProvider = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     protected IConfiguration TestSetup()
     {

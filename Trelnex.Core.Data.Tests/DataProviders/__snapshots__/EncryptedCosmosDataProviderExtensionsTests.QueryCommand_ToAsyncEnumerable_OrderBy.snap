@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "548a65f1-6eb7-41de-acce-93bcc87b86a7",
-      "PartitionKey": "8ca85d46-195f-4f29-bf6b-c9b831fbd38b",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:55:09.56099+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:55:09.56099+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "\"02006a26-0000-0300-0000-6899153d0000\"",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "bfd7a4ae-a6ea-4677-8af0-c4e375ef0d80",
+      "PartitionKey": "2b01d174-9022-4547-a586-9383512599fa",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:25:05.805229+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:25:05.805229+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "\"04009974-0000-0300-0000-68a0f7310000\""
     }
   },
   {
     "Item": {
-      "Id": "6788ebd5-9885-4dc4-abaf-af4b43ac8c0c",
-      "PartitionKey": "56de6f1b-0391-4f0b-9e58-71bf862bc716",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:55:09.62403+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:55:09.62403+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "\"02006c26-0000-0300-0000-6899153d0000\"",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "868c30f0-cfff-4351-8cad-3f39290a0524",
+      "PartitionKey": "56508465-0392-40c7-b37f-d190203971db",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:25:05.868112+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:25:05.868112+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "\"04009b74-0000-0300-0000-68a0f7310000\""
     }
   }
 ]

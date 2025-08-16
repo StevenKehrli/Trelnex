@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "84e64614-cf2a-4a9a-8632-da9dd4bf0971",
-      "PartitionKey": "30ae2ca3-90fe-4d80-8f5c-4f2e17e55d0b",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:58:30.640809+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:58:30.640809+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "C9003B4B-2DED-47DA-9F68-241D4C4C786B",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "f509ba6b-f8bf-434b-b9dd-8bad1132b1e7",
+      "PartitionKey": "c7df82d7-e4c9-4ec7-8f17-55f4bb01ec29",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:35.866765+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:35.866765+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "7F24F680-4461-4621-B860-2F035604CEC1"
     }
   },
   {
     "Item": {
-      "Id": "793d3f65-d29d-45f5-a13b-08dda57774a6",
-      "PartitionKey": "db0b7039-98db-434e-9471-31a486beb7b2",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:58:30.129729+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:58:30.129729+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "93D230B8-60D3-49F8-A841-46F14CDF5616",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "1a8c5e0d-fdeb-4a2e-a378-c7f879c5e9db",
+      "PartitionKey": "31b61997-7304-4409-906c-711e8aba5e3a",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:35.359763+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:35.359763+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "2D708BD6-CCE3-465F-8E0C-86D3795E7664"
     }
   }
 ]

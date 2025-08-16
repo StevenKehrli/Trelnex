@@ -1,18 +1,13 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Delegate for saving a single item.
+/// Delegate for asynchronously saving an item.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the item.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type.</typeparam>
-/// <param name="request">Save request with item and metadata.</param>
-/// <param name="cancellationToken">Cancellation token.</param>
-/// <returns>The saved item.</returns>
-/// <remarks>
-/// Abstracts storage implementation details.
-/// </remarks>
-internal delegate Task<TItem> SaveAsyncDelegate<TInterface, TItem>(
-    SaveRequest<TInterface, TItem> request,
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+/// <param name="request">Save request containing the item, event metadata, and operation type.</param>
+/// <param name="cancellationToken">Token to cancel the save operation.</param>
+/// <returns>The saved item returned from the storage operation.</returns>
+internal delegate Task<TItem> SaveAsyncDelegate<TItem>(
+    SaveRequest<TItem> request,
     CancellationToken cancellationToken)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface;
+    where TItem : BaseItem;

@@ -39,9 +39,9 @@ public class SqlDataProviderEventExpirationTests : SqlDataProviderEventTestBase
             sqlClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _expirationTableName,
+        _dataProvider = factory.Create(
             typeName: "expiration-test-item",
+            tableName: _expirationTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);

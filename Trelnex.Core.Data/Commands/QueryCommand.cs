@@ -5,205 +5,161 @@ using Trelnex.Core.Disposables;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// LINQ-style query interface.
+/// Defines operations for building and executing queries against items.
 /// </summary>
-/// <typeparam name="TInterface">Item interface type.</typeparam>
-/// <remarks>
-/// Fluent API for querying data with deferred execution.
-/// </remarks>
-public interface IQueryCommand<TInterface>
-    where TInterface : class, IBaseItem
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IQueryCommand<TItem>
+    where TItem : BaseItem
 {
     /// <summary>
-    /// Adds ascending sort.
+    /// Adds an ascending sort operation to the query.
     /// </summary>
-    /// <typeparam name="TKey">Key type.</typeparam>
-    /// <param name="keySelector">Function that selects sort key.</param>
-    /// <returns>Query command for chaining.</returns>
-    /// <exception cref="ArgumentNullException">When keySelector is null.</exception>
-    IQueryCommand<TInterface> OrderBy<TKey>(
-        Expression<Func<TInterface, TKey>> keySelector);
+    /// <typeparam name="TKey">The type of the sort key.</typeparam>
+    /// <param name="keySelector">Expression that selects the property to sort by.</param>
+    /// <returns>The same query command instance for method chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when keySelector is null.</exception>
+    IQueryCommand<TItem> OrderBy<TKey>(
+        Expression<Func<TItem, TKey>> keySelector);
 
     /// <summary>
-    /// Adds descending sort.
+    /// Adds a descending sort operation to the query.
     /// </summary>
-    /// <typeparam name="TKey">Key type.</typeparam>
-    /// <param name="keySelector">Function that selects sort key.</param>
-    /// <returns>Query command for chaining.</returns>
-    /// <exception cref="ArgumentNullException">When keySelector is null.</exception>
-    IQueryCommand<TInterface> OrderByDescending<TKey>(
-        Expression<Func<TInterface, TKey>> keySelector);
+    /// <typeparam name="TKey">The type of the sort key.</typeparam>
+    /// <param name="keySelector">Expression that selects the property to sort by.</param>
+    /// <returns>The same query command instance for method chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when keySelector is null.</exception>
+    IQueryCommand<TItem> OrderByDescending<TKey>(
+        Expression<Func<TItem, TKey>> keySelector);
 
     /// <summary>
-    /// Skips a specified number of items.
+    /// Adds a skip operation to bypass a specified number of items.
     /// </summary>
     /// <param name="count">Number of items to skip.</param>
-    /// <returns>Query command for chaining.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">When count is negative.</exception>
-    IQueryCommand<TInterface> Skip(
+    /// <returns>The same query command instance for method chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when count is negative.</exception>
+    IQueryCommand<TItem> Skip(
         int count);
 
     /// <summary>
-    /// Adds a take operation.
+    /// Adds a take operation to limit the number of items returned.
     /// </summary>
-    /// <param name="count">The maximum number of items to return.</param>
-    /// <returns>
-    /// The same <see cref="IQueryCommand{TInterface}"/> instance with the take operation added.
-    /// </returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count"/> is negative.</exception>
-    IQueryCommand<TInterface> Take(
+    /// <param name="count">Maximum number of items to return.</param>
+    /// <returns>The same query command instance for method chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when count is negative.</exception>
+    IQueryCommand<TItem> Take(
         int count);
 
     /// <summary>
-    /// Executes the query and returns the results with lazy async enumeration and automatic disposal management.
+    /// Executes the query and returns results as a lazy asynchronous enumerable.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>
-    /// An <see cref="IAsyncDisposableEnumerable{T}"/> that can be enumerated asynchronously.
-    /// Items are materialized lazily as they are enumerated, and all enumerated items are automatically disposed when the enumerable is disposed.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled through <paramref name="cancellationToken"/>.
-    /// </exception>
-    /// <remarks>
-    /// This method provides lazy async enumeration where items are materialized one by one as they are enumerated.
-    /// Use this method when you want to minimize memory usage or when processing large result sets.
-    /// The returned enumerable tracks all materialized items and disposes them when disposed.
-    /// </remarks>
-    IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable(
+    /// <param name="cancellationToken">Token to cancel the query operation.</param>
+    /// <returns>An asynchronous enumerable that yields query results lazily.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
+    IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the query and returns the results with automatic disposal management.
+    /// Executes the query and returns all results materialized into a disposable enumerable.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>
-    /// A <see cref="Task{T}"/> that represents the asynchronous operation.
-    /// The task result contains an <see cref="IDisposableEnumerable{T}"/> of <see cref="IQueryResult{TInterface}"/>.
-    /// All items are materialized and available for immediate access with array-like indexing and count properties.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled through <paramref name="cancellationToken"/>.
-    /// </exception>
-    /// <remarks>
-    /// This method eagerly materializes all query results into memory before returning.
-    /// Use this method when you need immediate access to item count, indexing, or when the result set is known to be small.
-    /// All materialized items are automatically disposed when the returned enumerable is disposed.
-    /// </remarks>
-    Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync(
+    /// <param name="cancellationToken">Token to cancel the query operation.</param>
+    /// <returns>A task containing a disposable enumerable with all query results.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
+    Task<IDisposableEnumerable<IQueryResult<TItem>>> ToDisposableEnumerableAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a filter condition.
+    /// Adds a filter condition to the query.
     /// </summary>
-    /// <param name="predicate">A function expression that defines the filter condition.</param>
-    /// <returns>
-    /// The same <see cref="IQueryCommand{TInterface}"/> instance with the filter condition added.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is <see langword="null"/>.</exception>
-    IQueryCommand<TInterface> Where(
-        Expression<Func<TInterface, bool>> predicate);
+    /// <param name="predicate">Expression that defines the filter condition.</param>
+    /// <returns>The same query command instance for method chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when predicate is null.</exception>
+    IQueryCommand<TItem> Where(
+        Expression<Func<TItem, bool>> predicate);
 }
 
 /// <summary>
-/// Implements the query command pattern.
+/// Implements query building and execution operations for items.
 /// </summary>
-/// <typeparam name="TInterface">The interface type of the items.</typeparam>
-/// <typeparam name="TItem">The concrete implementation type of the items.</typeparam>
-/// <remarks>
-/// This class provides a concrete implementation of <see cref="IQueryCommand{TInterface}"/>.
-/// </remarks>
-internal class QueryCommand<TInterface, TItem>(
-    ExpressionConverter<TInterface, TItem> expressionConverter,
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+internal class QueryCommand<TItem>(
     IQueryable<TItem> queryable,
-    QueryAsyncDelegate<TInterface, TItem> queryAsyncDelegate,
-    Func<TItem, IQueryResult<TInterface>> convertToQueryResult)
-    : IQueryCommand<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface
+    QueryAsyncDelegate<TItem> queryAsyncDelegate,
+    Func<TItem, IQueryResult<TItem>> convertToQueryResult)
+    : IQueryCommand<TItem>
+    where TItem : BaseItem
 {
     #region Public Methods
 
     /// <inheritdoc/>
-    public IQueryCommand<TInterface> OrderBy<TKey>(
-        Expression<Func<TInterface, TKey>> keySelector)
+    public IQueryCommand<TItem> OrderBy<TKey>(
+        Expression<Func<TItem, TKey>> keySelector)
     {
         ArgumentNullException.ThrowIfNull(keySelector);
 
-        // Convert the predicate from TInterface to TItem
-        // See: https://stackoverflow.com/questions/14932779/how-to-change-a-type-in-an-expression-tree/14933106#14933106
-        var expression = expressionConverter.Convert(keySelector);
-
-        // Add the predicate to the queryable
-        queryable = queryable.OrderBy(expression);
+        // Apply the ordering operation to the queryable
+        queryable = queryable.OrderBy(keySelector);
 
         return this;
     }
 
     /// <inheritdoc/>
-    public IQueryCommand<TInterface> OrderByDescending<TKey>(
-        Expression<Func<TInterface, TKey>> keySelector)
+    public IQueryCommand<TItem> OrderByDescending<TKey>(
+        Expression<Func<TItem, TKey>> keySelector)
     {
         ArgumentNullException.ThrowIfNull(keySelector);
 
-        // Convert the predicate from TInterface to TItem
-        var expression = expressionConverter.Convert(keySelector);
-
-        // Add the predicate to the queryable
-        queryable = queryable.OrderByDescending(expression);
+        // Apply the descending ordering operation to the queryable
+        queryable = queryable.OrderByDescending(keySelector);
 
         return this;
     }
 
     /// <inheritdoc/>
-    public IQueryCommand<TInterface> Skip(
+    public IQueryCommand<TItem> Skip(
         int count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
-        // Add the skip operation to the queryable
+        // Apply the skip operation to the queryable
         queryable = queryable.Skip(count);
 
         return this;
     }
 
     /// <inheritdoc/>
-    public IQueryCommand<TInterface> Take(
+    public IQueryCommand<TItem> Take(
         int count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
-        // Add the take operation to the queryable
+        // Apply the take operation to the queryable
         queryable = queryable.Take(count);
 
         return this;
     }
 
     /// <inheritdoc/>
-    public IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable(
+    public IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable(
         CancellationToken cancellationToken = default)
     {
         return QueryAsync(cancellationToken).ToAsyncDisposableEnumerable();
     }
 
     /// <inheritdoc/>
-    public async Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync(
+    public async Task<IDisposableEnumerable<IQueryResult<TItem>>> ToDisposableEnumerableAsync(
         CancellationToken cancellationToken = default)
     {
         return await QueryAsync(cancellationToken).ToDisposableEnumerableAsync(cancellationToken);
     }
 
     /// <inheritdoc/>
-    public IQueryCommand<TInterface> Where(
-        Expression<Func<TInterface, bool>> predicate)
+    public IQueryCommand<TItem> Where(
+        Expression<Func<TItem, bool>> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
-        // Convert the predicate from TInterface to TItem
-        var expression = expressionConverter.Convert(predicate);
-
-        // Add the predicate to the queryable
-        queryable = queryable.Where(expression);
+        // Apply the filter condition to the queryable
+        queryable = queryable.Where(predicate);
 
         return this;
     }
@@ -213,21 +169,17 @@ internal class QueryCommand<TInterface, TItem>(
     #region Private Methods
 
     /// <summary>
-    /// Creates an async enumerable that executes the query and converts items lazily.
+    /// Executes the query using the configured delegate and converts each item to a query result.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>An async enumerable of query results.</returns>
-    /// <remarks>
-    /// This private method encapsulates the query execution logic and is reused by both
-    /// ToAsyncDisposableEnumerable and ToDisposableEnumerableAsync methods to ensure consistency.
-    /// </remarks>
-    private async IAsyncEnumerable<IQueryResult<TInterface>> QueryAsync(
+    /// <param name="cancellationToken">Token to cancel the query operation.</param>
+    /// <returns>An asynchronous enumerable of query results.</returns>
+    private async IAsyncEnumerable<IQueryResult<TItem>> QueryAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Execute the underlying query through the delegate and convert items as they arrive
+        // Execute the query through the delegate and wrap each item as it arrives
         await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
         {
-            // Convert each TItem to an IQueryResult<TInterface> wrapper and yield it
+            // Convert each item to a query result wrapper and yield it
             yield return convertToQueryResult(item);
         }
     }

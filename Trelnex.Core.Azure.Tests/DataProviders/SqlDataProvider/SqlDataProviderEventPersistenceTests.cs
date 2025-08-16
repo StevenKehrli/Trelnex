@@ -39,9 +39,9 @@ public class SqlDataProviderEventPersistenceTests : SqlDataProviderEventTestBase
             sqlClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _persistenceTableName,
+        _dataProvider = factory.Create(
             typeName: "test-item",
+            tableName: _persistenceTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }

@@ -14,35 +14,33 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Extension methods for configuring and registering Cosmos DB data providers.
+/// Extension methods for configuring Cosmos DB data providers with dependency injection.
 /// </summary>
-/// <remarks>Provides dependency injection integration for Cosmos DB data providers.</remarks>
 public static class CosmosDataProvidersExtensions
 {
     #region Public Static Methods
 
     /// <summary>
-    /// Adds Cosmos DB data providers to the service collection.
+    /// Registers Cosmos DB data providers with the service collection using configuration.
     /// </summary>
-    /// <param name="services">The service collection to add providers to.</param>
-    /// <param name="configuration">Application configuration containing provider settings.</param>
-    /// <param name="bootstrapLogger">Logger for recording provider initialization.</param>
-    /// <param name="configureDataProviders">Action to configure specific providers.</param>
+    /// <param name="services">Service collection to register providers with.</param>
+    /// <param name="configuration">Application configuration containing Cosmos DB settings.</param>
+    /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
+    /// <param name="configureDataProviders">Delegate to configure which providers to register.</param>
     /// <returns>The service collection for method chaining.</returns>
-    /// <exception cref="ConfigurationErrorsException">When the CosmosDataProviders section is missing from configuration.</exception>
-    /// <exception cref="ArgumentException">When a requested type name has no associated container.</exception>
-    /// <exception cref="InvalidOperationException">When attempting to register the same data provider interface twice.</exception>
-    /// <remarks>Registers data providers for specific types.</remarks>
+    /// <exception cref="ConfigurationErrorsException">Thrown when required configuration sections are missing.</exception>
+    /// <exception cref="ArgumentException">Thrown when a type name has no associated container configuration.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when attempting to register duplicate providers.</exception>
     public static IServiceCollection AddCosmosDataProviders(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<IDataProviderOptions> configureDataProviders)
     {
-        // Retrieve the token credential provider.
+        // Get Azure credentials from registered credential provider
         var credentialProvider = services.GetCredentialProvider<TokenCredential>();
 
-        // Get the database and container configurations from the configuration
+        // Extract Cosmos DB configuration from application settings
         var endpointUri = configuration.GetSection("Azure.CosmosDataProviders:EndpointUri").Get<string>()
             ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
@@ -56,7 +54,7 @@ public static class CosmosDataProvidersExtensions
                 var containerId = section.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
-                var eventTimeToLive = section.GetValue<int?>("eventTimeToLive");
+                var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
                 var blockCipherService = section.CreateBlockCipherService();
 
@@ -68,13 +66,13 @@ public static class CosmosDataProvidersExtensions
             })
             .ToArray();
 
-        // Parse the cosmos options
+        // Build provider options from configuration
         var providerOptions = CosmosDataProviderOptions.Parse(
             endpointUri: endpointUri,
             databaseId: databaseId,
             containerConfigurations: containerConfigurations);
 
-        // Create our factory
+        // Configure Cosmos DB client with credentials and connection details
         var cosmosClientOptions = GetCosmosClientOptions(credentialProvider, providerOptions);
 
         var providerFactory = CosmosDataProviderFactory
@@ -82,17 +80,16 @@ public static class CosmosDataProvidersExtensions
             .GetAwaiter()
             .GetResult();
 
-        // Inject the factory as the status interface
+        // Register factory with DI container
         services.AddDataProviderFactory(providerFactory);
 
-        // Create the data providers and inject
+        // Configure individual data providers using factory
         var dataProviderOptions = new DataProviderOptions(
             services: services,
             bootstrapLogger: bootstrapLogger,
             providerFactory: providerFactory,
             providerOptions: providerOptions);
 
-        // Execute the configuration
         configureDataProviders(dataProviderOptions);
 
         return services;
@@ -103,20 +100,19 @@ public static class CosmosDataProvidersExtensions
     #region Private Static Methods
 
     /// <summary>
-    /// Creates Cosmos DB client options with properly configured authentication.
+    /// Creates Cosmos DB client options with Azure credentials and authentication scope.
     /// </summary>
-    /// <param name="credentialProvider">Provider for token-based authentication.</param>
-    /// <param name="providerOptions">Configuration options for Cosmos DB.</param>
-    /// <returns>Fully configured Cosmos DB client options.</returns>
-    /// <remarks>Initializes an access token with proper scope formatting for Cosmos DB.</remarks>
+    /// <param name="credentialProvider">Provider for Azure credentials.</param>
+    /// <param name="providerOptions">Cosmos DB configuration options.</param>
+    /// <returns>Configured Cosmos DB client options.</returns>
     private static CosmosClientOptions GetCosmosClientOptions(
         ICredentialProvider<TokenCredential> credentialProvider,
         CosmosDataProviderOptions providerOptions)
     {
-        // Get the token credential and initialize
+        // Get Azure credentials and configure authentication scope
         var tokenCredential = credentialProvider.GetCredential();
 
-        // Format the scope
+        // Build authentication scope from endpoint URI
         var uri = new Uri(providerOptions.EndpointUri);
 
         var scope = new UriBuilder(
@@ -129,7 +125,7 @@ public static class CosmosDataProvidersExtensions
         var tokenRequestContext = new TokenRequestContext(
             scopes: [scope]);
 
-        // Warm-up this token
+        // Pre-authenticate to verify credentials
         tokenCredential.GetToken(tokenRequestContext, default);
 
         return new CosmosClientOptions(
@@ -144,9 +140,8 @@ public static class CosmosDataProvidersExtensions
     #region DataProviderOptions
 
     /// <summary>
-    /// Implementation of <see cref="IDataProviderOptions"/> for configuring Cosmos DB providers.
+    /// Handles registration of Cosmos DB data providers with type-to-container mapping.
     /// </summary>
-    /// <remarks>Provides type-to-container mapping and data provider registration.</remarks>
     private class DataProviderOptions(
         IServiceCollection services,
         ILogger bootstrapLogger,
@@ -157,28 +152,24 @@ public static class CosmosDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Registers a data provider for a specific item type with container mapping.
+        /// Registers a Cosmos DB data provider for the specified entity type.
         /// </summary>
-        /// <typeparam name="TInterface">Interface type for the items.</typeparam>
-        /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
-        /// <param name="typeName">Type name to map to a container.</param>
-        /// <param name="itemValidator">Optional validator for items.</param>
-        /// <param name="commandOperations">Operations allowed for this provider.</param>
+        /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+        /// <param name="typeName">Type name identifier that maps to a Cosmos DB container.</param>
+        /// <param name="itemValidator">Optional validator for entity validation.</param>
+        /// <param name="commandOperations">Optional CRUD operations to enable.</param>
         /// <returns>The options instance for method chaining.</returns>
-        /// <exception cref="ArgumentException">When no container is configured for the specified type name.</exception>
-        /// <exception cref="InvalidOperationException">When a data provider for the interface is already registered.</exception>
-        /// <remarks>Maps a logical entity type with its physical storage location.</remarks>
-        public IDataProviderOptions Add<TInterface, TItem>(
+        /// <exception cref="ArgumentException">Thrown when no container is configured for the type name.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a provider for this type is already registered.</exception>
+        public IDataProviderOptions Add<TItem>(
             string typeName,
             IValidator<TItem>? itemValidator = null,
             CommandOperations? commandOperations = null)
-            where TInterface : class, IBaseItem
-            where TItem : BaseItem, TInterface, new()
+            where TItem : BaseItem, new()
         {
-            // Get the container for the specified item type
+            // Look up container configuration for the specified type
             var containerConfiguration = providerOptions.GetContainerConfiguration(typeName);
 
-            // If the container is not found, then throw an exception
             if (containerConfiguration is null)
             {
                 throw new ArgumentException(
@@ -186,38 +177,35 @@ public static class CosmosDataProvidersExtensions
                     nameof(typeName));
             }
 
-            // If the data provider is already registered, then throw an exception
-            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TInterface>)))
+            if (services.Any(sd => sd.ServiceType == typeof(IDataProvider<TItem>)))
             {
                 throw new InvalidOperationException(
-                    $"The DataProvider<{typeof(TInterface).Name}> is already registered.");
+                    $"The DataProvider<{typeof(TItem).Name}> is already registered.");
             }
 
-            // Create the data provider and inject
-            var dataProvider = providerFactory.Create<TInterface, TItem>(
-                containerId: containerConfiguration.ContainerId,
+            // Create data provider instance using factory and container configuration
+            var dataProvider = providerFactory.Create(
                 typeName: typeName,
+                containerId: containerConfiguration.ContainerId,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: containerConfiguration.EventTimeToLive,
-                blockCipherService: containerConfiguration.BlockCipherService);
+                blockCipherService: containerConfiguration.BlockCipherService,
+                logger: bootstrapLogger);
 
-            // Register the data provider
             services.AddSingleton(dataProvider);
 
-            // Prepare logging parameters to record the registration.
             object[] args =
             [
-                typeof(TInterface), // TInterface,
                 typeof(TItem), // TItem,
                 providerOptions.EndpointUri, // account
                 providerOptions.DatabaseId, // database,
                 containerConfiguration.ContainerId, // container
             ];
 
-            // Log - the :l format parameter (l = literal) to avoid the quotes
+            // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added CosmosDataProvider<{TInterface:l}, {TItem:l}>: endpointUri = '{endpointUri:l}', databaseId = '{databaseId:l}', containerId = '{containerId:l}'.",
+                message: "Added CosmosDataProvider<{TItem:l}>: endpointUri = '{endpointUri:l}', databaseId = '{databaseId:l}', containerId = '{containerId:l}'.",
                 args: args);
 
             return this;
@@ -231,12 +219,12 @@ public static class CosmosDataProvidersExtensions
     #region Configuration Records
 
     /// <summary>
-    /// Container configuration mapping type names to container IDs.
+    /// Configuration mapping a type name to its Cosmos DB container and settings.
     /// </summary>
-    /// <param name="TypeName">The type name used for filtering items.</param>
-    /// <param name="ContainerId">The container ID in Cosmos DB.</param>
-    /// <param name="EventTimeToLive">Optional time-to-live for events in the container.</param>
-    /// <param name="BlockCipherService">Optional block cipher service for the container.</param>
+    /// <param name="TypeName">The logical type name identifier.</param>
+    /// <param name="ContainerId">The physical Cosmos DB container identifier.</param>
+    /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
+    /// <param name="BlockCipherService">Optional encryption service for the container.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
@@ -248,20 +236,17 @@ public static class CosmosDataProvidersExtensions
     #region Provider Options
 
     /// <summary>
-    /// Runtime options for Cosmos DB data providers.
+    /// Configuration options for Cosmos DB data providers with type-to-container mappings.
     /// </summary>
-    /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
-    /// <param name="databaseId">The database ID.</param>
-    /// <remarks>Provides validated, parsed configuration with container-to-type mappings.</remarks>
+    /// <param name="endpointUri">Cosmos DB account endpoint URI.</param>
+    /// <param name="databaseId">Cosmos DB database identifier.</param>
     private class CosmosDataProviderOptions(
         string endpointUri,
         string databaseId)
     {
         #region Private Fields
 
-        /// <summary>
-        /// The mappings from type names to container configurations.
-        /// </summary>
+        // Dictionary mapping type names to their container configurations
         private readonly Dictionary<string, ContainerConfiguration> _containerConfigurationsByTypeName = [];
 
         #endregion
@@ -269,33 +254,30 @@ public static class CosmosDataProvidersExtensions
         #region Public Static Methods
 
         /// <summary>
-        /// Parses configuration into a validated options object.
+        /// Parses configuration arrays into validated provider options.
         /// </summary>
-        /// <param name="endpointUri">The Cosmos DB account endpoint URI.</param>
-        /// <param name="databaseId">The database ID.</param>
-        /// <param name="containerConfigurations">Array of container configurations.</param>
-        /// <returns>Validated options with type-to-container mappings.</returns>
-        /// <exception cref="AggregateException">When configuration contains duplicate type mappings.</exception>
-        /// <remarks>Validates that no type name is mapped to multiple containers.</remarks>
+        /// <param name="endpointUri">Cosmos DB account endpoint URI.</param>
+        /// <param name="databaseId">Cosmos DB database identifier.</param>
+        /// <param name="containerConfigurations">Array of container configurations to validate.</param>
+        /// <returns>Validated provider options with type-to-container mappings.</returns>
+        /// <exception cref="AggregateException">Thrown when configuration contains duplicate type mappings.</exception>
         public static CosmosDataProviderOptions Parse(
             string endpointUri,
             string databaseId,
             ContainerConfiguration[] containerConfigurations)
         {
-            // Get the tenant, endpoint, and database
             var providerOptions = new CosmosDataProviderOptions(
                 endpointUri: endpointUri,
                 databaseId: databaseId);
 
-            // Group the containers by item type
+            // Group configurations by type name to detect duplicates
             var groups = containerConfigurations
                 .GroupBy(o => o.TypeName)
                 .ToArray();
 
-            // Any exceptions
+            // Validate configuration for duplicate type mappings
             var exs = new List<ConfigurationErrorsException>();
 
-            // Enumerate each group - should be one
             Array.ForEach(groups, group =>
             {
                 if (group.Count() <= 1) return;
@@ -303,21 +285,18 @@ public static class CosmosDataProvidersExtensions
                 exs.Add(new ConfigurationErrorsException($"A Container for TypeName '{group.Key} is specified more than once."));
             });
 
-            // If there are any exceptions, then throw an aggregate exception of all exceptions
+            // Throw aggregate exception if validation errors found
             if (exs.Count > 0)
             {
                 throw new AggregateException(exs);
             }
 
-            // After validating that no type name is mapped to multiple containers,
-            // populate the dictionary that maps each type name to its corresponding container configuration.
+            // Build type-to-container mapping dictionary
             Array.ForEach(groups, group =>
             {
-                // Extract the single container configuration for this type name and add it to the lookup dictionary.
                 providerOptions._containerConfigurationsByTypeName[group.Key] = group.Single();
             });
 
-            // Return the fully initialized and validated options object for use in creating providers.
             return providerOptions;
         }
 
@@ -326,7 +305,7 @@ public static class CosmosDataProvidersExtensions
         #region Public Properties
 
         /// <summary>
-        /// Gets the database ID.
+        /// Gets the Cosmos DB database identifier.
         /// </summary>
         public string DatabaseId => databaseId;
 
@@ -340,26 +319,24 @@ public static class CosmosDataProvidersExtensions
         #region Public Methods
 
         /// <summary>
-        /// Gets the container configuration for a specified type name.
+        /// Retrieves container configuration for a specified type name.
         /// </summary>
-        /// <param name="typeName">The type name to look up.</param>
-        /// <returns>The container configuration if found, or <see langword="null"/> if no mapping exists.</returns>
+        /// <param name="typeName">Type name to look up.</param>
+        /// <returns>Container configuration if found, null otherwise.</returns>
         public ContainerConfiguration? GetContainerConfiguration(
             string typeName)
         {
-            // Try to find the container ID corresponding to the provided type name in our lookup dictionary.
             return _containerConfigurationsByTypeName.TryGetValue(typeName, out var containerConfiguration)
                 ? containerConfiguration
                 : null;
         }
 
         /// <summary>
-        /// Gets all configured container IDs.
+        /// Gets all configured Cosmos DB container identifiers.
         /// </summary>
-        /// <returns>Array of distinct container IDs sorted alphabetically.</returns>
+        /// <returns>Sorted array of unique container identifiers.</returns>
         public string[] GetContainerIds()
         {
-            // Extract all container IDs from the dictionary's values, ensuring no duplicates.
             return _containerConfigurationsByTypeName
                 .Select(c => c.Value.ContainerId)
                 .OrderBy(containerId => containerId)

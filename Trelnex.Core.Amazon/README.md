@@ -23,7 +23,7 @@ Trelnex.Core.Amazon bridges the gap between the Trelnex framework and AWS servic
 
 ## DataProviders
 
-The library includes data providers for AWS data services that implement the `IDataProvider` interface from Trelnex.Core.Data.
+The library includes data providers for AWS data services that implement the `IDataProvider<TItem>` interface from Trelnex.Core.Data.
 
 ### DynamoDataProvider - DynamoDB
 
@@ -66,9 +66,9 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
         this IDataProviderOptions options)
     {
         return options
-            .Add<IUser, User>(
+            .Add<User>(
                 typeName: "user",
-                validator: User.Validator,
+                itemValidator: User.Validator,
                 commandOperations: CommandOperations.All);
     }
 ```
@@ -124,7 +124,7 @@ The `QueryHelper<T>` class provides LINQ to DynamoDB expression translation:
 // Build a strongly-typed LINQ query
 var query = items.AsQueryable()
     .Where(x => x.Status == "Active" && x.Count > 10)
-    .OrderByDescending(x => x.CreatedDate);
+    .OrderByDescending(x => x.CreatedDateTimeOffset);
 
 // Translate to DynamoDB expressions
 var queryHelper = QueryHelper<Item>.FromLinqExpression(query.Expression);
@@ -183,9 +183,9 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
         this IDataProviderOptions options)
     {
         return options
-            .Add<IUser, User>(
+            .Add<User>(
                 typeName: "user",
-                validator: User.Validator,
+                itemValidator: User.Validator,
                 commandOperations: CommandOperations.All);
     }
 ```
@@ -419,9 +419,8 @@ Add Amazon Identity to your service collection:
 Register clients that require access tokens:
 
 ```csharp
-    // Get the credential provider and access token provider
-    services.AddClient<IUsersClient, UsersClient>(
-        configuration: configuration);
+    // Example of registering a client that uses access tokens
+    services.AddScoped<IUsersClient, UsersClient>();
 ```
 
 ### IAccessTokenProvider - Usage
@@ -429,19 +428,23 @@ Register clients that require access tokens:
 Use the token provider in your HTTP clients:
 
 ```csharp
+using System.Net.Http.Headers;
+
 internal class UsersClient(
     HttpClient httpClient,
-    IAccessTokenProvider<UsersClient> tokenProvider)
+    ICredentialProvider<AWSCredentials> credentialProvider)
     : BaseClient(httpClient), IUsersClient
 {
     public async Task<UserResponse> GetUserAsync(string userId)
     {
-        // Get the authorization header from the token provider
-        var authorizationHeader = tokenProvider.GetAccessToken().GetAuthorizationHeader();
+        // Get access token provider from credential provider
+        var tokenProvider = credentialProvider.GetAccessTokenProvider("api:read");
+        var accessToken = tokenProvider.GetAccessToken();
+        var authorizationHeader = accessToken.GetAuthorizationHeader();
 
         // Add the authorization header to the request
         using var request = new HttpRequestMessage(HttpMethod.Get, $"users/{userId}");
-        request.Headers.Authorization = authorizationHeader;
+        request.Headers.Authorization = AuthenticationHeaderValue.Parse(authorizationHeader);
 
         // Send the request
         using var response = await httpClient.SendAsync(request);
@@ -479,20 +482,16 @@ Trelnex.Core.Amazon provides AWS-specific observability features for tracing and
 The library integrates with AWS X-Ray for distributed tracing:
 
 ```csharp
-// Add X-Ray tracing to your application
-services.AddAmazonObservability(configuration);
+// Add AWS instrumentation to OpenTelemetry (automatically included with AddAmazonIdentity)
+services.AddAmazonIdentity(configuration, bootstrapLogger);
 ```
 
-This enables tracing of AWS service calls, including:
+This enables tracing of AWS service calls through OpenTelemetry instrumentation, including:
 - DynamoDB operations
 - RDS PostgreSQL queries
 - AWS credential and token operations
 - HTTP requests to AWS services
 
-Traced operations include:
-- Start/end timestamps
-- Operation metadata
-- Error information
-- Dependencies and downstream calls
+Note: AWS instrumentation is automatically registered when you call `AddAmazonIdentity()` and does not need to be configured separately.
 
 </details>

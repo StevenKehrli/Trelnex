@@ -40,11 +40,11 @@ public class InMemoryDataProviderExtensionsTests
                 configuration,
                 bootstrapLogger,
                 options => options
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
                         itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
                         itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));

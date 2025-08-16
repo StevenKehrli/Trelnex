@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "ee286bd7-a9cb-4f4b-b1c8-fcde7fb5d864",
-      "PartitionKey": "9b4a6004-f29d-4490-ba25-daf1bc2a11e0",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:53.624258+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:53.624258+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "\"02000d26-0000-0300-0000-6899152d0000\"",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "8171765b-7492-49fa-a287-6b807eca2fbf",
+      "PartitionKey": "28c7ca98-a9c3-4439-9a58-dfc47edc66ec",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:24:49.818546+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:24:49.818546+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "\"04003e74-0000-0300-0000-68a0f7210000\""
     }
   },
   {
     "Item": {
-      "Id": "f2b07f05-f3d4-4977-b039-9c00d0851676",
-      "PartitionKey": "9e0f290c-d090-43dd-85b6-d9bb344a92ea",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:53.562756+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:53.562756+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "\"02000b26-0000-0300-0000-6899152d0000\"",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "d60a4e73-6806-478a-88c2-048a9ea561b4",
+      "PartitionKey": "5372577f-3c13-4af1-9f07-59748ec4e965",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:24:49.754644+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:24:49.754644+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "\"04003c74-0000-0300-0000-68a0f7210000\""
     }
   }
 ]

@@ -3,29 +3,22 @@ using FluentValidation;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Configuration builder for data providers.
+/// Defines operations for configuring data provider entity registrations.
 /// </summary>
-/// <remarks>
-/// Provides fluent API for configuring data operations and entity type registrations.
-/// </remarks>
 public interface IDataProviderOptions
 {
     /// <summary>
-    /// Registers a data provider for an entity type with validation and operation constraints.
+    /// Registers an entity type with the data provider configuration.
     /// </summary>
-    /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-    /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
-    /// <param name="typeName">Unique identifier for the entity type.</param>
-    /// <param name="itemValidator">Optional FluentValidation validator for the entity. If null, no validation is performed.</param>
-    /// <param name="commandOperations">Permitted CRUD operations for this entity. Defaults to Update operations only if not specified.</param>
-    /// <returns>The current options instance to enable method chaining.</returns>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the type name has invalid format, is null/empty, or conflicts with reserved names.
-    /// </exception>
-    IDataProviderOptions Add<TInterface, TItem>(
+    /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+    /// <param name="typeName">Unique string identifier for the entity type.</param>
+    /// <param name="itemValidator">Optional validator for the entity, or null for no validation.</param>
+    /// <param name="commandOperations">Allowed CRUD operations for this entity, or null for default operations.</param>
+    /// <returns>The same options instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when the type name is invalid or conflicts with existing registrations.</exception>
+    IDataProviderOptions Add<TItem>(
         string typeName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new();
+        where TItem : BaseItem, new();
 }

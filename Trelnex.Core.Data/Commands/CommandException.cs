@@ -3,14 +3,11 @@ using System.Net;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Exception for command execution errors.
+/// Represents an exception that occurs during command execution with an associated HTTP status code.
 /// </summary>
-/// <remarks>
-/// Provides command exceptions with HTTP status codes.
-/// </remarks>
-/// <param name="httpStatusCode">HTTP status code for this exception.</param>
-/// <param name="message">Optional error message.</param>
-/// <param name="innerException">Optional inner exception.</param>
+/// <param name="httpStatusCode">The HTTP status code that describes the error.</param>
+/// <param name="message">Optional error message describing the exception.</param>
+/// <param name="innerException">Optional inner exception that caused this exception.</param>
 public class CommandException(
     HttpStatusCode httpStatusCode,
     string? message = null,

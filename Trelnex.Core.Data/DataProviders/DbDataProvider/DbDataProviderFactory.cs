@@ -9,6 +9,7 @@ using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data;
@@ -16,17 +17,11 @@ namespace Trelnex.Core.Data;
 /// <summary>
 /// Abstract base factory for creating database-backed data providers using LinqToDB.
 /// </summary>
-/// <remarks>
-/// Provides common infrastructure for database connectivity, schema validation, and entity mapping
-/// with support for JSON serialization and optional field encryption.
-/// </remarks>
 public abstract class DbDataProviderFactory : IDataProviderFactory
 {
     #region Static Fields
 
-    /// <summary>
-    /// JSON serializer options.
-    /// </summary>
+    // JSON serializer configuration for complex property mapping
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -37,14 +32,10 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
 
     #region Private Fields
 
-    /// <summary>
-    /// Connection options.
-    /// </summary>
+    // LinqToDB configuration for database connections
     private readonly DataOptions _dataOptions;
 
-    /// <summary>
-    /// Table names associated with this factory.
-    /// </summary>
+    // Names of tables this factory manages
     private readonly string[] _tableNames;
 
     #endregion
@@ -52,19 +43,18 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the database data provider factory.
+    /// Initializes a new database data provider factory with connection options and table names.
     /// </summary>
     /// <param name="dataOptions">LinqToDB connection and configuration options.</param>
-    /// <param name="tableNames">Array of table names that this factory will manage and validate.</param>
+    /// <param name="tableNames">Array of table names that this factory manages.</param>
     protected DbDataProviderFactory(
         DataOptions dataOptions,
         string[] tableNames)
     {
-        // Clone the data options and configure the connection opening event
+        // Configure data options with connection opening callback
         _dataOptions = CloneDataOptions(dataOptions)
             .UseBeforeConnectionOpened(BeforeConnectionOpened);
 
-        // Assign the table names
         _tableNames = tableNames;
     }
 
@@ -73,7 +63,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     #region Protected Properties
 
     /// <summary>
-    /// Gets the SQL query string used to retrieve database version information for health checks.
+    /// Gets the SQL query used to retrieve database version information.
     /// </summary>
     protected abstract string VersionQueryString { get; }
 
@@ -82,25 +72,25 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     #region Public Methods
 
     /// <inheritdoc/>
-    public IDataProvider<TInterface> Create<TInterface, TItem>(
-        string tableName,
+    public IDataProvider<TItem> Create<TItem>(
         string typeName,
+        string tableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null,
-        IBlockCipherService? blockCipherService = null)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new()
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
+        where TItem : BaseItem, new()
     {
-        // Build the mapping schema
+        // Create mapping schema for entity-to-table mapping
         var mappingSchema = new MappingSchema();
 
-        // Add the metadata reader to handle JSON property name attributes
+        // Configure metadata reader to use JSON property names as column names
         mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
 
         var fmBuilder = new FluentMappingBuilder(mappingSchema);
 
-        // Map the item to its table ("<tableName>")
+        // Configure item table mapping
         var builder = fmBuilder.Entity<TItem>()
             .HasTableName(tableName);
 
@@ -108,9 +98,9 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             .Property(item => item.Id).IsPrimaryKey()
             .Property(item => item.PartitionKey).IsPrimaryKey();
 
-        MapItemProperties<TInterface, TItem>(builder, blockCipherService);
+        MapItemProperties(builder, blockCipherService);
 
-        // Map the event to its table ("<tableName>-events")
+        // Configure events table mapping
         var eventsTableName = GetEventsTableName(tableName);
         fmBuilder.Entity<ItemEventWithExpiration>()
             .HasTableName(eventsTableName)
@@ -122,18 +112,19 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
 
         fmBuilder.Build();
 
-        // Configure the data options with the mapping schema
+        // Create data options with configured mapping schema
         var dataProviderDataOptions = CloneDataOptions(_dataOptions)
             .UseBeforeConnectionOpened(BeforeConnectionOpened)
             .UseMappingSchema(mappingSchema);
 
-        // Create the specific data provider implementation
-        return CreateDataProvider<TInterface, TItem>(
-            dataOptions: dataProviderDataOptions,
+        // Create concrete data provider implementation
+        return CreateDataProvider<TItem>(
             typeName: typeName,
+            dataOptions: dataProviderDataOptions,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
-            eventTimeToLive: eventTimeToLive);
+            eventTimeToLive: eventTimeToLive,
+            logger: logger);
     }
 
     /// <inheritdoc/>
@@ -141,7 +132,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     public async Task<DataProviderFactoryStatus> GetStatusAsync(
         CancellationToken cancellationToken = default)
     {
-        // Create a copy of the status data to avoid modification of the original
+        // Get base status information from derived class
         var statusData = GetStatusData();
         var data = new Dictionary<string, object>(statusData);
 
@@ -149,31 +140,31 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         {
             using var dataConnection = new DataConnection(_dataOptions);
 
-            // Get the multi-line version string from the database
+            // Query database version information
             var version = dataConnection.Query<string>(VersionQueryString);
 
-            // Split the version into each line, cleaning up whitespace
+            // Parse version string into array of lines
             var versionArray = version
                 .FirstOrDefault()?
                 .Split(['\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim())
                 .ToArray();
 
-            // Get the database schema for table validation
+            // Get database schema for table validation
             var schemaProvider = dataConnection.DataProvider.GetSchemaProvider();
             var databaseSchema = schemaProvider.GetSchema(dataConnection);
 
-            // Check for any tables missing from the database schema
+            // Check for missing tables
             var missingTableNames = new List<string>();
             foreach (var tableName in _tableNames.OrderBy(tableName => tableName))
             {
-                // Check main table existence
+                // Verify main table exists
                 if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == tableName) is false)
                 {
                     missingTableNames.Add(tableName);
                 }
 
-                // Check events table existence
+                // Verify events table exists
                 var eventsTableName = GetEventsTableName(tableName);
                 if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == eventsTableName) is false)
                 {
@@ -181,13 +172,13 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
                 }
             }
 
-            // Include version information if available
+            // Add version information if available
             if (versionArray is not null)
             {
                 data["version"] = versionArray;
             }
 
-            // Include error information if any tables are missing
+            // Add error information if tables are missing
             if (missingTableNames.Count > 0)
             {
                 data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
@@ -201,7 +192,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         }
         catch (Exception ex)
         {
-            // Record the exception message in status data
+            // Add exception information to status
             data["error"] = ex.Message;
 
             return new DataProviderFactoryStatus(
@@ -216,43 +207,36 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     #region Protected Methods
 
     /// <summary>
-    /// Configures the database connection before it is opened.
+    /// Configures database connection before opening.
     /// </summary>
-    /// <param name="dbConnection">The database connection to configure with provider-specific settings.</param>
-    /// <remarks>
-    /// Override this method to set connection-specific properties like timeouts, encryption, or other provider options.
-    /// </remarks>
+    /// <param name="dbConnection">Database connection to configure.</param>
     protected abstract void BeforeConnectionOpened(
         DbConnection dbConnection);
 
     /// <summary>
-    /// Creates the concrete data provider implementation for the specified entity type.
+    /// Creates a concrete data provider implementation for the specified item type.
     /// </summary>
-    /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-    /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
-    /// <param name="dataOptions">Configured LinqToDB connection options with mapping schema.</param>
+    /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
     /// <param name="typeName">Type name identifier for the entity.</param>
-    /// <param name="itemValidator">Optional validator for domain-specific validation rules.</param>
-    /// <param name="commandOperations">Permitted CRUD operations for this provider.</param>
-    /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-    /// <returns>A database-specific data provider implementation.</returns>
-    protected abstract IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
-        DataOptions dataOptions,
+    /// <param name="dataOptions">Configured LinqToDB connection options.</param>
+    /// <param name="itemValidator">Optional validator for domain-specific rules.</param>
+    /// <param name="commandOperations">Allowed CRUD operations for this provider.</param>
+    /// <param name="eventTimeToLive">Optional time-to-live for events in seconds.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <returns>Database-specific data provider implementation.</returns>
+    protected abstract IDataProvider<TItem> CreateDataProvider<TItem>(
         string typeName,
+        DataOptions dataOptions,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
-        int? eventTimeToLive = null)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new();
+        int? eventTimeToLive = null,
+        ILogger? logger = null)
+        where TItem : BaseItem, new();
 
     /// <summary>
     /// Provides database-specific status information for health monitoring.
     /// </summary>
-    /// <returns>A dictionary containing provider-specific diagnostic information.</returns>
-    /// <remarks>
-    /// Override this method to include database-specific metadata like connection string info,
-    /// provider version, or other relevant diagnostic data.
-    /// </remarks>
+    /// <returns>Dictionary containing provider-specific diagnostic information.</returns>
     protected abstract IReadOnlyDictionary<string, object> GetStatusData();
 
     #endregion
@@ -260,10 +244,10 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     #region Private Static Methods
 
     /// <summary>
-    /// Creates a deep copy of LinqToDB DataOptions for isolated configuration.
+    /// Creates a deep copy of DataOptions for isolated configuration.
     /// </summary>
-    /// <param name="dataOptions">The source DataOptions to clone.</param>
-    /// <returns>A new DataOptions instance with identical configuration.</returns>
+    /// <param name="dataOptions">Source DataOptions to clone.</param>
+    /// <returns>New DataOptions instance with identical configuration.</returns>
     private static DataOptions CloneDataOptions(
         DataOptions dataOptions)
     {
@@ -271,10 +255,10 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     }
 
     /// <summary>
-    /// Generates the events table name by appending '-events' suffix to the item table name.
+    /// Generates events table name by appending '-events' to the item table name.
     /// </summary>
-    /// <param name="tableName">The table name for items.</param>
-    /// <returns>The corresponding events table name for audit trail storage.</returns>
+    /// <param name="tableName">Item table name.</param>
+    /// <returns>Corresponding events table name.</returns>
     private static string GetEventsTableName(
         string tableName)
     {
@@ -282,35 +266,32 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     }
 
     /// <summary>
-    /// Configures LinqToDB entity mapping for all properties of the item type using reflection.
+    /// Configures LinqToDB entity mapping for all properties of the item type.
     /// </summary>
-    /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-    /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
-    /// <param name="builder">The LinqToDB entity mapping builder.</param>
-    /// <param name="blockCipherService">Optional block cipher service for sensitive properties.</param>
-    private static void MapItemProperties<TInterface, TItem>(
+    /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+    /// <param name="builder">LinqToDB entity mapping builder.</param>
+    /// <param name="blockCipherService">Optional encryption service for sensitive properties.</param>
+    private static void MapItemProperties<TItem>(
         EntityMappingBuilder<TItem> builder,
         IBlockCipherService? blockCipherService)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new()
+        where TItem : BaseItem, new()
     {
-        // Get all public instance properties of the item type
+        // Get all public properties of the item type
         var itemProperties = typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-        // Iterate through each property
+        // Configure mapping for each property
         foreach (var itemProperty in itemProperties)
         {
-            // Get the MapItemProperty method using reflection
+            // Use reflection to invoke generic MapItemProperty method
             var mapItemPropertyMethod = typeof(DbDataProviderFactory)
                 .GetMethod(
                     name: nameof(MapItemProperty),
                     bindingAttr: BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(
-                    typeof(TInterface),
                     typeof(TItem),
                     itemProperty.PropertyType);
 
-            // Invoke the MapItemProperty method for the current property
+            // Configure mapping for this property
             mapItemPropertyMethod.Invoke(
                 null,
                 [builder, itemProperty, blockCipherService]);
@@ -318,50 +299,42 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     }
 
     /// <summary>
-    /// Configures LinqToDB mapping for a single property with appropriate conversion handling.
+    /// Configures LinqToDB mapping for a single property with appropriate conversion.
     /// </summary>
-    /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-    /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
-    /// <typeparam name="TProperty">The property type being mapped.</typeparam>
-    /// <param name="builder">The LinqToDB entity mapping builder.</param>
-    /// <param name="propertyInfo">Reflection information about the property being mapped.</param>
-    /// <param name="blockCipherService">Optional block cipher service for properties marked with EncryptAttribute.</param>
-    /// <remarks>
-    /// Handles three mapping scenarios: encrypted properties, complex types requiring JSON serialization,
-    /// and simple types mapped directly to database columns.
-    /// </remarks>
-    private static void MapItemProperty<TInterface, TItem, TProperty>(
+    /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+    /// <typeparam name="TProperty">Property type being mapped.</typeparam>
+    /// <param name="builder">LinqToDB entity mapping builder.</param>
+    /// <param name="propertyInfo">Property reflection information.</param>
+    /// <param name="blockCipherService">Optional encryption service for encrypted properties.</param>
+    private static void MapItemProperty<TItem, TProperty>(
         EntityMappingBuilder<TItem> builder,
         PropertyInfo propertyInfo,
         IBlockCipherService? blockCipherService)
-        where TInterface : class, IBaseItem
-        where TItem : BaseItem, TInterface, new()
+        where TItem : BaseItem, new()
     {
-        // Skip properties without JsonPropertyNameAttribute
+        // Skip properties without JSON mapping attributes
         if (propertyInfo.GetCustomAttribute<JsonPropertyNameAttribute>() is null) return;
 
-        // Skip properties with JsonIgnoreAttribute
+        // Skip properties marked to be ignored
         if (propertyInfo.GetCustomAttribute<JsonIgnoreAttribute>() is not null) return;
 
-        // Create an expression to access the property
+        // Create expression to access the property
         var parameter = Expression.Parameter(typeof(TItem));
         var property = Expression.Property(parameter, propertyInfo.Name);
         var lambda = Expression.Lambda<Func<TItem, TProperty>>(property, parameter);
 
-        // If block cipher service is available and the property should be encrypted
+        // Configure encryption conversion if needed
         if (blockCipherService is not null && IsEncryptProperty(propertyInfo))
         {
-            // Configure the property to use encryption and decryption converters
             builder
                 .Property(lambda)
                 .HasConversion(
                     toProvider: value => EncryptedJsonService.EncryptToBase64(value, blockCipherService),
                     toModel: encryptedJson => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedJson, blockCipherService)!);
         }
-        // If the property is a complex type
+        // Configure JSON conversion for complex types
         else if (IsComplexProperty(propertyInfo))
         {
-            // Configure the property to use JSON serialization and deserialization converters
             builder
                 .Property(lambda)
                 .HasConversion(
@@ -371,36 +344,31 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     }
 
     /// <summary>
-    /// Determines whether a property represents a complex type requiring JSON serialization.
+    /// Determines if a property is a complex type requiring JSON serialization.
     /// </summary>
-    /// <param name="propertyInfo">The property to analyze.</param>
-    /// <returns>True if the property is a complex type that needs JSON conversion; otherwise, false.</returns>
-    /// <remarks>
-    /// Uses System.Text.Json type information to determine if a property is a simple type
-    /// that can be directly mapped to a database column or requires JSON serialization.
-    /// </remarks>
+    /// <param name="propertyInfo">Property to analyze.</param>
+    /// <returns>True if the property needs JSON conversion.</returns>
     private static bool IsComplexProperty(
         PropertyInfo propertyInfo)
     {
-        // Get the underlying type if the property is nullable; otherwise, get the property type
+        // Get underlying type for nullable properties
         var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
 
-        // Create JSON type information for the property type
+        // Check if type requires complex JSON handling
         var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(propertyType, _jsonSerializerOptions);
 
-        // Return true if the property is a complex type; otherwise, false
         return jsonTypeInfo?.Kind != JsonTypeInfoKind.None;
     }
 
     /// <summary>
-    /// Determines whether a property should be encrypted based on the presence of EncryptAttribute.
+    /// Determines if a property should be encrypted based on EncryptAttribute.
     /// </summary>
-    /// <param name="propertyInfo">The property to check for encryption requirements.</param>
-    /// <returns>True if the property has EncryptAttribute and should be encrypted; otherwise, false.</returns>
+    /// <param name="propertyInfo">Property to check for encryption requirements.</param>
+    /// <returns>True if the property should be encrypted.</returns>
     private static bool IsEncryptProperty(
         PropertyInfo propertyInfo)
     {
-        // Check if the property has the EncryptAttribute
+        // Check for EncryptAttribute presence
         return propertyInfo.GetCustomAttribute<EncryptAttribute>() is not null;
     }
 

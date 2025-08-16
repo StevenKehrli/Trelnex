@@ -1,28 +1,36 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
 using LinqToDB;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using Trelnex.Core.Data;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// PostgreSQL implementation of <see cref="DbDataProvider{TInterface, TItem}"/>.
+/// PostgreSQL implementation of database data provider with PostgreSQL-specific error handling.
 /// </summary>
-/// <param name="dataOptions">The data connection options for PostgreSQL.</param>
-/// <param name="typeName">The type name used to filter items.</param>
-/// <param name="itemValidator">Optional validator for items before they are saved.</param>
-/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
-/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-internal partial class PostgresDataProvider<TInterface, TItem>(
-    DataOptions dataOptions,
+/// <param name="dataOptions">LinqToDB connection options for PostgreSQL.</param>
+/// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemValidator">Optional validator for items before saving.</param>
+/// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+/// <param name="logger">Optional logger for diagnostics.</param>
+internal partial class PostgresDataProvider<TItem>(
     string typeName,
+    DataOptions dataOptions,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
-    int? eventTimeToLive = null)
-    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, itemValidator, commandOperations, eventTimeToLive)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+    int? eventTimeToLive = null,
+    ILogger? logger = null)
+    : DbDataProvider<TItem>(
+        typeName: typeName,
+        dataOptions: dataOptions,
+        itemValidator: itemValidator,
+        commandOperations: commandOperations,
+        eventTimeToLive: eventTimeToLive,
+        logger: logger)
+    where TItem : BaseItem, new()
 {
     #region Protected Methods
 
@@ -52,16 +60,16 @@ internal partial class PostgresDataProvider<TInterface, TItem>(
     #region Private Static Methods
 
     /// <summary>
-    /// Regular expression to identify primary key violation errors.
+    /// Gets regex pattern for detecting PostgreSQL primary key violation errors.
     /// </summary>
-    /// <returns>Compiled regular expression pattern.</returns>
+    /// <returns>Compiled regex for matching duplicate key constraint violations.</returns>
     [GeneratedRegex(@"^\d{5}: duplicate key value violates unique constraint")]
     private static partial Regex PrimaryKeyViolationRegex();
 
     /// <summary>
-    /// Regular expression to identify precondition failed errors.
+    /// Gets regex pattern for detecting PostgreSQL precondition failed errors.
     /// </summary>
-    /// <returns>Compiled regular expression pattern.</returns>
+    /// <returns>Compiled regex for matching precondition failed messages.</returns>
     [GeneratedRegex(@"^\d{5}: Precondition Failed.$")]
     private static partial Regex PreconditionFailedRegex();
 

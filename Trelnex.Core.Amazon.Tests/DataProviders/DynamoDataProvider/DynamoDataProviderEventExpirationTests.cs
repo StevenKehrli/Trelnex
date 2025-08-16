@@ -35,9 +35,9 @@ public class DynamoDataProviderEventExpirationTests : DynamoDataProviderEventTes
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
 
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _expirationTableName,
+        _dataProvider = factory.Create(
             typeName: "expiration-test-item",
+            tableName: _expirationTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);

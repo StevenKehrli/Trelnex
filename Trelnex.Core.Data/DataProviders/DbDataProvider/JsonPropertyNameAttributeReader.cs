@@ -6,12 +6,8 @@ using LinqToDB.Metadata;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// LinqToDB metadata reader that maps database columns using JsonPropertyNameAttribute values.
+/// LinqToDB metadata reader that uses JsonPropertyNameAttribute values to map database column names.
 /// </summary>
-/// <remarks>
-/// Enables entities with System.Text.Json serialization attributes to automatically map property names
-/// to database column names without requiring separate LinqToDB column attributes.
-/// </remarks>
 public class JsonPropertyNameAttributeReader : IMetadataReader
 {
     #region IMetadataReader Implementation
@@ -24,13 +20,13 @@ public class JsonPropertyNameAttributeReader : IMetadataReader
         Type type,
         MemberInfo memberInfo)
     {
-        // Check if the member has the JsonPropertyNameAttribute
+        // Look for JsonPropertyNameAttribute on the member
         var jsonPropertyNameAttribute = memberInfo.GetCustomAttribute<JsonPropertyNameAttribute>();
 
-        // If no JsonPropertyNameAttribute is found, return an empty array
+        // Return empty array if attribute not found
         if (jsonPropertyNameAttribute is null) return [];
 
-        // Create a ColumnAttribute with the name from JsonPropertyNameAttribute
+        // Create LinqToDB column attribute using the JSON property name
         var columnAttribute = new ColumnAttribute()
         {
             Name = jsonPropertyNameAttribute.Name,

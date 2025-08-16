@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "ab118ea8-ed37-468d-9456-fc709aacc966",
-      "PartitionKey": "cfb9bf9c-c1ed-454a-8ffe-ebed74f1ac5f",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:53:54.385444+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:53:54.385444+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "3c6c9d2c-3ee9-4dc3-9a99-3196780a9255",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "389387df-5ef5-4977-a131-c842ed61033f",
+      "PartitionKey": "10c3628f-4a80-4d09-8ec7-bb466417266a",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:34:23.198608+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:34:23.198608+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "bbf4e469-82a5-4c45-bb4d-89fe465df04d"
     }
   },
   {
     "Item": {
-      "Id": "372f1ad7-e19e-4b5f-82dc-e3c9dbb1d72f",
-      "PartitionKey": "4cc7e9e2-1bfa-4e21-b1a6-4b244289390c",
-      "TypeName": "encrypted-test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:53:54.45273+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:53:54.45273+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "8e4b174a-8b6d-492a-885d-4828806cfa32",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "731c6a1e-f704-42eb-8f7f-7cd1715515c8",
+      "PartitionKey": "59531335-a6fa-4454-b2a3-ca0c78dc6a52",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:34:23.409721+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:34:23.409721+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "0965fe79-248c-435a-a587-ce2b41c1499b"
     }
   }
 ]

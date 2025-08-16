@@ -3,18 +3,7 @@ using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data.Tests.Events;
 
-internal interface ITestItem : IBaseItem
-{
-    int PublicId { get; set; }
-
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-
-    string EncryptedMessage { get; set; }
-}
-
-internal record TestItem : BaseItem, ITestItem
+internal record TestItem : BaseItem
 {
     [Track]
     [JsonPropertyName("publicId")]
