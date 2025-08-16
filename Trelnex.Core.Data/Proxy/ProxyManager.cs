@@ -23,12 +23,12 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     #region Private Static Fields
 
     /// <summary>
-    /// Cached property getter methods.
+    /// Cached property setter methods.
     /// </summary>
     /// <remarks>
-    /// Used to determine if a method invocation is a property getter.
+    /// Used to determine if a method invocation is a property setter.
     /// </remarks>
-    private static readonly PropertyGetters<TItem> _propertyGetters = PropertyGetters<TItem>.Create();
+    private static readonly PropertySetters<TItem> _propertySetters = PropertySetters<TItem>.Create();
 
     #endregion
 
@@ -150,8 +150,8 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
         MethodInfo? targetMethod,
         object?[]? args)
     {
-        // For read-only items, we only allow property getter methods to be called
-        if (_isReadOnly && _propertyGetters.IsGetter(targetMethod) is false)
+        // For read-only items, we do not allow property setter methods to be called
+        if (_isReadOnly && _propertySetters.IsSetter(targetMethod))
         {
             throw new InvalidOperationException($"The '{typeof(TInterface)}' is read-only.");
         }
