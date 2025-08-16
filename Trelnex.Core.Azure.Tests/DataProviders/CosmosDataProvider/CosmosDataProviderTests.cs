@@ -46,7 +46,7 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
         _dataProvider = factory.Create<ITestItem, TestItem>(
             containerId: _containerId,
             typeName: "test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 

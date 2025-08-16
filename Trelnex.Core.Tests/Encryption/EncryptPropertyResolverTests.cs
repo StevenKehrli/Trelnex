@@ -7,7 +7,7 @@ using Trelnex.Core.Encryption;
 namespace Trelnex.Core.Tests.Encryption;
 
 [Category("Encryption")]
-public class EncryptedJsonTypeInfoResolverTests
+public class EncryptPropertyResolverTests
 {
     private class TestBlockCipherService : IBlockCipherService
     {
@@ -32,7 +32,7 @@ public class EncryptedJsonTypeInfoResolverTests
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            TypeInfoResolver = new EncryptedJsonTypeInfoResolver(new TestBlockCipherService()),
+            TypeInfoResolver = new EncryptPropertyResolver(new TestBlockCipherService()),
             WriteIndented = true
         };
     }

@@ -59,7 +59,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "encrypted-test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();

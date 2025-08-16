@@ -38,7 +38,7 @@ public class DynamoDataProviderEventExpirationTests : DynamoDataProviderEventTes
         _dataProvider = factory.Create<ITestItem, TestItem>(
             tableName: _expirationTableName,
             typeName: "expiration-test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
     }
@@ -67,7 +67,7 @@ public class DynamoDataProviderEventExpirationTests : DynamoDataProviderEventTes
         Assert.That(created, Is.Not.Null);
 
         // Get the event
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var key = new Dictionary<string, DynamoDBEntry>
         {
             { "partitionKey", partitionKey },

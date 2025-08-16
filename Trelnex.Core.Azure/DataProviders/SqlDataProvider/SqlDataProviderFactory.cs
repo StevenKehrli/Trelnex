@@ -101,7 +101,7 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
     protected override IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
         DataOptions dataOptions,
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null)
     {
@@ -109,7 +109,7 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
         return new SqlDataProvider<TInterface, TItem>(
             dataOptions: dataOptions,
             typeName: typeName,
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: commandOperations,
             eventTimeToLive: eventTimeToLive);
     }

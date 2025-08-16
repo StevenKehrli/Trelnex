@@ -58,7 +58,7 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
@@ -96,11 +96,11 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
                 options => options
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
         });
     }

@@ -11,8 +11,8 @@ public class DeleteCommandValidateTests
     public async Task DeleteCommandValidate_ValidateAsync_WithValidator()
     {
         // Setup validator requiring public message not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -23,7 +23,7 @@ public class DeleteCommandValidateTests
         // Get a data provider for our test item type with validator and delete operations
         var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
         // Create a new command to create our test item

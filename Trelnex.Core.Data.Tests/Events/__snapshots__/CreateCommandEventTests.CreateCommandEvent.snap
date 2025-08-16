@@ -24,7 +24,7 @@
     "TraceContext": "00-731f5c9745942250d911427553a07f72-6cc95de9843f7d01-01",
     "TraceId": "731f5c9745942250d911427553a07f72",
     "SpanId": "6cc95de9843f7d01",
-    "Id": "EVENT^^569d9c11-f66f-46b9-98be-ff0cff833475^00000001",
+    "Id": "EVENT^569d9c11-f66f-46b9-98be-ff0cff833475^00000001",
     "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
     "TypeName": "event",
     "Version": 1,

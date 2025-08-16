@@ -78,38 +78,47 @@ public abstract record BaseItem : IBaseItem
 {
     #region Public Properties
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("id")]
     public string Id { get; internal set; } = null!;
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("partitionKey")]
     public string PartitionKey { get; internal set; } = null!;
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("typeName")]
     public string TypeName { get; internal set; } = null!;
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("version")]
     public int Version { get; internal set; } = 0;
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("createdDateTimeOffset")]
     public DateTimeOffset CreatedDateTimeOffset { get; internal set; }
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("updatedDateTimeOffset")]
     public DateTimeOffset UpdatedDateTimeOffset { get; internal set; }
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("deletedDateTimeOffset")]
     public DateTimeOffset? DeletedDateTimeOffset { get; internal set; }
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("isDeleted")]
     public bool? IsDeleted { get; internal set; }
 
+    [DoNotTrack]
     [JsonInclude]
     [JsonPropertyName("_etag")]
     public string? ETag { get; internal set; }

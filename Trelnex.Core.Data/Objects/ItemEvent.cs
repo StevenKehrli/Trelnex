@@ -91,8 +91,8 @@ public record ItemEvent
         return new ItemEvent
         {
             // Generate a unique ID for the event
-            // Format: EVENT^^{related.Id}^00000001
-            Id = $"EVENT^^{relatedItem.Id}^{relatedItem.Version:X8}",
+            // Format: EVENT^{related.Id}^00000001
+            Id = $"EVENT^{relatedItem.Id}^{relatedItem.Version:X8}",
             PartitionKey = relatedItem.PartitionKey,
 
             TypeName = ReservedTypeNames.Event,

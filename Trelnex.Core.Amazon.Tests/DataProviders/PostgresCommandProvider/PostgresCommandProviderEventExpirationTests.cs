@@ -44,7 +44,7 @@ public class PostgresDataProviderEventExpirationTests : PostgresDataProviderEven
         _dataProvider = factory.Create<ITestItem, TestItem>(
             tableName: _expirationTableName,
             typeName: "expiration-test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
     }

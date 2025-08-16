@@ -93,7 +93,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
     /// <param name="tableName">Name of the DynamoDB table to use.</param>
     /// <param name="typeName">Type name to filter items by.</param>
-    /// <param name="validator">Optional validator for items.</param>
+    /// <param name="itemValidator">Optional validator for items.</param>
     /// <param name="commandOperations">Operations allowed for this provider.</param>
     /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
     /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
@@ -104,7 +104,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     public IDataProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null)
@@ -118,7 +118,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
         return new DynamoDataProvider<TInterface, TItem>(
             table: table,
             typeName: typeName,
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: commandOperations,
             eventTimeToLive: eventTimeToLive,
             blockCipherService: blockCipherService);

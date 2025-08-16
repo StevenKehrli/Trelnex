@@ -39,7 +39,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
         _dataProvider = factory.Create<ITestItem, TestItem>(
             tableName: _tableName,
             typeName: "test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 

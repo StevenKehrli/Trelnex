@@ -85,7 +85,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     public IDataProvider<TInterface> Create<TInterface, TItem>(
         string tableName,
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null)
@@ -131,7 +131,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         return CreateDataProvider<TInterface, TItem>(
             dataOptions: dataProviderDataOptions,
             typeName: typeName,
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: commandOperations,
             eventTimeToLive: eventTimeToLive);
     }
@@ -232,14 +232,14 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
     /// <param name="dataOptions">Configured LinqToDB connection options with mapping schema.</param>
     /// <param name="typeName">Type name identifier for the entity.</param>
-    /// <param name="validator">Optional validator for domain-specific validation rules.</param>
+    /// <param name="itemValidator">Optional validator for domain-specific validation rules.</param>
     /// <param name="commandOperations">Permitted CRUD operations for this provider.</param>
     /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
     /// <returns>A database-specific data provider implementation.</returns>
     protected abstract IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
         DataOptions dataOptions,
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         int? eventTimeToLive = null)
         where TInterface : class, IBaseItem
@@ -355,8 +355,8 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             builder
                 .Property(lambda)
                 .HasConversion(
-                    value => EncryptedJsonService.EncryptToBase64(value, blockCipherService),
-                    encryptedValue => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedValue, blockCipherService)!);
+                    toProvider: value => EncryptedJsonService.EncryptToBase64(value, blockCipherService),
+                    toModel: encryptedJson => EncryptedJsonService.DecryptFromBase64<TProperty>(encryptedJson, blockCipherService)!);
         }
         // If the property is a complex type
         else if (IsComplexProperty(propertyInfo))
@@ -365,8 +365,8 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             builder
                 .Property(lambda)
                 .HasConversion(
-                    value => JsonSerializer.Serialize(value, _jsonSerializerOptions),
-                    encryptedValue => JsonSerializer.Deserialize<TProperty>(encryptedValue, _jsonSerializerOptions)!);
+                    toProvider: value => JsonSerializer.Serialize(value, _jsonSerializerOptions),
+                    toModel: json => JsonSerializer.Deserialize<TProperty>(json, _jsonSerializerOptions)!);
         }
     }
 

@@ -1,8 +1,5 @@
 using System.Net;
 using System.Reflection;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
@@ -18,18 +15,18 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// </summary>
 /// <param name="table">The DynamoDB table to interact with.</param>
 /// <param name="typeName">The type name used to filter items.</param>
-/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="itemValidator">Optional validator for items before they are saved.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
 internal class DynamoDataProvider<TInterface, TItem>(
     Table table,
     string typeName,
-    IValidator<TItem>? validator = null,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     int? eventTimeToLive = null,
     IBlockCipherService? blockCipherService = null)
-    : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
+    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations, blockCipherService)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
@@ -42,22 +39,6 @@ internal class DynamoDataProvider<TInterface, TItem>(
         typeof(TItem).GetProperty(
             nameof(BaseItem.ETag),
             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
-
-    #endregion
-
-    #region Private Fields
-
-    /// <summary>
-    /// JSON serializer options for DynamoDB.
-    /// </summary>
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = blockCipherService is not null
-            ? new EncryptedJsonTypeInfoResolver(blockCipherService)
-            : null
-    };
 
     #endregion
 
@@ -114,7 +95,7 @@ internal class DynamoDataProvider<TInterface, TItem>(
                 documents.ForEach(document =>
                 {
                     var json = document.ToJson();
-                    var item = JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions)!;
+                    var item = DeserializeItem(json)!;
 
                     items.Add(item);
                 });
@@ -175,7 +156,7 @@ internal class DynamoDataProvider<TInterface, TItem>(
         var json = document.ToJson();
 
         // deserialize the item
-        var item = JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions);
+        var item = DeserializeItem(json);
 
         return item?.TypeName == TypeName
             ? item
@@ -242,7 +223,7 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             // serialize the item to the document
             // use responseItem to save the updated ETag
-            var jsonItem = JsonSerializer.Serialize(responseItem, _jsonSerializerOptions);
+            var jsonItem = SerializeItem(responseItem);
             var documentItem = Document.FromJson(jsonItem);
 
             batch.AddDocumentToUpdate(documentItem, config);
@@ -256,7 +237,7 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             // serialize the event to the document
             // use responseEvent to save the updated ETag
-            var jsonEvent = JsonSerializer.Serialize(responseEvent, _jsonSerializerOptions);
+            var jsonEvent = SerializeEvent(responseEvent);
             var documentEvent = Document.FromJson(jsonEvent);
 
             batch.AddDocumentToUpdate(documentEvent);

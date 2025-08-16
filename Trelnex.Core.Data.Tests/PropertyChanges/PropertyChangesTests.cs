@@ -48,7 +48,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show addition of new array item: "/trackedSettingsArray/2/settingId", etc.
@@ -82,7 +82,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each array item: "/trackedSettingsArray/0/settingId", etc.
@@ -130,7 +130,7 @@ public class PropertyChangesTests
         // leave second item unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes only for modified properties: "/trackedSettingsArray/0/primaryValue", "/trackedSettingsArray/0/settingId"
@@ -181,7 +181,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of item at index 1 and reindexing of remaining items
@@ -232,7 +232,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all array positions reflecting the reordering
@@ -282,7 +282,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all array positions and addition of new item at index 2
@@ -327,7 +327,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsArray = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all array items with OldValue containing the original items and NewValue as null
@@ -361,7 +361,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // verify that no properties were changed
         Assert.That(propertyChanges, Is.Null);
@@ -398,7 +398,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // verify that no properties were changed since they were reset to original values
         Assert.That(propertyChanges, Is.Null);
@@ -431,7 +431,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         Snapshot.Match(propertyChanges);
@@ -480,7 +480,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show addition of new dictionary item: "/trackedSettingsDictionary/setting3/settingId", etc.
@@ -514,7 +514,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each dictionary item: "/trackedSettingsDictionary/setting1/settingId", etc.
@@ -562,7 +562,7 @@ public class PropertyChangesTests
         // leave second item unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes only for modified properties: "/trackedSettingsDictionary/setting1/primaryValue", "/trackedSettingsDictionary/setting1/settingId"
@@ -614,7 +614,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of setting2: "/trackedSettingsDictionary/setting2/*" with null NewValues
@@ -663,7 +663,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of old keys and addition of new keys
@@ -708,7 +708,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsDictionary = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all dictionary items with OldValue containing the original items and NewValue as null
@@ -743,7 +743,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each leaf property: "/trackedSettingsWithAttribute/settingId", etc.
@@ -789,7 +789,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsWithAttribute.PrimaryValue = "Primary Value #2";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show only the changed property: "/trackedSettingsWithAttribute/primaryValue"
@@ -837,7 +837,7 @@ public class PropertyChangesTests
         // intentionally leave SecondaryValue unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for only the modified properties:
@@ -890,7 +890,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all properties: "/trackedSettingsWithAttribute/settingId",
@@ -937,7 +937,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsWithAttribute = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all properties: "/trackedSettingsWithAttribute/settingId",
@@ -947,7 +947,7 @@ public class PropertyChangesTests
     }
 
     [Test]
-    [Description("Tests that properties are tracked correctly when parent has TrackChange and children have TrackChange")]
+    [Description("Tests that properties are tracked correctly when parent has Track and children have Track")]
     public async Task PropertyChanges_TrackHierarchy_TrackedWithAttribute()
     {
         var id = Guid.NewGuid().ToString();
@@ -965,7 +965,7 @@ public class PropertyChangesTests
             id: id,
             partitionKey: partitionKey);
 
-        // set TrackedSettingsWithAttribute - should track all properties since both parent and children have [TrackChange]
+        // set TrackedSettingsWithAttribute - should track all properties since both parent and children have [Track]
         createCommand.Item.TrackedSettingsWithAttribute = new TrackedSettings
         {
             SettingId = 101,
@@ -974,7 +974,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show all leaf properties: "/trackedSettingsWithAttribute/settingId",
@@ -983,7 +983,7 @@ public class PropertyChangesTests
     }
 
     [Test]
-    [Description("Tests that properties are NOT tracked when parent lacks TrackChange even though children have TrackChange")]
+    [Description("Tests that properties are NOT tracked when parent lacks Track even though children have Track")]
     public async Task PropertyChanges_TrackHierarchy_TrackedWithoutAttribute()
     {
         var id = Guid.NewGuid().ToString();
@@ -1002,7 +1002,7 @@ public class PropertyChangesTests
             partitionKey: partitionKey);
 
         // set TrackedSettingsWithoutAttribute - should NOT track any properties
-        // because parent property lacks [TrackChange] even though children have [TrackChange]
+        // because parent property lacks [Track] even though children have [Track]
         createCommand.Item.TrackedSettingsWithoutAttribute = new TrackedSettings
         {
             SettingId = 101,
@@ -1011,15 +1011,15 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
-        // should show NO property changes because parent property is not marked with [TrackChange]
+        // should show NO property changes because parent property is not marked with [Track]
         Assert.That(propertyChanges, Is.Null);
     }
 
     [Test]
-    [Description("Tests that only object assignment is tracked when parent has TrackChange but children lack TrackChange")]
+    [Description("Tests that only object assignment is tracked when parent has Track but children lack Track")]
     public async Task PropertyChanges_TrackHierarchy_UntrackedWithAttribute()
     {
         var id = Guid.NewGuid().ToString();
@@ -1038,7 +1038,7 @@ public class PropertyChangesTests
             partitionKey: partitionKey);
 
         // set UntrackedSettingsWithAttribute - should track object assignment only
-        // because parent has [TrackChange] but children lack [TrackChange]
+        // because parent has [Track] but children lack [Track]
         createCommand.Item.UntrackedSettingsWithAttribute = new UntrackedSettings
         {
             SettingId = 101,
@@ -1047,11 +1047,11 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as ProxyManager<ITestItem, TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<ITestItem, TestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
-        // should show NO leaf properties because UntrackedSettings properties lack [TrackChange]
-        // TrackChangeResolver should filter out properties without [TrackChange]
+        // should show NO leaf properties because UntrackedSettings properties lack [Track]
+        // TrackResolver should filter out properties without [Track]
         Snapshot.Match(propertyChanges);
     }
 }

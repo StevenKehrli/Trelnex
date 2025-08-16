@@ -54,7 +54,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
@@ -89,11 +89,11 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
                 options => options
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
         });
     }

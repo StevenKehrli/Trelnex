@@ -1,7 +1,5 @@
 using System.Net;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -18,7 +16,7 @@ namespace Trelnex.Core.Azure.DataProviders;
 /// <typeparam name="TItem">The type of the item to store in Cosmos DB.</typeparam>
 /// <param name="container">The Cosmos DB container to interact with.  Must not be null.</param>
 /// <param name="typeName">The type name used to filter items.  Must not be null or empty.</param>
-/// <param name="validator">Optional validator for items before they are saved.  Can be null.</param>
+/// <param name="itemValidator">Optional validator for items before they are saved.  Can be null.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors. Can be null.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in the container.</param>
 /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
@@ -26,30 +24,14 @@ namespace Trelnex.Core.Azure.DataProviders;
 internal class CosmosDataProvider<TInterface, TItem>(
     Container container,
     string typeName,
-    IValidator<TItem>? validator = null,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     int? eventTimeToLive = null,
     IBlockCipherService? blockCipherService = null)
-    : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
+    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations, blockCipherService)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
-    #region Private Fields
-
-    /// <summary>
-    /// JSON serializer options for Cosmos DB.
-    /// </summary>
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = blockCipherService is not null
-            ? new EncryptedJsonTypeInfoResolver(blockCipherService)
-            : null
-    };
-
-    #endregion
-
     #region Protected Methods
 
     /// <summary>
@@ -116,7 +98,7 @@ internal class CosmosDataProvider<TInterface, TItem>(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var item = jsonElement.Deserialize<TItem>(_jsonSerializerOptions);
+                var item = DeserializeItem(jsonElement.GetRawText());
 
                 if (item is null) continue;
 
@@ -159,9 +141,7 @@ internal class CosmosDataProvider<TInterface, TItem>(
 
             // Deserialize the item from the response stream.
             using var sr = new StreamReader(responseMessage.Content);
-            var item = JsonSerializer.Deserialize<TItem>(
-                utf8Json: sr.BaseStream,
-                options: _jsonSerializerOptions);
+            var item = DeserializeItem(sr.BaseStream);
 
             // Ensure the item is of the expected type.
             return item?.TypeName == TypeName
@@ -305,20 +285,17 @@ internal class CosmosDataProvider<TInterface, TItem>(
     {
         // Serialize the item to a stream
         var itemStream = new MemoryStream();
-        JsonSerializer.Serialize(
+        SerializeItem(
             utf8Json: itemStream,
-            value: saveRequest.Item,
-            options: _jsonSerializerOptions);
-        itemStream.Position = 0;
+            item: saveRequest.Item);
 
         // Create a new event with expiration ("ttl")
         // Serialize the event to a stream
         var eventWithExpiration = new ItemEventWithExpiration(saveRequest.Event, eventTimeToLive);
         var eventStream = new MemoryStream();
-        JsonSerializer.Serialize(
+        SerializeEvent(
             utf8Json: eventStream,
-            value: eventWithExpiration,
-            options: _jsonSerializerOptions);
+            itemEvent: eventWithExpiration);
         eventStream.Position = 0;
 
         // Create and return a new SaveRequestStream instance
@@ -348,9 +325,7 @@ internal class CosmosDataProvider<TInterface, TItem>(
 
         // Deserialize the item from the response stream
         using var sr = new StreamReader(itemResult.ResourceStream);
-        var item = JsonSerializer.Deserialize<TItem>(
-            utf8Json: sr.BaseStream,
-            options: _jsonSerializerOptions);
+        var item = DeserializeItem(sr.BaseStream);
 
         // Return the OK status code and the deserialized item
         return new SaveResult<TInterface, TItem>(

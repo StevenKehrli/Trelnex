@@ -11,9 +11,9 @@ public class ReadCommandValidateTests
     public async Task ReadCommandValidate_ValidateAsync_WithValidator()
     {
         // Setup validator requiring both messages not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -24,7 +24,7 @@ public class ReadCommandValidateTests
         // Get a data provider for our test item type with validator
         var dataProvider = factory.Create<ITestItem, TestItem>(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item

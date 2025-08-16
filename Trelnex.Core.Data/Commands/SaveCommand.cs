@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using FluentValidation.Results;
 using Trelnex.Core.Validation;
 
@@ -54,7 +55,18 @@ internal class SaveCommand<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface
 {
+    #region Private Static Fields
+
+    private static readonly JsonNode _jsonNodeEmpty = new JsonObject();
+
+    #endregion
+
     #region Private Fields
+
+    /// <summary>
+    /// Parsed representation of the item's initial state for change tracking.
+    /// </summary>
+    private JsonNode? _initialJsonNode;
 
     /// <summary>
     /// Operation type being performed.
@@ -66,6 +78,11 @@ internal class SaveCommand<TInterface, TItem>
     /// </summary>
     private SaveAsyncDelegate<TInterface, TItem> _saveAsyncDelegate = null!;
 
+    /// <summary>
+    /// The delegate to serialize the item for property changes.
+    /// </summary>
+    private Func<TItem, JsonNode> _serializeItem = null!;
+
     #endregion
 
     #region Public Static Methods
@@ -73,6 +90,7 @@ internal class SaveCommand<TInterface, TItem>
     /// <summary>
     /// Creates a save command with change tracking and validation.
     /// </summary>
+    /// <param name="serializeItem">The delegate to serialize the item for property changes.</param>
     /// <param name="item">Item to be wrapped.</param>
     /// <param name="isReadOnly">If true, item is read-only.</param>
     /// <param name="validateAsyncDelegate">Validation delegate.</param>
@@ -81,6 +99,7 @@ internal class SaveCommand<TInterface, TItem>
     /// <returns>Configured SaveCommand instance.</returns>
     /// <exception cref="ArgumentNullException">When required parameters are null.</exception>
     public static SaveCommand<TInterface, TItem> Create(
+        Func<TItem, JsonNode> serializeItem,
         TItem item,
         bool isReadOnly,
         ValidateAsyncDelegate<TInterface, TItem> validateAsyncDelegate,
@@ -90,6 +109,9 @@ internal class SaveCommand<TInterface, TItem>
         // Create the proxy manager - needs an item reference for the ItemProxy onInvoke delegate
         var proxyManager = new SaveCommand<TInterface, TItem>
         {
+            _serializeItem = serializeItem,
+            _initialJsonNode = serializeItem(item),
+
             _item = item,
             _isReadOnly = isReadOnly,
             _validateAsyncDelegate = validateAsyncDelegate,
@@ -175,6 +197,26 @@ internal class SaveCommand<TInterface, TItem>
     #endregion
 
     #region Internal Methods
+
+    /// <summary>
+    /// Gets tracked property changes by comparing initial and current JSON states using RFC 6902 diff.
+    /// </summary>
+    /// <returns>PropertyChange array for leaf-level differences, or null if no changes</returns>
+    /// <remarks>
+    /// Detects all modifications including nested objects and arrays using JSON diff comparison.
+    /// Returns individual entries for each modified leaf property with JSON Pointer paths.
+    /// Automatically consolidates array reordering operations.
+    /// </remarks>
+    internal PropertyChange[]? GetPropertyChanges()
+    {
+        // Serialize current item state to JsonNode for comparison
+        var currentJsonNode = _serializeItem(_item);
+
+        // Compare initial and current states using RFC 6902 JSON Patch diff
+        return PropertyChanges.Compare(
+            _initialJsonNode ?? _jsonNodeEmpty,
+            currentJsonNode ?? _jsonNodeEmpty);
+    }
 
     /// <summary>
     /// Updates this command with the result of a save operation.

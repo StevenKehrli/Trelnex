@@ -197,7 +197,7 @@ public static class CosmosDataProvidersExtensions
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 containerId: containerConfiguration.ContainerId,
                 typeName: typeName,
-                validator: itemValidator,
+                itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: containerConfiguration.EventTimeToLive,
                 blockCipherService: containerConfiguration.BlockCipherService);

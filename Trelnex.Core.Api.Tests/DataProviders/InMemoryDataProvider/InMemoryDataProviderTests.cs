@@ -42,7 +42,7 @@ public class InMemoryDataProviderTests : DataProviderTests
             bootstrapLogger,
             options => options.Add<ITestItem, TestItem>(
                 typeName: "test-item",
-                validator: TestItem.Validator,
+                itemValidator: TestItem.Validator,
                 commandOperations: CommandOperations.All));
 
         // Build the service provider

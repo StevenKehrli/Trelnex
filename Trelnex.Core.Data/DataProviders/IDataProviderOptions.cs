@@ -16,7 +16,7 @@ public interface IDataProviderOptions
     /// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
     /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
     /// <param name="typeName">Unique identifier for the entity type.</param>
-    /// <param name="validator">Optional FluentValidation validator for the entity. If null, no validation is performed.</param>
+    /// <param name="itemValidator">Optional FluentValidation validator for the entity. If null, no validation is performed.</param>
     /// <param name="commandOperations">Permitted CRUD operations for this entity. Defaults to Update operations only if not specified.</param>
     /// <returns>The current options instance to enable method chaining.</returns>
     /// <exception cref="ArgumentException">
@@ -24,7 +24,7 @@ public interface IDataProviderOptions
     /// </exception>
     IDataProviderOptions Add<TInterface, TItem>(
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new();

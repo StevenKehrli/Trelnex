@@ -1,7 +1,13 @@
 using System.Net;
+using System.Reflection;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using FluentValidation.Results;
+using Trelnex.Core.Encryption;
 using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data;
@@ -111,6 +117,21 @@ public abstract partial class DataProvider<TInterface, TItem>
     private readonly IValidator<TItem> _baseItemValidator;
 
     /// <summary>
+    /// The JSON serializer options used for event serialization.
+    /// </summary>
+    private readonly JsonSerializerOptions _optionsForEventSerialization;
+
+    /// <summary>
+    /// The JSON serializer options used for item serialization.
+    /// </summary>
+    private readonly JsonSerializerOptions _optionsForItemSerialization;
+
+    /// <summary>
+    /// The delegate to serialize the item for property changes.
+    /// </summary>
+    private readonly Func<TItem, JsonNode> _serializeItemForPropertyChanges;
+
+    /// <summary>
     /// Bitwise flags defining which CRUD operations are permitted for this provider.
     /// </summary>
     private readonly CommandOperations _commandOperations;
@@ -142,15 +163,25 @@ public abstract partial class DataProvider<TInterface, TItem>
     /// Initializes a new data provider instance with validation and operation constraints.
     /// </summary>
     /// <param name="typeName">Type name identifier that must follow naming conventions (lowercase letters and hyphens).</param>
-    /// <param name="validator">Optional custom validator for domain-specific validation rules.</param>
+    /// <param name="itemValidator">Optional custom validator for domain-specific validation rules.</param>
     /// <param name="commandOperations">Permitted CRUD operations. Defaults to Read-only if not specified.</param>
+    /// <param name="blockCipherService">
+    /// Optional service for field encryption and decryption.
+    /// <para>
+    /// <b>Note:</b> <see cref="IBlockCipherService"/> uses a unique salt for each encryption operation.
+    /// As a result, encrypting the same property value multiple times will yield different ciphertexts.
+    /// Therefore, when serializing items for events (such as property changes), properties marked with <see cref="EncryptAttribute"/>
+    /// are masked with "***" instead of being encrypted, to ensure consistency and avoid confusion.
+    /// </para>
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when typeName doesn't match naming rules or conflicts with reserved system names.
     /// </exception>
     protected DataProvider(
         string typeName,
-        IValidator<TItem>? validator,
-        CommandOperations? commandOperations = null)
+        IValidator<TItem>? itemValidator,
+        CommandOperations? commandOperations = null,
+        IBlockCipherService? blockCipherService = null)
     {
         // Validate the type name against the naming rules (lowercase letters and hyphens).
         if (TypeRulesRegex().IsMatch(typeName) is false)
@@ -169,13 +200,49 @@ public abstract partial class DataProvider<TInterface, TItem>
 
         // Set up validators for both base properties and custom properties.
         _baseItemValidator = CreateBaseItemValidator(typeName);
-        _itemValidator = validator;
+        _itemValidator = itemValidator;
 
         // Create the expression converter for LINQ operations.
         _expressionConverter = new();
 
         // Set the allowed operations for this provider, defaulting to Read only if not specified.
         _commandOperations = commandOperations ?? CommandOperations.Read;
+
+        // Configure the default JSON serializer options.
+        var defaultOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        // Configure the event-specific JSON serializer options.
+        _optionsForEventSerialization = new JsonSerializerOptions(defaultOptions)
+        {
+        };
+
+        // Configure the item-specific JSON serializer options
+        // when serializing an item for the datastore.
+        // If blockCipherService is provided, use it to encrypt any properties marked with [Encrypt].
+        _optionsForItemSerialization = new JsonSerializerOptions(defaultOptions)
+        {
+            TypeInfoResolver = blockCipherService is not null
+                ? new EncryptPropertyResolver(blockCipherService)
+                : null
+        };
+
+        // Create the delegate to serialize the item for property changes.
+        var optionsForItemPropertyChanges = new JsonSerializerOptions(defaultOptions)
+        {
+            TypeInfoResolver = new TrackPropertyResolver()
+        };
+
+        _serializeItemForPropertyChanges = item =>
+        {
+            // Serialize the item to a JSON node using the property changes options.
+            return JsonSerializer.SerializeToNode(
+                value: item,
+                options: optionsForItemPropertyChanges) ?? new JsonObject();
+        };
     }
 
     #endregion
@@ -211,6 +278,7 @@ public abstract partial class DataProvider<TInterface, TItem>
         };
 
         return SaveCommand<TInterface, TItem>.Create(
+            serializeItem: _serializeItemForPropertyChanges,
             item: item,
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,
@@ -342,6 +410,137 @@ public abstract partial class DataProvider<TInterface, TItem>
 
     #endregion
 
+    #region Protected Methods
+
+    /// <summary>
+    /// Deserializes a JSON string into an item.
+    /// </summary>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <returns>The deserialized item.</returns>
+    protected TItem? DeserializeItem(
+        string json)
+    {
+        return JsonSerializer.Deserialize<TItem>(
+            json: json,
+            options: _optionsForItemSerialization);
+    }
+
+    /// <summary>
+    /// Deserializes a JSON stream into an item.
+    /// </summary>
+    /// <param name="utf8Json">The stream to read the JSON from.</param>
+    /// <returns>The deserialized item.</returns>
+    protected TItem? DeserializeItem(
+        Stream utf8Json)
+    {
+        return JsonSerializer.Deserialize<TItem>(
+            utf8Json: utf8Json,
+            options: _optionsForItemSerialization);
+    }
+
+    /// <summary>
+    /// Deserializes a JSON node into an item.
+    /// </summary>
+    /// <param name="jsonNode">The JSON node to deserialize.</param>
+    /// <returns>The deserialized item.</returns>
+    protected TItem? DeserializeItem(
+        JsonNode jsonNode)
+    {
+        return jsonNode.Deserialize<TItem>(
+            options: _optionsForItemSerialization);
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON string.
+    /// </summary>
+    /// <param name="itemEvent">The item event to serialize.</param>
+    /// <returns>A JSON string representation of the item event.</returns>
+    protected string SerializeEvent<TItemEvent>(
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        return JsonSerializer.Serialize(
+            value: itemEvent,
+            options: _optionsForEventSerialization);
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON stream.
+    /// </summary>
+    /// <param name="utf8Json">The stream to write the JSON to.</param>
+    /// <param name="itemEvent">The item event to serialize.</param>
+    protected void SerializeEvent<TItemEvent>(
+        Stream utf8Json,
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        JsonSerializer.Serialize(
+            utf8Json: utf8Json,
+            value: itemEvent,
+            options: _optionsForEventSerialization);
+
+        utf8Json.Position = 0;
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON node.
+    /// </summary>
+    /// <param name="itemEvent">The item event to serialize.</param>
+    /// <returns>A JSON node representation of the item event.</returns>
+    protected JsonNode SerializeEventToNode<TItemEvent>(
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        return JsonSerializer.SerializeToNode(
+            value: itemEvent,
+            options: _optionsForEventSerialization) ?? new JsonObject();
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON string.
+    /// </summary>
+    /// <param name="item">The item to serialize.</param>
+    /// <returns>A JSON string representation of the item.</returns>
+    protected string SerializeItem(
+        TItem item)
+    {
+        return JsonSerializer.Serialize(
+            value: item,
+            options: _optionsForItemSerialization);
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON stream.
+    /// </summary>
+    /// <param name="utf8Json">The stream to write the JSON to.</param>
+    /// <param name="item">The item to serialize.</param>
+    protected void SerializeItem(
+        Stream utf8Json,
+        TItem item)
+    {
+        JsonSerializer.Serialize(
+            utf8Json: utf8Json,
+            value: item,
+            options: _optionsForItemSerialization);
+
+        utf8Json.Position = 0;
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON node.
+    /// </summary>
+    /// <param name="item">The item to serialize.</param>
+    /// <returns>A JSON node representation of the item.</returns>
+    protected JsonNode SerializeItemToNode(
+        TItem item)
+    {
+        return JsonSerializer.SerializeToNode(
+            value: item,
+            options: _optionsForItemSerialization) ?? new JsonObject();
+    }
+
+    #endregion
+
     #region Private Static Methods
 
     /// <summary>
@@ -384,6 +583,61 @@ public abstract partial class DataProvider<TInterface, TItem>
     [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
     private static partial Regex TypeRulesRegex();
 
+    private static void ValidateType(
+        Type type)
+    {
+        // get the properties of the current type
+        var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        foreach (var property in properties)
+        {
+            // get the property type
+            var propertyType = property.PropertyType;
+
+            // Check for IDictionary<TKey, TValue>
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+            {
+                // Handle IDictionary<TKey, TValue> properties
+
+                // Check TKey type
+                var keyType = propertyType.GetGenericArguments()[0];
+                if (typeof(string) != keyType)
+                {
+                    throw new InvalidOperationException($"Property '{property.Name}' on '{type.Name}' is not a valid IDictionary<string, TValue>.");
+                }
+
+                // Check TValue type
+                var valueType = propertyType.GetGenericArguments()[1];
+                if (valueType.IsClass || (valueType.IsValueType && valueType.IsEnum is false && valueType.IsPrimitive is false))
+                {
+                    ValidateType(valueType);
+                }
+            }
+
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(IList<>))
+            {
+                // Handle IList<TValue> properties
+                var valueType = propertyType.GetGenericArguments()[0];
+
+                if (valueType.IsClass || (valueType.IsValueType && valueType.IsEnum is false && valueType.IsPrimitive is false))
+                {
+                    ValidateType(valueType);
+                }
+            }
+
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(ISet<>))
+            {
+                // Handle ISet<TValue> properties
+                var valueType = propertyType.GetGenericArguments()[0];
+
+                if (valueType.IsClass || (valueType.IsValueType && valueType.IsEnum is false && valueType.IsPrimitive is false))
+                {
+                    ValidateType(valueType);
+                }
+            }
+        }
+    }
+
     #endregion
 
     #region Private Methods
@@ -402,6 +656,7 @@ public abstract partial class DataProvider<TInterface, TItem>
         item.IsDeleted = true;
 
         return SaveCommand<TInterface, TItem>.Create(
+            serializeItem: _serializeItemForPropertyChanges,
             item: item,
             isReadOnly: true,
             validateAsyncDelegate: ValidateAsync,
@@ -422,6 +677,7 @@ public abstract partial class DataProvider<TInterface, TItem>
         item.UpdatedDateTimeOffset = DateTimeOffset.UtcNow;
 
         return SaveCommand<TInterface, TItem>.Create(
+            serializeItem: _serializeItemForPropertyChanges,
             item: item,
             isReadOnly: false,
             validateAsyncDelegate: ValidateAsync,

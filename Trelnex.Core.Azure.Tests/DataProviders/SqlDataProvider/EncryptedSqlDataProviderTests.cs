@@ -49,7 +49,7 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
         _dataProvider = factory.Create<ITestItem, TestItem>(
             tableName: _encryptedTableName,
             typeName: "encrypted-test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);
     }

@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Linq.Expressions;
 using System.Net;
-using System.Text.Encodings.Web;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data;
 
@@ -17,11 +19,8 @@ namespace Trelnex.Core.Data;
 /// Provides thread-safe, non-persistent data storage with full CRUD operations and LINQ query support.
 /// Simulates database behavior including optimistic concurrency control via ETags.
 /// </remarks>
-internal class InMemoryDataProvider<TInterface, TItem>(
-    string typeName,
-    IValidator<TItem>? itemValidator = null,
-    CommandOperations? commandOperations = null)
-    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations)
+internal class InMemoryDataProvider<TInterface, TItem>
+    : DataProvider<TInterface, TItem>
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {
@@ -35,7 +34,21 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     /// <summary>
     /// In-memory data store containing serialized items and events.
     /// </summary>
-    private InMemoryStore _store = new();
+    private InMemoryStore _store;
+
+    #endregion
+
+    #region Constructor
+
+    public InMemoryDataProvider(
+        string typeName,
+        IValidator<TItem>? itemValidator = null,
+        CommandOperations? commandOperations = null,
+        IBlockCipherService? blockCipherService = null)
+        : base(typeName, itemValidator, commandOperations, blockCipherService)
+    {
+        _store = CreateStore();
+    }
 
     #endregion
 
@@ -221,7 +234,7 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         {
             _lock.EnterWriteLock();
 
-            _store = new();
+            _store = CreateStore();
         }
         finally
         {
@@ -255,32 +268,6 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     #region Private Static Methods
 
     /// <summary>
-    /// Generates a composite key from an item's partition key and identifier.
-    /// </summary>
-    /// <param name="item">The item to generate a key for.</param>
-    /// <returns>A composite key in the format "partitionKey:id".</returns>
-    private static string GetItemKey(
-        BaseItem item)
-    {
-        return GetItemKey(
-            partitionKey: item.PartitionKey,
-            id: item.Id);
-    }
-
-    /// <summary>
-    /// Generates a composite key from separate partition key and identifier components.
-    /// </summary>
-    /// <param name="partitionKey">The partition key component.</param>
-    /// <param name="id">The identifier component.</param>
-    /// <returns>A composite key in the format "partitionKey:id".</returns>
-    private static string GetItemKey(
-        string partitionKey,
-        string id)
-    {
-        return $"{partitionKey}:{id}";
-    }
-
-    /// <summary>
     /// Persists an item to the specified store based on the save action type.
     /// </summary>
     /// <param name="store">The target store for the save operation.</param>
@@ -291,15 +278,27 @@ internal class InMemoryDataProvider<TInterface, TItem>(
     private static TItem SaveItem(
         InMemoryStore store,
         SaveRequest<TInterface, TItem> request) => request.SaveAction switch
+        {
+            SaveAction.CREATED =>
+                store.CreateItem(request.Item, request.Event),
+
+            SaveAction.UPDATED or SaveAction.DELETED =>
+                store.UpdateItem(request.Item, request.Event),
+
+            _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
+        };
+
+    #endregion
+
+    #region Private Methods
+
+    private InMemoryStore CreateStore()
     {
-        SaveAction.CREATED =>
-            store.CreateItem(request.Item, request.Event),
-
-        SaveAction.UPDATED or SaveAction.DELETED =>
-            store.UpdateItem(request.Item, request.Event),
-
-        _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
-    };
+        return new InMemoryStore(
+            serializeItem: SerializeItemToNode,
+            serializeEvent: SerializeEventToNode,
+            deserializeItem: DeserializeItem);
+    }
 
     #endregion
 
@@ -319,29 +318,64 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         /// <summary>
         /// Items dictionary.
         /// </summary>
-        private readonly Dictionary<string, SerializedItem> _items = [];
+        private readonly Dictionary<string, SerializedResource> _items;
 
         /// <summary>
         /// Events list.
         /// </summary>
-        private readonly List<SerializedEvent> _events = [];
+        private readonly List<SerializedResource> _events;
+
+        /// <summary>
+        /// Function to serialize an item.
+        /// </summary>
+        private readonly Func<TItem, JsonNode> _serializeItem;
+
+        /// <summary>
+        /// Function to serialize an event.
+        /// </summary>
+        private readonly Func<ItemEvent, JsonNode> _serializeEvent;
+
+        /// <summary>
+        /// Function to deserialize an item.
+        /// </summary>
+        private readonly Func<string, TItem?> _deserializeItem;
 
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new store instance, optionally copying from an existing store.
+        /// Initializes a new store instance
         /// </summary>
-        /// <param name="store">Optional existing store to deep copy from for transactional operations.</param>
+        /// <param name="serializeItem">Function to serialize an item.</param>]
+        /// <param name="serializeEvent">Function to serialize an event.</param>
+        /// <param name="deserializeItem">Function to deserialize an item.</param>
         public InMemoryStore(
-            InMemoryStore? store = null)
+            Func<TItem, JsonNode> serializeItem,
+            Func<ItemEvent, JsonNode> serializeEvent,
+            Func<string, TItem?> deserializeItem)
         {
-            if (store is not null)
-            {
-                _items = new Dictionary<string, SerializedItem>(store._items);
-                _events = new List<SerializedEvent>(store._events);
-            }
+            _serializeItem = serializeItem;
+            _serializeEvent = serializeEvent;
+            _deserializeItem = deserializeItem;
+
+            _items = [];
+            _events = [];
+        }
+
+        /// <summary>
+        /// Initializes a new store instance, copying from an existing store.
+        /// </summary>
+        /// <param name="store">Existing store to deep copy from for transactional operations.</param>
+        public InMemoryStore(
+            InMemoryStore store)
+        {
+            _serializeItem = store._serializeItem;
+            _serializeEvent = store._serializeEvent;
+            _deserializeItem = store._deserializeItem;
+
+            _items = new Dictionary<string, SerializedResource>(store._items);
+            _events = new List<SerializedResource>(store._events);
         }
 
         #endregion
@@ -359,22 +393,27 @@ internal class InMemoryDataProvider<TInterface, TItem>(
             TItem item,
             ItemEvent itemEvent)
         {
+            // Generate a new eTag for this item
+            var eTag = Guid.NewGuid().ToString();
+
             // Generate the composite key for this item
-            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
+            var itemKey = GetItemKey(
+                partitionKey: item.PartitionKey,
+                id: item.Id);
 
             // Serialize the item and attempt to add it to the backing store
-            var serializedItem = SerializedItem.Create(item);
+            var serializedItem = SerializeItem(item, eTag);
             if (_items.TryAdd(itemKey, serializedItem) is false)
             {
                 throw new CommandException(HttpStatusCode.Conflict);
             }
 
             // Serialize the event and add to the event log
-            var serializedEvent = SerializedEvent.Create(itemEvent);
+            var serializedEvent = SerializeEvent(itemEvent, eTag);
             _events.Add(serializedEvent);
 
             // Return the item with its assigned ETag
-            return serializedItem.Resource;
+            return DeserializeItem(serializedItem)!;
         }
 
         /// <summary>
@@ -400,7 +439,7 @@ internal class InMemoryDataProvider<TInterface, TItem>(
             }
 
             // Return the deserialized item
-            return serializedItem.Resource;
+            return DeserializeItem(serializedItem);
         }
 
         /// <summary>
@@ -417,7 +456,9 @@ internal class InMemoryDataProvider<TInterface, TItem>(
             ItemEvent itemEvent)
         {
             // Generate the composite key for this item
-            var itemKey = InMemoryDataProvider<TInterface, TItem>.GetItemKey(item);
+            var itemKey = GetItemKey(
+                partitionKey: item.PartitionKey,
+                id: item.Id);
 
             // Check if the item exists in the backing store
             if (_items.TryGetValue(itemKey, out var serializedItem) is false)
@@ -432,16 +473,19 @@ internal class InMemoryDataProvider<TInterface, TItem>(
                 throw new CommandException(HttpStatusCode.PreconditionFailed);
             }
 
+            // Generate a new eTag for this item
+            var eTag = Guid.NewGuid().ToString();
+
             // Serialize the updated item and replace the existing one
-            serializedItem = SerializedItem.Create(item);
+            serializedItem = SerializeItem(item, eTag);
             _items[itemKey] = serializedItem;
 
             // Serialize the event and add to the event log
-            var serializedEvent = SerializedEvent.Create(itemEvent);
+            var serializedEvent = SerializeEvent(itemEvent, eTag);
             _events.Add(serializedEvent);
 
             // Return the updated item with its new ETag
-            return serializedItem.Resource;
+            return DeserializeItem(serializedItem);
         }
 
         /// <summary>
@@ -450,7 +494,7 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         /// <returns>An array of all events in chronological order.</returns>
         public ItemEvent[] GetEvents()
         {
-            return _events.Select(se => se.Resource).ToArray();
+            return _events.Select(DeserializeEvent).ToArray();
         }
 
         #endregion
@@ -465,7 +509,7 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         {
             foreach (var serializedItem in _items.Values)
             {
-                yield return serializedItem.Resource;
+                yield return DeserializeItem(serializedItem);
             }
         }
 
@@ -479,130 +523,165 @@ internal class InMemoryDataProvider<TInterface, TItem>(
         }
 
         #endregion
-    }
 
-    /// <summary>
-    /// Abstract base class for JSON serialization of items and events with ETag support.
-    /// </summary>
-    /// <typeparam name="T">The type being serialized, must inherit from BaseItem.</typeparam>
-    /// <remarks>
-    /// Provides consistent serialization behavior and optimistic concurrency control through ETags.
-    /// </remarks>
-    private abstract class SerializedBase<T> where T : BaseItem
-    {
-        #region Private Static Fields
+        #region Private Static Methods
 
         /// <summary>
-        /// JSON serializer options.
+        /// Deserializes an item event.
         /// </summary>
-        private static readonly JsonSerializerOptions _options = new()
+        /// <param name="serializedEvent">The serialized event to deserialize.</param>
+        /// <remarks>
+        /// This method deserializes the event using the default JsonSerializer serializer.
+        /// This ensures the event is deserialized to represent how the event is persisted in the store.
+        /// Normally we do not deserialize (read) events from the store, but this method is provided for testing purposes.
+        /// </remarks>
+        /// <returns>The deserialized item event.</returns>
+        private static ItemEvent DeserializeEvent(
+            SerializedResource serializedEvent)
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
-
-        #endregion
-
-        #region Private Fields
-
-        /// <summary>
-        /// Serialized JSON string.
-        /// </summary>
-        private string _jsonString = null!;
-
-        /// <summary>
-        /// ETag for optimistic concurrency.
-        /// </summary>
-        private string _eTag = null!;
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        /// Gets deserialized resource.
-        /// </summary>
-        public T Resource
-        {
-            get
-            {
-                // Deserialize the JSON string to the resource type
-                var resource = JsonSerializer.Deserialize<T>(_jsonString, _options)!;
-
-                // Set the ETag from the storage metadata
-                resource.ETag = _eTag;
-
-                // Return the fully reconstructed resource
-                return resource;
-            }
+            return JsonSerializer.Deserialize<ItemEvent>(serializedEvent.JsonString)!;
         }
 
         /// <summary>
-        /// ETag value.
+        /// Generates a composite key from separate partition key and identifier components.
         /// </summary>
-        public string ETag => _eTag;
+        /// <param name="partitionKey">The partition key component.</param>
+        /// <param name="id">The identifier component.</param>
+        /// <returns>A composite key in the format "partitionKey:id".</returns>
+        private static string GetItemKey(
+            string partitionKey,
+            string id)
+        {
+            return $"{partitionKey}:{id}";
+        }
 
         #endregion
 
-        #region Protected Static Methods
+        #region Private Methods
 
         /// <summary>
-        /// Creates a new serialized instance from a resource with generated ETag.
+        /// Deserializes a serialized item.
         /// </summary>
-        /// <typeparam name="TSerialized">The concrete serialized type to create.</typeparam>
-        /// <param name="resource">The resource to serialize.</param>
-        /// <returns>A new serialized instance with JSON data and unique ETag.</returns>
-        protected static TSerialized CreateBase<TSerialized>(
-            T resource) where TSerialized : SerializedBase<T>, new()
+        /// <param name="serializedItem">The serialized item to deserialize.</param>
+        /// <remarks>
+        /// This method deserializes the item using the DataProvider serializer.
+        /// This ensures the item is properly deserialized.
+        /// </remarks>
+        /// <returns>The deserialized item.</returns>
+        private TItem DeserializeItem(
+            SerializedResource serializedItem)
         {
-            // Create an instance of TSerialized
-            var serialized = new TSerialized()
-            {
-                // Serialize the resource to a JSON string
-                _jsonString = JsonSerializer.Serialize(resource, _options),
+            return _deserializeItem(serializedItem.JsonString)!;
+        }
 
-                // Create a new ETag for optimistic concurrency
-                _eTag = Guid.NewGuid().ToString(),
+        /// <summary>
+        /// Serializes an item event.
+        /// </summary>
+        /// <param name="itemEvent">The item event to serialize.</param>
+        /// <param name="eTag">The ETag for the item event.</param>
+        /// <remarks>
+        /// This method serializes the item event using the DataProvider serializer.
+        /// This ensures the event is properly serialized.
+        /// </remarks>
+        /// <returns>The serialized item event.</returns>
+        private SerializedResource SerializeEvent(
+            ItemEvent itemEvent,
+            string eTag)
+        {
+            var jsonNode = _serializeEvent(itemEvent);
+            var serializedEvent = new SerializedResource(jsonNode)
+            {
+                ETag = eTag
             };
 
-            return serialized;
+            return serializedEvent;
+        }
+
+        /// <summary>
+        /// Serializes an item.
+        /// </summary>
+        /// <param name="item">The item to serialize.</param>
+        /// <param name="eTag">The ETag for the item.</param>
+        /// <remarks>
+        /// This method serializes the item event using the DataProvider serializer.
+        /// This ensures the item is properly serialized.
+        /// </remarks>
+        /// <returns>The serialized item.</returns>
+        private SerializedResource SerializeItem(
+            TItem item,
+            string eTag)
+        {
+            var jsonNode = _serializeItem(item);
+            var serializedItem = new SerializedResource(jsonNode)
+            {
+                ETag = eTag
+            };
+
+            return serializedItem;
         }
 
         #endregion
-    }
 
-    /// <summary>
-    /// Serialized representation of an event with JSON storage and ETag.
-    /// </summary>
-    private class SerializedEvent : SerializedBase<ItemEvent>
-    {
-        #region Public Static Methods
+        #region Nested Types
 
         /// <summary>
-        /// Creates a serialized event instance from the provided event.
+        /// Class for serialized resources.
         /// </summary>
-        /// <param name="itemEvent">The event to serialize.</param>
-        /// <returns>A new serialized event with JSON representation and ETag.</returns>
-        public static SerializedEvent Create(
-            ItemEvent itemEvent) => CreateBase<SerializedEvent>(itemEvent);
+        private class SerializedResource(
+            JsonNode jsonNode)
+        {
+            #region Private Static Fields
 
-        #endregion
-    }
+            /// <summary>
+            /// The json property name of the ETag property.
+            /// </summary>
+            private static readonly string _eTagPropertyName = GetJsonPropertyName(nameof(BaseItem.ETag));
 
-    /// <summary>
-    /// Serialized representation of an item with JSON storage and ETag.
-    /// </summary>
-    private class SerializedItem : SerializedBase<TItem>
-    {
-        #region Public Static Methods
+            #endregion
 
-        /// <summary>
-        /// Creates a serialized item instance from the provided item.
-        /// </summary>
-        /// <param name="item">The item to serialize.</param>
-        /// <returns>A new serialized item with JSON representation and ETag.</returns>
-        public static SerializedItem Create(
-            TItem item) => CreateBase<SerializedItem>(item);
+            #region Protected Fields
+
+            protected JsonNode _jsonNode = jsonNode;
+
+            #endregion
+
+            #region Public Properties
+
+            /// <summary>
+            /// The ETag value for optimistic concurrency control.
+            /// </summary>
+            public string ETag
+            {
+                get => _jsonNode[_eTagPropertyName]?.GetValue<string>() ?? null!;
+                set => _jsonNode[_eTagPropertyName] = value;
+            }
+
+            /// <summary>
+            /// Converts the resource to a JSON string.
+            /// </summary>
+            /// <returns></returns>
+            public string JsonString => _jsonNode.ToJsonString();
+
+            #endregion
+
+            #region Private Static Methods
+
+            /// <summary>
+            /// Gets the json property name for the specified property.
+            /// </summary>
+            /// <returns>The json property name for the specified property.</returns>
+            private static string GetJsonPropertyName(
+                string propertyName)
+            {
+                // Use reflection to get the json property name dynamically
+                return typeof(BaseItem)
+                    .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!
+                    .GetCustomAttribute<JsonPropertyNameAttribute>()!
+                    .Name;
+            }
+
+            #endregion
+        }
 
         #endregion
     }

@@ -43,6 +43,7 @@ public class DeleteCommandEventTests
         createCommand.Item.PublicId = 1;
         createCommand.Item.PublicMessage = "Public #1";
         createCommand.Item.PrivateMessage = "Private #1";
+        createCommand.Item.EncryptedMessage = "Encrypted #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -71,22 +72,42 @@ public class DeleteCommandEventTests
             // Check first event changes (create event)
             Assert.That(
                 events[0].Changes!,
-                Has.Length.EqualTo(2));
+                Has.Length.EqualTo(3));
 
             Assert.That(
-                events[0].Changes![0].OldValue!.GetInt32(),
-                Is.EqualTo(0));
+                events[0].Changes![0].PropertyName,
+                Is.EqualTo("/encryptedMessage"));
 
             Assert.That(
-                events[0].Changes![0].NewValue!.GetInt32(),
-                Is.EqualTo(1));
-
-            Assert.That(
-                events[0].Changes![1].OldValue,
+                events[0].Changes![0].OldValue,
                 Is.Null);
 
             Assert.That(
-                events[0].Changes![1].NewValue!.GetString(),
+                events[0].Changes![0].NewValue!.GetString(),
+                Is.EqualTo("Encrypted #1"));
+
+            Assert.That(
+                events[0].Changes![1].PropertyName,
+                Is.EqualTo("/publicId"));
+
+            Assert.That(
+                events[0].Changes![1].OldValue!.GetInt32(),
+                Is.EqualTo(0));
+
+            Assert.That(
+                events[0].Changes![1].NewValue!.GetInt32(),
+                Is.EqualTo(1));
+
+            Assert.That(
+                events[0].Changes![2].PropertyName,
+                Is.EqualTo("/publicMessage"));
+
+            Assert.That(
+                events[0].Changes![2].OldValue,
+                Is.Null);
+
+            Assert.That(
+                events[0].Changes![2].NewValue!.GetString(),
                 Is.EqualTo("Public #1"));
 
             // Check second event changes (delete event)
@@ -107,8 +128,8 @@ public class DeleteCommandEventTests
                     using (Assert.EnterMultipleScope())
                     {
                         var currentDateTimeOffset = DateTimeOffset.UtcNow;
-                        var eventId1 = $@"EVENT^^{id}^00000001";
-                        var eventId2 = $@"EVENT^^{id}^00000002";
+                        var eventId1 = $@"EVENT^{id}^00000001";
+                        var eventId2 = $@"EVENT^{id}^00000002";
 
                         // Verify first event properties (create event)
                         // id

@@ -11,16 +11,16 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// </summary>
 /// <param name="dataOptions">The data connection options for PostgreSQL.</param>
 /// <param name="typeName">The type name used to filter items.</param>
-/// <param name="validator">Optional validator for items before they are saved.</param>
+/// <param name="itemValidator">Optional validator for items before they are saved.</param>
 /// <param name="commandOperations">Optional command operations to override default behaviors.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 internal partial class PostgresDataProvider<TInterface, TItem>(
     DataOptions dataOptions,
     string typeName,
-    IValidator<TItem>? validator = null,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     int? eventTimeToLive = null)
-    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, validator, commandOperations, eventTimeToLive)
+    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, itemValidator, commandOperations, eventTimeToLive)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {

@@ -96,7 +96,7 @@ public static class InMemoryDataProviderExtensions
             // Create the data provider for this entity type.
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 typeName: typeName,
-                validator: itemValidator,
+                itemValidator: itemValidator,
                 commandOperations: commandOperations);
 
             // Register the provider with the DI container.

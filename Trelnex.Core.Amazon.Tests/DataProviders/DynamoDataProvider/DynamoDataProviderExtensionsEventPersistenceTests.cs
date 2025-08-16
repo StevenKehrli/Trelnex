@@ -52,7 +52,7 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
@@ -85,7 +85,7 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
         Assert.That(created, Is.Not.Null);
 
         // Get the event
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var key = new Dictionary<string, DynamoDBEntry>
         {
             { "partitionKey", partitionKey },

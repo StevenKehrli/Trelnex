@@ -14,7 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores
-- **Change tracking** - Automatically track changes to model properties using the `TrackChange` attribute (see [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute))
+- **Change tracking** - Automatically track changes to model properties using the `Track` attribute (see [Tracking Changes with the TrackAttribute](#tracking-changes-with-the-trackattribute))
 - **Property encryption** - Securely encrypt sensitive data with the `Encrypt` attribute
 - **Event logging** - Generate audit events for all data modifications with property change history
 - **Validation** - Built-in validation support via FluentValidation
@@ -80,7 +80,7 @@ The system includes comprehensive validation:
 
 ## Change Tracking
 
-See [Tracking Changes with the TrackChangeAttribute](#tracking-changes-with-the-trackchangeattribute).
+See [Tracking Changes with the TrackAttribute](#tracking-changes-with-the-trackattribute).
 
 ## Usage
 
@@ -105,7 +105,7 @@ using var createCommand = dataProvider.Create(
     id: id,
     partitionKey: partitionKey);
 
-// Set the item properties (changes will be tracked if [TrackChange] is applied)
+// Set the item properties (changes will be tracked if [Track] is applied)
 createCommand.Item.PublicMessage = "Public #1";
 createCommand.Item.PrivateMessage = "Private #1";
 
@@ -163,7 +163,7 @@ using var updateCommand = await dataProvider.UpdateAsync(
 
 // If no item exists or it's deleted, UpdateAsync returns null
 
-// Update the item properties (changes will be tracked if [TrackChange] is applied)
+// Update the item properties (changes will be tracked if [Track] is applied)
 updateCommand.Item.PublicMessage = "Public #2";
 updateCommand.Item.PrivateMessage = "Private #2";
 
@@ -299,9 +299,9 @@ public class CustomDataProvider<TInterface, TItem>
 {
     public CustomDataProvider(
         string typeName,
-        IValidator<TItem>? validator = null,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null)
-        : base(typeName, validator, commandOperations)
+        : base(typeName, itemValidator, commandOperations)
     {
     }
 
@@ -354,11 +354,11 @@ public class CustomDataProviderFactory : IDataProviderFactory
 }
 ```
 
-## Tracking Changes with the TrackChangeAttribute
+## Tracking Changes with the TrackAttribute
 
 The system captures the property name, old value, and new value for each change, providing a detailed audit trail.
 
-To track changes to properties, decorate them with the `TrackChangeAttribute`:
+To track changes to properties, decorate them with the `TrackAttribute`:
 
 ```csharp
 public interface ITestItem : IBaseItem
@@ -372,18 +372,18 @@ public interface ITestItem : IBaseItem
 
 public class TestSettings
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("value")]
     public string Value { get; set; } = string.Empty;
 }
 
 public class TestItem : BaseItem, ITestItem
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = string.Empty;
 
@@ -391,7 +391,7 @@ public class TestItem : BaseItem, ITestItem
     [JsonPropertyName("privateMessage")]
     public string PrivateMessage { get; set; } = string.Empty;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("settings")]
     public TestSettings Settings { get; set; } = new();
 }
@@ -402,22 +402,22 @@ public class TestItem : BaseItem, ITestItem
 The change tracking system provides comprehensive monitoring of data modifications:
 
 - **JSON Pointer Paths** - Each change is recorded with a precise JSON Pointer path (e.g., `/customer/name`, `/orders/0/quantity`)
-- **Nested Object Support** - Changes to nested objects and their properties are automatically tracked when both the parent property and child properties have `[TrackChange]`
+- **Nested Object Support** - Changes to nested objects and their properties are automatically tracked when both the parent property and child properties have `[Track]`
 - **Value Transitions** - Both old and new values are captured for each property change
 - **Array and Collection Changes** - Modifications to arrays, lists, and dictionaries are tracked at the individual element level
 
 ### Hierarchical Tracking Rules
 
-For nested objects and collections, the `[TrackChange]` attribute must be present at both levels:
+For nested objects and collections, the `[Track]` attribute must be present at both levels:
 
-1. **Parent Property** - The containing property must have `[TrackChange]`
-2. **Child Properties** - Individual properties within nested objects must also have `[TrackChange]`
+1. **Parent Property** - The containing property must have `[Track]`
+2. **Child Properties** - Individual properties within nested objects must also have `[Track]`
 
-If the parent property lacks `[TrackChange]`, no changes within that object will be tracked, even if child properties have the attribute.
+If the parent property lacks `[Track]`, no changes within that object will be tracked, even if child properties have the attribute.
 
 ### Change Event Auditing
 
-When properties decorated with `[TrackChange]` are modified, the system:
+When properties decorated with `[Track]` are modified, the system:
 
 1. **Captures Change Details** - Records the property path, old value, and new value for each modification
 2. **Generates Property Changes** - Creates an array of `PropertyChange` objects containing the audit trail
@@ -441,7 +441,7 @@ When properties decorated with `[TrackChange]` are modified, the system:
 - **Access Control** - Event logs may be accessible to administrators or auditors
 
 **Recommendations:**
-- Use `[TrackChange]` judiciously on sensitive properties
+- Use `[Track]` judiciously on sensitive properties
 - Consider omitting the attribute from properties containing PII, credentials, or confidential data
 - Implement appropriate access controls for event logs and audit trails
 
@@ -478,14 +478,14 @@ Properties marked with `[Encrypt]` are automatically encrypted before storage an
 
 ### Encryption and Change Tracking Interaction
 
-**Important:** When both `[Encrypt]` and `[TrackChange]` are specified on a property:
+**Important:** When both `[Encrypt]` and `[Track]` are specified on a property:
 
 - **Storage** - The property value is encrypted when saved to the data store
 - **Change Tracking** - Property changes are captured with **unencrypted** old and new values in the audit trail
 - **Security Risk** - This exposes sensitive data in plain text within the event logs
 
 **Recommendations for Sensitive Data:**
-- **Use only `[Encrypt]`** - For maximum security, omit `[TrackChange]` on encrypted properties
+- **Use only `[Encrypt]`** - For maximum security, omit `[Track]` on encrypted properties
 - **Risk Assessment** - If audit trails are required, ensure event logs have appropriate access controls
 - **Compliance** - Consider data privacy regulations when tracking changes to encrypted properties
 

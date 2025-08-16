@@ -16,7 +16,7 @@ internal interface ITestItem : IBaseItem
     // Untracked parent with tracked children - should track nothing
     UntrackedSettings UntrackedSettingsWithAttribute { get; set; }
 
-    // Tracked parent without attribute - should track nothing even though children have TrackChange
+    // Tracked parent without attribute - should track nothing even though children have Track
     TrackedSettings TrackedSettingsWithoutAttribute { get; set; }
 
     TrackedSettings[] TrackedSettingsArray { get; set; }
@@ -26,55 +26,55 @@ internal interface ITestItem : IBaseItem
 
 internal record TestItem : BaseItem, ITestItem
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicId")]
     public int PublicId { get; set; }
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 
     [JsonPropertyName("privateMessage")]
     public string PrivateMessage { get; set; } = null!;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("trackedSettingsWithAttribute")]
     public TrackedSettings TrackedSettingsWithAttribute { get; set; } = null!;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("untrackedSettingsWithAttribute")]
     public UntrackedSettings UntrackedSettingsWithAttribute { get; set; } = null!;
 
-    // Note: No TrackChange attribute here
+    // Note: No Track attribute here
     [JsonPropertyName("trackedSettingsWithoutAttribute")]
     public TrackedSettings TrackedSettingsWithoutAttribute { get; set; } = null!;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("trackedSettingsArray")]
     public TrackedSettings[] TrackedSettingsArray { get; set; } = null!;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("trackedSettingsDictionary")]
     public Dictionary<string, TrackedSettings> TrackedSettingsDictionary { get; set; } = null!;
 }
 
-// Settings class where all properties have TrackChange
+// Settings class where all properties have Track
 internal class TrackedSettings
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("settingId")]
     public int SettingId { get; set; }
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("primaryValue")]
     public string PrimaryValue { get; set; } = null!;
 
-    [TrackChange]
+    [Track]
     [JsonPropertyName("secondaryValue")]
     public string SecondaryValue { get; set; } = null!;
 }
 
-// Settings class where no properties have TrackChange
+// Settings class where no properties have Track
 internal class UntrackedSettings
 {
     [JsonPropertyName("settingId")]

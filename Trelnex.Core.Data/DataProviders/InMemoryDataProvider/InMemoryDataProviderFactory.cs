@@ -1,4 +1,5 @@
 using FluentValidation;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data;
 
@@ -43,18 +44,33 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
 
     #region Public Methods
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Creates a data provider for a specific item type.
+    /// </summary>
+    /// <typeparam name="TInterface">Interface type for the items.</typeparam>
+    /// <typeparam name="TItem">Concrete implementation type for the items.</typeparam>
+    /// <param name="tableName">Name of the DynamoDB table to use.</param>
+    /// <param name="typeName">Type name to filter items by.</param>
+    /// <param name="itemValidator">Optional validator for items.</param>
+    /// <param name="commandOperations">Operations allowed for this provider.</param>
+    /// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
+    /// <returns>A configured <see cref="IDataProvider{TInterface}"/> instance.</returns>
+    /// <remarks>
+    /// Creates a <see cref="InMemoryDataProvider{TInterface, TItem}"/> that operates on the in-memory data store.
+    /// </remarks>
     public IDataProvider<TInterface> Create<TInterface, TItem>(
         string typeName,
-        IValidator<TItem>? validator = null,
-        CommandOperations? commandOperations = null)
+        IValidator<TItem>? itemValidator = null,
+        CommandOperations? commandOperations = null,
+        IBlockCipherService? blockCipherService = null)
         where TInterface : class, IBaseItem
         where TItem : BaseItem, TInterface, new()
     {
         return new InMemoryDataProvider<TInterface, TItem>(
-            typeName,
-            validator,
-            commandOperations);
+            typeName: typeName,
+            itemValidator: itemValidator,
+            commandOperations: commandOperations,
+            blockCipherService: blockCipherService);
     }
 
     /// <inheritdoc/>

@@ -43,7 +43,7 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
         _dataProvider = factory.Create<ITestItem, TestItem>(
             containerId: _persistenceContainerId,
             typeName: "test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 
@@ -71,7 +71,7 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
         Assert.That(created, Is.Not.Null);
 
         // Immediately retrieve the event to confirm it exists
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var item1 = await _persistenceContainer.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),

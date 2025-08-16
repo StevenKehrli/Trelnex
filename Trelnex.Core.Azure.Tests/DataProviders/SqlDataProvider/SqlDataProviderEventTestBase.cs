@@ -181,7 +181,7 @@ public abstract class SqlDataProviderEventTestBase
         var cmdText = $"SELECT [expireAtDateTimeOffset] FROM [{tableName}-events] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
 
         var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-        sqlCommand.Parameters.AddWithValue("@id", $"EVENT^^{id}^00000001");
+        sqlCommand.Parameters.AddWithValue("@id", $"EVENT^{id}^00000001");
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();

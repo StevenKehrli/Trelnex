@@ -42,7 +42,7 @@ public class SqlDataProviderEventPersistenceTests : SqlDataProviderEventTestBase
         _dataProvider = factory.Create<ITestItem, TestItem>(
             tableName: _persistenceTableName,
             typeName: "test-item",
-            validator: TestItem.Validator,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 

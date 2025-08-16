@@ -55,7 +55,7 @@ public class InMemoryDataProviderTests : DataProviderTests
         _clearMethod = _dataProvider
             .GetType()
             .GetMethod(
-                "Clear",
+                nameof(InMemoryDataProvider<ITestItem, TestItem>.Clear),
                 BindingFlags.Instance | BindingFlags.NonPublic);
     }
 

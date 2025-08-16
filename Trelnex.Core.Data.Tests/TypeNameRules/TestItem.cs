@@ -11,7 +11,7 @@ internal interface ITestItem : IBaseItem
 
 internal record TestItem : BaseItem, ITestItem
 {
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 

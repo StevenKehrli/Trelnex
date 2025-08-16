@@ -209,7 +209,7 @@ public static partial class PostgresDataProvidersExtensions
             var dataProvider = providerFactory.Create<TInterface, TItem>(
                 tableName: tableConfiguration.TableName,
                 typeName: typeName,
-                validator: itemValidator,
+                itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService);

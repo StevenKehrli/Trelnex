@@ -1,6 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using FluentValidation.Results;
 
 namespace Trelnex.Core.Data;
@@ -23,13 +21,6 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     where TItem : BaseItem, TInterface
 {
     #region Private Static Fields
-
-    private static readonly JsonNode _jsonNodeEmpty = new JsonObject();
-
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        TypeInfoResolver = new TrackChangeResolver()
-    };
 
     /// <summary>
     /// Cached property getter methods.
@@ -54,16 +45,7 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// <summary>
     /// The actual item instance being proxied.
     /// </summary>
-    protected TItem _item
-    {
-        get => _itemValue;
-
-        set
-        {
-            _itemValue = value;
-            _initialJsonNode = JsonSerializer.SerializeToNode(value, _jsonSerializerOptions);
-        }
-    }
+    protected TItem _item = null!;
 
     /// <summary>
     /// The proxy that wraps the underlying item.
@@ -94,16 +76,6 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
     /// Prevents multiple disposal attempts.
     /// </remarks>
     private bool _disposed = false;
-
-    /// <summary>
-    /// Parsed representation of the item's initial state for change tracking.
-    /// </summary>
-    private JsonNode? _initialJsonNode;
-
-    /// <summary>
-    /// Backing field for the actual item instance being proxied.
-    /// </summary>
-    private TItem _itemValue = null!;
 
     #endregion
 
@@ -186,30 +158,6 @@ internal abstract class ProxyManager<TInterface, TItem> : IDisposable
 
         // Execute the method on the underlying item
         return targetMethod?.Invoke(_item, args);
-    }
-
-    #endregion
-
-    #region Internal Methods
-
-    /// <summary>
-    /// Gets tracked property changes by comparing initial and current JSON states using RFC 6902 diff.
-    /// </summary>
-    /// <returns>PropertyChange array for leaf-level differences, or null if no changes</returns>
-    /// <remarks>
-    /// Detects all modifications including nested objects and arrays using JSON diff comparison.
-    /// Returns individual entries for each modified leaf property with JSON Pointer paths.
-    /// Automatically consolidates array reordering operations.
-    /// </remarks>
-    internal PropertyChange[]? GetPropertyChanges()
-    {
-        // Serialize current item state to JsonNode for comparison
-        var currentJsonNode = JsonSerializer.SerializeToNode(_item, _jsonSerializerOptions);
-
-        // Compare initial and current states using RFC 6902 JSON Patch diff
-        return PropertyChanges.Compare(
-            _initialJsonNode ?? _jsonNodeEmpty,
-            currentJsonNode ?? _jsonNodeEmpty);
     }
 
     #endregion

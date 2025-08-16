@@ -42,11 +42,11 @@ public class InMemoryDataProviderExtensionsTests
                 options => options
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
                     .Add<ITestItem, TestItem>(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
         });
     }

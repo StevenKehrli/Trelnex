@@ -14,7 +14,7 @@ namespace Trelnex.Core.Data;
 /// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
 /// <param name="dataOptions">LinqToDB connection and configuration options.</param>
 /// <param name="typeName">Type name identifier used for filtering items.</param>
-/// <param name="validator">Optional FluentValidation validator for domain-specific rules.</param>
+/// <param name="itemValidator">Optional FluentValidation validator for domain-specific rules.</param>
 /// <param name="commandOperations">Permitted CRUD operations. Defaults to Read-only if not specified.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
 /// <remarks>
@@ -24,10 +24,10 @@ namespace Trelnex.Core.Data;
 public abstract class DbDataProvider<TInterface, TItem>(
     DataOptions dataOptions,
     string typeName,
-    IValidator<TItem>? validator = null,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     int? eventTimeToLive = null)
-    : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
+    : DataProvider<TInterface, TItem>(typeName, itemValidator, commandOperations)
     where TInterface : class, IBaseItem
     where TItem : BaseItem, TInterface, new()
 {

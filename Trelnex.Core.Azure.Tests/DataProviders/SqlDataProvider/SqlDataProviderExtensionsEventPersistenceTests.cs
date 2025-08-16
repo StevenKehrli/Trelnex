@@ -48,7 +48,7 @@ public class SqlDataProviderExtensionsEventPersistenceTests : SqlDataProviderEve
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();

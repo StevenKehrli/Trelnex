@@ -48,7 +48,7 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
                 bootstrapLogger,
                 options => options.Add<ITestItem, TestItem>(
                     typeName: "expiration-test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
@@ -81,7 +81,7 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
         Assert.That(created, Is.Not.Null);
 
         // Immediately retrieve the event to confirm it exists
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var item1 = await _expirationContainer.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
