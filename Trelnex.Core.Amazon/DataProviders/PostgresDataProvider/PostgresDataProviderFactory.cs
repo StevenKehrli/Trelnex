@@ -124,6 +124,7 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
         DataOptions dataOptions,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
         ILogger? logger = null)
     {
@@ -133,6 +134,7 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
             dataOptions: dataOptions,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
             logger: logger);
     }

@@ -46,7 +46,7 @@ internal class SaveCommand<TItem>
     #region Private Fields
 
     // JSON representation of the item used to track changes from the baseline
-    private JsonNode _changesAsJsonNode;
+    private JsonNode? _changesAsJsonNode;
 
     // The type of save operation to perform
     private SaveAction _saveAction;
@@ -55,7 +55,7 @@ internal class SaveCommand<TItem>
     private SaveAsyncDelegate<TItem> _saveAsyncDelegate;
 
     // Function that serializes the item to JSON for change tracking
-    private Func<TItem, JsonNode> _serializeChanges = null!;
+    private Func<TItem, JsonNode?> _serializeChanges = null!;
 
     /// <summary>
     /// Delegate that performs asynchronous validation of the item.
@@ -78,7 +78,7 @@ internal class SaveCommand<TItem>
     private SaveCommand(
         TItem item,
         SaveAction saveAction,
-        Func<TItem, JsonNode> serializeChanges,
+        Func<TItem, JsonNode?> serializeChanges,
         ValidateAsyncDelegate<TItem> validateAsyncDelegate,
         SaveAsyncDelegate<TItem> saveAsyncDelegate,
         ILogger? logger = null)
@@ -110,7 +110,7 @@ internal class SaveCommand<TItem>
     internal static SaveCommand<TItem> Create(
         TItem item,
         SaveAction saveAction,
-        Func<TItem, JsonNode> serializeChanges,
+        Func<TItem, JsonNode?> serializeChanges,
         ValidateAsyncDelegate<TItem> validateAsyncDelegate,
         SaveAsyncDelegate<TItem> saveAsyncDelegate,
         ILogger? logger = null)
@@ -202,9 +202,14 @@ internal class SaveCommand<TItem>
     /// <returns>Array of property changes, or null if no changes detected.</returns>
     internal PropertyChange[]? GetPropertyChanges()
     {
+        if (_changesAsJsonNode is null) return null;
+
+        var currentJsonNode = _serializeChanges(Item);
+        if (currentJsonNode is null) return null;
+
         return PropertyChanges.Compare(
             initialJsonNode: _changesAsJsonNode,
-            currentJsonNode: _serializeChanges(Item));
+            currentJsonNode: currentJsonNode);
     }
 
     /// <summary>
@@ -244,10 +249,19 @@ internal class SaveCommand<TItem>
         }
 
         // Create event record for the operation
-        var itemEvent = ItemEvent.Create(
-            relatedItem: Item,
-            saveAction: _saveAction,
-            changes: GetPropertyChanges());
+        ItemEvent? createItemEvent()
+        {
+            if (_changesAsJsonNode is null) return null;
+
+            var changes = GetPropertyChanges();
+
+            return ItemEvent.Create(
+                relatedItem: Item,
+                saveAction: _saveAction,
+                changes: changes);
+        }
+
+        var itemEvent = createItemEvent();
 
         return new SaveRequest<TItem>(
             Item: Item,

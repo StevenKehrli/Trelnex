@@ -50,7 +50,7 @@ public static class InMemoryDataProviderExtensions
 
     #endregion
 
-    #region Private Types
+    #region DataProviderOptions
 
     /// <summary>
     /// Handles configuration and registration of in-memory data providers.
@@ -64,7 +64,6 @@ public static class InMemoryDataProviderExtensions
         InMemoryDataProviderFactory providerFactory)
         : IDataProviderOptions
     {
-
         /// <summary>
         /// Registers an in-memory data provider for the specified entity type.
         /// </summary>

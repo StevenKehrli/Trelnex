@@ -18,6 +18,7 @@ namespace Trelnex.Core.Azure.DataProviders;
 /// <param name="typeName">Type name identifier for filtering items.</param>
 /// <param name="itemValidator">Optional validator for items before saving.</param>
 /// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
 /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
 /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
@@ -27,6 +28,7 @@ internal class CosmosDataProvider<TItem>(
     Container container,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
+    EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
     IBlockCipherService? blockCipherService = null,
     ILogger? logger = null)
@@ -34,6 +36,7 @@ internal class CosmosDataProvider<TItem>(
         typeName: typeName,
         itemValidator: itemValidator,
         commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
         blockCipherService: blockCipherService,
         logger: logger)
     where TItem : BaseItem, new()
@@ -198,12 +201,14 @@ internal class CosmosDataProvider<TItem>(
             using var response = await batch.ExecuteAsync(cancellationToken);
 
             // Process results for each operation
+            var responseIndex = 0;
             for (var index = 0; index < requests.Length; index++)
             {
-                // Results are interleaved: item at even indices, events at odd indices
-                var itemResult = response[index * 2];
-
+                var itemResult = response[responseIndex];
                 saveResults[index] = ParseSaveResult(itemResult);
+
+                // Advance response index for next item
+                responseIndex += requests[index].Event is not null ? 2 : 1;
             }
 
             return saveResults;
@@ -278,12 +283,20 @@ internal class CosmosDataProvider<TItem>(
             item: saveRequest.Item);
 
         // Create event with TTL and serialize to memory stream
-        var eventWithExpiration = new ItemEventWithExpiration(saveRequest.Event, eventTimeToLive);
-        var eventStream = new MemoryStream();
-        SerializeEvent(
-            utf8Json: eventStream,
-            itemEvent: eventWithExpiration);
-        eventStream.Position = 0;
+        Stream? createEventStream(ItemEvent? itemEvent)
+        {
+            if (itemEvent is null) return null;
+
+            var eventWithExpiration = new ItemEventWithExpiration(itemEvent, eventTimeToLive);
+            var eventStream = new MemoryStream();
+            SerializeEvent(
+                utf8Json: eventStream,
+                itemEvent: eventWithExpiration);
+
+            return eventStream;
+        }
+
+        var eventStream = createEventStream(saveRequest.Event);
 
         return new SaveRequestStream(
             Id: saveRequest.Item.Id,
@@ -335,7 +348,7 @@ internal class CosmosDataProvider<TItem>(
         string? ETag,
         SaveAction SaveAction,
         Stream ItemStream,
-        Stream EventStream) : IDisposable
+        Stream? EventStream) : IDisposable
     {
         #region IDisposable
 

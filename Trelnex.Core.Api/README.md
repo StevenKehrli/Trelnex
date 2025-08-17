@@ -21,6 +21,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 - **Configuration Management** - Layered, environment-aware configuration system
 - **Request Context** - Thread-safe access to request metadata without HttpContext coupling
 - **Client Support** - Simplified HTTP client configuration with authentication
+- **Data Provider Integration** - Built-in support for configurable event tracking with EventPolicy
 
 ## Architecture
 
@@ -99,6 +100,17 @@ services.AddInMemoryDataProviders(
     configuration,
     logger,
     options => options.AddCustomerDataProviders());
+
+// Example customer data providers with EventPolicy
+public static IDataProviderOptions AddCustomerDataProviders(
+    this IDataProviderOptions options)
+{
+    return options
+        .Add<Customer>(
+            typeName: "customer",
+            itemValidator: Customer.Validator,
+            commandOperations: CommandOperations.All);
+}
 ```
 
 ## Configuration

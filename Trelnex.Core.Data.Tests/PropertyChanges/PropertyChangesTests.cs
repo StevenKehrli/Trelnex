@@ -16,9 +16,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -48,7 +49,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show addition of new array item: "/trackedSettingsArray/2/settingId", etc.
@@ -66,9 +67,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -82,7 +84,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each array item: "/trackedSettingsArray/0/settingId", etc.
@@ -100,9 +102,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -130,7 +133,7 @@ public class PropertyChangesTests
         // leave second item unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes only for modified properties: "/trackedSettingsArray/0/primaryValue", "/trackedSettingsArray/0/settingId"
@@ -149,9 +152,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -181,7 +185,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of item at index 1 and reindexing of remaining items
@@ -199,9 +203,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -232,7 +237,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all array positions reflecting the reordering
@@ -251,9 +256,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -282,7 +288,7 @@ public class PropertyChangesTests
         ];
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all array positions and addition of new item at index 2
@@ -300,9 +306,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -327,7 +334,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsArray = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all array items with OldValue containing the original items and NewValue as null
@@ -345,9 +352,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -361,7 +369,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // verify that no properties were changed
         Assert.That(propertyChanges, Is.Null);
@@ -378,9 +386,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -398,7 +407,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // verify that no properties were changed since they were reset to original values
         Assert.That(propertyChanges, Is.Null);
@@ -415,9 +424,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -431,7 +441,7 @@ public class PropertyChangesTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         Snapshot.Match(propertyChanges);
@@ -448,9 +458,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -480,7 +491,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show addition of new dictionary item: "/trackedSettingsDictionary/setting3/settingId", etc.
@@ -498,9 +509,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -514,7 +526,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each dictionary item: "/trackedSettingsDictionary/setting1/settingId", etc.
@@ -532,9 +544,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -562,7 +575,7 @@ public class PropertyChangesTests
         // leave second item unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes only for modified properties: "/trackedSettingsDictionary/setting1/primaryValue", "/trackedSettingsDictionary/setting1/settingId"
@@ -581,9 +594,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -614,7 +628,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of setting2: "/trackedSettingsDictionary/setting2/*" with null NewValues
@@ -632,9 +646,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -663,7 +678,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal of old keys and addition of new keys
@@ -681,9 +696,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -708,7 +724,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsDictionary = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all dictionary items with OldValue containing the original items and NewValue as null
@@ -726,9 +742,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -743,7 +760,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show JSON pointer paths for each leaf property: "/trackedSettingsWithAttribute/settingId", etc.
@@ -761,9 +778,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -789,7 +807,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsWithAttribute.PrimaryValue = "Primary Value #2";
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show only the changed property: "/trackedSettingsWithAttribute/primaryValue"
@@ -807,9 +825,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -837,7 +856,7 @@ public class PropertyChangesTests
         // intentionally leave SecondaryValue unchanged
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for only the modified properties:
@@ -857,9 +876,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -890,7 +910,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show changes for all properties: "/trackedSettingsWithAttribute/settingId",
@@ -909,9 +929,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Update);
+            commandOperations: CommandOperations.Create | CommandOperations.Update,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -937,7 +958,7 @@ public class PropertyChangesTests
         updateCommand!.Item.TrackedSettingsWithAttribute = null!;
 
         // get the property changes from the proxy manager
-        var propertyChanges = (updateCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (updateCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show removal changes for all properties: "/trackedSettingsWithAttribute/settingId",
@@ -957,9 +978,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -974,7 +996,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show all leaf properties: "/trackedSettingsWithAttribute/settingId",
@@ -993,9 +1015,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -1011,7 +1034,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show NO property changes because parent property is not marked with [Track]
@@ -1029,9 +1052,10 @@ public class PropertyChangesTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -1047,7 +1071,7 @@ public class PropertyChangesTests
         };
 
         // get the property changes from the proxy manager
-        var propertyChanges = (createCommand as SaveCommand<TestItem>)!.GetPropertyChanges();
+        var propertyChanges = (createCommand as SaveCommand<PolicyChangesTestItem>)!.GetPropertyChanges();
 
         // use Snapshooter to match the property changes with the expected output
         // should show NO leaf properties because UntrackedSettings properties lack [Track]

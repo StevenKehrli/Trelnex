@@ -45,7 +45,7 @@ public class InMemoryDataProviderTests : DataProviderTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         _dataProvider =
-            factory.Create<TestItem>(
+            factory.Create(
                 typeName: "test-item",
                 TestItem.Validator,
                 CommandOperations.All);

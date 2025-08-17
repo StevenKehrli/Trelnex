@@ -117,7 +117,7 @@ public abstract partial class DataProvider<TItem>
     private readonly JsonSerializerOptions _optionsForSerializeItem;
 
     // Function that serializes items for change tracking purposes
-    private readonly Func<TItem, JsonNode> _serializeChanges;
+    private readonly Func<TItem, JsonNode?> _serializeChanges;
 
     // Type name identifier for items managed by this provider
     private readonly string _typeName;
@@ -141,6 +141,7 @@ public abstract partial class DataProvider<TItem>
     /// <param name="typeName">Type name identifier that must follow naming conventions.</param>
     /// <param name="itemValidator">Optional custom validator for domain-specific rules.</param>
     /// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
+    /// <param name="eventPolicy">Optional event policy for change tracking.</param>
     /// <param name="blockCipherService">Optional service for field-level encryption.</param>
     /// <param name="logger">Optional logger for diagnostics.</param>
     /// <exception cref="ArgumentException">Thrown when typeName is invalid or reserved.</exception>
@@ -148,6 +149,7 @@ public abstract partial class DataProvider<TItem>
         string typeName,
         IValidator<TItem>? itemValidator,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
     {
@@ -197,26 +199,44 @@ public abstract partial class DataProvider<TItem>
                 : null
         };
 
-        // Configure serialization for change tracking (excludes non-tracked properties)
-        var optionsForSerializeChanges = new JsonSerializerOptions(defaultOptions)
+        var optionsForDecoratedChanges = new JsonSerializerOptions(defaultOptions)
         {
             TypeInfoResolver = blockCipherService is not null
                 ? new CompositeJsonResolver(
                     [
-                        new TrackPropertyResolver(),
+                        new PropertyChangeResolver(allChanges: false),
                         new EncryptPropertyResolver(blockCipherService)
                     ])
                 : new CompositeJsonResolver(
                     [
-                        new TrackPropertyResolver()
+                        new PropertyChangeResolver(allChanges: false)
                     ])
         };
 
-        _serializeChanges = item =>
+        var optionsForAllChanges = new JsonSerializerOptions(defaultOptions)
         {
-            return JsonSerializer.SerializeToNode(
+            TypeInfoResolver = blockCipherService is not null
+                ? new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: true),
+                        new EncryptPropertyResolver(blockCipherService)
+                    ])
+                : new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: true)
+                    ])
+        };
+
+        _serializeChanges = eventPolicy switch
+        {
+            EventPolicy.NoChanges => item => _jsonNodeEmpty,
+            EventPolicy.DecoratedChanges => item => JsonSerializer.SerializeToNode(
                 value: item,
-                options: optionsForSerializeChanges) ?? _jsonNodeEmpty;
+                options: optionsForDecoratedChanges) ?? _jsonNodeEmpty,
+            null or EventPolicy.AllChanges => item => JsonSerializer.SerializeToNode(
+                value: item,
+                options: optionsForAllChanges) ?? _jsonNodeEmpty,
+            _ => item => null
         };
     }
 

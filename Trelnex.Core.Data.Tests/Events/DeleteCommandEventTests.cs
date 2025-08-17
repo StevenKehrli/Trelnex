@@ -19,7 +19,7 @@ public class DeleteCommandEventTests
 
         ActivitySource.AddActivityListener(activityListener);
 
-        using var activitySource = new ActivitySource(nameof(CreateCommandEventTests));
+        using var activitySource = new ActivitySource(nameof(DeleteCommandEventTests));
         using var activity = activitySource.StartActivity();
 
         var id = "bc4971e4-6dae-45ba-b3ee-43c036e0d957";
@@ -33,7 +33,8 @@ public class DeleteCommandEventTests
         // Get a data provider for our test item type with delete operations
         var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create | CommandOperations.Delete);
+            commandOperations: CommandOperations.Create | CommandOperations.Delete,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         // Create a new command to create our test item
         using var createCommand = dataProvider.Create(
@@ -230,7 +231,7 @@ public class DeleteCommandEventTests
 
         ActivitySource.AddActivityListener(activityListener);
 
-        using var activitySource = new ActivitySource(nameof(CreateCommandEventTests));
+        using var activitySource = new ActivitySource(nameof(DeleteCommandEventTests));
         using var activity = activitySource.StartActivity();
 
         var id = "bc4971e4-6dae-45ba-b3ee-43c036e0d957";
@@ -256,6 +257,7 @@ public class DeleteCommandEventTests
         var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
+            eventPolicy: EventPolicy.DecoratedChanges,
             blockCipherService: blockCipherService);
 
         // Create a new command to create our test item

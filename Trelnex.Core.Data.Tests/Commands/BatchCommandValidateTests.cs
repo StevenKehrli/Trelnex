@@ -23,7 +23,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -72,7 +72,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -116,7 +116,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -163,7 +163,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -211,7 +211,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -261,7 +261,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -320,7 +320,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -377,7 +377,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -417,7 +417,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -452,7 +452,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -490,7 +490,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -529,7 +529,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -570,7 +570,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -620,7 +620,7 @@ public class BatchCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);

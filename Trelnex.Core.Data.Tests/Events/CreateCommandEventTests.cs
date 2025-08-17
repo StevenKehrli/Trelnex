@@ -33,7 +33,8 @@ public class CreateCommandEventTests
         // Get a data provider for our test item type
         var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges);
 
         // Create a new command to create our test item
         using var createCommand = dataProvider.Create(
@@ -195,6 +196,7 @@ public class CreateCommandEventTests
         var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
+            eventPolicy: EventPolicy.DecoratedChanges,
             blockCipherService: blockCipherService);
 
         // Create a new command to create our test item

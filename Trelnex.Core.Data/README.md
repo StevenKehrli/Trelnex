@@ -14,6 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores (in-memory, database via LinqToDB)
+- **Configurable event tracking** - Control change tracking behavior with EventPolicy (Disabled, NoChanges, DecoratedChanges, AllChanges)
 - **Change tracking** - Automatically track changes to model properties using the `Track` attribute with JSON Pointer paths
 - **Property encryption** - Securely encrypt sensitive data with field-level encryption using AES-GCM
 - **Event sourcing** - Complete audit trail with W3C trace context integration for all data modifications
@@ -118,6 +119,7 @@ var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 var factory = new InMemoryDataProviderFactory();
 var dataProvider = factory.Create<TestItem>(
     typeName: "TestItem",
+    eventPolicy: EventPolicy.AllChanges,
     commandOperations: CommandOperations.All);
 
 // Create a save command for new item
@@ -147,7 +149,8 @@ var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
 // Create data provider
 var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(typeName: "TestItem");
+var dataProvider = factory.Create<TestItem>(
+    typeName: "TestItem");
 
 // Read item by id and partition key
 using var result = await dataProvider.ReadAsync(
@@ -172,7 +175,8 @@ var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 var factory = new InMemoryDataProviderFactory();
 var dataProvider = factory.Create<TestItem>(
     typeName: "TestItem",
-    commandOperations: CommandOperations.All);
+    commandOperations: CommandOperations.All,
+    eventPolicy: EventPolicy.AllChanges);
 
 // Create update command (loads existing item)
 using var updateCommand = await dataProvider.UpdateAsync(
@@ -206,7 +210,8 @@ var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 var factory = new InMemoryDataProviderFactory();
 var dataProvider = factory.Create<TestItem>(
     typeName: "TestItem",
-    commandOperations: CommandOperations.All);
+    commandOperations: CommandOperations.All,
+    eventPolicy: EventPolicy.AllChanges);
 
 // Create delete command (loads existing item)
 using var deleteCommand = await dataProvider.DeleteAsync(
@@ -232,7 +237,9 @@ using Trelnex.Core.Disposables;
 
 // Create data provider
 var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(typeName: "TestItem");
+var dataProvider = factory.Create<TestItem>(
+    typeName: "TestItem",
+    eventPolicy: EventPolicy.AllChanges);
 
 // Build LINQ query with full expression support
 var queryCommand = dataProvider.Query()
@@ -267,7 +274,8 @@ using Trelnex.Core.Data;
 // Create data provider
 var dataProvider = InMemoryDataProviderFactory.Create<TestItem>(
     typeName: "TestItem",
-    commandOperations: CommandOperations.All);
+    commandOperations: CommandOperations.All,
+    eventPolicy: EventPolicy.AllChanges);
 
 // Create atomic batch command
 var batchCommand = dataProvider.Batch();
@@ -313,8 +321,10 @@ public class CustomDataProvider<TItem>
     public CustomDataProvider(
         string typeName,
         IValidator<TItem>? itemValidator = null,
-        CommandOperations? commandOperations = null)
-        : base(typeName, itemValidator, commandOperations)
+        CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
+        IBlockCipherService? blockCipherService = null)
+        : base(typeName, itemValidator, commandOperations, eventPolicy, blockCipherService)
     {
     }
 
@@ -404,60 +414,68 @@ public class CustomDataProviderFactory : IDataProviderFactory
 }
 ```
 
-## Tracking Changes with the TrackAttribute
+## Event Policy and Change Tracking
 
-The system provides sophisticated change tracking using JSON Pointer paths (RFC 6901) to capture precise property changes. Changes are detected through deep JSON comparison and recorded with old and new values for complete audit trails.
+The system provides configurable change tracking through the `EventPolicy` enum, allowing you to control how and when property changes are recorded.
 
-To enable change tracking on properties, decorate them with the `[Track]` attribute:
+### EventPolicy Options
+
+- **Disabled** - Event tracking is completely disabled; no events are generated
+- **NoChanges** - Events are generated but no property changes are tracked
+- **DecoratedChanges** - Only properties explicitly marked with `[Track]` attribute are tracked
+- **AllChanges** (Default) - All properties with `[JsonPropertyName]` are tracked, except those marked with `[DoNotTrack]`
+
+### Configuration
+
+EventPolicy can be configured in several ways:
+
+#### Via Configuration (appsettings.json)
+```json
+{
+  "Amazon": {
+    "DynamoDataProviders": {
+      "TestItem": {
+        "TableName": "my-table",
+        "EventPolicy": "DecoratedChanges"
+      }
+    }
+  }
+}
+```
+
+### Tracking Attributes
+
+Control tracking behavior at the property level:
 
 ```csharp
-public interface ITestItem
+public record TestItem : BaseItem
 {
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-
-    TestSettings Settings { get; set; }
-}
-
-public class TestSettings
-{
+    // Tracked only with DecoratedChanges policy
     [Track]
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
+    [JsonPropertyName("trackedMessage")]
+    public string TrackedMessage { get; set; } = string.Empty;
 
-    [Track]
-    [JsonPropertyName("value")]
-    public string Value { get; set; } = string.Empty;
-}
+    // Tracked with AllChanges policy (default)
+    [JsonPropertyName("normalMessage")]
+    public string NormalMessage { get; set; } = string.Empty;
 
-public class TestItem : BaseItem, ITestItem
-{
-    [Track]
-    [JsonPropertyName("publicMessage")]
-    public string PublicMessage { get; set; } = string.Empty;
-
-    // Changes will NOT be tracked for privateMessage (no [Track] attribute)
-    [JsonPropertyName("privateMessage")]
-    public string PrivateMessage { get; set; } = string.Empty;
-
-    [Track]
-    [JsonPropertyName("settings")]
-    public TestSettings Settings { get; set; } = new();
+    // Never tracked, even with AllChanges policy
+    [DoNotTrack]
+    [JsonPropertyName("sensitiveData")]
+    public string SensitiveData { get; set; } = string.Empty;
 }
 ```
 
 ### Change Tracking Features
 
-The change tracking system provides comprehensive monitoring of data modifications:
+The change tracking system provides comprehensive monitoring when enabled:
 
-- **JSON Pointer Paths** - Each change is recorded with a precise JSON Pointer path (RFC 6901) such as `/settings/value` or `/items/0/quantity`
-- **Deep Object Tracking** - Changes to nested objects and their properties are automatically tracked using recursive JSON comparison
-- **Thread-Safe Operations** - All change detection uses semaphores and thread-safe patterns for concurrent access
-- **Value Capture** - Both old and new values are captured as `dynamic?` types and stored for complete audit trails
-- **Complex Type Support** - Arrays, lists, dictionaries, and custom objects are fully supported
+- **JSON Pointer Paths** - Changes recorded with precise RFC 6901 paths like `/settings/value`
+- **Deep Object Tracking** - Nested objects and collections tracked recursively
+- **Thread-Safe Operations** - All change detection uses semaphores for concurrent access
+- **Value Capture** - Both old and new values stored for complete audit trails
+- **Complex Type Support** - Arrays, lists, dictionaries, and custom objects fully supported
 - **Efficient Comparison** - Uses JsonNode-based deep comparison for optimal performance
-- **DoNotTrack Attribute** - Use `[DoNotTrack]` to explicitly exclude properties from tracking
 
 ### Hierarchical Tracking Rules
 
@@ -472,7 +490,7 @@ If a parent property lacks `[Track]`, no changes within that object are tracked,
 
 ### Change Event Auditing
 
-When properties decorated with `[Track]` are modified, the system:
+When properties are tracked according to the EventPolicy, the system:
 
 1. **Captures Change Details** - Records the JSON Pointer path, old value, and new value for each modification
 2. **Generates Property Changes** - Creates an array of `PropertyChange` records with complete audit information
@@ -507,13 +525,15 @@ When properties decorated with `[Track]` are modified, the system:
 
 **Important:** Property change tracking captures and persists the actual values (both old and new) in the audit trail. This provides detailed auditing capabilities but may expose sensitive information:
 
-- **Data Exposure** - Old and new values are stored in plain text in the event log
+- **Data Exposure** - Old and new values are stored in the event log (encrypted values are preserved as encrypted in events)
 - **Compliance Risk** - May conflict with data privacy regulations (GDPR, CCPA) for sensitive data
 - **Access Control** - Event logs may be accessible to administrators or auditors
+- **Encryption Security** - Properties marked with `[Encrypt]` have their encrypted values captured in event changes, maintaining data protection
 
 **Recommendations:**
 - Use `[Track]` judiciously on sensitive properties
-- Consider omitting the attribute from properties containing PII, credentials, or confidential data
+- Consider using `EventPolicy.DecoratedChanges` or `[DoNotTrack]` for sensitive data
+- Properties with `[Encrypt]` maintain their encryption in event audit trails
 - Implement appropriate access controls for event logs and audit trails
 
 ## Field-Level Encryption (Future Feature)

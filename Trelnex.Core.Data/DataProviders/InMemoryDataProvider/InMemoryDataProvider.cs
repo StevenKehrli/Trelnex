@@ -31,13 +31,29 @@ internal class InMemoryDataProvider<TItem>
 
     #region Constructor
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InMemoryDataProvider{TItem}"/> class.
+    /// </summary>
+    /// <param name="typeName">The name of the item type.</param>
+    /// <param name="itemValidator">Optional validator for domain-specific rules.</param>
+    /// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
+    /// <param name="eventPolicy">Optional event policy for change tracking.</param>
+    /// <param name="blockCipherService">Optional service for encrypting sensitive data.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
     public InMemoryDataProvider(
         string typeName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
-        : base(typeName, itemValidator, commandOperations, blockCipherService, logger)
+        : base(
+            typeName: typeName,
+            itemValidator: itemValidator,
+            commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
+            blockCipherService: blockCipherService,
+            logger: logger)
     {
         _store = CreateStore();
     }
@@ -358,7 +374,7 @@ internal class InMemoryDataProvider<TItem>
         /// <exception cref="CommandException">Thrown if item already exists.</exception>
         public TItem CreateItem(
             TItem item,
-            ItemEvent itemEvent)
+            ItemEvent? itemEvent)
         {
             // Generate unique ETag for optimistic concurrency control
             var eTag = Guid.NewGuid().ToString();
@@ -376,8 +392,11 @@ internal class InMemoryDataProvider<TItem>
             }
 
             // Record the creation event
-            var serializedEvent = SerializeEvent(itemEvent, eTag);
-            _events.Add(serializedEvent);
+            if (itemEvent is not null)
+            {
+                var serializedEvent = SerializeEvent(itemEvent, eTag);
+                _events.Add(serializedEvent);
+            }
 
             // Return item with assigned ETag
             return DeserializeItem(serializedItem)!;
@@ -417,7 +436,7 @@ internal class InMemoryDataProvider<TItem>
         /// <exception cref="CommandException">Thrown if item not found or ETag mismatch.</exception>
         public TItem UpdateItem(
             TItem item,
-            ItemEvent itemEvent)
+            ItemEvent? itemEvent)
         {
             // Build composite key for lookup
             var itemKey = GetItemKey(
@@ -444,8 +463,11 @@ internal class InMemoryDataProvider<TItem>
             _items[itemKey] = serializedItem;
 
             // Record the update event
-            var serializedEvent = SerializeEvent(itemEvent, eTag);
-            _events.Add(serializedEvent);
+            if (itemEvent is not null)
+            {
+                var serializedEvent = SerializeEvent(itemEvent, eTag);
+                _events.Add(serializedEvent);
+            }
 
             // Return updated item with new ETag
             return DeserializeItem(serializedItem);

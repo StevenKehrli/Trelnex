@@ -9,6 +9,6 @@ namespace Trelnex.Core.Data;
 /// <param name="SaveAction">The type of save operation to perform.</param>
 public record SaveRequest<TItem>(
     TItem Item,
-    ItemEvent Event,
+    ItemEvent? Event,
     SaveAction SaveAction)
     where TItem : BaseItem;

@@ -94,6 +94,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
         string tableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
@@ -108,6 +109,7 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
             table: table,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
             blockCipherService: blockCipherService,
             logger: logger);

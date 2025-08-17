@@ -63,6 +63,7 @@ public static partial class PostgresDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
 
+                var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
                 var blockCipherService = section.CreateBlockCipherService();
@@ -70,6 +71,7 @@ public static partial class PostgresDataProvidersExtensions
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
+                    EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
@@ -193,6 +195,7 @@ public static partial class PostgresDataProvidersExtensions
                 tableName: tableConfiguration.TableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
+                eventPolicy: tableConfiguration.EventPolicy,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService);
 
@@ -227,11 +230,13 @@ public static partial class PostgresDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
     /// <param name="TableName">The physical PostgreSQL table name.</param>
+    /// <param name="EventPolicy">The event policy for change tracking.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
+        EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 

@@ -46,6 +46,7 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
     /// <param name="typeName">Type name identifier for the items.</param>
     /// <param name="itemValidator">Optional validator for items.</param>
     /// <param name="commandOperations">Allowed operations for this provider.</param>
+    /// <param name="eventPolicy">Optional event policy for change tracking.</param>
     /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
     /// <param name="logger">Optional logger for diagnostics.</param>
     /// <returns>A configured in-memory data provider instance.</returns>
@@ -53,6 +54,7 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
         string typeName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
         where TItem : BaseItem, new()
@@ -61,6 +63,7 @@ public class InMemoryDataProviderFactory : IDataProviderFactory
             typeName: typeName,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
             blockCipherService: blockCipherService,
             logger: logger);
     }

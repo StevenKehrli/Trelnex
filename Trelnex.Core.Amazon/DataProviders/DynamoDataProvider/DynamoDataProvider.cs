@@ -18,6 +18,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="typeName">Type name identifier for filtering items.</param>
 /// <param name="itemValidator">Optional validator for items before saving.</param>
 /// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
 /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
 /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
@@ -26,6 +27,7 @@ internal class DynamoDataProvider<TItem>(
     Table table,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
+    EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
     IBlockCipherService? blockCipherService = null,
     ILogger? logger = null)
@@ -33,6 +35,7 @@ internal class DynamoDataProvider<TItem>(
         typeName: typeName,
         itemValidator: itemValidator,
         commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
         blockCipherService: blockCipherService,
         logger: logger)
     where TItem : BaseItem, new()
@@ -217,6 +220,9 @@ internal class DynamoDataProvider<TItem>(
             var documentItem = Document.FromJson(jsonItem);
 
             batch.AddDocumentToUpdate(documentItem, config);
+
+            // Skip if no event to record
+            if (request.Event is null) continue;
 
             // Calculate event expiration and create event with same ETag
             var eventExpireAt = (eventTimeToLive is null)

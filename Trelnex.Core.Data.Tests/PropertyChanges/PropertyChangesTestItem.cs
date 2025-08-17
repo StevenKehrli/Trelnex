@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data.Tests.PropertyChanges;
 
-internal record TestItem : BaseItem
+internal record PolicyChangesTestItem : BaseItem
 {
     [Track]
     [JsonPropertyName("publicId")]

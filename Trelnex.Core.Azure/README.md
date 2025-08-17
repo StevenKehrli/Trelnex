@@ -14,6 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Data Access Integration** - SQL Server and Cosmos DB data providers for the Trelnex.Core.Data system
 - **Data Provider Factories** - Simplified registration of Azure-based data stores
+- **Configurable Event Tracking** - EventPolicy support for controlling change tracking behavior
 - **Azure Identity Integration** - Managed credential handling for Azure services with automatic token refresh
 
 ## Overview
@@ -83,10 +84,12 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
     "Containers": {
       "test-item": {
         "ContainerId": "test-items",
+        "EventPolicy": "AllChanges",
         "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "ContainerId": "test-items",
+        "EventPolicy": "DecoratedChanges",
         "Encryption": {
           "Primary": {
             "CipherName": "AesGcm",
@@ -104,9 +107,15 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
   }
 ```
 
+The `EventPolicy` property controls change tracking behavior. Options include:
+- `Disabled` - No events generated
+- `NoChanges` - Events without property changes
+- `DecoratedChanges` - Only `[Track]` decorated properties tracked
+- `AllChanges` - All properties tracked except `[DoNotTrack]` (default)
+
 The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from CosmosDB. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
 
 #### CosmosDataProvider - Container Schema
 
@@ -177,10 +186,12 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
     "Tables": {
       "test-item": {
         "TableName": "test-items",
+        "EventPolicy": "AllChanges",
         "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
         "TableName": "test-items",
+        "EventPolicy": "DecoratedChanges",
         "Encryption": {
           "Primary": {
             "CipherName": "AesGcm",
@@ -198,9 +209,15 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
   }
 ```
 
+The `EventPolicy` property controls change tracking behavior. Options include:
+- `Disabled` - No events generated
+- `NoChanges` - Events without property changes
+- `DecoratedChanges` - Only `[Track]` decorated properties tracked
+- `AllChanges` - All properties tracked except `[DoNotTrack]` (default)
+
 The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from SQL. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
 
 #### SqlDataProvider - Item Schema
 

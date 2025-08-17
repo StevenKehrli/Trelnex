@@ -77,6 +77,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         string tableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
@@ -118,11 +119,12 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             .UseMappingSchema(mappingSchema);
 
         // Create concrete data provider implementation
-        return CreateDataProvider<TItem>(
+        return CreateDataProvider(
             typeName: typeName,
             dataOptions: dataProviderDataOptions,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
             logger: logger);
     }
@@ -229,6 +231,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         DataOptions dataOptions,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
         ILogger? logger = null)
         where TItem : BaseItem, new();

@@ -14,6 +14,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="typeName">Type name identifier for filtering items.</param>
 /// <param name="itemValidator">Optional validator for items before saving.</param>
 /// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
 /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
 internal partial class PostgresDataProvider<TItem>(
@@ -21,6 +22,7 @@ internal partial class PostgresDataProvider<TItem>(
     DataOptions dataOptions,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
+    EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
     ILogger? logger = null)
     : DbDataProvider<TItem>(
@@ -28,6 +30,7 @@ internal partial class PostgresDataProvider<TItem>(
         dataOptions: dataOptions,
         itemValidator: itemValidator,
         commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
         eventTimeToLive: eventTimeToLive,
         logger: logger)
     where TItem : BaseItem, new()

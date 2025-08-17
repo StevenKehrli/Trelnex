@@ -55,6 +55,7 @@ public static class SqlDataProvidersExtensions
                 var tableName = section.GetValue<string>("TableName")
                     ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
 
+                var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
                 var blockCipherService = section.CreateBlockCipherService();
@@ -62,6 +63,7 @@ public static class SqlDataProvidersExtensions
                 return new TableConfiguration(
                     TypeName: section.Key,
                     TableName: tableName,
+                    EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
@@ -187,11 +189,12 @@ public static class SqlDataProvidersExtensions
             }
 
             // Create data provider instance using factory and table configuration
-            var dataProvider = providerFactory.Create<TItem>(
+            var dataProvider = providerFactory.Create(
                 typeName: typeName,
                 tableName: tableConfiguration.TableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
+                eventPolicy: tableConfiguration.EventPolicy,
                 eventTimeToLive: tableConfiguration.EventTimeToLive,
                 blockCipherService: tableConfiguration.BlockCipherService,
                 logger: bootstrapLogger);
@@ -226,11 +229,13 @@ public static class SqlDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
     /// <param name="TableName">The physical SQL Server table name.</param>
+    /// <param name="EventPolicy">The event policy for the table.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
         string TableName,
+        EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 

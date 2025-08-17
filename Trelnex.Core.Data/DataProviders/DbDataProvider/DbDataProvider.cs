@@ -16,6 +16,7 @@ namespace Trelnex.Core.Data;
 /// <param name="typeName">Type name identifier for filtering items.</param>
 /// <param name="itemValidator">Optional validator for domain-specific rules.</param>
 /// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in seconds.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
 public abstract class DbDataProvider<TItem>(
@@ -23,12 +24,14 @@ public abstract class DbDataProvider<TItem>(
     DataOptions dataOptions,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
+    EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
     ILogger? logger = null)
     : DataProvider<TItem>(
         typeName: typeName,
         itemValidator: itemValidator,
         commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
         logger: logger)
     where TItem : BaseItem, new()
 {
@@ -227,14 +230,17 @@ public abstract class DbDataProvider<TItem>(
                 throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}");
         }
 
-        // Calculate event expiration time if TTL is configured
-        var eventExpireAt = (eventTimeToLive is null)
-            ? null as DateTimeOffset?
-            : request.Event.CreatedDateTimeOffset.AddSeconds(eventTimeToLive.Value);
+        if (request.Event is not null)
+        {
+            // Calculate event expiration time if TTL is configured
+            var eventExpireAt = (eventTimeToLive is null)
+                ? null as DateTimeOffset?
+                : request.Event.CreatedDateTimeOffset.AddSeconds(eventTimeToLive.Value);
 
-        // Insert audit event with optional expiration
-        var eventWithExpiration = new ItemEventWithExpiration(request.Event, eventExpireAt);
-        dataConnection.Insert(eventWithExpiration);
+            // Insert audit event with optional expiration
+            var eventWithExpiration = new ItemEventWithExpiration(request.Event, eventExpireAt);
+            dataConnection.Insert(eventWithExpiration);
+        }
 
         // Return saved item with any database-generated values
         return dataConnection

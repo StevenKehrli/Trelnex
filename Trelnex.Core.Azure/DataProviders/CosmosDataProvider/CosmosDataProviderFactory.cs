@@ -116,6 +116,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
         string containerId,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
         IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
@@ -132,6 +133,7 @@ internal class CosmosDataProviderFactory : IDataProviderFactory
             container: container,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
             blockCipherService: blockCipherService,
             logger: logger);

@@ -54,6 +54,7 @@ public static class CosmosDataProvidersExtensions
                 var containerId = section.GetValue<string>("ContainerId")
                     ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
 
+                var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
                 var blockCipherService = section.CreateBlockCipherService();
@@ -61,6 +62,7 @@ public static class CosmosDataProvidersExtensions
                 return new ContainerConfiguration(
                     TypeName: section.Key,
                     ContainerId: containerId,
+                    EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
             })
@@ -189,6 +191,7 @@ public static class CosmosDataProvidersExtensions
                 containerId: containerConfiguration.ContainerId,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
+                eventPolicy: containerConfiguration.EventPolicy,
                 eventTimeToLive: containerConfiguration.EventTimeToLive,
                 blockCipherService: containerConfiguration.BlockCipherService,
                 logger: bootstrapLogger);
@@ -223,11 +226,13 @@ public static class CosmosDataProvidersExtensions
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
     /// <param name="ContainerId">The physical Cosmos DB container identifier.</param>
+    /// <param name="EventPolicy">Event policy for change tracking.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the container.</param>
     private record ContainerConfiguration(
         string TypeName,
         string ContainerId,
+        EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
 
