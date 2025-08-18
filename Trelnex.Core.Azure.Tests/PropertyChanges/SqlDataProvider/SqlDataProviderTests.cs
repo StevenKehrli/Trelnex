@@ -157,6 +157,7 @@ public class SqlDataProviderTests : EventPolicyTests
     public void TestCleanup()
     {
         TableCleanup(_eventTableName);
+        TableCleanup(_itemTableName);
     }
 
     private void BeforeConnectionOpened(
