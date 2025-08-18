@@ -240,29 +240,46 @@ internal class CosmosDataProvider<TItem>(
     /// <exception cref="InvalidOperationException">Thrown for unrecognized save actions.</exception>
     private static TransactionalBatch AddItem(
         TransactionalBatch batch,
-        SaveRequestStream saveRequestStream) => saveRequestStream.SaveAction switch
+        SaveRequestStream saveRequestStream)
+    {
+        switch (saveRequestStream.SaveAction)
         {
             // Create operations for new items
-            SaveAction.CREATED => batch
-                .CreateItemStream(
-                    streamPayload: saveRequestStream.ItemStream)
-                .CreateItemStream(
-                    streamPayload: saveRequestStream.EventStream),
+            case SaveAction.CREATED:
+                {
+                    batch.CreateItemStream(
+                        streamPayload: saveRequestStream.ItemStream);
+
+                    break;
+                }
 
             // Replace operations for updates and deletes with ETag check
-            SaveAction.UPDATED or SaveAction.DELETED => batch
-                .ReplaceItemStream(
-                    id: saveRequestStream.Id,
-                    streamPayload: saveRequestStream.ItemStream,
-                    requestOptions: new TransactionalBatchItemRequestOptions
-                    {
-                        IfMatchEtag = saveRequestStream.ETag
-                    })
-                .CreateItemStream(
-                    streamPayload: saveRequestStream.EventStream),
+            case SaveAction.UPDATED:
+            case SaveAction.DELETED:
+                {
+                    batch.ReplaceItemStream(
+                        id: saveRequestStream.Id,
+                        streamPayload: saveRequestStream.ItemStream,
+                        requestOptions: new TransactionalBatchItemRequestOptions
+                        {
+                            IfMatchEtag = saveRequestStream.ETag
+                        });
 
-            _ => throw new InvalidOperationException($"Unknown SaveAction: {saveRequestStream.SaveAction}")
-        };
+                    break;
+                }
+
+            default:
+                throw new InvalidOperationException($"Unknown SaveAction: {saveRequestStream.SaveAction}");
+        }
+
+        if (saveRequestStream.EventStream is not null)
+        {
+            batch.CreateItemStream(
+                streamPayload: saveRequestStream.EventStream);
+        }
+
+        return batch;
+    }
 
     #endregion
 

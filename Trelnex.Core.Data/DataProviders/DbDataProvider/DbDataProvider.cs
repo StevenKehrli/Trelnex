@@ -4,6 +4,7 @@ using FluentValidation;
 using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Encryption;
 using Trelnex.Core.Observability;
 
 namespace Trelnex.Core.Data;
@@ -17,6 +18,7 @@ namespace Trelnex.Core.Data;
 /// <param name="itemValidator">Optional validator for domain-specific rules.</param>
 /// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
 /// <param name="eventPolicy">Optional event policy for change tracking.</param>
+/// <param name="blockCipherService">Optional block cipher service for encryption.</param>
 /// <param name="eventTimeToLive">Optional time-to-live for events in seconds.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
 public abstract class DbDataProvider<TItem>(
@@ -26,12 +28,14 @@ public abstract class DbDataProvider<TItem>(
     CommandOperations? commandOperations = null,
     EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
+    IBlockCipherService? blockCipherService = null,
     ILogger? logger = null)
     : DataProvider<TItem>(
         typeName: typeName,
         itemValidator: itemValidator,
         commandOperations: commandOperations,
         eventPolicy: eventPolicy,
+        blockCipherService: blockCipherService,
         logger: logger)
     where TItem : BaseItem, new()
 {

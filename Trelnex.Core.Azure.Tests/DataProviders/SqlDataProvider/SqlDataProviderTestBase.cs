@@ -169,6 +169,19 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
         LinqToDB.Mapping.MappingSchema.ClearCache();
     }
 
+    protected SqlConnection GetConnection()
+    {
+        // Establish a SQL connection using token authentication.
+        var sqlConnection = new SqlConnection(_connectionString);
+
+        var tokenRequestContext = new TokenRequestContext([_scope]);
+        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
+
+        sqlConnection.Open();
+
+        return sqlConnection;
+    }
+
     private void TableCleanup(
         string tableName)
     {
@@ -181,19 +194,6 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
-    }
-
-    protected SqlConnection GetConnection()
-    {
-        // Establish a SQL connection using token authentication.
-        var sqlConnection = new SqlConnection(_connectionString);
-
-        var tokenRequestContext = new TokenRequestContext([_scope]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
-
-        sqlConnection.Open();
-
-        return sqlConnection;
     }
 
     protected async Task<SqlDataReader> GetReader(

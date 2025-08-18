@@ -37,16 +37,16 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -64,7 +64,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -72,11 +72,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -84,7 +84,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
         }
     }
 
@@ -132,14 +132,16 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.EncryptedMessage = "EncryptedMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -153,11 +155,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes,
-                Has.Length.EqualTo(1));
+                Has.Length.EqualTo(2));
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/encryptedMessage"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -169,7 +171,19 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 plaintextNew0,
-                Is.EqualTo("EncryptedMessage #1"));
+                Is.EqualTo("OptionalMessage #1"));
+
+            Assert.That(
+                events[0].Changes![1].PropertyName,
+                Is.EqualTo("/publicMessage"));
+
+            Assert.That(
+                events[0].Changes![1].OldValue,
+                Is.Null);
+
+            Assert.That(
+                events[0].Changes![1].NewValue!.GetString(),
+                Is.EqualTo("PublicMessage #1"));
         }
     }
 
@@ -205,9 +219,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -226,7 +240,7 @@ public abstract partial class EventPolicyTests
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -243,8 +257,12 @@ public abstract partial class EventPolicyTests
                 Has.Length.EqualTo(2));
 
             Assert.That(
+                events[0].Changes,
+                Has.Length.EqualTo(2));
+
+            Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -252,11 +270,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -264,7 +282,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -320,7 +338,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.EncryptedMessage = "EncryptedMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -339,7 +359,7 @@ public abstract partial class EventPolicyTests
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -352,12 +372,8 @@ public abstract partial class EventPolicyTests
                 Is.EqualTo(SaveAction.CREATED));
 
             Assert.That(
-                events[0].Changes,
-                Has.Length.EqualTo(1));
-
-            Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/encryptedMessage"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -369,7 +385,19 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 plaintextNew0,
-                Is.EqualTo("EncryptedMessage #1"));
+                Is.EqualTo("OptionalMessage #1"));
+
+            Assert.That(
+                events[0].Changes![1].PropertyName,
+                Is.EqualTo("/publicMessage"));
+
+            Assert.That(
+                events[0].Changes![1].OldValue,
+                Is.Null);
+
+            Assert.That(
+                events[0].Changes![1].NewValue!.GetString(),
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -413,9 +441,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -430,16 +458,16 @@ public abstract partial class EventPolicyTests
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
         // Update the test item values
-        updateCommand.Item.Message = "Message #2";
-        updateCommand.Item.TrackMessage = "TrackMessage #2";
-        updateCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #2";
+        updateCommand.Item.PublicMessage = "PublicMessage #2";
+        updateCommand.Item.PrivateMessage = "PrivateMessage #2";
+        updateCommand.Item.OptionalMessage = "OptionalMessage #2";
 
         // Save the updated state
         await updateCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -457,7 +485,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -465,11 +493,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -477,7 +505,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -489,27 +517,27 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[1].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[1].Changes![0].OldValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[1].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #2"));
+                Is.EqualTo("OptionalMessage #2"));
 
             Assert.That(
                 events[1].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[1].Changes![1].OldValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #2"));
+                Is.EqualTo("PublicMessage #2"));
         }
     }
 
@@ -557,7 +585,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.EncryptedMessage = "EncryptedMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -572,14 +602,16 @@ public abstract partial class EventPolicyTests
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
         // Update the test item values
-        updateCommand.Item.EncryptedMessage = "EncryptedMessage #2";
+        updateCommand.Item.PublicMessage = "PublicMessage #2";
+        updateCommand.Item.PrivateMessage = "PrivateMessage #2";
+        updateCommand.Item.OptionalMessage = "OptionalMessage #2";
 
         // Save the updated state
         await updateCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -593,11 +625,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes,
-                Has.Length.EqualTo(1));
+                Has.Length.EqualTo(2));
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/encryptedMessage"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -609,7 +641,19 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 plaintextNew0,
-                Is.EqualTo("EncryptedMessage #1"));
+                Is.EqualTo("OptionalMessage #1"));
+
+            Assert.That(
+                events[0].Changes![1].PropertyName,
+                Is.EqualTo("/publicMessage"));
+
+            Assert.That(
+                events[0].Changes![1].OldValue,
+                Is.Null);
+
+            Assert.That(
+                events[0].Changes![1].NewValue!.GetString(),
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -617,11 +661,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[1].Changes,
-                Has.Length.EqualTo(1));
+                Has.Length.EqualTo(2));
 
             Assert.That(
                 events[1].Changes![0].PropertyName,
-                Is.EqualTo("/encryptedMessage"));
+                Is.EqualTo("/optionalMessage"));
 
             var plaintextOld1 = EncryptedJsonService.DecryptFromBase64<string>(
                 events[1].Changes![0].OldValue!.GetString(),
@@ -629,7 +673,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 plaintextOld1,
-                Is.EqualTo("EncryptedMessage #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             var plaintextNew1 = EncryptedJsonService.DecryptFromBase64<string>(
                 events[1].Changes![0].NewValue!.GetString(),
@@ -637,7 +681,19 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 plaintextNew1,
-                Is.EqualTo("EncryptedMessage #2"));
+                Is.EqualTo("OptionalMessage #2"));
+
+            Assert.That(
+                events[1].Changes![1].PropertyName,
+                Is.EqualTo("/publicMessage"));
+
+            Assert.That(
+                events[1].Changes![1].OldValue!.GetString(),
+                Is.EqualTo("PublicMessage #1"));
+
+            Assert.That(
+                events[1].Changes![1].NewValue!.GetString(),
+                Is.EqualTo("PublicMessage #2"));
         }
     }
 
@@ -673,16 +729,16 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -700,7 +756,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -708,11 +764,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -720,10 +776,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
         }
     }
 
+    [Test]
     [Description("Tests that delete commands generate changes for properties without [NoTrack] when EventPolicy is null (AllChanges)")]
     public async Task EventPolicy_Default_DeleteCommand()
     {
@@ -755,9 +812,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -776,7 +833,7 @@ public abstract partial class EventPolicyTests
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -794,7 +851,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -802,11 +859,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -814,7 +871,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -858,9 +915,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -875,16 +932,16 @@ public abstract partial class EventPolicyTests
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
         // Update the test item values
-        updateCommand.Item.Message = "Message #2";
-        updateCommand.Item.TrackMessage = "TrackMessage #2";
-        updateCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #2";
+        updateCommand.Item.PublicMessage = "PublicMessage #2";
+        updateCommand.Item.PrivateMessage = "PrivateMessage #2";
+        updateCommand.Item.OptionalMessage = "OptionalMessage #2";
 
         // Save the updated state
         await updateCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         using (Assert.EnterMultipleScope())
         {
@@ -902,7 +959,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[0].Changes![0].OldValue,
@@ -910,11 +967,11 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[0].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[0].Changes![1].OldValue,
@@ -922,7 +979,7 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[0].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].SaveAction,
@@ -934,27 +991,27 @@ public abstract partial class EventPolicyTests
 
             Assert.That(
                 events[1].Changes![0].PropertyName,
-                Is.EqualTo("/message"));
+                Is.EqualTo("/optionalMessage"));
 
             Assert.That(
                 events[1].Changes![0].OldValue!.GetString(),
-                Is.EqualTo("Message #1"));
+                Is.EqualTo("OptionalMessage #1"));
 
             Assert.That(
                 events[1].Changes![0].NewValue!.GetString(),
-                Is.EqualTo("Message #2"));
+                Is.EqualTo("OptionalMessage #2"));
 
             Assert.That(
                 events[1].Changes![1].PropertyName,
-                Is.EqualTo("/trackMessage"));
+                Is.EqualTo("/publicMessage"));
 
             Assert.That(
                 events[1].Changes![1].OldValue!.GetString(),
-                Is.EqualTo("TrackMessage #1"));
+                Is.EqualTo("PublicMessage #1"));
 
             Assert.That(
                 events[1].Changes![1].NewValue!.GetString(),
-                Is.EqualTo("TrackMessage #2"));
+                Is.EqualTo("PublicMessage #2"));
         }
     }
 }

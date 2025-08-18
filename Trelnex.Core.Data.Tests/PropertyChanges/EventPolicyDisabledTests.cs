@@ -36,16 +36,16 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         Assert.That(
             events,
@@ -85,9 +85,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -106,7 +106,7 @@ public abstract partial class EventPolicyTests
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         Assert.That(
             events,
@@ -146,9 +146,9 @@ public abstract partial class EventPolicyTests
             partitionKey: partitionKey);
 
         // Set initial values on the test item
-        createCommand.Item.Message = "Message #1";
-        createCommand.Item.TrackMessage = "TrackMessage #1";
-        createCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #1";
+        createCommand.Item.PublicMessage = "PublicMessage #1";
+        createCommand.Item.PrivateMessage = "PrivateMessage #1";
+        createCommand.Item.OptionalMessage = "OptionalMessage #1";
 
         // Save the initial state
         await createCommand.SaveAsync(
@@ -163,16 +163,16 @@ public abstract partial class EventPolicyTests
         Assert.That(updateCommand!.Item, Is.Not.Null);
 
         // Update the test item values
-        updateCommand.Item.Message = "Message #2";
-        updateCommand.Item.TrackMessage = "TrackMessage #2";
-        updateCommand.Item.DoNotTrackMessage = "DoNotTrackMessage #2";
+        updateCommand.Item.PublicMessage = "PublicMessage #2";
+        updateCommand.Item.PrivateMessage = "PrivateMessage #2";
+        updateCommand.Item.OptionalMessage = "OptionalMessage #2";
 
         // Save the updated state
         await updateCommand.SaveAsync(
             cancellationToken: default);
 
         // Get the events from the data provider
-        var events = GetItemEvents(id, partitionKey);
+        var events = await GetItemEventsAsync(id, partitionKey);
 
         Assert.That(
             events,

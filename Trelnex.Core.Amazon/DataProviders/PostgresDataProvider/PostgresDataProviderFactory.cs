@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
@@ -126,6 +127,7 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
+        IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
     {
         // Create PostgreSQL-specific data provider instance
@@ -136,6 +138,7 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService,
             logger: logger);
     }
 

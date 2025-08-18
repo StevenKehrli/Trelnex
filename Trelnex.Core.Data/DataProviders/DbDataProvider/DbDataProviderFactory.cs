@@ -126,6 +126,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService,
             logger: logger);
     }
 
@@ -217,6 +218,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <param name="itemValidator">Optional validator for domain-specific rules.</param>
     /// <param name="commandOperations">Allowed CRUD operations for this provider.</param>
     /// <param name="eventTimeToLive">Optional time-to-live for events in seconds.</param>
+    /// <param name="blockCipherService">Optional encryption service for sensitive properties.</param>
     /// <param name="logger">Optional logger for diagnostics.</param>
     /// <returns>Database-specific data provider implementation.</returns>
     protected abstract IDataProvider<TItem> CreateDataProvider<TItem>(
@@ -226,6 +228,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
+        IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
         where TItem : BaseItem, new();
 

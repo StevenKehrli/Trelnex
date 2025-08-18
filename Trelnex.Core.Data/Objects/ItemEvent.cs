@@ -6,8 +6,7 @@ namespace Trelnex.Core.Data;
 /// <summary>
 /// Represents an event record that captures information about operations performed on items.
 /// </summary>
-public record ItemEvent
-    : BaseItem
+public record ItemEvent : BaseItem
 {
     #region Public Properties
 

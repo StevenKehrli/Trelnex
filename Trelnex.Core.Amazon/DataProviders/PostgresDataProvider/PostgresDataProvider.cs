@@ -4,6 +4,7 @@ using LinqToDB;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
@@ -16,6 +17,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="commandOperations">Optional CRUD operations override.</param>
 /// <param name="eventPolicy">Optional event policy for change tracking.</param>
 /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+/// <param name="blockCipherService">Optional block cipher service for encryption.</param>
 /// <param name="logger">Optional logger for diagnostics.</param>
 internal partial class PostgresDataProvider<TItem>(
     string typeName,
@@ -24,6 +26,7 @@ internal partial class PostgresDataProvider<TItem>(
     CommandOperations? commandOperations = null,
     EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
+    IBlockCipherService? blockCipherService = null,
     ILogger? logger = null)
     : DbDataProvider<TItem>(
         typeName: typeName,
@@ -32,6 +35,7 @@ internal partial class PostgresDataProvider<TItem>(
         commandOperations: commandOperations,
         eventPolicy: eventPolicy,
         eventTimeToLive: eventTimeToLive,
+        blockCipherService: blockCipherService,
         logger: logger)
     where TItem : BaseItem, new()
 {

@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
@@ -99,6 +100,7 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
         int? eventTimeToLive = null,
+        IBlockCipherService? blockCipherService = null,
         ILogger? logger = null)
     {
         // Create SQL Server-specific data provider instance
@@ -109,6 +111,7 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService,
             logger: logger);
     }
 

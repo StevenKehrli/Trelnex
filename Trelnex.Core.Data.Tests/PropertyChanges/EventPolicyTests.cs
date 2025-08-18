@@ -11,7 +11,7 @@ public abstract partial class EventPolicyTests
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null);
 
-    protected abstract ItemEvent[] GetItemEvents(
+    protected abstract Task<ItemEvent[]> GetItemEventsAsync(
         string id,
         string partitionKey);
 }

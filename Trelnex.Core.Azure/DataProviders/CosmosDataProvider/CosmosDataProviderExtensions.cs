@@ -131,8 +131,8 @@ public static class CosmosDataProvidersExtensions
         tokenCredential.GetToken(tokenRequestContext, default);
 
         return new CosmosClientOptions(
-            AccountEndpoint: providerOptions.EndpointUri,
             TokenCredential: tokenCredential,
+            AccountEndpoint: providerOptions.EndpointUri,
             DatabaseId: providerOptions.DatabaseId,
             ContainerIds: providerOptions.GetContainerIds());
     }

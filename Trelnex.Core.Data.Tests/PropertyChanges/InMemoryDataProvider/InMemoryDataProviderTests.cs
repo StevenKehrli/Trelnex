@@ -26,15 +26,15 @@ public class InMemoryDataProviderTests : EventPolicyTests
         return dataProvider;
     }
 
-    protected override ItemEvent[] GetItemEvents(
+    protected override Task<ItemEvent[]> GetItemEventsAsync(
         string id,
         string partitionKey)
     {
-        var events = _dataProvider.GetEvents();
-
-        return events
+        var events = _dataProvider.GetEvents()
             .Where(e => e.RelatedId == id && e.PartitionKey == partitionKey)
             .ToArray();
+
+        return Task.FromResult(events);
     }
 
     /// <summary>
