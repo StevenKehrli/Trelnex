@@ -179,7 +179,8 @@ internal class DynamoDataProvider<TItem>(
         var results = new SaveResult<TItem>[requests.Length];
 
         // Create DynamoDB transaction batch
-        var batch = itemTable.CreateTransactWrite();
+        var itemBatch = itemTable.CreateTransactWrite();
+        var eventBatch = eventTable.CreateTransactWrite();
 
         // Process each request and add to transaction
         for (var index = 0; index < requests.Length; index++)
@@ -221,7 +222,7 @@ internal class DynamoDataProvider<TItem>(
             var jsonItem = SerializeItem(responseItem);
             var documentItem = Document.FromJson(jsonItem);
 
-            batch.AddDocumentToUpdate(documentItem, config);
+            itemBatch.AddDocumentToUpdate(documentItem, config);
 
             // Skip if no event to record
             if (request.Event is null) continue;
@@ -237,22 +238,30 @@ internal class DynamoDataProvider<TItem>(
             var jsonEvent = SerializeEvent(responseEvent);
             var documentEvent = Document.FromJson(jsonEvent);
 
-            batch.AddDocumentToUpdate(documentEvent);
+            eventBatch.AddDocumentToUpdate(documentEvent);
         }
 
         try
         {
-            // Execute the entire transaction atomically
-            await batch.ExecuteAsync(cancellationToken);
+            // Execute the entire transactions atomically
+            var multiTableBatch = new MultiTableDocumentTransactWrite(
+                [
+                    itemBatch,
+                    eventBatch
+                ]);
+
+            await multiTableBatch.ExecuteAsync(cancellationToken);
         }
         catch (TransactionCanceledException ex)
         {
             var cancellationReasons = ex.CancellationReasons;
 
             // Update results with failure reasons for each cancelled operation
+            // The item batch cancellation reasons are first in the array
+            // since that corresponds to the order of items in the transaction
             for (var index = 0; index < requests.Length; index++)
             {
-                var cancellationReason = cancellationReasons[index * 2];
+                var cancellationReason = cancellationReasons[index];
                 var httpStatusCode = ConvertReasonCode(cancellationReason.Code);
 
                 if (httpStatusCode == HttpStatusCode.OK) continue;
