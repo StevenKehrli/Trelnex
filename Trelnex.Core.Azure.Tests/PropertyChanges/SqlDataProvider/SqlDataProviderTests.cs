@@ -15,6 +15,7 @@ using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 
+[Ignore("Requires a SQL server.")]
 [Category("EventPolicy")]
 public class SqlDataProviderTests : EventPolicyTests
 {

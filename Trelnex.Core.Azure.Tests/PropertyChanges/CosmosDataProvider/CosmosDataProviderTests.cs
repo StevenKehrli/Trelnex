@@ -12,6 +12,7 @@ using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 
+[Ignore("Requires a CosmosDB instance.")]
 [Category("EventPolicy")]
 public class CosmosDataProviderTests : EventPolicyTests
 {
