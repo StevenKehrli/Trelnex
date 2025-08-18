@@ -30,7 +30,7 @@ public class SqlDataProviderEventPersistenceTests : SqlDataProviderEventTestBase
             Scope: _scope,
             DataSource: _dataSource,
             InitialCatalog: _initialCatalog,
-            TableNames: [_persistenceTableName]
+            TableNames: [ _itemTableName ]
         );
 
         // Create the SqlDataProviderFactory.
@@ -41,7 +41,8 @@ public class SqlDataProviderEventPersistenceTests : SqlDataProviderEventTestBase
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "test-item",
-            tableName: _persistenceTableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
@@ -69,13 +70,15 @@ public class SqlDataProviderEventPersistenceTests : SqlDataProviderEventTestBase
 
         Assert.That(created, Is.Not.Null);
 
-        // Retrieve the private and optional messages using the helper method.
+        // Retrieve the expireAtDateTimeOffset using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _persistenceTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _eventTableName);
 
         Assert.That(reader.Read(), Is.True);
-
-        var expireAtDateTimeOffset = created.Item.CreatedDateTimeOffset.AddSeconds(2);
 
         using (Assert.EnterMultipleScope())
         {

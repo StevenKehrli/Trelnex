@@ -46,7 +46,7 @@ public static class AzureIdentityExtensions
         var credentialOptions = configuration
             .GetSection("Azure.Credentials")
             .Get<AzureCredentialOptions>()
-            ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not valid.");
 
         // Create the credential provider.
         var credentialProvider = AzureCredentialProvider.Create(

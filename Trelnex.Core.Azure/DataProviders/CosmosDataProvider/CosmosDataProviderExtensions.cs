@@ -42,17 +42,17 @@ public static class CosmosDataProvidersExtensions
 
         // Extract Cosmos DB configuration from application settings
         var endpointUri = configuration.GetSection("Azure.CosmosDataProviders:EndpointUri").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not valid.");
 
         var databaseId = configuration.GetSection("Azure.CosmosDataProviders:DatabaseId").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not valid.");
 
         var containers = configuration.GetSection("Azure.CosmosDataProviders:Containers").GetChildren();
         var containerConfigurations = containers
             .Select(section =>
             {
                 var containerId = section.GetValue<string>("ContainerId")
-                    ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not found.");
+                    ?? throw new ConfigurationErrorsException("The Azure.CosmosDataProviders configuration is not valid.");
 
                 var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
@@ -342,8 +342,14 @@ public static class CosmosDataProvidersExtensions
         /// <returns>Sorted array of unique container identifiers.</returns>
         public string[] GetContainerIds()
         {
-            return _containerConfigurationsByTypeName
-                .Select(c => c.Value.ContainerId)
+            var containerIds = new HashSet<string>();
+
+            foreach (var containerConfiguration in _containerConfigurationsByTypeName.Values)
+            {
+                containerIds.Add(containerConfiguration.ContainerId);
+            }
+
+            return containerIds
                 .OrderBy(containerId => containerId)
                 .ToArray();
         }

@@ -29,7 +29,7 @@ public class DynamoDataProviderEventPersistenceTests : DynamoDataProviderEventTe
         var dynamoClientOptions = new DynamoClientOptions(
             AWSCredentials: _awsCredentials,
             Region: _region,
-            TableNames: [_expirationTableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         var factory = await DynamoDataProviderFactory.Create(
@@ -37,7 +37,8 @@ public class DynamoDataProviderEventPersistenceTests : DynamoDataProviderEventTe
 
         _dataProvider = factory.Create(
             typeName: "test-item",
-            tableName: _expirationTableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
@@ -73,7 +74,7 @@ public class DynamoDataProviderEventPersistenceTests : DynamoDataProviderEventTe
             { "id", eventId }
         };
 
-        var document = await _expirationTable.GetItemAsync(key, default);
+        var document = await _eventTable.GetItemAsync(key, default);
 
         Assert.That(document, Is.Not.Null);
         Assert.That(document.ContainsKey("expireAt"), Is.False);

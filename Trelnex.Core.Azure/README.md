@@ -185,12 +185,14 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
     "InitialCatalog": "trelnex-core-data-tests",
     "Tables": {
       "test-item": {
-        "TableName": "test-items",
+        "ItemTableName": "test-items",
+        "EventTableName": "test-items-events",
         "EventPolicy": "AllChanges",
         "EventTimeToLive": 31556952
       },
       "encrypted-test-item": {
-        "TableName": "test-items",
+        "ItemTableName": "test-items",
+        "EventTableName": "test-items-events",
         "EventPolicy": "DecoratedChanges",
         "Encryption": {
           "Primary": {
@@ -214,6 +216,8 @@ The `EventPolicy` property controls change tracking behavior. Options include:
 - `NoChanges` - Events without property changes
 - `DecoratedChanges` - Only `[Track]` decorated properties tracked
 - `AllChanges` - All properties tracked except `[DoNotTrack]` (default)
+
+The `EventTableName` property is optional and defaults to `{ItemTableName}-events` if not specified.
 
 The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from SQL. The value is expressed in seconds.
 

@@ -43,24 +43,24 @@ public abstract class DynamoDataProviderEventTestBase
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the table used for expiration testing.
+    /// The name of the item table used for expiration testing.
     /// </summary>
-    protected string _expirationTableName = null!;
+    protected string _itemTableName = null!;
 
     /// <summary>
-    /// The name of the table used for persistence testing.
+    /// The name of the event table used for persistence testing.
     /// </summary>
-    protected string _persistenceTableName = null!;
+    protected string _eventTableName = null!;
 
     /// <summary>
-    /// The DynamoDB table used for expiration testing.
+    /// The DynamoDB item table used for expiration testing.
     /// </summary>
-    protected Table _expirationTable = null!;
+    protected Table _itemTable = null!;
 
     /// <summary>
     /// The DynamoDB table used for persistence testing.
     /// </summary>
-    protected Table _persistenceTable = null!;
+    protected Table _eventTable = null!;
 
     /// <summary>
     /// The data provider used for testing.
@@ -90,17 +90,35 @@ public abstract class DynamoDataProviderEventTestBase
             .GetSection("Amazon.DynamoDataProviders:Region")
             .Get<string>()!;
 
-        // Get the expiration table name from the configuration.
+        // Get the expiration item table name from the configuration.
         // Example: "test-items"
-        _expirationTableName = configuration
-            .GetSection("Amazon.DynamoDataProviders:Tables:expiration-test-item:TableName")
+        var expirationTestItemItemTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:expiration-test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the persistence table name from the configuration.
-        // Example: "test-items"
-        _persistenceTableName = configuration
-            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:TableName")
+        // Get the expiration event table name from the configuration.
+        // Example: "test-items-events"
+        var expirationTestItemEventTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:expiration-test-item:EventTableName")
             .Get<string>()!;
+
+        // Get the persistence item table name from the configuration.
+        // Example: "test-items"
+        var testItemItemTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:ItemTableName")
+            .Get<string>()!;
+
+        // Get the persistence event table name from the configuration.
+        // Example: "test-items-events"
+        var testItemEventTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:EventTableName")
+            .Get<string>()!;
+
+        Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+        Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+
+        _itemTableName = expirationTestItemItemTableName;
+        _eventTableName = expirationTestItemEventTableName;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
@@ -110,8 +128,8 @@ public abstract class DynamoDataProviderEventTestBase
             _awsCredentials,
             RegionEndpoint.GetBySystemName(_region));
 
-        _expirationTable = dynamoClient.GetTable(_expirationTableName);
-        _persistenceTable = dynamoClient.GetTable(_persistenceTableName);
+        _itemTable = dynamoClient.GetTable(_itemTableName);
+        _eventTable = dynamoClient.GetTable(_eventTableName);
 
         return configuration;
     }
@@ -126,8 +144,8 @@ public abstract class DynamoDataProviderEventTestBase
     [TearDown]
     public async Task TestCleanup()
     {
-        await TableCleanup(_expirationTable);
-        await TableCleanup(_persistenceTable);
+        await TableCleanup(_eventTable);
+        await TableCleanup(_itemTable);
     }
 
     private static async Task TableCleanup(

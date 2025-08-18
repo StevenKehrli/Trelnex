@@ -57,6 +57,7 @@ public static class SwaggerExtensions
                     "PUT" => 02,
                     "PATCH" => 03,
                     "DELETE" => 04,
+                    "HEAD" => 05,
                     _ => 99, // Place unknown methods last.
                 };
             }

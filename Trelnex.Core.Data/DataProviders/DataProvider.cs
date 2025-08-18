@@ -310,13 +310,14 @@ public abstract partial class DataProvider<TItem>
         var queryable = CreateQueryable();
 
         // Define how to convert items to query results
-        Func<TItem, IQueryResult<TItem>> convertToQueryResult = item => {
+        IQueryResult<TItem> convertToQueryResult(TItem item)
+        {
             return QueryResult<TItem>.Create(
                 item: item,
                 createDeleteCommand: CreateDeleteCommand,
                 createUpdateCommand: CreateUpdateCommand,
                 logger: _logger);
-        };
+        }
 
         return new QueryCommand<TItem>(
             queryable: queryable,

@@ -82,7 +82,8 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     /// </summary>
     /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
     /// <param name="typeName">Type name identifier for filtering items.</param>
-    /// <param name="tableName">DynamoDB table name to operate on.</param>
+    /// <param name="itemTableName">DynamoDB item table name to operate on.</param>
+    /// <param name="eventTableName">DynamoDB event table name to operate on.</param>
     /// <param name="itemValidator">Optional validator for items.</param>
     /// <param name="commandOperations">Allowed CRUD operations for this provider.</param>
     /// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
@@ -91,7 +92,8 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
     /// <returns>Configured DynamoDB data provider instance.</returns>
     public IDataProvider<TItem> Create<TItem>(
         string typeName,
-        string tableName,
+        string itemTableName,
+        string eventTableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
@@ -101,12 +103,14 @@ internal class DynamoDataProviderFactory : IDataProviderFactory
         where TItem : BaseItem, new()
     {
         // Get DynamoDB table instance with standard key schema
-        var table = _dynamoClient.GetTable(tableName);
+        var itemTable = _dynamoClient.GetTable(itemTableName);
+        var eventTable = _dynamoClient.GetTable(eventTableName);
 
         // Create and return configured data provider
         return new DynamoDataProvider<TItem>(
             typeName: typeName,
-            table: table,
+            itemTable: itemTable,
+            eventTable: eventTable,
             itemValidator: itemValidator,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,

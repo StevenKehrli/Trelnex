@@ -122,7 +122,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -159,7 +159,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

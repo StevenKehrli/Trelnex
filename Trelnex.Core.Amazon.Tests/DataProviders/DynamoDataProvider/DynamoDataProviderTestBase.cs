@@ -44,14 +44,14 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the table used for testing.
+    /// The name of the item table used for testing.
     /// </summary>
-    protected string _tableName = null!;
+    protected string _itemTableName = null!;
 
     /// <summary>
-    /// The name of the table used for encryption testing.
+    /// The name of the event table used for testing.
     /// </summary>
-    protected string _encryptedTableName = null!;
+    protected string _eventTableName = null!;
 
     /// <summary>
     /// The block cipher service used for encrypting and decrypting test data.
@@ -59,14 +59,14 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
-    /// The DynamoDB table used for testing.
+    /// The DynamoDB table used for item testing.
     /// </summary>
-    protected Table _table = null!;
+    protected Table _itemTable = null!;
 
     /// <summary>
-    /// The DynamoDB table used for encryption testing.
+    /// The DynamoDB table used for event testing.
     /// </summary>
-    protected Table _encryptedTable = null!;
+    protected Table _eventTable = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for DynamoDB data provider tests.
@@ -91,17 +91,35 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
             .GetSection("Amazon.DynamoDataProviders:Region")
             .Get<string>()!;
 
-        // Get the table name from the configuration.
+        // Get the item table name from the configuration.
         // Example: "test-items"
-        _tableName = configuration
-            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:TableName")
+        var testItemItemTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the encrypted table name from the configuration.
-        // Example: "test-items"
-        _encryptedTableName = configuration
-            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:TableName")
+        // Get the event table name from the configuration.
+        // Example: "test-items-events"
+        var testItemEventTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:test-item:EventTableName")
             .Get<string>()!;
+
+        // Get the encrypted item table name from the configuration.
+        // Example: "test-items"
+        var encryptedTestItemItemTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:ItemTableName")
+            .Get<string>()!;
+
+        // Get the encrypted item table name from the configuration.
+        // Example: "test-items-events"
+        var encryptedTestItemEventTableName = configuration
+            .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:EventTableName")
+            .Get<string>()!;
+
+        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
+        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+
+        _itemTableName = testItemItemTableName;
+        _eventTableName = testItemEventTableName;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -117,8 +135,8 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
             _awsCredentials,
             RegionEndpoint.GetBySystemName(_region));
 
-        _table = dynamoClient.GetTable(_tableName);
-        _encryptedTable = dynamoClient.GetTable(_encryptedTableName);
+        _itemTable = dynamoClient.GetTable(_itemTableName);
+        _eventTable = dynamoClient.GetTable(_eventTableName);
 
         return configuration;
     }
@@ -133,8 +151,8 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     [TearDown]
     public async Task TestCleanup()
     {
-        await TableCleanup(_table);
-        await TableCleanup(_encryptedTable);
+        await TableCleanup(_eventTable);
+        await TableCleanup(_itemTable);
     }
 
     private static async Task TableCleanup(

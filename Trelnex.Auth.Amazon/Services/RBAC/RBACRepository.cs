@@ -369,7 +369,7 @@ internal partial class RBACRepository : IRBACRepository
         var rbacConfiguration = configuration
             .GetSection("RBAC")
             .Get<RBACConfiguration>()
-            ?? throw new ConfigurationErrorsException("The RBAC configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The RBAC configuration is not valid.");
 
         // Get the AWS region endpoint from the configuration.
         var regionEndpoint = RegionEndpoint.GetBySystemName(rbacConfiguration.Region);

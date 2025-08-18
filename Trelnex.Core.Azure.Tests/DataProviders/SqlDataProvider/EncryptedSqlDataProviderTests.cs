@@ -37,7 +37,7 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
             Scope: _scope,
             DataSource: _dataSource,
             InitialCatalog: _initialCatalog,
-            TableNames: [_encryptedTableName]
+            TableNames: [_itemTableName, _eventTableName]
         );
 
         // Create the SqlDataProviderFactory.
@@ -48,7 +48,8 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "encrypted-test-item",
-            tableName: _encryptedTableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);
@@ -79,7 +80,11 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -128,7 +133,11 @@ public class EncryptedSqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _encryptedTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 

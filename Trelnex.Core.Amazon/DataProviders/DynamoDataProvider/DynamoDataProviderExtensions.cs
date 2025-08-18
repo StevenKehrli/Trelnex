@@ -42,15 +42,18 @@ public static class DynamoDataProvidersExtensions
 
         // Extract DynamoDB configuration from application settings
         var region = configuration.GetSection("Amazon.DynamoDataProviders:Region").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not valid.");
 
         var tables = configuration.GetSection("Amazon.DynamoDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
             .Select(section =>
             {
-                var tableName = section.GetValue<string>("TableName")
-                    ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not found.");
+                var itemTableName = section.GetValue<string>("ItemTableName")
+                    ?? throw new ConfigurationErrorsException("The Amazon.DynamoDataProviders configuration is not valid.");
 
+                // Default the event table name to {itemTableName}-events
+                // If the EventPolicy is Disabled, we do not use it
+                var eventTableName = section.GetValue<string>("EventTableName", $"{itemTableName}-events");
                 var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
@@ -58,7 +61,8 @@ public static class DynamoDataProvidersExtensions
 
                 return new TableConfiguration(
                     TypeName: section.Key,
-                    TableName: tableName,
+                    ItemTableName: itemTableName,
+                    EventTableName: eventTableName,
                     EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
@@ -165,9 +169,10 @@ public static class DynamoDataProvidersExtensions
             }
 
             // Create data provider instance using factory and table configuration
-            var dataProvider = providerFactory.Create<TItem>(
+            var dataProvider = providerFactory.Create(
                 typeName: typeName,
-                tableName: tableConfiguration.TableName,
+                itemTableName: tableConfiguration.ItemTableName,
+                eventTableName: tableConfiguration.EventTableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventPolicy: tableConfiguration.EventPolicy,
@@ -181,12 +186,13 @@ public static class DynamoDataProvidersExtensions
             [
                 typeof(TItem), // TItem,
                 providerOptions.Region, // region
-                tableConfiguration.TableName // tableName
+                tableConfiguration.ItemTableName, // itemTableName
+                tableConfiguration.EventTableName, // eventTableName
             ];
 
             // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added DynamoDataProvider<{TItem:l}>: region = '{region:l}', tableName = '{tableName:l}'.",
+                message: "Added DynamoDataProvider<{TItem:l}>: region = '{region:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}'.",
                 args: args);
 
             return this;
@@ -203,13 +209,15 @@ public static class DynamoDataProvidersExtensions
     /// Configuration mapping a type name to its DynamoDB table and settings.
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
-    /// <param name="TableName">The physical DynamoDB table name.</param>
+    /// <param name="ItemTableName">The physical DynamoDB table name for items.</param>
+    /// <param name="EventTableName">The physical DynamoDB table name for events.</param>
     /// <param name="EventPolicy">Event policy for change tracking.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName,
+        string ItemTableName,
+        string EventTableName,
         EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
@@ -262,8 +270,19 @@ public static class DynamoDataProvidersExtensions
         /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
-            return _tableConfigurationsByTypeName
-                .Select(kvp => kvp.Value.TableName)
+            var tableNames = new HashSet<string>();
+
+            foreach (var tableConfiguration in _tableConfigurationsByTypeName.Values)
+            {
+                tableNames.Add(tableConfiguration.ItemTableName);
+
+                if (tableConfiguration.EventPolicy != EventPolicy.Disabled)
+                {
+                    tableNames.Add(tableConfiguration.EventTableName);
+                }
+            }
+
+            return tableNames
                 .OrderBy(tableName => tableName)
                 .ToArray();
         }

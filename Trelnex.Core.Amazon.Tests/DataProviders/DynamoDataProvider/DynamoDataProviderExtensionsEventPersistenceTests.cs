@@ -92,7 +92,7 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
             { "id", eventId }
         };
 
-        var document = await _expirationTable.GetItemAsync(key, default);
+        var document = await _eventTable.GetItemAsync(key, default);
 
         Assert.That(document, Is.Not.Null);
         Assert.That(document.ContainsKey("expireAt"), Is.False);

@@ -32,7 +32,7 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
             TokenCredential: _tokenCredential,
             AccountEndpoint: _endpointUri,
             DatabaseId: _databaseId,
-            ContainerIds: [ _persistenceContainerId ]
+            ContainerIds: [ _containerId ]
         );
 
         // Instantiate the CosmosDataProviderFactory
@@ -42,7 +42,7 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
         // Create the data provider with event expiration set to 2 seconds
         _dataProvider = factory.Create(
             typeName: "test-item",
-            containerId: _persistenceContainerId,
+            containerId: _containerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
@@ -72,7 +72,7 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
 
         // Immediately retrieve the event to confirm it exists
         var eventId = $"EVENT^{id}^00000001";
-        var item1 = await _persistenceContainer.ReadItemAsync<ExpandoObject>(
+        var item1 = await _container.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

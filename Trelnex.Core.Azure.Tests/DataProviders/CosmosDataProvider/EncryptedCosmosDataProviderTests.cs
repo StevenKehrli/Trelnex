@@ -36,7 +36,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
             TokenCredential: _tokenCredential,
             AccountEndpoint: _endpointUri,
             DatabaseId: _databaseId,
-            ContainerIds: [ _encryptedContainerId ]
+            ContainerIds: [ _containerId ]
         );
 
         // Create the CosmosDataProviderFactory.
@@ -46,7 +46,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "encrypted-test-item",
-            containerId: _encryptedContainerId,
+            containerId: _containerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);
@@ -76,7 +76,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -127,7 +127,7 @@ public class EncryptedCosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

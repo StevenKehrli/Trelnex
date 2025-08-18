@@ -35,7 +35,7 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
             TokenCredential: _tokenCredential,
             AccountEndpoint: _endpointUri,
             DatabaseId: _databaseId,
-            ContainerIds: [_expirationContainerId, _persistenceContainerId]
+            ContainerIds: [ _containerId ]
         );
 
         // Instantiate the CosmosDataProviderFactory
@@ -45,7 +45,7 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
         // Create the data provider with event expiration set to 2 seconds
         _dataProvider = factory.Create(
             typeName: "expiration-test-item",
-            containerId: _expirationContainerId,
+            containerId: _containerId,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
@@ -83,7 +83,7 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
 
         // Immediately retrieve the event to confirm it exists
         var eventId = $"EVENT^{id}^00000001";
-        var item1 = await _expirationContainer.ReadItemAsync<ExpandoObject>(
+        var item1 = await _container.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new PartitionKey(partitionKey),
             cancellationToken: default);
@@ -99,7 +99,7 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
 
         // Attempt to retrieve the event again, expecting it to be expired and deleted
         var exception = Assert.ThrowsAsync<CosmosException>(async () =>
-            await _expirationContainer.ReadItemAsync<ExpandoObject>(
+            await _container.ReadItemAsync<ExpandoObject>(
                 id: eventId,
                 partitionKey: new PartitionKey(partitionKey),
                 cancellationToken: default));

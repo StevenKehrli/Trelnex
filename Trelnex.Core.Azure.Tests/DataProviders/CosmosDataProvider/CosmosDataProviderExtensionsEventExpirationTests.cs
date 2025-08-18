@@ -82,7 +82,7 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
 
         // Immediately retrieve the event to confirm it exists
         var eventId = $"EVENT^{id}^00000001";
-        var item1 = await _expirationContainer.ReadItemAsync<ExpandoObject>(
+        var item1 = await _container.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -98,7 +98,7 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
 
         // Attempt to retrieve the event again, expecting it to be expired and deleted
         var exception = Assert.ThrowsAsync<Microsoft.Azure.Cosmos.CosmosException>(async () =>
-            await _expirationContainer.ReadItemAsync<ExpandoObject>(
+            await _container.ReadItemAsync<ExpandoObject>(
                 id: eventId,
                 partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
                 cancellationToken: default));

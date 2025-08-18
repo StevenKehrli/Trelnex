@@ -74,7 +74,8 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// <inheritdoc/>
     public IDataProvider<TItem> Create<TItem>(
         string typeName,
-        string tableName,
+        string itemTableName,
+        string eventTableName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
@@ -93,7 +94,7 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
 
         // Configure item table mapping
         var builder = fmBuilder.Entity<TItem>()
-            .HasTableName(tableName);
+            .HasTableName(itemTableName);
 
         builder
             .Property(item => item.Id).IsPrimaryKey()
@@ -102,9 +103,8 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         MapItemProperties(builder, blockCipherService);
 
         // Configure events table mapping
-        var eventsTableName = GetEventsTableName(tableName);
         fmBuilder.Entity<ItemEventWithExpiration>()
-            .HasTableName(eventsTableName)
+            .HasTableName(eventTableName)
             .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
             .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
             .Property(itemEvent => itemEvent.Changes).HasConversion(
@@ -160,17 +160,10 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             var missingTableNames = new List<string>();
             foreach (var tableName in _tableNames.OrderBy(tableName => tableName))
             {
-                // Verify main table exists
+                // Verify table exists
                 if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == tableName) is false)
                 {
                     missingTableNames.Add(tableName);
-                }
-
-                // Verify events table exists
-                var eventsTableName = GetEventsTableName(tableName);
-                if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == eventsTableName) is false)
-                {
-                    missingTableNames.Add(eventsTableName);
                 }
             }
 
@@ -255,17 +248,6 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         DataOptions dataOptions)
     {
         return ((dataOptions as ICloneable).Clone() as DataOptions)!;
-    }
-
-    /// <summary>
-    /// Generates events table name by appending '-events' to the item table name.
-    /// </summary>
-    /// <param name="tableName">Item table name.</param>
-    /// <returns>Corresponding events table name.</returns>
-    private static string GetEventsTableName(
-        string tableName)
-    {
-        return $"{tableName}-events";
     }
 
     /// <summary>

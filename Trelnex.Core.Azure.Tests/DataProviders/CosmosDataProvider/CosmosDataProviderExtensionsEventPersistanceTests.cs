@@ -81,7 +81,7 @@ public class CosmosDataProviderExtensionsEventPersistanceTests : CosmosDataProvi
 
         // Immediately retrieve the event to confirm it exists
         var eventId = $"EVENT^{id}^00000001";
-        var item1 = await _persistenceContainer.ReadItemAsync<ExpandoObject>(
+        var item1 = await _container.ReadItemAsync<ExpandoObject>(
             id: eventId,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

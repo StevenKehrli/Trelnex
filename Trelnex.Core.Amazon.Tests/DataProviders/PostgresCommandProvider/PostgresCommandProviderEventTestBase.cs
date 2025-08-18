@@ -71,14 +71,14 @@ public abstract class PostgresDataProviderEventTestBase
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the table used for expiration testing.
+    /// The name of the item table used for expiration testing.
     /// </summary>
-    protected string _expirationTableName = null!;
+    protected string _itemTableName = null!;
 
     /// <summary>
-    /// The name of the table used for persistenc testing.
+    /// The name of the event table used for expiration testing.
     /// </summary>
-    protected string _persistenceTableName = null!;
+    protected string _eventTableName = null!;
 
     /// <summary>
     /// The data provider used for testing.
@@ -131,17 +131,35 @@ public abstract class PostgresDataProviderEventTestBase
             .GetSection("Amazon.PostgresDataProviders:DbUser")
             .Get<string>()!;
 
-        // Get the expiration table name from the configuration.
-        // Example: "expiration-test-items"
-        _expirationTableName = configuration
-            .GetSection("Amazon.PostgresDataProviders:Tables:expiration-test-item:TableName")
+        // Get the expiration item table name from the configuration.
+        // Example: "test-items"
+        var expirationTestItemItemTableName = configuration
+            .GetSection("Amazon.PostgresDataProviders:Tables:expiration-test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the persistence table name from the configuration.
-        // Example: "test-items"
-        _persistenceTableName = configuration
-            .GetSection("Amazon.PostgresDataProviders:Tables:test-item:TableName")
+        // Get the expiration event table name from the configuration.
+        // Example: "test-items-events"
+        var expirationTestItemEventTableName = configuration
+            .GetSection("Amazon.PostgresDataProviders:Tables:expiration-test-item:EventTableName")
             .Get<string>()!;
+
+        // Get the persistence item table name from the configuration.
+        // Example: "test-items"
+        var persistanceTestItemItemTableName = configuration
+            .GetSection("Amazon.PostgresDataProviders:Tables:test-item:ItemTableName")
+            .Get<string>()!;
+
+        // Get the persistence event table name from the configuration.
+        // Example: "test-items-events"
+        var persistanceTestItemEventTableName = configuration
+            .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
+            .Get<string>()!;
+
+        Assert.That(persistanceTestItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+        Assert.That(persistanceTestItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+
+        _itemTableName = expirationTestItemItemTableName;
+        _eventTableName = expirationTestItemEventTableName;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
@@ -181,8 +199,8 @@ public abstract class PostgresDataProviderEventTestBase
     [TearDown]
     public void TestCleanup()
     {
-        TableCleanup(_expirationTableName);
-        TableCleanup(_persistenceTableName);
+        TableCleanup(_eventTableName);
+        TableCleanup(_itemTableName);
     }
 
     [OneTimeTearDown]
@@ -197,8 +215,8 @@ public abstract class PostgresDataProviderEventTestBase
         // Establish a SQL connection using the connection string.
         using var sqlConnection = GetConnection();
 
-        // Define the SQL command to delete all rows from the main table and its events table.
-        var cmdText = $"DELETE FROM \"{tableName}-events\"; DELETE FROM \"{tableName}\";";
+        // Define the SQL command to delete all rows from the table.
+        var cmdText = $"DELETE FROM \"{tableName}\";";
         var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
 
         // Execute the SQL command.
@@ -235,7 +253,7 @@ public abstract class PostgresDataProviderEventTestBase
         string tableName)
     {
         // Define the SQL command to get the private message and optional message.
-        var cmdText = $"SELECT \"expireAtDateTimeOffset\" FROM \"{tableName}-events\" WHERE \"id\" = @id AND \"partitionKey\" = @partitionKey;";
+        var cmdText = $"SELECT \"expireAtDateTimeOffset\" FROM \"{tableName}\" WHERE \"id\" = @id AND \"partitionKey\" = @partitionKey;";
 
         var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
         sqlCommand.Parameters.AddWithValue("@id", $"EVENT^{id}^00000001");

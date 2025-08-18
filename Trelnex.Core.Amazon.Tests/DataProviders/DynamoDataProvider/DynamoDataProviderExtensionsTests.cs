@@ -130,7 +130,7 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -176,7 +176,7 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

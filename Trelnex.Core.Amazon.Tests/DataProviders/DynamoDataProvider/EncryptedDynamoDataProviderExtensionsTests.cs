@@ -93,7 +93,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -153,7 +153,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

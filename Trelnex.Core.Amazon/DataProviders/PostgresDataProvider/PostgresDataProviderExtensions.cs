@@ -45,23 +45,27 @@ public static partial class PostgresDataProvidersExtensions
 
         // Extract PostgreSQL configuration from application settings
         var host = configuration.GetSection("Amazon.PostgresDataProviders:Host").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not valid.");
 
         var port = configuration.GetSection("Amazon.PostgresDataProviders:Port").Get<int?>()
             ?? 5432;
 
         var database = configuration.GetSection("Amazon.PostgresDataProviders:Database").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not valid.");
 
         var dbUser = configuration.GetSection("Amazon.PostgresDataProviders:DbUser").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not valid.");
 
         var tables = configuration.GetSection("Amazon.PostgresDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
             .Select(section =>
             {
-                var tableName = section.GetValue<string>("TableName")
-                    ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not found.");
+                var itemTableName = section.GetValue<string>("ItemTableName")
+                    ?? throw new ConfigurationErrorsException("The Amazon.PostgresDataProviders configuration is not valid.");
+
+                // Default the event table name to {itemTableName}-events
+                // If the EventPolicy is Disabled, we do not use it
+                var eventTableName = section.GetValue<string>("EventTableName", $"{itemTableName}-events");
 
                 var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
@@ -70,7 +74,8 @@ public static partial class PostgresDataProvidersExtensions
 
                 return new TableConfiguration(
                     TypeName: section.Key,
-                    TableName: tableName,
+                    ItemTableName: itemTableName,
+                    EventTableName: eventTableName,
                     EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
@@ -192,7 +197,8 @@ public static partial class PostgresDataProvidersExtensions
             // Create data provider instance using factory and table configuration
             var dataProvider = providerFactory.Create(
                 typeName: typeName,
-                tableName: tableConfiguration.TableName,
+                itemTableName: tableConfiguration.ItemTableName,
+                eventTableName: tableConfiguration.EventTableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventPolicy: tableConfiguration.EventPolicy,
@@ -209,12 +215,13 @@ public static partial class PostgresDataProvidersExtensions
                 providerOptions.Port, // port
                 providerOptions.Database, // database
                 providerOptions.DbUser, // dbUser
-                tableConfiguration.TableName, // table
+                tableConfiguration.ItemTableName, // item table
+                tableConfiguration.EventTableName, // event table
             ];
 
             // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added PostgresDataProvider<{TItem:l}>: region = '{region:l}', host = '{host:l}', port = '{port:l}', database = '{database:l}', dbUser = '{dbUser:l}', tableName = '{tableName:l}'.",
+                message: "Added PostgresDataProvider<{TItem:l}>: region = '{region:l}', host = '{host:l}', port = '{port:l}', database = '{database:l}', dbUser = '{dbUser:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}'.",
                 args: args);
 
             return this;
@@ -229,13 +236,15 @@ public static partial class PostgresDataProvidersExtensions
     /// Configuration mapping a type name to its PostgreSQL table and settings.
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
-    /// <param name="TableName">The physical PostgreSQL table name.</param>
+    /// <param name="ItemTableName">The physical PostgreSQL table name for items.</param>
+    /// <param name="EventTableName">The physical PostgreSQL table name for events.</param>
     /// <param name="EventPolicy">The event policy for change tracking.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName,
+        string ItemTableName,
+        string EventTableName,
         EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
@@ -311,8 +320,19 @@ public static partial class PostgresDataProvidersExtensions
         /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
-            return _tableConfigurationsByTypeName
-                .Select(tc => tc.Value.TableName)
+            var tableNames = new HashSet<string>();
+
+            foreach (var tableConfiguration in _tableConfigurationsByTypeName.Values)
+            {
+                tableNames.Add(tableConfiguration.ItemTableName);
+
+                if (tableConfiguration.EventPolicy != EventPolicy.Disabled)
+                {
+                    tableNames.Add(tableConfiguration.EventTableName);
+                }
+            }
+
+            return tableNames
                 .OrderBy(tableName => tableName)
                 .ToArray();
         }

@@ -39,7 +39,7 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
             Port: _port,
             Database: _database,
             DbUser: _dbUser,
-            TableNames: [_encryptedTableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         // Create the PostgresDataProviderFactory.
@@ -50,7 +50,8 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "encrypted-test-item",
-            tableName: _encryptedTableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);
@@ -85,7 +86,8 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -136,7 +138,8 @@ public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 

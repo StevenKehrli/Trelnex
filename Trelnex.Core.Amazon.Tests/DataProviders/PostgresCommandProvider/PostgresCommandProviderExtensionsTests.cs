@@ -134,7 +134,8 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -173,7 +174,8 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 

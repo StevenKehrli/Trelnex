@@ -43,17 +43,21 @@ public static class SqlDataProvidersExtensions
 
         // Extract SQL Server configuration from application settings
         var dataSource = configuration.GetSection("Azure.SqlDataProviders:DataSource").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not valid.");
 
         var initialCatalog = configuration.GetSection("Azure.SqlDataProviders:InitialCatalog").Get<string>()
-            ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not valid.");
 
         var tables = configuration.GetSection("Azure.SqlDataProviders:Tables").GetChildren();
         var tableConfigurations = tables
             .Select(section =>
             {
-                var tableName = section.GetValue<string>("TableName")
-                    ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not found.");
+                var itemTableName = section.GetValue<string>("ItemTableName")
+                    ?? throw new ConfigurationErrorsException("The Azure.SqlDataProviders configuration is not valid.");
+
+                // Default the event table name to {itemTableName}-events
+                // If the EventPolicy is Disabled, we do not use it
+                var eventTableName = section.GetValue<string>("EventTableName", $"{itemTableName}-events");
 
                 var eventPolicy = section.GetValue("EventPolicy", EventPolicy.AllChanges);
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
@@ -62,7 +66,8 @@ public static class SqlDataProvidersExtensions
 
                 return new TableConfiguration(
                     TypeName: section.Key,
-                    TableName: tableName,
+                    ItemTableName: itemTableName,
+                    EventTableName: eventTableName,
                     EventPolicy: eventPolicy,
                     EventTimeToLive: eventTimeToLive,
                     BlockCipherService: blockCipherService);
@@ -191,7 +196,8 @@ public static class SqlDataProvidersExtensions
             // Create data provider instance using factory and table configuration
             var dataProvider = providerFactory.Create(
                 typeName: typeName,
-                tableName: tableConfiguration.TableName,
+                itemTableName: tableConfiguration.ItemTableName,
+                eventTableName: tableConfiguration.EventTableName,
                 itemValidator: itemValidator,
                 commandOperations: commandOperations,
                 eventPolicy: tableConfiguration.EventPolicy,
@@ -206,12 +212,13 @@ public static class SqlDataProvidersExtensions
                 typeof(TItem), // TItem,
                 providerOptions.DataSource, // server
                 providerOptions.InitialCatalog, // database,
-                tableConfiguration.TableName, // table
+                tableConfiguration.ItemTableName, // item table
+                tableConfiguration.EventTableName, // event table
             ];
 
             // Log successful provider registration
             bootstrapLogger.LogInformation(
-                message: "Added SqlDataProvider<{TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', tableName = '{tableName:l}'.",
+                message: "Added SqlDataProvider<{TItem:l}>: dataSource = '{dataSource:l}', initialCatalog = '{initialCatalog:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}'.",
                 args: args);
 
             return this;
@@ -228,13 +235,15 @@ public static class SqlDataProvidersExtensions
     /// Configuration mapping a type name to its SQL Server table and settings.
     /// </summary>
     /// <param name="TypeName">The logical type name identifier.</param>
-    /// <param name="TableName">The physical SQL Server table name.</param>
+    /// <param name="ItemTableName">The physical SQL Server table name for items.</param>
+    /// <param name="EventTableName">The physical SQL Server table name for events.</param>
     /// <param name="EventPolicy">The event policy for the table.</param>
     /// <param name="EventTimeToLive">Optional TTL for events in seconds.</param>
     /// <param name="BlockCipherService">Optional encryption service for the table.</param>
     private record TableConfiguration(
         string TypeName,
-        string TableName,
+        string ItemTableName,
+        string EventTableName,
         EventPolicy EventPolicy,
         int? EventTimeToLive,
         IBlockCipherService? BlockCipherService);
@@ -346,8 +355,19 @@ public static class SqlDataProvidersExtensions
         /// <returns>Sorted array of unique table names.</returns>
         public string[] GetTableNames()
         {
-            return _tableConfigurationsByTypeName
-                .Select(tableConfiguration => tableConfiguration.Value.TableName)
+            var tableNames = new HashSet<string>();
+
+            foreach (var tableConfiguration in _tableConfigurationsByTypeName.Values)
+            {
+                tableNames.Add(tableConfiguration.ItemTableName);
+
+                if (tableConfiguration.EventPolicy != EventPolicy.Disabled)
+                {
+                    tableNames.Add(tableConfiguration.EventTableName);
+                }
+            }
+
+            return tableNames
                 .OrderBy(tableName => tableName)
                 .ToArray();
         }

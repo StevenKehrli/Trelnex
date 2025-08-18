@@ -14,8 +14,9 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <summary>
 /// DynamoDB implementation of data provider for storing and retrieving items.
 /// </summary>
-/// <param name="table">DynamoDB table instance for data operations.</param>
 /// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemTable">DynamoDB table instance for data operations.</param>
+/// <param name="eventTable">DynamoDB table instance for event tracking.</param>
 /// <param name="itemValidator">Optional validator for items before saving.</param>
 /// <param name="commandOperations">Optional CRUD operations override.</param>
 /// <param name="eventPolicy">Optional event policy for change tracking.</param>
@@ -24,7 +25,8 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// <param name="logger">Optional logger for diagnostics.</param>
 internal class DynamoDataProvider<TItem>(
     string typeName,
-    Table table,
+    Table itemTable,
+    Table eventTable,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     EventPolicy? eventPolicy = null,
@@ -82,7 +84,7 @@ internal class DynamoDataProvider<TItem>(
         var queryHelper = QueryHelper<TItem>.FromLinqExpression(queryable.Expression);
 
         // Execute DynamoDB scan with converted expression
-        var search = table.Scan(queryHelper.DynamoWhereExpression);
+        var search = itemTable.Scan(queryHelper.DynamoWhereExpression);
 
         var items = new List<TItem>();
 
@@ -147,7 +149,7 @@ internal class DynamoDataProvider<TItem>(
             { "id", id }
         };
 
-        var document = await table.GetItemAsync(key, cancellationToken);
+        var document = await itemTable.GetItemAsync(key, cancellationToken);
 
         if (document is null) return null;
 
@@ -177,7 +179,7 @@ internal class DynamoDataProvider<TItem>(
         var results = new SaveResult<TItem>[requests.Length];
 
         // Create DynamoDB transaction batch
-        var batch = table.CreateTransactWrite();
+        var batch = itemTable.CreateTransactWrite();
 
         // Process each request and add to transaction
         for (var index = 0; index < requests.Length; index++)

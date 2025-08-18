@@ -30,7 +30,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
         var dynamoClientOptions = new DynamoClientOptions(
             AWSCredentials: _awsCredentials,
             Region: _region,
-            TableNames: [_tableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         var factory = await DynamoDataProviderFactory.Create(
@@ -38,7 +38,8 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
 
         _dataProvider = factory.Create(
             typeName: "test-item",
-            tableName: _tableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
@@ -73,7 +74,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -119,7 +120,7 @@ public class DynamoDataProviderTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

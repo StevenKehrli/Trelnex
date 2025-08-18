@@ -32,7 +32,7 @@ public class PostgresDataProviderEventExpirationTests : PostgresDataProviderEven
             Port: _port,
             Database: _database,
             DbUser: _dbUser,
-            TableNames: [_expirationTableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         // Create the PostgresDataProviderFactory.
@@ -43,7 +43,8 @@ public class PostgresDataProviderEventExpirationTests : PostgresDataProviderEven
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "expiration-test-item",
-            tableName: _expirationTableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
@@ -72,9 +73,13 @@ public class PostgresDataProviderEventExpirationTests : PostgresDataProviderEven
 
         Assert.That(created, Is.Not.Null);
 
-        // Retrieve the private and optional messages using the helper method.
+        // Retrieve the expireAtDateTimeOffset using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _expirationTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _eventTableName);
 
         Assert.That(reader.Read(), Is.True);
 

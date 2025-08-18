@@ -38,7 +38,7 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
             Port: _port,
             Database: _database,
             DbUser: _dbUser,
-            TableNames: [_tableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         // Create the PostgresDataProviderFactory.
@@ -49,7 +49,8 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
         // Create the data provider instance.
         _dataProvider = factory.Create(
             typeName: "test-item",
-            tableName: _tableName,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
@@ -83,7 +84,8 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -122,7 +124,8 @@ public class PostgresDataProviderTests : PostgresDataProviderTestBase
         using var reader = await GetReader(
             sqlConnection: sqlConnection,
             id: id,
-            partitionKey: partitionKey);
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
