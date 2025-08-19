@@ -3,18 +3,18 @@
     "HttpStatusCode": "OK",
     "ReadResult": {
       "Item": {
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null,
         "Id": "6704a3e2-1757-4540-aa07-16f36a567ce6",
         "PartitionKey": "75e5d19c-e809-49ed-a7ba-a89e96217ed3",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-10T21:54:45.667446+00:00",
-        "UpdatedDateTimeOffset": "2025-08-10T21:54:45.667446+00:00",
-        "DeletedDateTimeOffset": "2025-08-10T21:54:45.80052+00:00",
+        "CreatedDateTimeOffset": "2025-08-16T21:24:41.677994+00:00",
+        "UpdatedDateTimeOffset": "2025-08-16T21:24:41.677994+00:00",
+        "DeletedDateTimeOffset": "2025-08-16T21:24:41.811156+00:00",
         "IsDeleted": true,
-        "ETag": "\"0200d225-0000-0300-0000-689915250000\"",
-        "PublicMessage": "Public Message #1",
-        "PrivateMessage": "Private Message #1",
-        "OptionalMessage": null
+        "ETag": "\"04000574-0000-0300-0000-68a0f7190000\""
       }
     }
   },
@@ -22,18 +22,18 @@
     "HttpStatusCode": "OK",
     "ReadResult": {
       "Item": {
+        "PublicMessage": "Public Message #2",
+        "PrivateMessage": "Private Message #2",
+        "OptionalMessage": null,
         "Id": "41981704-8fc4-4da1-b12a-e913f1dfa0dc",
         "PartitionKey": "75e5d19c-e809-49ed-a7ba-a89e96217ed3",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-10T21:54:45.667503+00:00",
-        "UpdatedDateTimeOffset": "2025-08-10T21:54:45.667503+00:00",
-        "DeletedDateTimeOffset": "2025-08-10T21:54:45.869876+00:00",
+        "CreatedDateTimeOffset": "2025-08-16T21:24:41.678026+00:00",
+        "UpdatedDateTimeOffset": "2025-08-16T21:24:41.678026+00:00",
+        "DeletedDateTimeOffset": "2025-08-16T21:24:41.877414+00:00",
         "IsDeleted": true,
-        "ETag": "\"0200d425-0000-0300-0000-689915250000\"",
-        "PublicMessage": "Public Message #2",
-        "PrivateMessage": "Private Message #2",
-        "OptionalMessage": null
+        "ETag": "\"04000774-0000-0300-0000-68a0f7190000\""
       }
     }
   }

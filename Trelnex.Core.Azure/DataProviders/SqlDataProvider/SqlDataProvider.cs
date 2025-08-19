@@ -2,27 +2,42 @@ using System.Text.RegularExpressions;
 using FluentValidation;
 using LinqToDB;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// SQL Server implementation of <see cref="DbDataProvider{TInterface, TItem}"/>.
+/// SQL Server implementation of database data provider with SQL Server-specific error handling.
 /// </summary>
-/// <param name="dataOptions">The data connection options for SQL Server.</param>
-/// <param name="typeName">The type name used to filter items.</param>
-/// <param name="validator">Optional validator for items before they are saved.</param>
-/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
-/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-internal partial class SqlDataProvider<TInterface, TItem>(
-    DataOptions dataOptions,
+/// <param name="dataOptions">LinqToDB connection options for SQL Server.</param>
+/// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemValidator">Optional validator for items before saving.</param>
+/// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
+/// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+/// <param name="blockCipherService">Optional block cipher service for encryption.</param>
+/// <param name="logger">Optional logger for diagnostics.</param>
+internal partial class SqlDataProvider<TItem>(
     string typeName,
-    IValidator<TItem>? validator = null,
+    DataOptions dataOptions,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
-    int? eventTimeToLive = null)
-    : DbDataProvider<TInterface, TItem>(dataOptions, typeName, validator, commandOperations, eventTimeToLive)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+    EventPolicy? eventPolicy = null,
+    int? eventTimeToLive = null,
+    IBlockCipherService? blockCipherService = null,
+    ILogger? logger = null)
+    : DbDataProvider<TItem>(
+        typeName: typeName,
+        dataOptions: dataOptions,
+        itemValidator: itemValidator,
+        commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
+        eventTimeToLive: eventTimeToLive,
+        blockCipherService: blockCipherService,
+        logger: logger)
+    where TItem : BaseItem, new()
 {
     #region Protected Methods
 
@@ -57,16 +72,16 @@ internal partial class SqlDataProvider<TInterface, TItem>(
     #region Regular Expressions
 
     /// <summary>
-    /// Regular expression to identify primary key violation errors.
+    /// Gets regex pattern for detecting SQL Server primary key violation errors.
     /// </summary>
-    /// <returns>Compiled regular expression pattern.</returns>
+    /// <returns>Compiled regex for matching primary key constraint violations.</returns>
     [GeneratedRegex(@"^Violation of PRIMARY KEY constraint ")]
     private static partial Regex PrimaryKeyViolationRegex();
 
     /// <summary>
-    /// Regular expression to identify precondition failed errors.
+    /// Gets regex pattern for detecting SQL Server precondition failed errors.
     /// </summary>
-    /// <returns>Compiled regular expression pattern.</returns>
+    /// <returns>Compiled regex for matching precondition failed messages.</returns>
     [GeneratedRegex(@"^Precondition Failed\.$")]
     private static partial Regex PreconditionFailedRegex();
 

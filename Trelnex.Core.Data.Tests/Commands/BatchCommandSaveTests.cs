@@ -18,7 +18,7 @@ public class BatchCommandSaveTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -104,7 +104,7 @@ public class BatchCommandSaveTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -206,7 +206,7 @@ public class BatchCommandSaveTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -312,7 +312,7 @@ public class BatchCommandSaveTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 

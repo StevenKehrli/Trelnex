@@ -50,15 +50,15 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
             .AddDynamoDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]
@@ -85,14 +85,14 @@ public class DynamoDataProviderExtensionsEventPersistenceTests : DynamoDataProvi
         Assert.That(created, Is.Not.Null);
 
         // Get the event
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var key = new Dictionary<string, DynamoDBEntry>
         {
             { "partitionKey", partitionKey },
             { "id", eventId }
         };
 
-        var document = await _expirationTable.GetItemAsync(key, default);
+        var document = await _eventTable.GetItemAsync(key, default);
 
         Assert.That(document, Is.Not.Null);
         Assert.That(document.ContainsKey("expireAt"), Is.False);

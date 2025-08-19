@@ -4,18 +4,9 @@ using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Data.Tests.DataProviders;
 
-public interface ITestItem : IBaseItem
+public record TestItem : BaseItem
 {
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-
-    string? OptionalMessage { get; set; }
-}
-
-internal record TestItem : BaseItem, ITestItem
-{
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 

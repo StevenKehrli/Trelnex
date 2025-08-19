@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "941bebb9-29d0-4bbe-a491-be45637d546c",
-      "PartitionKey": "344b30f5-ee87-4797-ac27-ce467d54fb4a",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:18.947469+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:18.947469+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "463761bd-d0b5-4ade-98c1-4a920f696d5f",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "8e7a3269-5d88-47d5-9554-0915444345cb",
+      "PartitionKey": "eada95bc-3be9-4d8f-9e3e-d54ed01841b4",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:23:50.126143+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:23:50.126143+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "5090d6d3-cc9a-4f06-90d9-b5ec19805948"
     }
   },
   {
     "Item": {
-      "Id": "dbc91d66-9bf6-4e28-9f0c-2a9a367e0317",
-      "PartitionKey": "547edcca-783d-4e56-ad76-3127ac985b92",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:54:18.947283+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:54:18.947283+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "f24b6fa4-9623-4659-8ce2-6128659d397d",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "9baefc59-10ab-4946-97cb-3e3b18edc03f",
+      "PartitionKey": "2b01b7fc-47e0-40fd-af25-8901496092a6",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:23:50.125996+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:23:50.125996+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "ecd77544-0735-4e5d-8888-2b89dd8d28cc"
     }
   }
 ]

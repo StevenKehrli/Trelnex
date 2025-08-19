@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Snapshooter.NUnit;
 
 namespace Trelnex.Core.Data.Tests.Commands;
@@ -17,7 +18,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -67,7 +68,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -113,7 +114,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
@@ -158,7 +159,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -214,7 +215,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -258,18 +259,20 @@ public class QueryCommandTests
     }
 
     [Test]
-    public async Task QueryCommand_ToAsyncEnumerable_ResultIsReadOnly()
+    public async Task QueryCommand_ToAsyncEnumerable_ResultIsModified()
     {
-        var id = Guid.NewGuid().ToString();
-        var partitionKey = Guid.NewGuid().ToString();
+        var id = "62b00aaa-cc22-47bb-b9a4-0efb2fdd20c2";
+        var partitionKey = "b83cb6ab-9ce9-4a43-b4c5-d77749ffe1f9";
 
         // create our in-memory data provider factory
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var logger = new TestLogger();
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
-            commandOperations: CommandOperations.Create);
+            commandOperations: CommandOperations.Create,
+            logger: logger);
 
         using var createCommand1 = dataProvider.Create(
             id: id,
@@ -290,15 +293,73 @@ public class QueryCommandTests
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(read, Is.Not.Null);
+            Assert.That(read, Has.Count.EqualTo(1));
+            Assert.That(read[0].Item, Is.Not.Null);
+
             Assert.That(read[0].Item.Version, Is.EqualTo(1));
 
-            Assert.Throws<InvalidOperationException>(
-                () => read[0].Item.PublicMessage = "Public #2",
-                $"The '{typeof(ITestItem)}' is read-only");
+            read[0].Item.PublicMessage = "Public #2";
+            read[0].Item.PrivateMessage = "Private #2";
 
-            Assert.Throws<InvalidOperationException>(
-                () => read[0].Item.PrivateMessage = "Private #2",
-                $"The '{typeof(ITestItem)}' is read-only");
+            read.Dispose();
+
+            var logEntries = logger.LogEntries;
+
+            Assert.That(logEntries, Is.Not.Null);
+            Assert.That(logEntries, Has.Count.EqualTo(1));
+            Assert.That(logEntries[0].LogLevel, Is.EqualTo(LogLevel.Warning));
+            Assert.That(logEntries[0].Message, Is.EqualTo("Item id = '62b00aaa-cc22-47bb-b9a4-0efb2fdd20c2' partitionKey = 'b83cb6ab-9ce9-4a43-b4c5-d77749ffe1f9' was modified."));
+        }
+    }
+
+    [Test]
+    public async Task QueryCommand_ToAsyncEnumerable_ResultIsNotModified()
+    {
+        var id = "2413e431-5ed8-4fb3-a19b-6e27b0c4e064";
+        var partitionKey = "50304572-190c-449a-b895-31428dd14670";
+
+        // create our in-memory data provider factory
+        var factory = await InMemoryDataProviderFactory.Create();
+
+        // Get a data provider for our test item type
+        var logger = new TestLogger();
+        var dataProvider = factory.Create<TestItem>(
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create,
+            logger: logger);
+
+        using var createCommand1 = dataProvider.Create(
+            id: id,
+            partitionKey: partitionKey);
+
+        createCommand1.Item.PublicMessage = "Public #1";
+        createCommand1.Item.PrivateMessage = "Private #1";
+
+        // save it
+        await createCommand1.SaveAsync(
+            cancellationToken: default);
+
+        // query
+        var queryCommand = dataProvider.Query();
+
+        // should return item
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(read, Is.Not.Null);
+            Assert.That(read, Has.Count.EqualTo(1));
+            Assert.That(read[0].Item, Is.Not.Null);
+
+            Assert.That(read[0].Item.Version, Is.EqualTo(1));
+
+            read.Dispose();
+
+            var logEntries = logger.LogEntries;
+
+            Assert.That(logEntries, Is.Not.Null);
+            Assert.That(logEntries, Has.Count.EqualTo(0));
         }
     }
 
@@ -315,7 +376,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -371,7 +432,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -427,7 +488,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -480,7 +541,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -537,7 +598,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -580,7 +641,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -623,7 +684,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -679,7 +740,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -722,7 +783,7 @@ public class QueryCommandTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 

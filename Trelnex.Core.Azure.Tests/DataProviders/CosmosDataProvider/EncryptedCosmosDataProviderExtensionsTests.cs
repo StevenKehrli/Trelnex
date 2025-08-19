@@ -53,15 +53,15 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
             .AddCosmosDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "encrypted-test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]
@@ -88,7 +88,7 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -139,7 +139,7 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

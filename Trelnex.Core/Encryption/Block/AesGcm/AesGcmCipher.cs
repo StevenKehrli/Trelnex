@@ -4,7 +4,6 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 
 namespace Trelnex.Core.Encryption;
 
@@ -17,7 +16,7 @@ namespace Trelnex.Core.Encryption;
 /// The service uses HKDF (HMAC-based Key Derivation Function) with SHA-256 for secure key derivation from the provided secret.
 /// </remarks>
 /// <param name="configuration">The AES-GCM encryption configuration containing the secret key and other settings.</param>
-internal class AesGcmCipher(
+public class AesGcmCipher(
     AesGcmCipherConfiguration configuration)
     : IBlockCipher
 {
@@ -27,8 +26,6 @@ internal class AesGcmCipher(
     private static readonly int _hkdfSaltLengthInBytes = 16; // 128 bits
     private static readonly int _ivLengthInBytes = 12; // 96 bits
     private static readonly int _keyLengthInBytes = 32; // 256 bits
-
-    private static readonly SecureRandom _secureRandom = new();
 
     #endregion
 
@@ -128,19 +125,13 @@ internal class AesGcmCipher(
         int startIndex,
         Func<int, BlockBuffer> allocateBlock)
     {
-        // Generate a random salt for HKDF
-        var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
-        _secureRandom.NextBytes(hkdfSalt);
+        var (hkdfSalt, iv) = GetHkdfSaltAndIV(configuration.Secret, plaintext);
 
         // Derive the encryption key from the secret and salt using HKDF.
         var key = DeriveKey(
             secret: configuration.Secret,
             salt: hkdfSalt,
             keyLengthInBytes: _keyLengthInBytes);
-
-        // Generate a random IV for each encryption
-        var iv = new byte[_ivLengthInBytes];
-        _secureRandom.NextBytes(iv);
 
         // Create an AES cipher in GCM mode (authenticated encryption)
         var cipher = new GcmBlockCipher(new AesEngine());
@@ -213,6 +204,57 @@ internal class AesGcmCipher(
         hkdf.GenerateBytes(key, 0, keyLengthInBytes);
 
         return key;
+    }
+
+    private static (byte[] hkdfSalt, byte[] iv) GetHkdfSaltAndIV(
+        string secret,
+        byte[] plaintext)
+    {
+        // Use BLAKE2b to generate a 28-byte hash
+        var lengthInBytes = _hkdfSaltLengthInBytes + _ivLengthInBytes;
+        var digestSize = lengthInBytes * 8;
+        var blake2b = new Blake2bDigest(digestSize);
+
+        // Combine class name, secret, and plaintext
+        var classNameBytes = Encoding.UTF8.GetBytes(nameof(AesGcmCipher));
+        blake2b.BlockUpdate(
+            message: classNameBytes,
+            offset: 0,
+            len: classNameBytes.Length);
+
+        var secretBytes = Encoding.UTF8.GetBytes(secret);
+        blake2b.BlockUpdate(
+            message: secretBytes,
+            offset: 0,
+            len: secretBytes.Length);
+
+        blake2b.BlockUpdate(
+            message: plaintext,
+            offset: 0,
+            len: plaintext.Length);
+
+        var hash = new byte[lengthInBytes];
+        blake2b.DoFinal(hash, 0);
+
+        // Use first 16 bytes for HKDF salt
+        var hkdfSalt = new byte[_hkdfSaltLengthInBytes];
+        Buffer.BlockCopy(
+            src: hash,
+            srcOffset: 0,
+            dst: hkdfSalt,
+            dstOffset: 0,
+            count: _hkdfSaltLengthInBytes);
+
+        // Use next 12 bytes for IV
+        var iv = new byte[_ivLengthInBytes];
+        Buffer.BlockCopy(
+            src: hash,
+            srcOffset: _hkdfSaltLengthInBytes,
+            dst: iv,
+            dstOffset: 0,
+            count: _ivLengthInBytes);
+
+        return (hkdfSalt, iv);
     }
 
     #endregion

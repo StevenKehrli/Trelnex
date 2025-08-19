@@ -12,18 +12,18 @@
   "read": [
     {
       "Item": {
+        "PublicMessage": "Public Message #1",
+        "PrivateMessage": "Private Message #1",
+        "OptionalMessage": null,
         "Id": "0ffc3bd2-b33f-4902-a4bf-b804d8aa01e9",
         "PartitionKey": "c25361d6-3d14-452d-a99d-22ef7c85d70e",
         "TypeName": "test-item",
         "Version": 1,
-        "CreatedDateTimeOffset": "2025-08-10T21:54:05.194585+00:00",
-        "UpdatedDateTimeOffset": "2025-08-10T21:54:05.194585+00:00",
+        "CreatedDateTimeOffset": "2025-08-16T21:34:38.614321+00:00",
+        "UpdatedDateTimeOffset": "2025-08-16T21:34:38.614321+00:00",
         "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "9e34e03b-9baa-44d5-8f36-ec38e7d09938",
-        "PublicMessage": "Public Message #1",
-        "PrivateMessage": "Private Message #1",
-        "OptionalMessage": null
+        "ETag": "136e8d20-9db0-4c0b-adb4-2401d46c46b4"
       }
     }
   ]

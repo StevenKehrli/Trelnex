@@ -30,7 +30,7 @@ public class SqlDataProviderEventExpirationTests : SqlDataProviderEventTestBase
             Scope: _scope,
             DataSource: _dataSource,
             InitialCatalog: _initialCatalog,
-            TableNames: [_expirationTableName]
+            TableNames: [_itemTableName]
         );
 
         // Create the SqlDataProviderFactory.
@@ -39,10 +39,11 @@ public class SqlDataProviderEventExpirationTests : SqlDataProviderEventTestBase
             sqlClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _expirationTableName,
+        _dataProvider = factory.Create(
             typeName: "expiration-test-item",
-            validator: TestItem.Validator,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
     }
@@ -70,9 +71,13 @@ public class SqlDataProviderEventExpirationTests : SqlDataProviderEventTestBase
 
         Assert.That(created, Is.Not.Null);
 
-        // Retrieve the private and optional messages using the helper method.
+        // Retrieve the expireAtDateTimeOffset using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _expirationTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _eventTableName);
 
         Assert.That(reader.Read(), Is.True);
 

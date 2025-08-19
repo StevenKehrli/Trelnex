@@ -1,12 +1,10 @@
 using System.Net;
 using System.Reflection;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Data;
 using Trelnex.Core.Encryption;
 using Trelnex.Core.Observability;
@@ -14,30 +12,39 @@ using Trelnex.Core.Observability;
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// DynamoDB implementation of <see cref="DataProvider{TInterface, TItem}"/>.
+/// DynamoDB implementation of data provider for storing and retrieving items.
 /// </summary>
-/// <param name="table">The DynamoDB table to interact with.</param>
-/// <param name="typeName">The type name used to filter items.</param>
-/// <param name="validator">Optional validator for items before they are saved.</param>
-/// <param name="commandOperations">Optional command operations to override default behaviors.</param>
-/// <param name="eventTimeToLive">Optional time-to-live for events in the table.</param>
-/// <param name="blockCipherService">Optional block cipher service for encrypting sensitive data.</param>
-internal class DynamoDataProvider<TInterface, TItem>(
-    Table table,
+/// <param name="typeName">Type name identifier for filtering items.</param>
+/// <param name="itemTable">DynamoDB table instance for data operations.</param>
+/// <param name="eventTable">DynamoDB table instance for event tracking.</param>
+/// <param name="itemValidator">Optional validator for items before saving.</param>
+/// <param name="commandOperations">Optional CRUD operations override.</param>
+/// <param name="eventPolicy">Optional event policy for change tracking.</param>
+/// <param name="eventTimeToLive">Optional TTL for events in seconds.</param>
+/// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
+/// <param name="logger">Optional logger for diagnostics.</param>
+internal class DynamoDataProvider<TItem>(
     string typeName,
-    IValidator<TItem>? validator = null,
+    Table itemTable,
+    Table eventTable,
+    IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
+    EventPolicy? eventPolicy = null,
     int? eventTimeToLive = null,
-    IBlockCipherService? blockCipherService = null)
-    : DataProvider<TInterface, TItem>(typeName, validator, commandOperations)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+    IBlockCipherService? blockCipherService = null,
+    ILogger? logger = null)
+    : DataProvider<TItem>(
+        typeName: typeName,
+        itemValidator: itemValidator,
+        commandOperations: commandOperations,
+        eventPolicy: eventPolicy,
+        blockCipherService: blockCipherService,
+        logger: logger)
+    where TItem : BaseItem, new()
 {
     #region Private Static Fields
 
-    /// <summary>
-    /// Reflection access to the ETag property.
-    /// </summary>
+    // Reflection access to ETag property for setting generated values
     private static readonly PropertyInfo _etagProperty =
         typeof(TItem).GetProperty(
             nameof(BaseItem.ETag),
@@ -45,31 +52,12 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
     #endregion
 
-    #region Private Fields
-
-    /// <summary>
-    /// JSON serializer options for DynamoDB.
-    /// </summary>
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = blockCipherService is not null
-            ? new EncryptedJsonTypeInfoResolver(blockCipherService)
-            : null
-    };
-
-    #endregion
-
     #region Protected Methods
 
     /// <summary>
-    /// Creates an in-memory queryable for DynamoDB item filtering.
+    /// Creates an empty queryable with standard filters for DynamoDB translation.
     /// </summary>
-    /// <returns>A LINQ queryable.</returns>
-    /// <remarks>
-    /// Creates an in-memory queryable that will be translated into DynamoDB expressions.
-    /// </remarks>
+    /// <returns>Empty queryable with type and deletion status filters.</returns>
     protected override IQueryable<TItem> CreateQueryable()
     {
         // Create an empty in-memory queryable with standard predicates
@@ -80,26 +68,23 @@ internal class DynamoDataProvider<TInterface, TItem>(
     }
 
     /// <summary>
-    /// Executes a query against DynamoDB and returns the results.
+    /// Executes a LINQ query against DynamoDB by translating it to scan operations.
     /// </summary>
-    /// <param name="queryable">The queryable to translate and execute.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>An enumerable of items matching the query.</returns>
-    /// <exception cref="CommandException">When a DynamoDB exception occurs.</exception>
-    /// <remarks>
-    /// Translates the LINQ expression into a DynamoDB scan operation.
-    /// </remarks>
+    /// <param name="queryable">LINQ queryable to execute.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Asynchronous enumerable of matching items.</returns>
+    /// <exception cref="CommandException">Thrown when DynamoDB operations fail.</exception>
 #pragma warning disable CS8425
     [TraceMethod]
     protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
-        // convert the queryable into the DynamoDB Where expression and LINQ filter expressions
+        // Convert LINQ expression to DynamoDB scan with filtering
         var queryHelper = QueryHelper<TItem>.FromLinqExpression(queryable.Expression);
 
-        // execute the scan using the DynamoDB Where expression
-        var search = table.Scan(queryHelper.DynamoWhereExpression);
+        // Execute DynamoDB scan with converted expression
+        var search = itemTable.Scan(queryHelper.DynamoWhereExpression);
 
         var items = new List<TItem>();
 
@@ -107,14 +92,14 @@ internal class DynamoDataProvider<TInterface, TItem>(
         {
             try
             {
-                // get the next batch of documents
+                // Retrieve next batch of documents from DynamoDB
                 var documents = await search.GetNextSetAsync(cancellationToken);
 
-                // convert each documnent to the TItem
+                // Convert each document to typed item
                 documents.ForEach(document =>
                 {
                     var json = document.ToJson();
-                    var item = JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions)!;
+                    var item = DeserializeItem(json)!;
 
                     items.Add(item);
                 });
@@ -133,7 +118,7 @@ internal class DynamoDataProvider<TInterface, TItem>(
             }
         } while (search.IsDone is false);
 
-        // apply the remaining LINQ filter expressions
+        // Apply remaining LINQ filters to retrieved items
         foreach (var item in queryHelper.Filter(items))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -144,72 +129,65 @@ internal class DynamoDataProvider<TInterface, TItem>(
 #pragma warning restore CS8425
 
     /// <summary>
-    /// Reads an item from the DynamoDB table.
+    /// Retrieves a single item from DynamoDB using composite primary key.
     /// </summary>
-    /// <param name="id">The unique identifier of the item.</param>
-    /// <param name="partitionKey">The partition key of the item.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>The item if found, or <see langword="null"/> if the item does not exist.</returns>
-    /// <exception cref="CommandException">When a DynamoDB exception occurs.</exception>
-    /// <remarks>
-    /// Uses the DynamoDB GetItem operation with a composite key.
-    /// </remarks>
+    /// <param name="id">Item identifier.</param>
+    /// <param name="partitionKey">Partition key for the item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Item if found and matches type, null otherwise.</returns>
+    /// <exception cref="CommandException">Thrown when DynamoDB operations fail.</exception>
     [TraceMethod]
     protected override async Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
     {
-        // get the document
+        // Build composite key for DynamoDB GetItem operation
         var key = new Dictionary<string, DynamoDBEntry>
         {
             { "partitionKey", partitionKey },
             { "id", id }
         };
 
-        var document = await table.GetItemAsync(key, cancellationToken);
+        var document = await itemTable.GetItemAsync(key, cancellationToken);
 
         if (document is null) return null;
 
-        // convert to json
+        // Convert document to JSON and deserialize to typed item
         var json = document.ToJson();
+        var item = DeserializeItem(json);
 
-        // deserialize the item
-        var item = JsonSerializer.Deserialize<TItem>(json, _jsonSerializerOptions);
-
+        // Verify item matches expected type name
         return item?.TypeName == TypeName
             ? item
             : null;
     }
 
     /// <summary>
-    /// Saves a batch of items in DynamoDB as an atomic transaction.
+    /// Saves multiple items and events atomically using DynamoDB transactions.
     /// </summary>
-    /// <param name="requests">Array of save requests.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
-    /// <returns>Array of save results.</returns>
-    /// <exception cref="CommandException">When a DynamoDB exception occurs.</exception>
-    /// <remarks>
-    /// Uses the DynamoDB TransactWriteItems operation to ensure all-or-nothing consistency.
-    /// </remarks>
+    /// <param name="requests">Array of save requests to process.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Array of save results for each request.</returns>
+    /// <exception cref="CommandException">Thrown when DynamoDB operations fail.</exception>
     [TraceMethod]
-    protected override async Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        SaveRequest<TInterface, TItem>[] requests,
+    protected override async Task<SaveResult<TItem>[]> SaveBatchAsync(
+        SaveRequest<TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
-        // allocate the results
-        var results = new SaveResult<TInterface, TItem>[requests.Length];
+        // Initialize results array for all requests
+        var results = new SaveResult<TItem>[requests.Length];
 
-        // create the batch operation
-        var batch = table.CreateTransactWrite();
+        // Create DynamoDB transaction batch
+        var itemBatch = itemTable.CreateTransactWrite();
+        var eventBatch = eventTable.CreateTransactWrite();
 
-        // add the items to the batch
+        // Process each request and add to transaction
         for (var index = 0; index < requests.Length; index++)
         {
             var request = requests[index];
 
-            // create the conditional expression to check if the item can be saved
-            // use the request.Item to check against ETag in the table
+            // Build conditional expression for optimistic concurrency control
             var expressionStatement = request.Item.ETag is null
                 ? "(attribute_not_exists(partitionKey) AND attribute_not_exists(id))"
                 : "(attribute_exists(partitionKey) AND attribute_exists(id) AND #etag = :_etag)";
@@ -232,54 +210,63 @@ internal class DynamoDataProvider<TInterface, TItem>(
 
             var etag = Guid.NewGuid().ToString();
 
-            // set new eTag
+            // Create response item with new ETag
             var responseItem = request.Item with { };
             _etagProperty.SetValue(responseItem, etag);
 
-            results[index] = new SaveResult<TInterface, TItem>(
+            results[index] = new SaveResult<TItem>(
                 HttpStatusCode: HttpStatusCode.OK,
                 Item: responseItem);
 
-            // serialize the item to the document
-            // use responseItem to save the updated ETag
-            var jsonItem = JsonSerializer.Serialize(responseItem, _jsonSerializerOptions);
+            // Serialize item and add to transaction
+            var jsonItem = SerializeItem(responseItem);
             var documentItem = Document.FromJson(jsonItem);
 
-            batch.AddDocumentToUpdate(documentItem, config);
+            itemBatch.AddDocumentToUpdate(documentItem, config);
 
-            // set expireAt and same etag
+            // Skip if no event to record
+            if (request.Event is null) continue;
+
+            // Calculate event expiration and create event with same ETag
             var eventExpireAt = (eventTimeToLive is null)
                 ? null
                 : request.Event.CreatedDateTimeOffset.ToUnixTimeSeconds() + eventTimeToLive;
             var responseEvent = new ItemEventWithExpiration(request.Event, eventExpireAt);
             _etagProperty.SetValue(responseEvent, etag);
 
-            // serialize the event to the document
-            // use responseEvent to save the updated ETag
-            var jsonEvent = JsonSerializer.Serialize(responseEvent, _jsonSerializerOptions);
+            // Serialize event and add to transaction
+            var jsonEvent = SerializeEvent(responseEvent);
             var documentEvent = Document.FromJson(jsonEvent);
 
-            batch.AddDocumentToUpdate(documentEvent);
+            eventBatch.AddDocumentToUpdate(documentEvent);
         }
 
         try
         {
-            // execute the batch
-            await batch.ExecuteAsync(cancellationToken);
+            // Execute the entire transactions atomically
+            var multiTableBatch = new MultiTableDocumentTransactWrite(
+                [
+                    itemBatch,
+                    eventBatch
+                ]);
+
+            await multiTableBatch.ExecuteAsync(cancellationToken);
         }
         catch (TransactionCanceledException ex)
         {
             var cancellationReasons = ex.CancellationReasons;
 
-            // enumerate the results and get its cancellation reason, if any
+            // Update results with failure reasons for each cancelled operation
+            // The item batch cancellation reasons are first in the array
+            // since that corresponds to the order of items in the transaction
             for (var index = 0; index < requests.Length; index++)
             {
-                var cancellationReason = cancellationReasons[index * 2];
+                var cancellationReason = cancellationReasons[index];
                 var httpStatusCode = ConvertReasonCode(cancellationReason.Code);
 
                 if (httpStatusCode == HttpStatusCode.OK) continue;
 
-                results[index] = new SaveResult<TInterface, TItem>(
+                results[index] = new SaveResult<TItem>(
                     HttpStatusCode: httpStatusCode,
                     Item: requests[index].Item);
             }
@@ -293,13 +280,10 @@ internal class DynamoDataProvider<TInterface, TItem>(
     #region Private Static Methods
 
     /// <summary>
-    /// Converts a DynamoDB error code to an HTTP status code.
+    /// Maps DynamoDB error codes to appropriate HTTP status codes.
     /// </summary>
-    /// <param name="code">The DynamoDB error code string.</param>
-    /// <returns>The mapped HTTP status code.</returns>
-    /// <remarks>
-    /// Maps DynamoDB-specific error codes to standard HTTP status codes.
-    /// </remarks>
+    /// <param name="code">DynamoDB error code string.</param>
+    /// <returns>Corresponding HTTP status code.</returns>
     private static HttpStatusCode ConvertReasonCode(
         string code)
     {

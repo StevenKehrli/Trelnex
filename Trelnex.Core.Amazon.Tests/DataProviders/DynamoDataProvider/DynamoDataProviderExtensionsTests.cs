@@ -51,15 +51,15 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             .AddDynamoDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     /// <summary>
@@ -89,13 +89,13 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
                 configuration,
                 bootstrapLogger,
                 options => options
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
         });
     }
@@ -130,7 +130,7 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -176,7 +176,7 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _table.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

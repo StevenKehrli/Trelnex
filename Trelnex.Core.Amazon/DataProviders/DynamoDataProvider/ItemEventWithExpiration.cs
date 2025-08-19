@@ -13,7 +13,7 @@ internal record ItemEventWithExpiration : ItemEvent
     }
 
     /// <summary>
-    /// Optional expiration time for the event
+    /// Gets the Unix timestamp when this event record should be automatically deleted by DynamoDB TTL.
     /// </summary>
     [JsonInclude]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

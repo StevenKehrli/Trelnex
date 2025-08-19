@@ -1,82 +1,60 @@
-using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Read-only access to items.
+/// Defines operations for accessing an item.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for items.</typeparam>
-/// <remarks>
-/// Standardized wrapper for retrieved items.
-/// </remarks>
-public interface IReadResult<TInterface>
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IReadResult<TItem>
     : IDisposable
-    where TInterface : class, IBaseItem
+    where TItem : BaseItem
 {
     /// <summary>
-    /// Gets the item with read-only access.
+    /// Gets the managed item.
     /// </summary>
-    TInterface Item { get; }
-
-    /// <summary>
-    /// Validates the item.
-    /// </summary>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-    /// <returns>A task containing a <see cref="ValidationResult"/>.</returns>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the operation is canceled.
-    /// </exception>
-    Task<ValidationResult> ValidateAsync(
-        CancellationToken cancellationToken);
+    TItem Item { get; }
 }
 
 /// <summary>
-/// Implements read-only access and validation.
+/// Manages an item through a result wrapper.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for data store items.</typeparam>
-/// <typeparam name="TItem">Concrete implementation type.</typeparam>
-/// <remarks>
-/// Concrete implementation of <see cref="IReadResult{TInterface}"/>.
-/// </remarks>
-internal class ReadResult<TInterface, TItem>
-    : ProxyManager<TInterface, TItem>, IReadResult<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+internal class ReadResult<TItem>
+    : ItemManager<TItem>, IReadResult<TItem>
+    where TItem : BaseItem
 {
-    #region Public Methods
+    #region Constructor
 
     /// <summary>
-    /// Creates a read-only wrapper for the provided item.
+    /// Initializes the read result with the specified item and optional logger.
     /// </summary>
-    /// <param name="item">The concrete item to be wrapped.</param>
-    /// <param name="validateAsyncDelegate">The validation delegate.</param>
-    /// <returns>A configured ReadResult instance.</returns>
-    /// <remarks>
-    /// Factory method.
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown if item or validateAsyncDelegate is null.
-    /// </exception>
-    public static ReadResult<TInterface, TItem> Create(
+    /// <param name="item">The item to manage.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    private ReadResult(
         TItem item,
-        ValidateAsyncDelegate<TInterface, TItem> validateAsyncDelegate)
+        ILogger? logger = null)
+        : base(item, logger)
     {
-        // Create the proxy manager - need an item reference for the ItemProxy onInvoke delegate
-        var proxyManager = new ReadResult<TInterface, TItem>
-        {
-            _item = item,
-            _isReadOnly = true,
-            _validateAsyncDelegate = validateAsyncDelegate,
-        };
+    }
 
-        // Create the proxy that will be exposed to consumers
-        var proxy = ItemProxy<TInterface, TItem>.Create(proxyManager.OnInvoke);
+    #endregion
 
-        // Set our proxy reference
-        proxyManager._proxy = proxy;
+    #region Internal Methods
 
-        // Return the configured proxy manager
-        return proxyManager;
+    /// <summary>
+    /// Factory method that creates a new read result instance.
+    /// </summary>
+    /// <param name="item">The item to wrap.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <returns>A configured read result instance.</returns>
+    internal static ReadResult<TItem> Create(
+        TItem item,
+        ILogger? logger = null)
+    {
+        return new ReadResult<TItem>(
+            item: item,
+            logger: logger);
     }
 
     #endregion

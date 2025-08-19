@@ -3,25 +3,22 @@ using System.Net;
 using Amazon.RDS.Util;
 using FluentValidation;
 using LinqToDB;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// Factory for creating and configuring PostgreSQL data providers.
+/// Factory for creating PostgreSQL data providers with AWS IAM authentication.
 /// </summary>
-/// <remarks>
-/// Creates data providers that connect to a PostgreSQL database using AWS IAM authentication.
-/// </remarks>
 internal class PostgresDataProviderFactory : DbDataProviderFactory
 {
     #region Private Fields
 
-    /// <summary>
-    /// The options used to configure the PostgreSQL client.
-    /// </summary>
+    // Configuration options for PostgreSQL client connection
     private readonly PostgresClientOptions _postgresClientOptions;
 
     #endregion
@@ -29,10 +26,10 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PostgresDataProviderFactory"/> class.
+    /// Initializes a new PostgreSQL data provider factory with connection options.
     /// </summary>
-    /// <param name="dataOptions">The data options to use.</param>
-    /// <param name="postgresClientOptions">The PostgreSQL client options.</param>
+    /// <param name="dataOptions">LinqToDB data connection options.</param>
+    /// <param name="postgresClientOptions">PostgreSQL-specific connection configuration.</param>
     private PostgresDataProviderFactory(
         DataOptions dataOptions,
         PostgresClientOptions postgresClientOptions)
@@ -46,19 +43,17 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
     #region Public Static Methods
 
     /// <summary>
-    /// Creates an instance of the <see cref="PostgresDataProviderFactory"/>.
+    /// Creates and validates a PostgreSQL data provider factory instance.
     /// </summary>
-    /// <param name="serviceConfiguration">Service configuration.</param>
-    /// <param name="postgresClientOptions">PostgreSQL client options.</param>
-    /// <returns>A configured and validated PostgreSQL data provider factory.</returns>
-    /// <remarks>
-    /// Configures a new factory and performs a health check to verify database connectivity.
-    /// </remarks>
+    /// <param name="serviceConfiguration">Service configuration for connection metadata.</param>
+    /// <param name="postgresClientOptions">PostgreSQL connection configuration.</param>
+    /// <returns>Validated factory instance ready for creating data providers.</returns>
+    /// <exception cref="CommandException">Thrown when database connection fails or is unhealthy.</exception>
     public static async Task<PostgresDataProviderFactory> Create(
         ServiceConfiguration serviceConfiguration,
         PostgresClientOptions postgresClientOptions)
     {
-        // Build the connection string.
+        // Configure PostgreSQL connection string with service and database details
         var csb = new NpgsqlConnectionStringBuilder
         {
             ApplicationName = serviceConfiguration.FullName,
@@ -69,18 +64,18 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
             SslMode = SslMode.Require
         };
 
-        // Bootstrap the data options.
+        // Initialize LinqToDB data options for PostgreSQL
         var dataOptions = new DataOptions().UsePostgreSQL(csb.ConnectionString);
 
-        // Build the factory.
+        // Create factory instance
         var factory = new PostgresDataProviderFactory(
             dataOptions,
             postgresClientOptions);
 
-        // Get the operational status of the factory.
+        // Verify factory health and database connectivity
         var factoryStatus = await factory.GetStatusAsync();
 
-        // Return the factory if it is healthy; otherwise, throw an exception.
+        // Return factory if healthy, otherwise throw exception with error details
         return factoryStatus.IsHealthy
             ? factory
             : throw new CommandException(
@@ -103,10 +98,10 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
-        // Ensure the connection is an NpgsqlConnection.
+        // Only process Npgsql connections
         if (dbConnection is not NpgsqlConnection connection) return;
 
-        // Generate the authentication token for the PostgreSQL database.
+        // Generate AWS IAM authentication token for PostgreSQL
         var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
             credentials: _postgresClientOptions.AWSCredentials,
             region: _postgresClientOptions.Region,
@@ -114,38 +109,43 @@ internal class PostgresDataProviderFactory : DbDataProviderFactory
             port: _postgresClientOptions.Port,
             dbUser: _postgresClientOptions.DbUser);
 
-        // Update the connection string with the generated password and SSL mode.
+        // Update connection string with generated authentication token
         var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
         {
             Password = pwd,
             SslMode = SslMode.Require
         };
 
-        // Set the connection string to the updated connection string.
         connection.ConnectionString = csb.ConnectionString;
     }
 
     /// <inheritdoc />
-    protected override IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
-        DataOptions dataOptions,
+    protected override IDataProvider<TItem> CreateDataProvider<TItem>(
         string typeName,
-        IValidator<TItem>? validator = null,
+        DataOptions dataOptions,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
-        int? eventTimeToLive = null)
+        EventPolicy? eventPolicy = null,
+        int? eventTimeToLive = null,
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
     {
-        // Create and return a new PostgresDataProvider instance.
-        return new PostgresDataProvider<TInterface, TItem>(
-            dataOptions: dataOptions,
+        // Create PostgreSQL-specific data provider instance
+        return new PostgresDataProvider<TItem>(
             typeName: typeName,
-            validator: validator,
+            dataOptions: dataOptions,
+            itemValidator: itemValidator,
             commandOperations: commandOperations,
-            eventTimeToLive: eventTimeToLive);
+            eventPolicy: eventPolicy,
+            eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService,
+            logger: logger);
     }
 
     /// <inheritdoc />
     protected override IReadOnlyDictionary<string, object> GetStatusData()
     {
-        // Return a dictionary containing the status data.
+        // Return PostgreSQL connection configuration for health monitoring
         return new Dictionary<string, object>
         {
             { "region", _postgresClientOptions.Region },

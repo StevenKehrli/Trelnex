@@ -85,7 +85,7 @@ public static class Application
         var serviceConfiguration = builder.Configuration
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()
-            ?? throw new ConfigurationErrorsException("The service configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Service configuration is not valid.");
 
         builder.Services.AddSingleton(serviceConfiguration);
 

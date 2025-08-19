@@ -13,7 +13,7 @@ internal record ItemEventWithExpiration : ItemEvent
     }
 
     /// <summary>
-    /// Optional time to live for the event.
+    /// Gets the time-to-live in seconds for automatic deletion of this event record by Cosmos DB.
     /// </summary>
     [JsonInclude]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -2,16 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace Trelnex.Core.Data.Tests.TypeNameRules;
 
-internal interface ITestItem : IBaseItem
+internal record TestItem : BaseItem
 {
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-}
-
-internal record TestItem : BaseItem, ITestItem
-{
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 

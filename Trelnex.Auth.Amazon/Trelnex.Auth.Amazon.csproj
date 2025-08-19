@@ -9,9 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.3.11" />
+        <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.3.13" />
         <PackageReference Include="JWT" Version="11.0.0" />
-        <PackageReference Include="Trelnex.Core.Amazon" Version="0.6.0" />
+        <!-- <PackageReference Include="Trelnex.Core.Amazon" Version="0.6.0" /> -->
+        <ProjectReference Include="..\Trelnex.Core.Amazon\Trelnex.Core.Amazon.csproj" />
     </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@
       "_resourceName": "urn://resource-getprincipalsforrole",
       "_roleName": "role-getprincipalsforrole",
       "entityName": "PRINCIPAL#principal-getprincipalsforrole",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforrole##ROLE#role-getprincipalsforrole"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-getprincipalsforrole#ROLE#role-getprincipalsforrole"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforrole",
@@ -21,7 +21,7 @@
       "_resourceName": "urn://resource-getprincipalsforrole",
       "_roleName": "role-getprincipalsforrole",
       "entityName": "RESOURCE#urn://resource-getprincipalsforrole",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-getprincipalsforrole##PRINCIPAL#principal-getprincipalsforrole"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-getprincipalsforrole#PRINCIPAL#principal-getprincipalsforrole"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforrole",

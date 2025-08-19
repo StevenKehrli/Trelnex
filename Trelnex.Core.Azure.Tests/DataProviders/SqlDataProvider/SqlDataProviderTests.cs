@@ -36,7 +36,7 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
             Scope: _scope,
             DataSource: _dataSource,
             InitialCatalog: _initialCatalog,
-            TableNames: [_tableName]
+            TableNames: [_itemTableName, _eventTableName]
         );
 
         // Create the SqlDataProviderFactory.
@@ -45,10 +45,11 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
             sqlClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _tableName,
+        _dataProvider = factory.Create(
             typeName: "test-item",
-            validator: TestItem.Validator,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 
@@ -77,7 +78,11 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -112,7 +117,11 @@ public class SqlDataProviderTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 

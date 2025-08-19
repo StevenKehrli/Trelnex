@@ -4,25 +4,21 @@ using Azure.Core;
 using FluentValidation;
 using LinqToDB;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
-/// Factory for creating SQL Server data providers.
+/// Factory for creating SQL Server data providers with Azure token authentication.
 /// </summary>
-/// <remarks>
-/// SQL Server-specific implementation of <see cref="DbDataProviderFactory"/>.
-/// Manages SQL connection setup, authentication, and provider creation.
-/// </remarks>
 internal class SqlDataProviderFactory : DbDataProviderFactory
 {
     #region Private Fields
 
-    /// <summary>
-    /// The client options for SQL Server connection.
-    /// </summary>
+    // Configuration options for SQL Server client connection
     private readonly SqlClientOptions _sqlClientOptions;
 
     #endregion
@@ -30,10 +26,10 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SqlDataProviderFactory"/> class.
+    /// Initializes a new SQL Server data provider factory with connection options.
     /// </summary>
-    /// <param name="dataOptions">The data connection options for SQL Server.</param>
-    /// <param name="sqlClientOptions">The client options for SQL Server.</param>
+    /// <param name="dataOptions">LinqToDB data connection options.</param>
+    /// <param name="sqlClientOptions">SQL Server-specific connection configuration.</param>
     private SqlDataProviderFactory(
         DataOptions dataOptions,
         SqlClientOptions sqlClientOptions)
@@ -47,18 +43,17 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
     #region Public Static Methods
 
     /// <summary>
-    /// Creates and initializes a new instance of the <see cref="SqlDataProviderFactory"/>.
+    /// Creates and validates a SQL Server data provider factory instance.
     /// </summary>
-    /// <param name="serviceConfiguration">Service configuration information.</param>
-    /// <param name="sqlClientOptions">SQL Server connection options.</param>
-    /// <returns>A fully initialized <see cref="SqlDataProviderFactory"/> instance.</returns>
-    /// <exception cref="CommandException">When the SQL Server connection cannot be established or required tables are missing.</exception>
-    /// <remarks>Verifies connectivity and table existence.</remarks>
+    /// <param name="serviceConfiguration">Service configuration for connection metadata.</param>
+    /// <param name="sqlClientOptions">SQL Server connection configuration.</param>
+    /// <returns>Validated factory instance ready for creating data providers.</returns>
+    /// <exception cref="CommandException">Thrown when database connection fails or is unhealthy.</exception>
     public static async Task<SqlDataProviderFactory> Create(
         ServiceConfiguration serviceConfiguration,
         SqlClientOptions sqlClientOptions)
     {
-        // Build a connection string.
+        // Configure SQL Server connection string with service and database details
         var connectionStringBuilder = new SqlConnectionStringBuilder
         {
             ApplicationName = serviceConfiguration.FullName,
@@ -67,18 +62,18 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
             Encrypt = true,
         };
 
-        // Configure the data access layer.
+        // Initialize LinqToDB data options for SQL Server
         var dataOptions = new DataOptions().UseSqlServer(connectionStringBuilder.ConnectionString);
 
-        // Instantiate the factory. Authentication via AAD tokens in BeforeConnectionOpened.
+        // Create factory instance with Azure token authentication
         var factory = new SqlDataProviderFactory(
             dataOptions,
             sqlClientOptions);
 
-        // Get the operational status of the factory.
+        // Verify factory health and database connectivity
         var factoryStatus = await factory.GetStatusAsync();
 
-        // Return the factory if it is healthy; otherwise, throw an exception.
+        // Return factory if healthy, otherwise throw exception with error details
         return factoryStatus.IsHealthy
             ? factory
             : throw new CommandException(
@@ -98,42 +93,48 @@ internal class SqlDataProviderFactory : DbDataProviderFactory
     #region Protected Methods
 
     /// <inheritdoc />
-    protected override IDataProvider<TInterface> CreateDataProvider<TInterface, TItem>(
-        DataOptions dataOptions,
+    protected override IDataProvider<TItem> CreateDataProvider<TItem>(
         string typeName,
-        IValidator<TItem>? validator = null,
+        DataOptions dataOptions,
+        IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
-        int? eventTimeToLive = null)
+        EventPolicy? eventPolicy = null,
+        int? eventTimeToLive = null,
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
     {
-        // Create and return a new SqlDataProvider instance.
-        return new SqlDataProvider<TInterface, TItem>(
-            dataOptions: dataOptions,
+        // Create SQL Server-specific data provider instance
+        return new SqlDataProvider<TItem>(
             typeName: typeName,
-            validator: validator,
+            dataOptions: dataOptions,
+            itemValidator: itemValidator,
             commandOperations: commandOperations,
-            eventTimeToLive: eventTimeToLive);
+            eventPolicy: eventPolicy,
+            eventTimeToLive: eventTimeToLive,
+            blockCipherService: blockCipherService,
+            logger: logger);
     }
 
     /// <inheritdoc />
     protected override void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
-        // Check if the connection is a SqlConnection.
+        // Only process SQL Server connections
         if (dbConnection is not SqlConnection sqlConnection) return;
 
-        // Get the access token.
+        // Generate Azure authentication token for SQL Server
         var tokenCredential = _sqlClientOptions.TokenCredential;
         var tokenRequestContext = new TokenRequestContext([_sqlClientOptions.Scope]);
         var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
 
-        // Assign an access token to the SQL connection for AAD authentication.
+        // Set access token for Azure AD authentication
         sqlConnection.AccessToken = accessToken;
     }
 
     /// <inheritdoc />
     protected override IReadOnlyDictionary<string, object> GetStatusData()
     {
-        // Return a dictionary containing the status data.
+        // Return SQL Server connection configuration for health monitoring
         return new Dictionary<string, object>
         {
             { "dataSource", _sqlClientOptions.DataSource },

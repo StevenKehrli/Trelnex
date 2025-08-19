@@ -12,9 +12,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for public message
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
-        validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -23,9 +23,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -57,9 +57,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
     {
         // Setup validator requiring both public and private messages
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -68,9 +68,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
@@ -98,8 +98,8 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_SaveAsync_MissingPrivateMessage()
     {
         // Setup validator requiring private message not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -108,9 +108,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -141,8 +141,8 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_SaveAsync_MissingPublicMessage()
     {
         // Setup validator requiring public message not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -151,9 +151,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -184,9 +184,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for private message
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
+        itemValidator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -195,9 +195,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -228,9 +228,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_ValidateAsync_EmptyPublicMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for public message
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
-        validator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #1");
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty().WithMessage("NotEmpty #2");
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -239,9 +239,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -264,9 +264,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_ValidateAsync_MissingPublicAndPrivateMessages()
     {
         // Setup validator requiring both public and private messages
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -275,9 +275,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item (with default empty values)
@@ -296,8 +296,8 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_ValidateAsync_MissingPrivateMessage()
     {
         // Setup validator requiring private message not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -306,9 +306,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -330,8 +330,8 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_ValidateAsync_MissingPublicMessage()
     {
         // Setup validator requiring public message not empty
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PublicMessage).NotEmpty();
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PublicMessage).NotEmpty();
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -340,9 +340,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item
@@ -364,9 +364,9 @@ public class CreateCommandValidateTests
     public async Task CreateCommandValidate_ValidateAsync_NullPrivateMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for private message
-        var validator = new InlineValidator<TestItem>();
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
-        validator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
+        var itemValidator = new InlineValidator<TestItem>();
+        itemValidator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #1");
+        itemValidator.RuleFor(k => k.PrivateMessage).NotNull().WithMessage("NotNull #2");
 
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
@@ -375,9 +375,9 @@ public class CreateCommandValidateTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create<ITestItem, TestItem>(
+        var dataProvider = factory.Create(
             typeName: "test-item",
-            validator: validator,
+            itemValidator: itemValidator,
             commandOperations: CommandOperations.Create);
 
         // Create a new command to create our test item

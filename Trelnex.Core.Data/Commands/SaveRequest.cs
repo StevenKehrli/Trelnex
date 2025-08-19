@@ -1,19 +1,14 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Request to save an item.
+/// Represents a request to save an item with associated event metadata.
 /// </summary>
-/// <typeparam name="TInterface">Interface type for the item.</typeparam>
-/// <typeparam name="TItem">Concrete item type.</typeparam>
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
 /// <param name="Item">The item to save.</param>
-/// <param name="Event">Associated event with context and metadata.</param>
-/// <param name="SaveAction">Type of operation.</param>
-/// <remarks>
-/// Encapsulates information needed for a save operation.
-/// </remarks>
-public record SaveRequest<TInterface, TItem>(
+/// <param name="Event">Event record containing operation metadata and changes.</param>
+/// <param name="SaveAction">The type of save operation to perform.</param>
+public record SaveRequest<TItem>(
     TItem Item,
-    ItemEvent Event,
+    ItemEvent? Event,
     SaveAction SaveAction)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface;
+    where TItem : BaseItem;

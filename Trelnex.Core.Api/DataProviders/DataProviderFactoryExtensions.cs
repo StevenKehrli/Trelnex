@@ -24,7 +24,7 @@ public static class DataProviderFactoryExtensions
     public static IServiceCollection AddDataProviderFactory<T>(
         this IServiceCollection services,
         T providerFactory)
-        where T : class, IDataProviderFactory
+        where T : IDataProviderFactory
     {
         // Register the provider as a keyed singleton service.
         // The type name is used as the key for retrieval.

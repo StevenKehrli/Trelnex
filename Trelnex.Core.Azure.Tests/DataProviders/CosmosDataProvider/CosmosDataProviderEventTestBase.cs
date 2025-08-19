@@ -22,12 +22,7 @@ public abstract class CosmosDataProviderEventTestBase
     /// <summary>
     /// The CosmosDB container used for expiration testing.
     /// </summary>
-    protected Container _expirationContainer = null!;
-
-    /// <summary>
-    /// The CosmosDB container used for persistence testing.
-    /// </summary>
-    protected Container _persistenceContainer = null!;
+    protected Container _container = null!;
 
     /// <summary>
     /// The endpoint URI for the Cosmos DB account.
@@ -44,12 +39,7 @@ public abstract class CosmosDataProviderEventTestBase
     /// <summary>
     /// The container id used for expiration testing.
     /// </summary>
-    protected string _expirationContainerId = null!;
-
-    /// <summary>
-    /// The container id used for persistence testing.
-    /// </summary>
-    protected string _persistenceContainerId = null!;
+    protected string _containerId = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -67,7 +57,7 @@ public abstract class CosmosDataProviderEventTestBase
     /// <summary>
     /// The data provider used for testing.
     /// </summary>
-    protected IDataProvider<ITestItem> _dataProvider = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// Initializes shared test resources from configuration.
@@ -100,16 +90,20 @@ public abstract class CosmosDataProviderEventTestBase
             .Get<string>()!;
 
         // Get the container ID from the configuration.
-        // Example: "expiration-test-items"
-        _expirationContainerId = configuration
+        // Example: "test-items"
+        var expirationTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:expiration-test-item:ContainerId")
             .Get<string>()!;
 
         // Get the encypted container ID from the configuration.
         // Example: "test-items"
-        _persistenceContainerId = configuration
+        var persistenceTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
             .Get<string>()!;
+
+        Assert.That(persistenceTestItemContainerId, Is.EqualTo(expirationTestItemContainerId));
+
+        _containerId = expirationTestItemContainerId;
 
         // Create a token credential for authentication.
         _tokenCredential = new DefaultAzureCredential();
@@ -120,13 +114,9 @@ public abstract class CosmosDataProviderEventTestBase
             tokenCredential: _tokenCredential);
 
         // Get a reference to the container.
-        _expirationContainer = cosmosClient.GetContainer(
+        _container = cosmosClient.GetContainer(
             databaseId: _databaseId,
-            containerId: _expirationContainerId);
-
-        _persistenceContainer = cosmosClient.GetContainer(
-            databaseId: _databaseId,
-            containerId: _persistenceContainerId);
+            containerId: _containerId);
 
         return configuration;
     }
@@ -141,8 +131,7 @@ public abstract class CosmosDataProviderEventTestBase
     [TearDown]
     public async Task TearDown()
     {
-        await ContainerCleanup(_expirationContainer);
-        await ContainerCleanup(_persistenceContainer);
+        await ContainerCleanup(_container);
     }
 
     private static async Task ContainerCleanup(

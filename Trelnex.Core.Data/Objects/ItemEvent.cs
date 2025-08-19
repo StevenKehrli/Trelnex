@@ -4,61 +4,56 @@ using System.Text.Json.Serialization;
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Audit record for item operations.
+/// Represents an event record that captures information about operations performed on items.
 /// </summary>
-/// <remarks>
-/// Captures metadata about item modifications.
-/// Stored with TypeName = "event".
-/// </remarks>
-public record ItemEvent
-    : BaseItem
+public record ItemEvent : BaseItem
 {
     #region Public Properties
 
     /// <summary>
-    /// Type of operation performed on the related item.
+    /// Gets the type of save operation that was performed.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("saveAction")]
     public SaveAction SaveAction { get; private init; } = SaveAction.UNKNOWN;
 
     /// <summary>
-    /// Unique identifier of the related item.
+    /// Gets the unique identifier of the item that this event relates to.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("relatedId")]
     public string RelatedId { get; private init; } = null!;
 
     /// <summary>
-    /// Type name of the related item.
+    /// Gets the type name of the item that this event relates to.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("relatedTypeName")]
     public string RelatedTypeName { get; private init; } = null!;
 
     /// <summary>
-    /// Collection of property changes, or null if not tracked.
+    /// Gets the property changes that occurred during the operation, or null if no changes were tracked.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("changes")]
     public PropertyChange[]? Changes { get; private init; } = null!;
 
     /// <summary>
-    /// W3C trace context (Activity.Current?.Id).
+    /// Gets the W3C trace context identifier from the current activity.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("traceContext")]
     public string? TraceContext { get; private init; } = null!;
 
     /// <summary>
-    /// W3C trace ID (Activity.Current?.TraceId).
+    /// Gets the W3C trace identifier from the current activity.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("traceId")]
     public string? TraceId { get; private init; } = null!;
 
     /// <summary>
-    /// W3C span ID (Activity.Current?.SpanId).
+    /// Gets the W3C span identifier from the current activity.
     /// </summary>
     [JsonInclude]
     [JsonPropertyName("spanId")]
@@ -69,16 +64,12 @@ public record ItemEvent
     #region Internal Methods
 
     /// <summary>
-    /// Creates a new event to record an operation on an item.
+    /// Creates a new event record for an operation performed on an item.
     /// </summary>
-    /// <param name="relatedItem">Item that was modified.</param>
-    /// <param name="saveAction">Operation type performed.</param>
-    /// <param name="changes">Property changes made, if any.</param>
-    /// <returns>A new event with details about the operation.</returns>
-    /// <typeparam name="TItem">Type of item this event relates to.</typeparam>
-    /// <remarks>
-    /// Creates a timestamped record with a unique ID.
-    /// </remarks>
+    /// <param name="relatedItem">The item that the operation was performed on.</param>
+    /// <param name="saveAction">The type of operation that was performed.</param>
+    /// <param name="changes">The property changes that occurred, or null if none.</param>
+    /// <returns>A new event record with populated metadata.</returns>
     internal static ItemEvent Create(
         BaseItem relatedItem,
         SaveAction saveAction,
@@ -90,9 +81,8 @@ public record ItemEvent
 
         return new ItemEvent
         {
-            // Generate a unique ID for the event
-            // Format: EVENT^^{related.Id}^00000001
-            Id = $"EVENT^^{relatedItem.Id}^{relatedItem.Version:X8}",
+            // Create unique event ID based on related item ID and version
+            Id = $"EVENT^{relatedItem.Id}^{relatedItem.Version:X8}",
             PartitionKey = relatedItem.PartitionKey,
 
             TypeName = ReservedTypeNames.Event,
@@ -107,6 +97,7 @@ public record ItemEvent
             RelatedTypeName = relatedItem.TypeName,
             Changes = changes,
 
+            // Capture current activity tracing information
             TraceContext = Activity.Current?.Id,
             TraceId = Activity.Current?.TraceId.ToString(),
             SpanId = Activity.Current?.SpanId.ToString(),

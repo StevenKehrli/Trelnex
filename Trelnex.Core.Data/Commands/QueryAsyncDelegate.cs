@@ -1,13 +1,13 @@
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Executes the query and returns the results as an asynchronous stream.
+/// Delegate for asynchronously executing a queryable and streaming the results.
 /// </summary>
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
 /// <param name="queryable">The queryable to execute.</param>
-/// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-/// <returns>An asynchronous stream of items.</returns>
-internal delegate IAsyncEnumerable<TItem> QueryAsyncDelegate<TInterface, TItem>(
+/// <param name="cancellationToken">Token to cancel the query operation.</param>
+/// <returns>An asynchronous enumerable of items from the query execution.</returns>
+internal delegate IAsyncEnumerable<TItem> QueryAsyncDelegate<TItem>(
     IQueryable<TItem> queryable,
     CancellationToken cancellationToken)
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface;
+    where TItem : BaseItem;

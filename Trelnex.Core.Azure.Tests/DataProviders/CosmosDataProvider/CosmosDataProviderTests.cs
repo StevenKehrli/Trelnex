@@ -43,10 +43,10 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
             cosmosClientOptions);
 
         // Create the data provider instance.
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            containerId: _containerId,
+        _dataProvider = factory.Create(
             typeName: "test-item",
-            validator: TestItem.Validator,
+            containerId: _containerId,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All);
     }
 
@@ -74,7 +74,7 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);
@@ -111,7 +111,7 @@ public class CosmosDataProviderTests : CosmosDataProviderTestBase
         Assert.That(created, Is.Not.Null);
 
         // Get the item
-        var item = await _encryptedContainer.ReadItemAsync<TestItem>(
+        var item = await _container.ReadItemAsync<TestItem>(
             id: id,
             partitionKey: new Microsoft.Azure.Cosmos.PartitionKey(partitionKey),
             cancellationToken: default);

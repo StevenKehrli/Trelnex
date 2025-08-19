@@ -51,14 +51,14 @@ public abstract class SqlDataProviderEventTestBase
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the table used for expiration testing.
+    /// The name of the item table used for expiration testing.
     /// </summary>
-    protected string _expirationTableName = null!;
+    protected string _itemTableName = null!;
 
     /// <summary>
-    /// The name of the encrypted table used for persistence testing.
+    /// The name of the event table used for expiration testing.
     /// </summary>
-    protected string _persistenceTableName = null!;
+    protected string _eventTableName = null!;
 
     /// <summary>
     /// The token credential used to authenticate with Azure.
@@ -68,7 +68,7 @@ public abstract class SqlDataProviderEventTestBase
     /// <summary>
     /// The data provider used for testing.
     /// </summary>
-    protected IDataProvider<ITestItem> _dataProvider = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     protected IConfiguration TestSetup()
     {
@@ -95,17 +95,35 @@ public abstract class SqlDataProviderEventTestBase
             .GetSection("Azure.SqlDataProviders:InitialCatalog")
             .Get<string>()!;
 
-        // Get the expiration table name from the configuration.
-        // Example: "expiration-test-items"
-        _expirationTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:TableName")
+        // Get the expiration item table name from the configuration.
+        // Example: "test-items"
+        var expirationTestItemItemTableName = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the persistence table name from the configuration.
-        // Example: "test-items"
-        _persistenceTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:test-item:TableName")
+        // Get the expiration event table name from the configuration.
+        // Example: "test-items-events"
+        var expirationTestItemEventTableName = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:EventTableName")
             .Get<string>()!;
+
+        // Get the persistence item table name from the configuration.
+        // Example: "test-items"
+        var testItemItemTableName = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
+            .Get<string>()!;
+
+        // Get the persistence event table name from the configuration.
+        // Example: "test-items-events"
+        var testItemEventTableName = configuration
+            .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
+            .Get<string>()!;
+
+        Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+        Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+
+        _itemTableName = expirationTestItemItemTableName;
+        _eventTableName = expirationTestItemEventTableName;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()
@@ -134,8 +152,8 @@ public abstract class SqlDataProviderEventTestBase
     [TearDown]
     public void TestCleanup()
     {
-        TableCleanup(_expirationTableName);
-        TableCleanup(_persistenceTableName);
+        TableCleanup(_eventTableName);
+        TableCleanup(_itemTableName);
     }
 
     [OneTimeTearDown]
@@ -150,8 +168,8 @@ public abstract class SqlDataProviderEventTestBase
         // Establish a SQL connection using token authentication.
         using var sqlConnection = GetConnection();
 
-        // Define the SQL command to delete all rows from the main table and its events table.
-        var cmdText = $"DELETE FROM [{tableName}-events]; DELETE FROM [{tableName}];";
+        // Define the SQL command to delete all rows from the table.
+        var cmdText = $"DELETE FROM [{tableName}];";
         var sqlCommand = new SqlCommand(cmdText, sqlConnection);
 
         // Execute the SQL command.
@@ -178,10 +196,10 @@ public abstract class SqlDataProviderEventTestBase
         string tableName)
     {
         // Define the SQL command to get the expireAtDateTimeOffset
-        var cmdText = $"SELECT [expireAtDateTimeOffset] FROM [{tableName}-events] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
+        var cmdText = $"SELECT [expireAtDateTimeOffset] FROM [{tableName}] WHERE [id] = @id AND [partitionKey] = @partitionKey;";
 
         var sqlCommand = new SqlCommand(cmdText, sqlConnection);
-        sqlCommand.Parameters.AddWithValue("@id", $"EVENT^^{id}^00000001");
+        sqlCommand.Parameters.AddWithValue("@id", $"EVENT^{id}^00000001");
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();

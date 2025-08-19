@@ -15,28 +15,28 @@
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
       "_roleName": "role-1-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources##ROLE#role-1-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources#ROLE#role-1-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-acrossmultipleresources",
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
       "_roleName": "role-2-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "ROLEASSIGNMENT##RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources##ROLE#role-2-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources#ROLE#role-2-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-acrossmultipleresources",
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
       "_scopeName": "scope-1-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources##SCOPE#scope-1-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources#SCOPE#scope-1-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_principalId": "principal-getprincipalaccesswithscope-acrossmultipleresources",
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
       "_scopeName": "scope-2-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources##SCOPE#scope-2-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources#SCOPE#scope-2-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
@@ -49,7 +49,7 @@
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
       "_roleName": "role-1-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-1-getprincipalaccesswithscope-acrossmultipleresources##PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-1-getprincipalaccesswithscope-acrossmultipleresources#PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
@@ -62,7 +62,7 @@
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
       "_scopeName": "scope-1-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "RESOURCE#urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-1-getprincipalaccesswithscope-acrossmultipleresources##PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-1-getprincipalaccesswithscope-acrossmultipleresources#PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
@@ -75,7 +75,7 @@
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
       "_roleName": "role-2-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "ROLEASSIGNMENT##ROLE#role-2-getprincipalaccesswithscope-acrossmultipleresources##PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-2-getprincipalaccesswithscope-acrossmultipleresources#PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
@@ -88,7 +88,7 @@
       "_resourceName": "urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
       "_scopeName": "scope-2-getprincipalaccesswithscope-acrossmultipleresources",
       "entityName": "RESOURCE#urn://resource-2-getprincipalaccesswithscope-acrossmultipleresources",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-2-getprincipalaccesswithscope-acrossmultipleresources##PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-2-getprincipalaccesswithscope-acrossmultipleresources#PRINCIPAL#principal-getprincipalaccesswithscope-acrossmultipleresources"
     },
     {
       "_resourceName": "urn://resource-1-getprincipalaccesswithscope-acrossmultipleresources",

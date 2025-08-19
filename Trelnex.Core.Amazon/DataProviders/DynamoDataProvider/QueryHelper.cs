@@ -10,25 +10,17 @@ using LinqExpression = System.Linq.Expressions.Expression;
 namespace Trelnex.Core.Amazon.DataProviders;
 
 /// <summary>
-/// Translates LINQ expressions to DynamoDB query expressions.
+/// Translates LINQ expressions to DynamoDB query expressions and applies remaining filters in-memory.
 /// </summary>
 /// <typeparam name="T">The type of items being queried.</typeparam>
-/// <remarks>
-/// Converts C# LINQ expressions into DynamoDB's expression format.
-/// Supports equality, comparison, string operations, null checks, and logical operators.
-/// </remarks>
 public class QueryHelper<T>
 {
     #region Private Fields
 
-    /// <summary>
-    /// The DynamoDB WHERE expression.
-    /// </summary>
+    // Translated DynamoDB WHERE expression for server-side filtering
     private readonly DynamoExpression? _dynamoWhereExpression;
 
-    /// <summary>
-    /// Stack of LINQ method call expressions.
-    /// </summary>
+    // Stack of LINQ operations to be applied in-memory after DynamoDB query
     private readonly Stack<MethodCallExpression> _methodCallExpressions;
 
     #endregion
@@ -36,10 +28,10 @@ public class QueryHelper<T>
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="QueryHelper{T}"/> class.
+    /// Initializes a new QueryHelper with translated expressions.
     /// </summary>
-    /// <param name="dynamoWhereExpression">The translated DynamoDB WHERE expression.</param>
-    /// <param name="methodCallExpressions">Stack of LINQ method calls.</param>
+    /// <param name="dynamoWhereExpression">Translated DynamoDB WHERE expression.</param>
+    /// <param name="methodCallExpressions">Stack of LINQ operations for in-memory processing.</param>
     private QueryHelper(
         DynamoExpression? dynamoWhereExpression,
         Stack<MethodCallExpression> methodCallExpressions)
@@ -53,7 +45,7 @@ public class QueryHelper<T>
     #region Public Properties
 
     /// <summary>
-    /// Gets the DynamoDB WHERE expression.
+    /// Gets the DynamoDB WHERE expression for server-side filtering.
     /// </summary>
     public DynamoExpression? DynamoWhereExpression => _dynamoWhereExpression;
 
@@ -62,55 +54,51 @@ public class QueryHelper<T>
     #region Public Methods
 
     /// <summary>
-    /// Applies any non-WHERE LINQ expressions to the given source.
+    /// Applies remaining LINQ operations to the collection in-memory.
     /// </summary>
-    /// <param name="source">The collection of items.</param>
-    /// <returns>The filtered and transformed collection.</returns>
-    /// <exception cref="NotSupportedException">Thrown when a LINQ expression cannot be processed.</exception>
-    /// <remarks>
-    /// Applies OrderBy, Skip, and Take operations in-memory.
-    /// </remarks>
+    /// <param name="source">Collection of items retrieved from DynamoDB.</param>
+    /// <returns>Filtered and transformed collection after applying LINQ operations.</returns>
+    /// <exception cref="NotSupportedException">Thrown when a LINQ operation cannot be processed.</exception>
     public IEnumerable<T> Filter(
         IEnumerable<T> source)
     {
         var result = source;
 
-        // Process method call expressions until the stack is empty.
+        // Apply each LINQ operation from the stack
         while (_methodCallExpressions.Count > 0)
         {
             var queryable = result!.AsQueryable();
 
-            // Get the next method call expression from the stack (LIFO).
+            // Get next LINQ operation to apply
             var methodCallExpression = _methodCallExpressions.Pop();
 
-            // Get the method call parameter.  The parameter is the argument to the LINQ method (e.g., the lambda expression in `OrderBy(x => x.Name)`).
+            // Extract the parameter for the LINQ operation
             object? parameter;
 
             var argument = methodCallExpression.Arguments[1];
 
-            // Handle different types of arguments that can be passed to the LINQ methods.
+            // Handle different argument types for LINQ methods
             if (argument is ConstantExpression ce)
             {
-                // If the argument is a constant expression, get its value.
+                // Direct constant value
                 parameter = ce.Value;
             }
             else if (argument is UnaryExpression ue && ue.Operand is LambdaExpression ule)
             {
-                // If the argument is a unary expression containing a lambda expression, compile the lambda expression.
+                // Lambda wrapped in unary expression
                 parameter = LinqExpression.Lambda(ule.Body, ule.Parameters);
             }
             else if (argument is LambdaExpression le)
             {
-                // If the argument is a lambda expression, use it directly.
+                // Direct lambda expression
                 parameter = le;
             }
             else
             {
-                // If the argument is none of the above, it's an unsupported expression type.
                 throw new NotSupportedException($"Filter() does not support '{methodCallExpression}'.");
             }
 
-            // Invoke the method call expression.  This applies the LINQ method to the queryable with the extracted parameter.
+            // Apply the LINQ operation to the current result set
             result = methodCallExpression.Method.Invoke(null, [ queryable, parameter ]) as IEnumerable<T>;
         }
 
@@ -118,46 +106,40 @@ public class QueryHelper<T>
     }
 
     /// <summary>
-    /// Creates a QueryHelper instance from a LINQ expression.
+    /// Creates a QueryHelper by parsing and translating a LINQ expression.
     /// </summary>
-    /// <param name="linqExpression">The LINQ expression to translate.</param>
-    /// <returns>A QueryHelper instance.</returns>
+    /// <param name="linqExpression">LINQ expression to translate.</param>
+    /// <returns>QueryHelper with translated DynamoDB expression and remaining operations.</returns>
     /// <exception cref="NotSupportedException">Thrown when the LINQ expression contains unsupported operations.</exception>
-    /// <remarks>
-    /// Translates LINQ expressions to DynamoDB expressions.
-    /// </remarks>
     public static QueryHelper<T> FromLinqExpression(
         LinqExpression linqExpression)
     {
         DynamoExpression? dynamoWhereExpression = null;
 
-        // Get the other expressions.
+        // Stack to hold operations that can't be translated to DynamoDB
         var methodCallExpressions = new Stack<MethodCallExpression>();
 
         var currentExpression = linqExpression;
         while (currentExpression is MethodCallExpression mce)
         {
-            // Should be a Queryable method.  We only support methods that extend IQueryable.
+            // Only support Queryable extension methods
             if (mce.Method.DeclaringType != typeof(Queryable))
             {
                 throw new NotSupportedException($"FromLinqExpression() does not support '{linqExpression}'.");
             }
 
-            // If the expression is the Where method, convert to DynamoExpression and stop.
+            // Translate WHERE clause to DynamoDB expression
             if (mce.Method.Name == nameof(Queryable.Where))
             {
-                // Parse the Where expression to extract the filter condition.
                 var whereExpression = ParseWhereExpression(mce);
-                // Convert the LINQ expression to a DynamoDB expression.
                 dynamoWhereExpression = ExpressionConverter.Convert(whereExpression);
                 break;
             }
 
-            // For other methods (e.g., OrderBy, Skip, Take), create a constant value to call the method on.
+            // Queue other operations for in-memory processing
             var constantValue = Enumerable.Empty<T>().AsQueryable();
             var constantExpression = LinqExpression.Constant(constantValue);
 
-            // Create a method call expression that represents the LINQ method to be applied in-memory.
             var methodCallExpression = LinqExpression.Call(
                 mce.Method,
                 constantExpression,
@@ -165,7 +147,7 @@ public class QueryHelper<T>
 
             methodCallExpressions.Push(methodCallExpression);
 
-            // Move to the next expression in the chain.
+            // Continue parsing the expression chain
             currentExpression = mce.Arguments[0];
         }
 
@@ -175,20 +157,18 @@ public class QueryHelper<T>
     }
 
     /// <summary>
-    /// Converts the query helper's state to a JSON string for debugging.
+    /// Converts the QueryHelper state to JSON for debugging purposes.
     /// </summary>
-    /// <returns>A JSON string.</returns>
-    /// <remarks>
-    /// Used for logging and debugging query translation.
-    /// </remarks>
+    /// <param name="jsonSerializerOptions">JSON serialization options.</param>
+    /// <returns>JSON representation of the query state.</returns>
     public string ToJson(
         JsonSerializerOptions jsonSerializerOptions)
     {
-        // Convert the expression attribute values.
+        // Convert DynamoDB expression attribute values to strings
         var expressionAttributeValues = _dynamoWhereExpression?.ExpressionAttributeValues
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString());
 
-        // Convert the method call expressions.
+        // Convert method call expressions to strings
         var methodCallExpressions = _methodCallExpressions
             .Select(mce => mce.ToString())
             .ToArray();
@@ -208,18 +188,15 @@ public class QueryHelper<T>
     #region Private Static Methods
 
     /// <summary>
-    /// Extracts and processes the WHERE clause from a LINQ expression.
+    /// Extracts and combines WHERE clause predicates from LINQ expressions.
     /// </summary>
-    /// <param name="methodCallExpression">The LINQ expression containing a WHERE clause.</param>
-    /// <returns>The extracted WHERE predicate expression.</returns>
+    /// <param name="methodCallExpression">LINQ expression containing WHERE clause.</param>
+    /// <returns>Combined predicate expression for all WHERE clauses.</returns>
     /// <exception cref="NotSupportedException">Thrown when the expression is not a valid WHERE clause.</exception>
-    /// <remarks>
-    /// Handles simple and compound WHERE clauses.
-    /// </remarks>
     private static LinqExpression ParseWhereExpression(
         MethodCallExpression methodCallExpression)
     {
-        // Check if this is a Where method.
+        // Verify this is a WHERE method call
         if (methodCallExpression.Method.Name != nameof(Queryable.Where))
         {
             throw new NotSupportedException($"ParseWhereExpression() does not support '{methodCallExpression}'.");
@@ -227,19 +204,19 @@ public class QueryHelper<T>
 
         (var source, var lambda) = ParseWhereMethod(methodCallExpression);
 
-        // Check if the source of the Where method is another Queryable method.
+        // Handle chained WHERE clauses
         if (source is MethodCallExpression smce && smce.Method.DeclaringType == typeof(Queryable))
         {
-            // Check if the source is another Where method.
+            // Only support chained WHERE clauses
             if (smce.Method.Name != nameof(Queryable.Where))
             {
                 throw new NotSupportedException($"ParseWhereExpression() does not support '{methodCallExpression}'.");
             }
 
-            // Parse the source Where method.
+            // Recursively parse the source WHERE clause
             var sourceWhere = ParseWhereExpression(smce);
 
-            // If the source is a BinaryExpression, combine it with the current lambda using AndAlso.
+            // Combine predicates using AND logic
             return sourceWhere switch
             {
                 BinaryExpression sourceWhereBinaryExpression => LinqExpression.AndAlso(sourceWhereBinaryExpression, lambda.Body),
@@ -253,14 +230,11 @@ public class QueryHelper<T>
     }
 
     /// <summary>
-    /// Extracts the source and predicate lambda from a WHERE method call expression.
+    /// Extracts the source expression and predicate lambda from a WHERE method call.
     /// </summary>
-    /// <param name="methodCallExpression">The WHERE method call expression.</param>
-    /// <returns>A tuple containing the source expression and the lambda predicate expression.</returns>
-    /// <exception cref="NotSupportedException">Thrown when the expression is not a valid WHERE method call.</exception>
-    /// <remarks>
-    /// Handles inline lambda expressions and pre-defined predicates.
-    /// </remarks>
+    /// <param name="methodCallExpression">WHERE method call expression.</param>
+    /// <returns>Tuple containing source expression and predicate lambda.</returns>
+    /// <exception cref="NotSupportedException">Thrown when the expression format is not supported.</exception>
     private static (LinqExpression source, LambdaExpression lambda) ParseWhereMethod(
         MethodCallExpression methodCallExpression)
     {
@@ -271,17 +245,14 @@ public class QueryHelper<T>
 
         var source = methodCallExpression.Arguments[0];
 
-        // Case 1: Inline lambda
-        //   var q = queryable.Where(r => r.Property == value)
+        // Handle inline lambda expression
         if (methodCallExpression.Arguments[1] is UnaryExpression ue &&
             ue.Operand is LambdaExpression ule)
         {
             return (source: source, lambda: ule);
         }
 
-        // Case 2: Pre-defined predicate
-        //   Expression<Func<T, bool>> predicate = r => r.Property == value;
-        //   var q = queryable.Where(predicate);
+        // Handle pre-defined predicate variable
         if (methodCallExpression.Arguments[1] is LambdaExpression dle)
         {
             return (source: source, lambda: dle);
@@ -295,15 +266,13 @@ public class QueryHelper<T>
     #region ExpressionConverter
 
     /// <summary>
-    /// Converts LINQ expressions to DynamoDB expression format.
+    /// Converts LINQ expressions to DynamoDB expression format with attribute value mapping.
     /// </summary>
     private class ExpressionConverter
     {
         #region Private Fields
 
-        /// <summary>
-        /// Collection of attribute values used in the DynamoDB expression.
-        /// </summary>
+        // Dictionary storing attribute values referenced in the DynamoDB expression
         private readonly Dictionary<string, DynamoDBEntry> _attributeValues = [];
 
         #endregion
@@ -311,13 +280,10 @@ public class QueryHelper<T>
         #region Public Static Methods
 
         /// <summary>
-        /// Converts a LINQ expression to a DynamoDB expression.
+        /// Converts a LINQ expression to DynamoDB expression format.
         /// </summary>
-        /// <param name="linqExpression">The LINQ expression to convert.</param>
-        /// <returns>A DynamoDB expression.</returns>
-        /// <remarks>
-        /// Creates a new ExpressionConverter instance and converts the LINQ expression.
-        /// </remarks>
+        /// <param name="linqExpression">LINQ expression to convert.</param>
+        /// <returns>DynamoDB expression with statement and attribute values.</returns>
         public static DynamoExpression Convert(
             LinqExpression linqExpression)
         {
@@ -331,10 +297,10 @@ public class QueryHelper<T>
         #region Private Methods
 
         /// <summary>
-        /// Add the given value to the <see cref="_attributeValues"/> dictionary and return its key.
+        /// Adds a value to the attribute values dictionary and returns its generated key.
         /// </summary>
-        /// <param name="value">The value to add.</param>
-        /// <returns>The key of the given value.</returns>
+        /// <param name="value">Value to add to the dictionary.</param>
+        /// <returns>Generated key for the value in the format ":val{index}".</returns>
         private string AddAttributeValue(
             object? value)
         {
@@ -347,11 +313,11 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="LinqExpression"/> to build the DynamoDB expression statement.
+        /// Recursively builds DynamoDB expression statement from LINQ expression tree.
         /// </summary>
-        /// <param name="linqExpression">The <see cref="LinqExpression"/>.</param>
-        /// <returns>The DynamoDB expression statement.</returns>
-        /// <exception cref="NotSupportedException">Thrown when the given <see cref="LinqExpression"/> is not supported.</exception>
+        /// <param name="linqExpression">LINQ expression to process.</param>
+        /// <returns>DynamoDB expression statement string.</returns>
+        /// <exception cref="NotSupportedException">Thrown when expression type is not supported.</exception>
         private string BuildExpressionStatement(
             LinqExpression linqExpression)
         {
@@ -369,10 +335,10 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Performs the actual conversion of a LINQ expression to a DynamoDB expression.
+        /// Performs the conversion from LINQ expression to DynamoDB expression.
         /// </summary>
-        /// <param name="linqExpression">The LINQ expression to convert.</param>
-        /// <returns>A DynamoDB expression.</returns>
+        /// <param name="linqExpression">LINQ expression to convert.</param>
+        /// <returns>Complete DynamoDB expression with statement and attribute values.</returns>
         private DynamoExpression ConvertExpression(
             LinqExpression linqExpression)
         {
@@ -386,15 +352,15 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="BinaryExpression"/>.
+        /// Handles binary expressions like comparisons and logical operators.
         /// </summary>
-        /// <param name="binaryExpression">The <see cref="BinaryExpression"/>.</param>
-        /// <returns>The DynamoDB expression statement.</returns>
-        /// <exception cref="NotSupportedException">Thrown when the given <see cref="BinaryExpression"/> is not supported.</exception>
+        /// <param name="binaryExpression">Binary expression to process.</param>
+        /// <returns>DynamoDB expression statement for the binary operation.</returns>
+        /// <exception cref="NotSupportedException">Thrown when binary operation is not supported.</exception>
         private string HandleBinaryExpression(
             BinaryExpression binaryExpression)
         {
-            // Handle logical AND and OR operators.
+            // Handle logical AND/OR operators
             if (binaryExpression.NodeType == ExpressionType.AndAlso || binaryExpression.NodeType == ExpressionType.OrElse)
             {
                 var left = BuildExpressionStatement(binaryExpression.Left);
@@ -407,11 +373,10 @@ public class QueryHelper<T>
             if (binaryExpression.NodeType == ExpressionType.Equal) return HandleEqual(binaryExpression);
             if (binaryExpression.NodeType == ExpressionType.NotEqual) return HandleNotEqual(binaryExpression);
 
-            // Get the property and value expressions.
-            // Property be left oriented (property op value) or right oriented (value op property).
+            // Extract property and value from comparison expression
             var (propertyExpression, valueExpression) = GetPropertyAndValue(binaryExpression);
 
-            // Check if property was right oriented.
+            // Check if operands were swapped (value op property instead of property op value)
             var swapped = propertyExpression == binaryExpression.Right;
 
             return binaryExpression.NodeType switch
@@ -426,12 +391,12 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="BinaryExpression"/> for its comparison.
+        /// Builds DynamoDB comparison expression for property and value.
         /// </summary>
-        /// <param name="propertyExpression">The property expression.</param>
-        /// <param name="valueExpression">The value expression.</param>
-        /// <param name="op">The operator of the comparison.</param>
-        /// <returns>The DynamoDB expression statement.</returns>
+        /// <param name="propertyExpression">Expression representing the property.</param>
+        /// <param name="valueExpression">Expression representing the value.</param>
+        /// <param name="op">Comparison operator string.</param>
+        /// <returns>DynamoDB comparison expression statement.</returns>
         private string HandleComparison(
             LinqExpression propertyExpression,
             LinqExpression valueExpression,
@@ -444,10 +409,10 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="ConstantExpression"/>.
+        /// Handles constant expressions by adding them to attribute values.
         /// </summary>
-        /// <param name="constantExpression">The <see cref="ConstantExpression"/>.</param>
-        /// <returns>The key of the given value.</returns>
+        /// <param name="constantExpression">Constant expression to process.</param>
+        /// <returns>Attribute value key for the constant.</returns>
         private string HandleConstantExpression(
             ConstantExpression constantExpression)
         {
@@ -455,16 +420,16 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="BinaryExpression"/> for its equal comparison.
+        /// Handles equality comparisons with special null handling.
         /// </summary>
-        /// <param name="binaryExpression">The <see cref="BinaryExpression"/>.</param>
-        /// <returns>The DynamoDB expression statement.</returns>
+        /// <param name="binaryExpression">Binary expression representing equality.</param>
+        /// <returns>DynamoDB expression statement for equality check.</returns>
         private string HandleEqual(
             BinaryExpression binaryExpression)
         {
             var (propertyExpression, valueExpression) = GetPropertyAndValue(binaryExpression);
 
-            // Handle null value.  In DynamoDB, we check for null by checking if the attribute exists.
+            // Use attribute_not_exists for null equality checks
             if (IsNullValue(valueExpression))
             {
                 var propertyName = GetPropertyName(propertyExpression);
@@ -476,34 +441,34 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="MemberExpression"/>.
+        /// Handles member expressions representing properties or calculated values.
         /// </summary>
-        /// <param name="memberExpression">The <see cref="MemberExpression"/>.</param>
-        /// <returns>The key of the given value.</returns>
+        /// <param name="memberExpression">Member expression to process.</param>
+        /// <returns>Property name or attribute value key for calculated value.</returns>
         private string HandleMemberExpression(
             MemberExpression memberExpression)
         {
-            // If the member expression is a parameter expression, return the member name.
+            // Return property name for parameter expressions
             if (memberExpression.Expression is ParameterExpression)
             {
                 return memberExpression.Member.Name;
             }
 
-            // Invoke the lambda expression to get the value.
+            // Evaluate and add calculated values
             var value = Invoke(memberExpression);
 
             return AddAttributeValue(value);
         }
 
         /// <summary>
-        /// Process the given <see cref="MethodCallExpression"/>.
+        /// Handles method call expressions like Contains, StartsWith, etc.
         /// </summary>
-        /// <param name="methodCallExpression">The <see cref="MethodCallExpression"/>.</param>
-        /// <returns>The key of the given value.</returns>
+        /// <param name="methodCallExpression">Method call expression to process.</param>
+        /// <returns>DynamoDB expression statement or attribute value key.</returns>
         private string HandleMethodCallExpression(
             MethodCallExpression methodCallExpression)
         {
-            // Handle method calls on Enumerable (e.g., Contains).
+            // Handle Enumerable methods like Contains
             if (methodCallExpression.Method.DeclaringType == typeof(Enumerable))
             {
                 switch (methodCallExpression.Method.Name)
@@ -512,7 +477,7 @@ public class QueryHelper<T>
                         ValidateMethodCallArguments(methodCallExpression, 2);
                         var collectionExpression = methodCallExpression.Arguments[0];
 
-                        // Ensure that the collection expression is a member expression and that it represents a property.
+                        // Ensure collection is a property expression
                         if (collectionExpression is not MemberExpression me || IsPropertyExpression(collectionExpression) is false)
                         {
                             throw new ArgumentException($"HandleMethodCallExpression() does not support '{methodCallExpression}'.");
@@ -525,7 +490,7 @@ public class QueryHelper<T>
                         return $"contains({propertyName}, {containsKey})";
                 }
             }
-            // If the method call is on a member expression and the member expression is a property expression.
+            // Handle string methods on properties
             else if (methodCallExpression.Object is MemberExpression me && IsPropertyExpression(me))
             {
                 var propertyName = me.Member.Name;
@@ -550,29 +515,28 @@ public class QueryHelper<T>
 
             try
             {
-                // Attempt to invoke the method and add the result as an attribute value.
+                // Try to evaluate method call and add result as attribute value
                 var methodValue = Invoke(methodCallExpression);
 
                 return AddAttributeValue(methodValue);
             }
             catch
             {
-                // If the method call is not supported, throw an exception.
                 throw new NotSupportedException($"HandleMethodCallExpression() does not support '{methodCallExpression}'.");
             }
         }
 
         /// <summary>
-        /// Process the given <see cref="BinaryExpression"/> for its not equal comparison.
+        /// Handles not-equal comparisons with special null handling.
         /// </summary>
-        /// <param name="binaryExpression">The <see cref="BinaryExpression"/>.</param>
-        /// <returns>The DynamoDB expression statement.</returns>
+        /// <param name="binaryExpression">Binary expression representing inequality.</param>
+        /// <returns>DynamoDB expression statement for inequality check.</returns>
         private string HandleNotEqual(
             BinaryExpression binaryExpression)
         {
             var (propertyExpression, valueExpression) = GetPropertyAndValue(binaryExpression);
 
-            // Handle null value.  In DynamoDB, we check for not null by checking if the attribute exists.
+            // Use attribute_exists for not-null checks
             if (IsNullValue(valueExpression))
             {
                 var propertyName = GetPropertyName(propertyExpression);
@@ -584,17 +548,17 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Process the given <see cref="UnaryExpression"/>.
+        /// Handles unary expressions like type conversions.
         /// </summary>
-        /// <param name="unaryExpression">The <see cref="UnaryExpression.</param>
-        /// <returns>The key of the given value.</returns>
-        /// <exception cref="NotSupportedException">Thrown when the given <see cref="UnaryExpression"/> is not supported.</exception>
+        /// <param name="unaryExpression">Unary expression to process.</param>
+        /// <returns>Attribute value key for the converted value.</returns>
+        /// <exception cref="NotSupportedException">Thrown when unary operation is not supported.</exception>
         private string HandleUnaryExpression(
             UnaryExpression unaryExpression)
         {
             if (unaryExpression.NodeType == ExpressionType.Convert)
             {
-                // Get the constant value after conversion.
+                // Evaluate conversion and add result as attribute value
                 var lambda = LinqExpression.Lambda(unaryExpression).Compile();
                 var value = lambda.DynamicInvoke();
 
@@ -609,15 +573,15 @@ public class QueryHelper<T>
         #region Private Static Methods
 
         /// <summary>
-        /// Process the <see cref="BinaryExpression"/> for the property and value.
+        /// Extracts property and value expressions from binary comparison.
         /// </summary>
-        /// <param name="binaryExpression">The <see cref="BinaryExpression.</param>
-        /// <returns>The property and value.</returns>
-        /// <exception cref="NotSupportedException"></exception>
+        /// <param name="binaryExpression">Binary expression to analyze.</param>
+        /// <returns>Tuple containing property expression and value expression.</returns>
+        /// <exception cref="NotSupportedException">Thrown when property/value cannot be determined.</exception>
         private static (LinqExpression propertyExpression, LinqExpression valueExpression) GetPropertyAndValue(
             BinaryExpression binaryExpression)
         {
-            // Check if left or right is the property.
+            // Check which side represents the property
             if (IsPropertyExpression(binaryExpression.Left))
             {
                 return (binaryExpression.Left, binaryExpression.Right);
@@ -628,7 +592,7 @@ public class QueryHelper<T>
                 return (binaryExpression.Right, binaryExpression.Left);
             }
 
-            // Neither left nor right is the property, evalute the expression.
+            // Fallback to member expression detection
             if (binaryExpression.Left is MemberExpression)
             {
                 return (binaryExpression.Left, binaryExpression.Right);
@@ -643,11 +607,11 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Get the property name from the given <see cref="LinqExpression"/>.
+        /// Extracts property name from expression, using JSON attribute if available.
         /// </summary>
-        /// <param name="linqExpression">The <see cref="LinqExpression.</param>
-        /// <returns>The property name.</returns>
-        /// <exception cref="NotSupportedException">thrown when the given <see cref="LinqExpression"/> is not supported.</exception>
+        /// <param name="linqExpression">Expression representing a property.</param>
+        /// <returns>Property name or JSON property name from attribute.</returns>
+        /// <exception cref="NotSupportedException">Thrown when expression doesn't represent a property.</exception>
         private static string GetPropertyName(
             LinqExpression linqExpression)
         {
@@ -661,17 +625,17 @@ public class QueryHelper<T>
                 throw new NotSupportedException($"GetPropertyName() does not support '{linqExpression}'.");
             }
 
-            // Check for the JsonPropertyNameAttribute.
+            // Use JSON property name if specified, otherwise use property name
             var jsonPropertyNameAttribute = pi.GetCustomAttribute<JsonPropertyNameAttribute>();
 
             return jsonPropertyNameAttribute?.Name ?? me.Member.Name;
         }
 
         /// <summary>
-        /// Invole the given <see cref="LinqExpression"/> and return its result.
+        /// Evaluates an expression and returns its value.
         /// </summary>
-        /// <param name="linqExpression">The <see cref="LinqExpression.</param>
-        /// <returns>The result.</returns>
+        /// <param name="linqExpression">Expression to evaluate.</param>
+        /// <returns>Evaluated result of the expression.</returns>
         private static object? Invoke(
             LinqExpression linqExpression)
         {
@@ -679,10 +643,10 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Determines whether the given <see cref="LinqExpression"/> is a null value.
+        /// Determines if an expression represents a null constant value.
         /// </summary>
-        /// <param name="linqExpression">The <see cref="LinqExpression"/>.</param>
-        /// <returns><see langword="true"/> if the given <see cref="LinqExpression"/> is a null value; otherwise, <see langword="false"/>.</returns>
+        /// <param name="linqExpression">Expression to check.</param>
+        /// <returns>True if expression is a null constant.</returns>
         private static bool IsNullValue(
             LinqExpression linqExpression)
         {
@@ -690,10 +654,10 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Determines whether the given <see cref="LinqExpression"/> is a field or property on the named parameter.
+        /// Determines if an expression represents a property access on a parameter.
         /// </summary>
-        /// <param name="linqExpression">The <see cref="LinqExpression"/>.</param>
-        /// <returns><see langword="true"/> if the given <see cref="LinqExpression"/> is a field or property on the named parameter; otherwise, <see langword="false"/>.</returns>
+        /// <param name="linqExpression">Expression to check.</param>
+        /// <returns>True if expression represents a property access.</returns>
         private static bool IsPropertyExpression(
             LinqExpression linqExpression)
         {
@@ -701,10 +665,10 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Convert the given value to a <see cref="DynamoDBEntry"/>.
+        /// Converts a .NET value to DynamoDB entry format.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The <see cref="DynamoDBEntry"/> representation.</returns>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>DynamoDB entry representation of the value.</returns>
         private static DynamoDBEntry ToDynamoDBEntry(
             object? value)
         {
@@ -714,11 +678,11 @@ public class QueryHelper<T>
         }
 
         /// <summary>
-        /// Validate the given <see cref="MethodCallExpression"/> for the expected argument count.
+        /// Validates that a method call has the expected number of arguments.
         /// </summary>
-        /// <param name="methodCallExpression">The <see cref="MethodCallExpression"/>.</param>
-        /// <param name="expectedArgumentCount">The expected argument count.</param>
-        /// <exception cref="NotSupportedException">thrown when the given <see cref="MethodCallExpression"/> does not have the expected argument count.</exception>
+        /// <param name="methodCallExpression">Method call to validate.</param>
+        /// <param name="expectedArgumentCount">Expected argument count.</param>
+        /// <exception cref="NotSupportedException">Thrown when argument count doesn't match.</exception>
         private static void ValidateMethodCallArguments(
             MethodCallExpression methodCallExpression,
             int expectedArgumentCount)

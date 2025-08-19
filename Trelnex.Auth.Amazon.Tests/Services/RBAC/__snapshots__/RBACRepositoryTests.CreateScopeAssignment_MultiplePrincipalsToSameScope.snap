@@ -10,21 +10,21 @@
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "PRINCIPAL#principal-1-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_principalId": "principal-2-createscopeassignment-multipleprincipalstosamescope",
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "PRINCIPAL#principal-2-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_principalId": "principal-3-createscopeassignment-multipleprincipalstosamescope",
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "PRINCIPAL#principal-3-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
@@ -37,21 +37,21 @@
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope##PRINCIPAL#principal-1-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope#PRINCIPAL#principal-1-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_principalId": "principal-2-createscopeassignment-multipleprincipalstosamescope",
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope##PRINCIPAL#principal-2-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope#PRINCIPAL#principal-2-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_principalId": "principal-3-createscopeassignment-multipleprincipalstosamescope",
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",
       "_scopeName": "scope-createscopeassignment-multipleprincipalstosamescope",
       "entityName": "RESOURCE#urn://resource-createscopeassignment-multipleprincipalstosamescope",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-createscopeassignment-multipleprincipalstosamescope##PRINCIPAL#principal-3-createscopeassignment-multipleprincipalstosamescope"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-createscopeassignment-multipleprincipalstosamescope#PRINCIPAL#principal-3-createscopeassignment-multipleprincipalstosamescope"
     },
     {
       "_resourceName": "urn://resource-createscopeassignment-multipleprincipalstosamescope",

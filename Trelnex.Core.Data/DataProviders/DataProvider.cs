@@ -1,72 +1,72 @@
 using System.Net;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
+using Trelnex.Core.Encryption;
+using Trelnex.Core.Json;
 using Trelnex.Core.Validation;
 
 namespace Trelnex.Core.Data;
 
 /// <summary>
-/// Provides data access operations for a specific entity type with validation and command support.
+/// Defines operations for data access and manipulation of a specific item type.
 /// </summary>
-/// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-/// <remarks>
-/// Standardized interface for CRUD operations across different data store implementations.
-/// </remarks>
-public interface IDataProvider<TInterface>
-    where TInterface : class, IBaseItem
+/// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
+public interface IDataProvider<TItem>
+    where TItem : BaseItem
 {
     /// <summary>
-    /// Creates a batch command for executing multiple operations atomically.
+    /// Creates a batch command for executing multiple save operations atomically.
     /// </summary>
-    /// <returns>A batch command instance for grouping multiple operations.</returns>
-    IBatchCommand<TInterface> Batch();
+    /// <returns>A batch command instance for grouping operations.</returns>
+    IBatchCommand<TItem> Batch();
 
     /// <summary>
-    /// Creates a new item with the specified identifier and partition key.
+    /// Creates a new item with the specified identifiers.
     /// </summary>
     /// <param name="id">Unique identifier for the new item.</param>
     /// <param name="partitionKey">Partition key for data distribution.</param>
-    /// <returns>A save command for configuring and persisting the new item.</returns>
-    /// <exception cref="NotSupportedException">Thrown when Create operations are not permitted for this provider.</exception>
-    ISaveCommand<TInterface> Create(
+    /// <returns>A save command for the new item.</returns>
+    /// <exception cref="NotSupportedException">Thrown when Create operations are not allowed.</exception>
+    ISaveCommand<TItem> Create(
         string id,
         string partitionKey);
 
     /// <summary>
-    /// Marks an item for deletion using soft-delete semantics.
+    /// Prepares an item for soft deletion.
     /// </summary>
     /// <param name="id">Unique identifier of the item to delete.</param>
     /// <param name="partitionKey">Partition key of the item.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>
-    /// A task containing a save command for the deletion operation, or null if the item is not found or already deleted.
-    /// </returns>
-    /// <exception cref="NotSupportedException">Thrown when Delete operations are not permitted for this provider.</exception>
-    Task<ISaveCommand<TInterface>?> DeleteAsync(
+    /// <returns>A save command for deletion, or null if the item doesn't exist or is already deleted.</returns>
+    /// <exception cref="NotSupportedException">Thrown when Delete operations are not allowed.</exception>
+    Task<ISaveCommand<TItem>?> DeleteAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves an item by its identifier and partition key.
+    /// Retrieves an item by its identifiers.
     /// </summary>
     /// <param name="id">Unique identifier of the item.</param>
     /// <param name="partitionKey">Partition key of the item.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>
-    /// A task containing a read-only result with the item data, or null if not found or deleted.
-    /// </returns>
-    Task<IReadResult<TInterface>?> ReadAsync(
+    /// <returns>A read result containing the item, or null if not found or deleted.</returns>
+    Task<IReadResult<TItem>?> ReadAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates a LINQ-enabled query command for complex data retrieval.
+    /// Creates a query command for building and executing queries.
     /// </summary>
-    /// <returns>A query command supporting LINQ operations with deferred execution.</returns>
-    IQueryCommand<TInterface> Query();
+    /// <returns>A query command supporting LINQ operations.</returns>
+    IQueryCommand<TItem> Query();
 
     /// <summary>
     /// Prepares an existing item for modification.
@@ -74,63 +74,60 @@ public interface IDataProvider<TInterface>
     /// <param name="id">Unique identifier of the item to update.</param>
     /// <param name="partitionKey">Partition key of the item.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>
-    /// A task containing a save command with the modifiable item, or null if not found or deleted.
-    /// </returns>
-    /// <exception cref="NotSupportedException">Thrown when Update operations are not permitted for this provider.</exception>
-    Task<ISaveCommand<TInterface>?> UpdateAsync(
+    /// <returns>A save command for updating the item, or null if not found or deleted.</returns>
+    /// <exception cref="NotSupportedException">Thrown when Update operations are not allowed.</exception>
+    Task<ISaveCommand<TItem>?> UpdateAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Abstract base implementation providing common data provider functionality.
+/// Provides base implementation for data access operations with validation and serialization.
 /// </summary>
-/// <typeparam name="TInterface">The interface type defining the entity contract.</typeparam>
-/// <typeparam name="TItem">The concrete entity implementation type.</typeparam>
-public abstract partial class DataProvider<TInterface, TItem>
-    : IDataProvider<TInterface>
-    where TInterface : class, IBaseItem
-    where TItem : BaseItem, TInterface, new()
+/// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
+public abstract partial class DataProvider<TItem>
+    : IDataProvider<TItem>
+    where TItem : BaseItem, new()
 {
-    #region Protected Fields
+    #region Private Static Fields
 
-    /// <summary>
-    /// The type name identifier stored in all items managed by this provider.
-    /// </summary>
-    protected readonly string _typeName;
+    // Default JSON node used when serialization returns null
+    private static readonly JsonNode _jsonNodeEmpty = new JsonObject();
 
     #endregion
 
     #region Private Fields
 
-    /// <summary>
-    /// Validator for item base properties like Id, PartitionKey, and timestamps.
-    /// </summary>
+    // Validator for base item properties like Id, PartitionKey, and TypeName
     private readonly IValidator<TItem> _baseItemValidator;
 
-    /// <summary>
-    /// Bitwise flags defining which CRUD operations are permitted for this provider.
-    /// </summary>
+    // Allowed CRUD operations for this provider instance
     private readonly CommandOperations _commandOperations;
 
-    /// <summary>
-    /// Converts LINQ expressions from interface type to concrete implementation type.
-    /// </summary>
-    private readonly ExpressionConverter<TInterface, TItem> _expressionConverter;
-
-    /// <summary>
-    /// Optional domain-specific validator for custom business rules validation.
-    /// </summary>
+    // Optional custom validator for domain-specific validation rules
     private readonly IValidator<TItem>? _itemValidator;
+
+    private readonly ILogger? _logger;
+
+    // JSON serializer options for serializing events
+    private readonly JsonSerializerOptions _optionsForSerializeEvent;
+
+    // JSON serializer options for serializing items (may include encryption)
+    private readonly JsonSerializerOptions _optionsForSerializeItem;
+
+    // Function that serializes items for change tracking purposes
+    private readonly Func<TItem, JsonNode?> _serializeChanges;
+
+    // Type name identifier for items managed by this provider
+    private readonly string _typeName;
 
     #endregion
 
     #region Protected Properties
 
     /// <summary>
-    /// Gets the type name identifier used for items managed by this provider.
+    /// Gets the type name identifier for items managed by this provider.
     /// </summary>
     protected string TypeName => _typeName;
 
@@ -139,43 +136,108 @@ public abstract partial class DataProvider<TInterface, TItem>
     #region Constructors
 
     /// <summary>
-    /// Initializes a new data provider instance with validation and operation constraints.
+    /// Initializes a new data provider with validation and operation constraints.
     /// </summary>
-    /// <param name="typeName">Type name identifier that must follow naming conventions (lowercase letters and hyphens).</param>
-    /// <param name="validator">Optional custom validator for domain-specific validation rules.</param>
-    /// <param name="commandOperations">Permitted CRUD operations. Defaults to Read-only if not specified.</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when typeName doesn't match naming rules or conflicts with reserved system names.
-    /// </exception>
+    /// <param name="typeName">Type name identifier that must follow naming conventions.</param>
+    /// <param name="itemValidator">Optional custom validator for domain-specific rules.</param>
+    /// <param name="commandOperations">Allowed CRUD operations, defaults to Read-only.</param>
+    /// <param name="eventPolicy">Optional event policy for change tracking.</param>
+    /// <param name="blockCipherService">Optional service for field-level encryption.</param>
+    /// <param name="logger">Optional logger for diagnostics.</param>
+    /// <exception cref="ArgumentException">Thrown when typeName is invalid or reserved.</exception>
     protected DataProvider(
         string typeName,
-        IValidator<TItem>? validator,
-        CommandOperations? commandOperations = null)
+        IValidator<TItem>? itemValidator,
+        CommandOperations? commandOperations = null,
+        EventPolicy? eventPolicy = null,
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
     {
-        // Validate the type name against the naming rules (lowercase letters and hyphens).
+        // Validate type name format (lowercase letters and hyphens only)
         if (TypeRulesRegex().IsMatch(typeName) is false)
         {
             throw new ArgumentException($"The typeName '{typeName}' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.", nameof(typeName));
         }
 
-        // Ensure the type name doesn't conflict with any system-reserved names.
+        // Ensure type name is not reserved for system use
         if (ReservedTypeNames.IsReserved(typeName))
         {
             throw new ArgumentException($"The typeName '{typeName}' is a reserved type name.", nameof(typeName));
         }
 
-        // Store the validated type name for use in item creation and queries.
         _typeName = typeName;
 
-        // Set up validators for both base properties and custom properties.
+        // Set up validators for base properties and optional custom validation
         _baseItemValidator = CreateBaseItemValidator(typeName);
-        _itemValidator = validator;
+        _itemValidator = itemValidator;
 
-        // Create the expression converter for LINQ operations.
-        _expressionConverter = new();
-
-        // Set the allowed operations for this provider, defaulting to Read only if not specified.
+        // Configure allowed operations (default to read-only)
         _commandOperations = commandOperations ?? CommandOperations.Read;
+
+        _logger = logger;
+
+        // Configure JSON serialization options
+        var defaultOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        // Options for serializing events
+        _optionsForSerializeEvent = new JsonSerializerOptions(defaultOptions)
+        {
+        };
+
+        // Options for serializing items (with optional encryption)
+        _optionsForSerializeItem = new JsonSerializerOptions(defaultOptions)
+        {
+            TypeInfoResolver = blockCipherService is not null
+                ? new CompositeJsonResolver(
+                    [
+                        new EncryptPropertyResolver(blockCipherService)
+                    ])
+                : null
+        };
+
+        var optionsForOnlyTrackAttributeChanges = new JsonSerializerOptions(defaultOptions)
+        {
+            TypeInfoResolver = blockCipherService is not null
+                ? new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: false),
+                        new EncryptPropertyResolver(blockCipherService)
+                    ])
+                : new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: false)
+                    ])
+        };
+
+        var optionsForAllChanges = new JsonSerializerOptions(defaultOptions)
+        {
+            TypeInfoResolver = blockCipherService is not null
+                ? new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: true),
+                        new EncryptPropertyResolver(blockCipherService)
+                    ])
+                : new CompositeJsonResolver(
+                    [
+                        new PropertyChangeResolver(allChanges: true)
+                    ])
+        };
+
+        _serializeChanges = eventPolicy switch
+        {
+            EventPolicy.NoChanges => item => _jsonNodeEmpty,
+            EventPolicy.OnlyTrackAttributeChanges => item => JsonSerializer.SerializeToNode(
+                value: item,
+                options: optionsForOnlyTrackAttributeChanges) ?? _jsonNodeEmpty,
+            null or EventPolicy.AllChanges => item => JsonSerializer.SerializeToNode(
+                value: item,
+                options: optionsForAllChanges) ?? _jsonNodeEmpty,
+            _ => item => null
+        };
     }
 
     #endregion
@@ -183,13 +245,13 @@ public abstract partial class DataProvider<TInterface, TItem>
     #region Public Methods
 
     /// <inheritdoc />
-    public IBatchCommand<TInterface> Batch()
+    public IBatchCommand<TItem> Batch()
     {
-        return new BatchCommand<TInterface, TItem>(SaveBatchAsync);
+        return new BatchCommand<TItem>(SaveBatchAsync);
     }
 
     /// <inheritdoc />
-    public ISaveCommand<TInterface> Create(
+    public ISaveCommand<TItem> Create(
         string id,
         string partitionKey)
     {
@@ -200,6 +262,7 @@ public abstract partial class DataProvider<TInterface, TItem>
 
         var dateTimeOffsetUtcNow = DateTimeOffset.UtcNow;
 
+        // Initialize new item with required properties
         var item = new TItem
         {
             Id = id,
@@ -210,16 +273,17 @@ public abstract partial class DataProvider<TInterface, TItem>
             UpdatedDateTimeOffset = dateTimeOffsetUtcNow,
         };
 
-        return SaveCommand<TInterface, TItem>.Create(
+        return SaveCommand<TItem>.Create(
             item: item,
-            isReadOnly: false,
-            validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.CREATED,
-            saveAsyncDelegate: SaveItemAsync);
+            serializeChanges: _serializeChanges,
+            validateAsyncDelegate: ValidateAsync,
+            saveAsyncDelegate: SaveItemAsync,
+            logger: _logger);
     }
 
     /// <inheritdoc />
-    public async Task<ISaveCommand<TInterface>?> DeleteAsync(
+    public async Task<ISaveCommand<TItem>?> DeleteAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
@@ -231,6 +295,7 @@ public abstract partial class DataProvider<TInterface, TItem>
 
         var item = await ReadItemAsync(id, partitionKey, cancellationToken);
 
+        // Return null if item doesn't exist or is already deleted
         if (item is null || (item.IsDeleted ?? false))
         {
             return null;
@@ -240,45 +305,47 @@ public abstract partial class DataProvider<TInterface, TItem>
     }
 
     /// <inheritdoc />
-    public IQueryCommand<TInterface> Query()
+    public IQueryCommand<TItem> Query()
     {
         var queryable = CreateQueryable();
 
-        Func<TItem, IQueryResult<TInterface>> convertToQueryResult = item => {
-            return QueryResult<TInterface, TItem>.Create(
+        // Define how to convert items to query results
+        IQueryResult<TItem> convertToQueryResult(TItem item)
+        {
+            return QueryResult<TItem>.Create(
                 item: item,
-                validateAsyncDelegate: ValidateAsync,
                 createDeleteCommand: CreateDeleteCommand,
-                createUpdateCommand: CreateUpdateCommand);
-        };
+                createUpdateCommand: CreateUpdateCommand,
+                logger: _logger);
+        }
 
-        return new QueryCommand<TInterface, TItem>(
-            expressionConverter: _expressionConverter,
+        return new QueryCommand<TItem>(
             queryable: queryable,
             queryAsyncDelegate: ExecuteQueryableAsync,
             convertToQueryResult: convertToQueryResult);
     }
 
     /// <inheritdoc />
-    public async Task<IReadResult<TInterface>?> ReadAsync(
+    public async Task<IReadResult<TItem>?> ReadAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
     {
         var item = await ReadItemAsync(id, partitionKey, cancellationToken);
 
+        // Return null if item doesn't exist or is deleted
         if (item is null || (item.IsDeleted ?? false))
         {
             return null;
         }
 
-        return ReadResult<TInterface, TItem>.Create(
+        return ReadResult<TItem>.Create(
             item: item,
-            validateAsyncDelegate: ValidateAsync);
+            logger: _logger);
     }
 
     /// <inheritdoc />
-    public async Task<ISaveCommand<TInterface>?> UpdateAsync(
+    public async Task<ISaveCommand<TItem>?> UpdateAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
@@ -290,6 +357,7 @@ public abstract partial class DataProvider<TInterface, TItem>
 
         var item = await ReadItemAsync(id, partitionKey, cancellationToken);
 
+        // Return null if item doesn't exist or is already deleted
         if (item is null || (item.IsDeleted ?? false))
         {
             return null;
@@ -305,15 +373,15 @@ public abstract partial class DataProvider<TInterface, TItem>
     /// <summary>
     /// Creates a queryable data source for LINQ operations.
     /// </summary>
-    /// <returns>An IQueryable instance for the concrete item type.</returns>
+    /// <returns>IQueryable instance for the item type.</returns>
     protected abstract IQueryable<TItem> CreateQueryable();
 
     /// <summary>
-    /// Executes a LINQ query against the data store asynchronously.
+    /// Executes a query against the data store and returns results asynchronously.
     /// </summary>
-    /// <param name="queryable">The LINQ query expression to execute.</param>
-    /// <param name="cancellationToken">Token to cancel the query execution.</param>
-    /// <returns>An async enumerable of items matching the query criteria.</returns>
+    /// <param name="queryable">The query to execute.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Asynchronous enumerable of matching items.</returns>
     protected abstract IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default);
@@ -321,34 +389,165 @@ public abstract partial class DataProvider<TInterface, TItem>
     /// <summary>
     /// Retrieves a single item from the data store by its identifiers.
     /// </summary>
-    /// <param name="id">The unique identifier of the item.</param>
-    /// <param name="partitionKey">The partition key for data distribution.</param>
-    /// <param name="cancellationToken">Token to cancel the read operation.</param>
-    /// <returns>The item if found, or null if it doesn't exist in the data store.</returns>
+    /// <param name="id">Unique identifier of the item.</param>
+    /// <param name="partitionKey">Partition key of the item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The item if found, or null if not found.</returns>
     protected abstract Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Persists multiple items to the data store in a single atomic operation.
+    /// Saves multiple items to the data store in a single atomic operation.
     /// </summary>
-    /// <param name="requests">Array of save requests containing items and their save actions.</param>
-    /// <param name="cancellationToken">Token to cancel the batch save operation.</param>
-    /// <returns>Array of save results indicating success/failure status for each item.</returns>
-    protected abstract Task<SaveResult<TInterface, TItem>[]> SaveBatchAsync(
-        SaveRequest<TInterface, TItem>[] requests,
+    /// <param name="requests">Array of save requests to process.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Array of save results indicating success or failure for each item.</returns>
+    protected abstract Task<SaveResult<TItem>[]> SaveBatchAsync(
+        SaveRequest<TItem>[] requests,
         CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Protected Methods
+
+    /// <summary>
+    /// Deserializes a JSON string into an item using the configured serialization options.
+    /// </summary>
+    /// <param name="json">JSON string to deserialize.</param>
+    /// <returns>The deserialized item or null.</returns>
+    protected TItem? DeserializeItem(
+        string json)
+    {
+        return JsonSerializer.Deserialize<TItem>(
+            json: json,
+            options: _optionsForSerializeItem);
+    }
+
+    /// <summary>
+    /// Deserializes a JSON stream into an item using the configured serialization options.
+    /// </summary>
+    /// <param name="utf8Json">Stream containing JSON data.</param>
+    /// <returns>The deserialized item or null.</returns>
+    protected TItem? DeserializeItem(
+        Stream utf8Json)
+    {
+        return JsonSerializer.Deserialize<TItem>(
+            utf8Json: utf8Json,
+            options: _optionsForSerializeItem);
+    }
+
+    /// <summary>
+    /// Deserializes a JSON node into an item using the configured serialization options.
+    /// </summary>
+    /// <param name="jsonNode">JSON node to deserialize.</param>
+    /// <returns>The deserialized item or null.</returns>
+    protected TItem? DeserializeItem(
+        JsonNode jsonNode)
+    {
+        return jsonNode.Deserialize<TItem>(
+            options: _optionsForSerializeItem);
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON string.
+    /// </summary>
+    /// <param name="itemEvent">Event to serialize.</param>
+    /// <returns>JSON string representation of the event.</returns>
+    protected string SerializeEvent<TItemEvent>(
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        return JsonSerializer.Serialize(
+            value: itemEvent,
+            options: _optionsForSerializeEvent);
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON stream.
+    /// </summary>
+    /// <param name="utf8Json">Stream to write JSON data to.</param>
+    /// <param name="itemEvent">Event to serialize.</param>
+    protected void SerializeEvent<TItemEvent>(
+        Stream utf8Json,
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        JsonSerializer.Serialize(
+            utf8Json: utf8Json,
+            value: itemEvent,
+            options: _optionsForSerializeEvent);
+
+        utf8Json.Position = 0;
+    }
+
+    /// <summary>
+    /// Serializes an item event to a JSON node.
+    /// </summary>
+    /// <param name="itemEvent">Event to serialize.</param>
+    /// <returns>JSON node representation of the event.</returns>
+    protected JsonNode SerializeEventToNode<TItemEvent>(
+        TItemEvent itemEvent)
+        where TItemEvent : ItemEvent
+    {
+        return JsonSerializer.SerializeToNode(
+            value: itemEvent,
+            options: _optionsForSerializeEvent) ?? new JsonObject();
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON string using the configured serialization options.
+    /// </summary>
+    /// <param name="item">Item to serialize.</param>
+    /// <returns>JSON string representation of the item.</returns>
+    protected string SerializeItem(
+        TItem item)
+    {
+        return JsonSerializer.Serialize(
+            value: item,
+            options: _optionsForSerializeItem);
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON stream using the configured serialization options.
+    /// </summary>
+    /// <param name="utf8Json">Stream to write JSON data to.</param>
+    /// <param name="item">Item to serialize.</param>
+    protected void SerializeItem(
+        Stream utf8Json,
+        TItem item)
+    {
+        JsonSerializer.Serialize(
+            utf8Json: utf8Json,
+            value: item,
+            options: _optionsForSerializeItem);
+
+        utf8Json.Position = 0;
+    }
+
+    /// <summary>
+    /// Serializes an item to a JSON node using the configured serialization options.
+    /// </summary>
+    /// <param name="item">Item to serialize.</param>
+    /// <returns>JSON node representation of the item.</returns>
+    protected JsonNode SerializeItemToNode(
+        TItem item)
+    {
+        return JsonSerializer.SerializeToNode(
+            value: item,
+            options: _optionsForSerializeItem) ?? new JsonObject();
+    }
 
     #endregion
 
     #region Private Static Methods
 
     /// <summary>
-    /// Creates a FluentValidation validator for required item base properties.
+    /// Creates a validator for base item properties that all items must satisfy.
     /// </summary>
-    /// <param name="typeName">The expected type name for validation.</param>
-    /// <returns>A validator that checks Id, PartitionKey, TypeName, and timestamp properties.</returns>
+    /// <param name="typeName">Expected type name for validation.</param>
+    /// <returns>Validator that checks required base properties.</returns>
     private static IValidator<TItem> CreateBaseItemValidator(
         string typeName)
     {
@@ -378,9 +577,9 @@ public abstract partial class DataProvider<TInterface, TItem>
     }
 
     /// <summary>
-    /// Generates a regular expression pattern for validating type name format.
+    /// Provides a regex pattern for validating type name format.
     /// </summary>
-    /// <returns>A regex that matches valid type names (lowercase letters and hyphens, starting and ending with letters).</returns>
+    /// <returns>Regex that matches valid type names.</returns>
     [GeneratedRegex(@"^[a-z]+[a-z-]*[a-z]+$")]
     private static partial Regex TypeRulesRegex();
 
@@ -389,58 +588,61 @@ public abstract partial class DataProvider<TInterface, TItem>
     #region Private Methods
 
     /// <summary>
-    /// Creates a save command for soft-deleting an item by setting deletion flags and timestamp.
+    /// Creates a save command for soft-deleting an item by setting deletion flags.
     /// </summary>
-    /// <param name="item">The item to mark as deleted.</param>
-    /// <returns>A read-only save command that will perform the soft deletion when executed.</returns>
-    private ISaveCommand<TInterface> CreateDeleteCommand(
+    /// <param name="item">Item to mark as deleted.</param>
+    /// <returns>Save command configured for deletion.</returns>
+    private ISaveCommand<TItem> CreateDeleteCommand(
         TItem item)
     {
+        // Increment version and set deletion properties
         item.Version = item.Version + 1;
-
         item.DeletedDateTimeOffset = DateTimeOffset.UtcNow;
         item.IsDeleted = true;
 
-        return SaveCommand<TInterface, TItem>.Create(
+        return SaveCommand<TItem>.Create(
             item: item,
-            isReadOnly: true,
-            validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.DELETED,
-            saveAsyncDelegate: SaveItemAsync);
+            serializeChanges: _serializeChanges,
+            validateAsyncDelegate: ValidateAsync,
+            saveAsyncDelegate: SaveItemAsync,
+            logger: _logger);
     }
 
     /// <summary>
-    /// Creates a save command for updating an item with a new timestamp.
+    /// Creates a save command for updating an item with a new version and timestamp.
     /// </summary>
-    /// <param name="item">The item to prepare for update.</param>
-    /// <returns>A modifiable save command for the item update operation.</returns>
-    private ISaveCommand<TInterface> CreateUpdateCommand(
+    /// <param name="item">Item to prepare for update.</param>
+    /// <returns>Save command configured for update.</returns>
+    private ISaveCommand<TItem> CreateUpdateCommand(
         TItem item)
     {
-        item.Version = item.Version + 1;
-
+        // Increment version and update timestamp
+        item.Version++;
         item.UpdatedDateTimeOffset = DateTimeOffset.UtcNow;
 
-        return SaveCommand<TInterface, TItem>.Create(
+        return SaveCommand<TItem>.Create(
             item: item,
-            isReadOnly: false,
-            validateAsyncDelegate: ValidateAsync,
             saveAction: SaveAction.UPDATED,
-            saveAsyncDelegate: SaveItemAsync);
+            serializeChanges: _serializeChanges,
+            validateAsyncDelegate: ValidateAsync,
+            saveAsyncDelegate: SaveItemAsync,
+            logger: _logger);
     }
 
     /// <summary>
-    /// Persists a single item by wrapping it in a batch operation.
+    /// Saves a single item by wrapping it in a batch operation and extracting the result.
     /// </summary>
-    /// <param name="request">The save request containing the item and operation details.</param>
-    /// <param name="cancellationToken">Token to cancel the save operation.</param>
-    /// <returns>The successfully saved item.</returns>
-    /// <exception cref="CommandException">Thrown when the save operation fails with a non-success HTTP status.</exception>
+    /// <param name="request">Save request for the item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The saved item.</returns>
+    /// <exception cref="CommandException">Thrown when the save operation fails.</exception>
     private async Task<TItem> SaveItemAsync(
-        SaveRequest<TInterface, TItem> request,
+        SaveRequest<TItem> request,
         CancellationToken cancellationToken = default)
     {
-        SaveRequest<TInterface, TItem>[] requests = [ request ];
+        // Wrap single item in array for batch processing
+        SaveRequest<TItem>[] requests = [ request ];
 
         var results = await SaveBatchAsync(
             requests: requests,
@@ -448,6 +650,7 @@ public abstract partial class DataProvider<TInterface, TItem>
 
         var result = results[0];
 
+        // Throw exception if save failed
         if (result.HttpStatusCode != HttpStatusCode.OK)
         {
             throw new CommandException(result.HttpStatusCode);
@@ -457,15 +660,16 @@ public abstract partial class DataProvider<TInterface, TItem>
     }
 
     /// <summary>
-    /// Validates an item using both base item validator and item validator
+    /// Validates an item using both base property validation and custom validation rules.
     /// </summary>
-    /// <param name="item">The item to validate.</param>
-    /// <param name="cancellationToken">Token to cancel the validation operation.</param>
-    /// <returns>A validation result containing any errors or warnings found.</returns>
+    /// <param name="item">Item to validate.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>Validation result containing any errors found.</returns>
     private async Task<ValidationResult> ValidateAsync(
         TItem item,
         CancellationToken cancellationToken)
     {
+        // Combine base validation with custom validation
         var compositeValidator = new CompositeValidator<TItem>(_baseItemValidator, _itemValidator);
 
         return await compositeValidator.ValidateAsync(item, cancellationToken);

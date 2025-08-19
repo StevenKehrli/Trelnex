@@ -211,13 +211,13 @@ internal class JwtProviderRegistry : IJwtProviderRegistry
         var jwtConfiguration = configuration
             .GetSection("JWT")
             .Get<JwtConfiguration>()
-            ?? throw new ConfigurationErrorsException("The JWT configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The JWT configuration is not valid.");
 
         // Load OpenID Connect configuration from application settings.
         var openIdConfiguration = configuration
             .GetSection("JWT:openid-configuration")
             .Get<OpenIdConfiguration>()
-            ?? throw new ConfigurationErrorsException("The openid-configuration configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The openid-configuration configuration is not valid.");
 
         // Create the collection of KMS algorithms.
         var algorithmCollection = KMSAlgorithmCollection.Create(

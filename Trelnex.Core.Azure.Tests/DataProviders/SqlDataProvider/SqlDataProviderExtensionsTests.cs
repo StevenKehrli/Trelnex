@@ -53,15 +53,15 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
             .AddSqlDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     /// <summary>
@@ -91,13 +91,13 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
                 configuration,
                 bootstrapLogger,
                 options => options
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All)
-                    .Add<ITestItem, TestItem>(
+                    .Add(
                         typeName: "test-item",
-                        validator: TestItem.Validator,
+                        itemValidator: TestItem.Validator,
                         commandOperations: CommandOperations.All));
         });
     }
@@ -127,7 +127,11 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 
@@ -162,7 +166,11 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
 
         // Retrieve the private and optional messages using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _tableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _itemTableName);
 
         Assert.That(reader.Read(), Is.True);
 

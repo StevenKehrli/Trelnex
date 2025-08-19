@@ -10,21 +10,21 @@
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "PRINCIPAL#principal-1-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals##SCOPE#scope-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals#SCOPE#scope-getprincipalsforscope-multipleprincipals"
     },
     {
       "_principalId": "principal-2-getprincipalsforscope-multipleprincipals",
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "PRINCIPAL#principal-2-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals##SCOPE#scope-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals#SCOPE#scope-getprincipalsforscope-multipleprincipals"
     },
     {
       "_principalId": "principal-3-getprincipalsforscope-multipleprincipals",
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "PRINCIPAL#principal-3-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals##SCOPE#scope-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals#SCOPE#scope-getprincipalsforscope-multipleprincipals"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
@@ -37,21 +37,21 @@
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope-multipleprincipals##PRINCIPAL#principal-1-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalsforscope-multipleprincipals#PRINCIPAL#principal-1-getprincipalsforscope-multipleprincipals"
     },
     {
       "_principalId": "principal-2-getprincipalsforscope-multipleprincipals",
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope-multipleprincipals##PRINCIPAL#principal-2-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalsforscope-multipleprincipals#PRINCIPAL#principal-2-getprincipalsforscope-multipleprincipals"
     },
     {
       "_principalId": "principal-3-getprincipalsforscope-multipleprincipals",
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",
       "_scopeName": "scope-getprincipalsforscope-multipleprincipals",
       "entityName": "RESOURCE#urn://resource-getprincipalsforscope-multipleprincipals",
-      "subjectName": "SCOPEASSIGNMENT##SCOPE#scope-getprincipalsforscope-multipleprincipals##PRINCIPAL#principal-3-getprincipalsforscope-multipleprincipals"
+      "subjectName": "SCOPEASSIGNMENT#SCOPE#scope-getprincipalsforscope-multipleprincipals#PRINCIPAL#principal-3-getprincipalsforscope-multipleprincipals"
     },
     {
       "_resourceName": "urn://resource-getprincipalsforscope-multipleprincipals",

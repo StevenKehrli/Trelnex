@@ -29,16 +29,17 @@ public class DynamoDataProviderEventExpirationTests : DynamoDataProviderEventTes
         var dynamoClientOptions = new DynamoClientOptions(
             AWSCredentials: _awsCredentials,
             Region: _region,
-            TableNames: [_expirationTableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
 
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _expirationTableName,
+        _dataProvider = factory.Create(
             typeName: "expiration-test-item",
-            validator: TestItem.Validator,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             eventTimeToLive: 2);
     }
@@ -67,14 +68,14 @@ public class DynamoDataProviderEventExpirationTests : DynamoDataProviderEventTes
         Assert.That(created, Is.Not.Null);
 
         // Get the event
-        var eventId = $"EVENT^^{id}^00000001";
+        var eventId = $"EVENT^{id}^00000001";
         var key = new Dictionary<string, DynamoDBEntry>
         {
             { "partitionKey", partitionKey },
             { "id", eventId }
         };
 
-        var document = await _expirationTable.GetItemAsync(key, default);
+        var document = await _eventTable.GetItemAsync(key, default);
 
         Assert.That(document, Is.Not.Null);
 

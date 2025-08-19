@@ -31,16 +31,17 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
         var dynamoClientOptions = new DynamoClientOptions(
             AWSCredentials: _awsCredentials,
             Region: _region,
-            TableNames: [_encryptedTableName]
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
         var factory = await DynamoDataProviderFactory.Create(
             dynamoClientOptions);
 
-        _dataProvider = factory.Create<ITestItem, TestItem>(
-            tableName: _encryptedTableName,
+        _dataProvider = factory.Create(
             typeName: "encrypted-test-item",
-            validator: TestItem.Validator,
+            itemTableName: _itemTableName,
+            eventTableName: _eventTableName,
+            itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
             blockCipherService: _blockCipherService);
     }
@@ -75,7 +76,7 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -134,7 +135,7 @@ public class EncryptedDynamoDataProviderTests : DynamoDataProviderTestBase
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

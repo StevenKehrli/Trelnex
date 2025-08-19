@@ -45,7 +45,7 @@ public class InMemoryDataProviderTests : DataProviderTests
         var factory = await InMemoryDataProviderFactory.Create();
 
         _dataProvider =
-            factory.Create<ITestItem, TestItem>(
+            factory.Create(
                 typeName: "test-item",
                 TestItem.Validator,
                 CommandOperations.All);
@@ -55,7 +55,7 @@ public class InMemoryDataProviderTests : DataProviderTests
         _clearMethod = _dataProvider
             .GetType()
             .GetMethod(
-                "Clear",
+                nameof(InMemoryDataProvider<TestItem>.Clear),
                 BindingFlags.Instance | BindingFlags.NonPublic);
     }
 

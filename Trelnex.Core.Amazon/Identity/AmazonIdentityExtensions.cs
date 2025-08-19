@@ -41,7 +41,7 @@ public static class AmazonIdentityExtensions
         var options = configuration
             .GetSection("Amazon.Credentials")
             .Get<AmazonCredentialOptions>()
-            ?? throw new ConfigurationErrorsException("The Amazon.Credentials configuration is not found.");
+            ?? throw new ConfigurationErrorsException("The Amazon.Credentials configuration is not valid.");
 
         // Create the credential provider using the extracted options
         var credentialProvider = AmazonCredentialProvider

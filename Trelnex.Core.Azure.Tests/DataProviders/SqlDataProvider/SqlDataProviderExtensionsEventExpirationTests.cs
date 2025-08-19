@@ -46,15 +46,15 @@ public class SqlDataProviderExtensionsEventExpirationTests : SqlDataProviderEven
             .AddSqlDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "expiration-test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]
@@ -80,9 +80,13 @@ public class SqlDataProviderExtensionsEventExpirationTests : SqlDataProviderEven
 
         Assert.That(created, Is.Not.Null);
 
-        // Retrieve the private and optional messages using the helper method.
+        // Retrieve the expireAtDateTimeOffset using the helper method.
         using var sqlConnection = GetConnection();
-        using var reader = await GetReader(sqlConnection, id, partitionKey, _expirationTableName);
+        using var reader = await GetReader(
+            sqlConnection: sqlConnection,
+            id: id,
+            partitionKey: partitionKey,
+            tableName: _eventTableName);
 
         Assert.That(reader.Read(), Is.True);
 

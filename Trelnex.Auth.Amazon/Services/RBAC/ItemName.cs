@@ -23,7 +23,7 @@ internal static class ItemName
     /// <summary>
     /// The marker prefix used to identify role assignment entries.
     /// </summary>
-    public const string ROLEASSIGNMENT_MARKER = "ROLEASSIGNMENT##";
+    public const string ROLEASSIGNMENT_MARKER = "ROLEASSIGNMENT#";
 
     /// <summary>
     /// The marker prefix used to identify role-related entries.
@@ -38,7 +38,7 @@ internal static class ItemName
     /// <summary>
     /// The marker prefix used to identify scope assignment entries.
     /// </summary>
-    public const string SCOPEASSIGNMENT_MARKER = "SCOPEASSIGNMENT##";
+    public const string SCOPEASSIGNMENT_MARKER = "SCOPEASSIGNMENT#";
 
     /// <summary>
     /// The marker prefix used to identify scope-related entries.
@@ -80,7 +80,7 @@ internal static class ItemName
     /// <param name="principalId">The unique identifier of the principal (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by principal.</returns>
     /// <example>
-    /// Returns: "ROLEASSIGNMENT##ROLE#rbac.create##PRINCIPAL#arn:aws:iam::123456789012:user/john"
+    /// Returns: "ROLEASSIGNMENT#ROLE#rbac.create#PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
     public static string FormatRoleAssignmentByPrincipal(
         string roleName,
@@ -88,7 +88,7 @@ internal static class ItemName
     {
         var rolePart = FormatRole(roleName);
         var principalPart = FormatPrincipal(principalId ?? string.Empty);
-        return $"{ROLEASSIGNMENT_MARKER}{rolePart}##{principalPart}";
+        return $"{ROLEASSIGNMENT_MARKER}{rolePart}#{principalPart}";
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ internal static class ItemName
     /// <param name="roleName">The name of the role (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by role.</returns>
     /// <example>
-    /// Returns: "ROLEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##ROLE#rbac.create"
+    /// Returns: "ROLEASSIGNMENT#RESOURCE#api://amazon.auth.trelnex.com#ROLE#rbac.create"
     /// </example>
     public static string FormatRoleAssignmentByRole(
         string resourceName,
@@ -106,7 +106,7 @@ internal static class ItemName
     {
         var resourcePart = FormatResource(resourceName);
         var rolePart = FormatRole(roleName ?? string.Empty);
-        return $"{ROLEASSIGNMENT_MARKER}{resourcePart}##{rolePart}";
+        return $"{ROLEASSIGNMENT_MARKER}{resourcePart}#{rolePart}";
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ internal static class ItemName
     /// <param name="principalId">The unique identifier of the principal (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by principal.</returns>
     /// <example>
-    /// Returns: "SCOPEASSIGNMENT##SCOPE#rbac##PRINCIPAL#arn:aws:iam::123456789012:user/john"
+    /// Returns: "SCOPEASSIGNMENT#SCOPE#rbac#PRINCIPAL#arn:aws:iam::123456789012:user/john"
     /// </example>
     public static string FormatScopeAssignmentByPrincipal(
         string scopeName,
@@ -138,7 +138,7 @@ internal static class ItemName
     {
         var scopePart = FormatScope(scopeName);
         var principalPart = FormatPrincipal(principalId ?? string.Empty);
-        return $"{SCOPEASSIGNMENT_MARKER}{scopePart}##{principalPart}";
+        return $"{SCOPEASSIGNMENT_MARKER}{scopePart}#{principalPart}";
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ internal static class ItemName
     /// <param name="scopeName">The name of the scope (optional for query prefixes).</param>
     /// <returns>A formatted subject name for DynamoDB queries by scope.</returns>
     /// <example>
-    /// Returns: "SCOPEASSIGNMENT##RESOURCE#api://amazon.auth.trelnex.com##SCOPE#rbac"
+    /// Returns: "SCOPEASSIGNMENT#RESOURCE#api://amazon.auth.trelnex.com#SCOPE#rbac"
     /// </example>
     public static string FormatScopeAssignmentByScope(
         string resourceName,
@@ -156,7 +156,7 @@ internal static class ItemName
     {
         var resourcePart = FormatResource(resourceName);
         var scopePart = FormatScope(scopeName ?? string.Empty);
-        return $"{SCOPEASSIGNMENT_MARKER}{resourcePart}##{scopePart}";
+        return $"{SCOPEASSIGNMENT_MARKER}{resourcePart}#{scopePart}";
     }
 
     /// <summary>

@@ -40,16 +40,16 @@ public class InMemoryDataProviderTests : DataProviderTests
         services.AddInMemoryDataProviders(
             configuration,
             bootstrapLogger,
-            options => options.Add<ITestItem, TestItem>(
+            options => options.Add(
                 typeName: "test-item",
-                validator: TestItem.Validator,
+                itemValidator: TestItem.Validator,
                 commandOperations: CommandOperations.All));
 
         // Build the service provider
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
         Assert.That(_dataProvider, Is.Not.Null);
 
         // Use reflection to get the Clear method from the underlying InMemoryDataProvider

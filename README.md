@@ -33,7 +33,7 @@ The REST API is defined in the `Map` method where it maps the `POST /users` endp
 The business logic and data access are defined in the `HandleRequest` method.
 
 1. Create a new user id
-2. Create the new `IUser` DTO using the `IDataProvider<IUser>`. See [Command Pattern](#command-pattern) for more information.
+2. Create the new `User` DTO using the `IDataProvider<User>`. See [Command Pattern](#command-pattern) for more information.
 3. Set the user name.
 4. Save the `IUser` DTO to the data store.
 5. Convert the `IUser` DTO to a `UserModel` and return.
@@ -75,7 +75,7 @@ internal static class CreateUserEndpoint
     }
 
     public static async Task<UserModel> HandleRequest(
-        [FromServices] IDataProvider<IUser> userProvider,
+        [FromServices] IDataProvider<User> userProvider,
         [AsParameters] RequestParameters parameters)
     {
         // create a new user id
@@ -215,14 +215,14 @@ internal class UsersPermission : MicrosoftIdentityPermission
 
 #### Permission and Policy Definition - JWT Bearer Authentication
 
-These two policies are exposed through the `UsersPermission` which is an implementation of `JwtBearerPermissions` (JWT Bearer Authentication). This permission uses the JWT Bearer scheme `Bearer.trelnex-api-users` and its necessary configuration is found in the `Auth:trelnex-api-users` section.
+These two policies are exposed through the `UsersPermission` which is an implementation of `JwtBearerPermission` (JWT Bearer Authentication). This permission uses the JWT Bearer scheme `Bearer.trelnex-api-users` and its necessary configuration is found in the `Auth:trelnex-api-users` section.
 
 ```csharp
 using Trelnex.Core.Api.Authentication;
 
 namespace Trelnex.Users.Api.Endpoints;
 
-internal class UsersPermission : MicrosoftIdentityPermission
+internal class UsersPermission : JwtBearerPermission
 {
     protected override string ConfigSectionName => "Auth:trelnex-api-users";
 
@@ -327,61 +327,60 @@ This encapsulation ensures data integrity of the DTO. In addition, the command c
 
 ### IDataProvider
 
-An `IDataProvider` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a data provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements data providers for DynamoDB and Postgres. Trelnex.Core.Azure implements data providers for CosmosDB NoSQL and SqlServer.
+An `IDataProvider<TItem>` exposes the commands against a backing data store. This is easily extensible to support other data stores. Trelnex.Core.Data implements a data provider for an in-memory data store for development and testing. Trelnex.Core.Amazon implements data providers for DynamoDB and PostgreSQL with AWS IAM authentication. Trelnex.Core.Azure implements data providers for Cosmos DB NoSQL and SQL Server with Azure managed identity authentication.
 
-The `IDataProvider` interface defines six methods:
+The `IDataProvider<TItem>` interface defines six methods:
 
-- `ISaveCommand<TInterface> Create()`: create an `ISaveCommand<TInterface>` to create a new item
-- `Task<ISaveCommand<TInterface>?> UpdateAsync()`: create an `ISaveCommand<TInterface>` to update the specified item, or null if not found
-- `Task<ISaveCommand<TInterface>?> DeleteAsync()`: create an `ISaveCommand<TInterface>` to delete the specified item, or null if not found
+- `ISaveCommand<TItem> Create(string id, string partitionKey)`: create an `ISaveCommand<TItem>` to create a new item
+- `Task<ISaveCommand<TItem>?> UpdateAsync(string id, string partitionKey, CancellationToken cancellationToken = default)`: create an `ISaveCommand<TItem>` to update the specified item, or null if not found
+- `Task<ISaveCommand<TItem>?> DeleteAsync(string id, string partitionKey, CancellationToken cancellationToken = default)`: create an `ISaveCommand<TItem>` to delete the specified item, or null if not found
 
-- `IBatchCommand<TInterface> Batch()`: create an `IBatchCommand<TInterface>` to save a batch of `ISaveCommand<TInterface>`
+- `IBatchCommand<TItem> Batch()`: create an `IBatchCommand<TItem>` to save a batch of `ISaveCommand<TItem>`
 
-- `Task<IReadResult<TInterface>?> ReadAsync()`: read the specified item, or null if not found
+- `Task<IReadResult<TItem>?> ReadAsync(string id, string partitionKey, CancellationToken cancellationToken = default)`: read the specified item, or null if not found
 
-- `IQueryCommand<TInterface> Query()`: create a LINQ query for items
+- `IQueryCommand<TItem> Query()`: create a LINQ query for items
 
-### ISaveCommand\<TInterface\>
+### ISaveCommand\<TItem\>
 
-The `ISaveCommand<TInterface>` interface defines one property and two methods:
+The `ISaveCommand<TItem>` interface defines one property and two methods:
 
-- `TInterface Item`: the item to create, update, or delete
-- `Task<IReadResult<TInterface>> SaveAsync(CancellationToken cancellationToken)`: save the item and return the saved item as a `IReadResult<TInterface>`
+- `TItem Item`: the item to create, update, or delete
+- `Task<IReadResult<TItem>> SaveAsync(CancellationToken cancellationToken)`: save the item and return the saved item as a `IReadResult<TItem>`
 - `Task<ValidationResult> ValidateAsync(CancellationToken cancellationToken)`: validate the item
 
-### IBatchCommand\<TInterface\>
+### IBatchCommand\<TItem\>
 
-The `IBatchCommand<TInterface>` interface defines three methods:
+The `IBatchCommand<TItem>` interface defines three methods:
 
-- `IBatchCommand<TInterface> Add(ISaveCommand<TInterface> saveCommand)`: add the specified `ISaveCommand<TInterface>` to the batch
-- `Task<IBatchResult<TInterface>[]> SaveAsync(CancellationToken cancellationToken)`: save the batch and return the saved items as an array of `IBatchResult<TInterface>`
+- `IBatchCommand<TItem> Add(ISaveCommand<TItem> saveCommand)`: add the specified `ISaveCommand<TItem>` to the batch
+- `Task<IBatchResult<TItem>[]> SaveAsync(CancellationToken cancellationToken)`: save the batch and return the saved items as an array of `IBatchResult<TItem>`
 - `Task<ValidationResult[]> ValidateAsync(CancellationToken cancellationToken)`: validate the batch
 
-### IReadResult\<TInterface\>
+### IReadResult\<TItem\>
 
-The `IReadResult<TInterface>` interface defines one property and one method:
+The `IReadResult<TItem>` interface defines one property:
 
-- `TInterface Item`: the item read
-- `Task<ValidationResult> ValidateAsync(CancellationToken cancellationToken)`: validate the item
+- `TItem Item`: the item read
 
-### IBatchResult\<TInterface\>
+### IBatchResult\<TItem\>
 
-The `IBatchResult<TInterface>` interface defines two properties:
+The `IBatchResult<TItem>` interface defines two properties:
 
-- `HttpStatusCode`: the status code of this save
-- `IReadResult<TInterface>`: the saved item, if the save was successful
+- `HttpStatusCode HttpStatusCode`: the status code of this save
+- `IReadResult<TItem>? ReadResult`: the saved item, if the save was successful
 
-### IQueryCommand\<TInterface\>
+### IQueryCommand\<TItem\>
 
-The `IQueryCommand<TInterface>` interface defines methods for building and executing queries:
+The `IQueryCommand<TItem>` interface defines methods for building and executing queries:
 
-- `IQueryCommand<TInterface> OrderBy()`: adds ascending sort by the specified key
-- `IQueryCommand<TInterface> OrderByDescending()`: adds descending sort by the specified key
-- `IQueryCommand<TInterface> Skip()`: skips a specified number of items
-- `IQueryCommand<TInterface> Take()`: takes a maximum number of items
-- `IQueryCommand<TInterface> Where()`: adds a predicate to filter the items
-- `IAsyncDisposableEnumerable<IQueryResult<TInterface>> ToAsyncDisposableEnumerable()`: executes the query with lazy async enumeration and automatic disposal management
-- `Task<IDisposableEnumerable<IQueryResult<TInterface>>> ToDisposableEnumerableAsync()`: executes the query with eager materialization and automatic disposal management
+- `IQueryCommand<TItem> OrderBy()`: adds ascending sort by the specified key
+- `IQueryCommand<TItem> OrderByDescending()`: adds descending sort by the specified key
+- `IQueryCommand<TItem> Skip()`: skips a specified number of items
+- `IQueryCommand<TItem> Take()`: takes a maximum number of items
+- `IQueryCommand<TItem> Where()`: adds a predicate to filter the items
+- `IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable()`: executes the query with lazy async enumeration and automatic disposal management
+- `Task<IDisposableEnumerable<IQueryResult<TItem>>> ToDisposableEnumerableAsync()`: executes the query with eager materialization and automatic disposal management
 
 #### Query Execution Patterns
 
@@ -405,27 +404,26 @@ foreach (var item in eagerResults)
 
 Both patterns automatically dispose all materialized items when the returned enumerable is disposed.
 
-### ISaveCommand\<TInterface\> vs IBatchCommand\<TInterface\>
+### ISaveCommand\<TItem\> vs IBatchCommand\<TItem\>
 
-`ISaveCommand<TInterface>` operates on a single item, whereas `IBatchCommand<TInterface>` operates on a batch of items.
+`ISaveCommand<TItem>` operates on a single item, whereas `IBatchCommand<TItem>` operates on a batch of items.
 
-If `ISaveCommand<TInterface>` faults, it will throw an exception:
+If `ISaveCommand<TItem>` faults, it will throw an exception:
 
-- `ValidationException`: The item failed validation
 - `CommandException`: The item failed to save
 
     - `Conflict`: The item conflicts with an existing item in the backing store
     - `PreconditionFailed`: The item has a different version from the version available in the backing store
 
-Otherwise, `ISaveCommand<TInterface>` will return an `IReadResult<TInterface>`.
+Otherwise, `ISaveCommand<TItem>` will return an `IReadResult<TItem>`.
 
-If `IBatchCommand<TInterface>` faults, it will throw an exception:
+If `IBatchCommand<TItem>` faults, it will throw an exception:
 
 - `ValidationException`: One or more items in the batch failed validation
 
-Otherwise, `IBatchCommand<TInterface>` will return an array of `IBatchResult<TInterface>`. Each `IBatchResult<TInterface>` corresponds to the respective `ISaveCommand<TInterface>` in the batch.
+Otherwise, `IBatchCommand<TItem>` will return an array of `IBatchResult<TItem>`. Each `IBatchResult<TItem>` corresponds to the respective `ISaveCommand<TItem>` in the batch.
 
-`IBatchResult<TInterface>`:
+`IBatchResult<TItem>`:
 
 - `HttpStatusCode`:
 
@@ -437,41 +435,26 @@ Otherwise, `IBatchCommand<TInterface>` will return an array of `IBatchResult<TIn
 
 - `ReadResult`: the saved item, if the save was successful
 
-### TInterface vs TItem
+### TItem and BaseItem
 
-All generic type definitions above are `TInterface` which is constrained to `IBaseItem`, where `IBaseItem` is an `interface.`
+All generic type definitions above use `TItem` which is constrained to `BaseItem`, where `BaseItem` is an abstract `record`.
 
-Using `TInterface` (an `interface`) instead of `TItem` (a `class` that implements `TInterface`) enforces the data integrity of the DTO.
+The `BaseItem` class provides common properties for all data entities. Data integrity is enforced through the command pattern and controlled access via the `IDataProvider<TItem>` interface.
 
-The `IBaseItem` interface does not expose any set accessors for its properties. This makes it impossible for a developer to set a property incorrectly. Instead, it is the responsibility of the `IDataProvider` to set these properties correctly.
+The `BaseItem` properties have internal setters to prevent incorrect modification. Instead, it is the responsibility of the `DataProvider<TItem>` to set these properties correctly.
 
-### DispatchProxy
+### TrackAttribute
 
-The `TInterface Item` property on each command is a [DispatchProxy](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.dispatchproxy?view=net-8.0). This allows us to handle any method dispatch (generally, the set accessor) on the item to enforce its data integrity.
-
-For example, the `TInterface Item` for `IReadResult<TInterface>` is set as read-only. Any call to a set accessor will throw an `InvalidOperationException`.
-
-### TrackChangeAttribute
-
-The `TrackChangeAttribute` on any property informs the `DispatchProxy` to track any changes to that property value. These changes are then added to the audit event that is created and saved within `ISaveCommand`.
+The `TrackAttribute` on any property informs the change tracking system to monitor changes to that property value. These changes are then added to the audit event that is created and saved within `ISaveCommand<TItem>`.
 
 ### Usage
 
-#### TInterface and TItem
-
-Create a new `TInterface` and `TItem`. Notice the `TrackChangeAttribute` and `JsonPropertyNameAttribute` are on the `TItem`. The `TItem` is the DTO for the `IDataProvider`; the `TInterface` is the proxy for the developer.
+#### TItem
 
 ```csharp
-internal interface ITestItem : IBaseItem
+internal class TestItem : BaseItem
 {
-    string PublicMessage { get; set; }
-
-    string PrivateMessage { get; set; }
-}
-
-internal class TestItem : BaseItem, ITestItem
-{
-    [TrackChange]
+    [Track]
     [JsonPropertyName("publicMessage")]
     public string PublicMessage { get; set; } = null!;
 
@@ -482,7 +465,7 @@ internal class TestItem : BaseItem, ITestItem
 
 #### Create an Item
 
-Call the `IDataProvider` `Create()` method to create the `ISaveCommand<TInterface>`.
+Call the `IDataProvider` `Create()` method to create the `ISaveCommand<TItem>`.
 
 ```csharp
     var createCommand = dataProvider.Create(
@@ -495,7 +478,7 @@ Call the `IDataProvider` `Create()` method to create the `ISaveCommand<TInterfac
 
 ### Save the Item
 
-Call the `SaveAsync()` method to save the item. This returns an `IReadResult<TInterface>` of the saved item.
+Call the `SaveAsync()` method to save the item. This returns an `IReadResult<TItem>` of the saved item.
 
 ```csharp
     var result = await createCommand.SaveAsync(
@@ -508,50 +491,50 @@ The `IDataProvider` will save the item to the backing data store.
 
 ```json
 {
-    "Id": "0346bbe4-0154-449f-860d-f3c1819aa174",
-    "PartitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
-    "TypeName": "test-item",
-    "CreatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
-    "UpdatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
-    "DeletedDateTimeOffset": null,
-    "IsDeleted": null,
-    "ETag": "e7622db2-c465-44bc-9d0a-e643882e8f38",
-    "PublicMessage": "Public #1",
-    "PrivateMessage": "Private #1"
+    "id": "0346bbe4-0154-449f-860d-f3c1819aa174",
+    "partitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
+    "typeName": "test-item",
+    "version": 0,
+    "createdDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "updatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "deletedDateTimeOffset": null,
+    "isDeleted": null,
+    "_etag": "e7622db2-c465-44bc-9d0a-e643882e8f38",
+    "publicMessage": "Public #1",
+    "privateMessage": "Private #1"
 }
 ```
 
 It will concurrently save an audit event to the backing data store.
 
-Notice the `Changes` element includes a property change for `publicMessage` from `null` to `Public #1`. The `PublicMessage` property is decorated with the `TrackChangeAttribute`.
+Notice the `Changes` element includes a property change for `publicMessage` from `null` to `Public #1`. The `PublicMessage` property is decorated with the `TrackAttribute`.
 
-Notice the `Changes` element does not include a property change for `privateMessage`. The `PrivateMessage` property is not decorated with the `TrackChangeAttribute`.
+Notice the `Changes` element does not include a property change for `privateMessage`. The `PrivateMessage` property is not decorated with the `TrackAttribute`.
 
 ```json
 {
-    "SaveAction": "CREATED",
-    "RelatedId": "0346bbe4-0154-449f-860d-f3c1819aa174",
-    "RelatedTypeName": "test-item",
-    "Changes": [
+    "saveAction": "CREATED",
+    "relatedId": "0346bbe4-0154-449f-860d-f3c1819aa174",
+    "relatedTypeName": "test-item",
+    "changes": [
       {
-        "PropertyName": "publicMessage",
-        "OldValue": null,
-        "NewValue": "Public #1"
+        "propertyName": "publicMessage",
+        "oldValue": null,
+        "newValue": "Public #1"
       }
     ],
-    "Context": {
-      "ObjectId": "7254e574-a446-48f7-b07c-ac34ace801c2",
-      "HttpTraceIdentifier": "fa1c0011-f536-427b-a091-07e39a9bc192",
-      "HttpRequestPath": "5fcdd52c-acdc-4f10-b7f4-17d056c57697"
-    },
-    "Id": "6e00fae0-2229-42e2-99b8-9ca14fdaa5f1",
-    "PartitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
-    "TypeName": "event",
-    "CreatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
-    "UpdatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
-    "DeletedDateTimeOffset": null,
-    "IsDeleted": null,
-    "ETag": "2cc85775-2d92-49f7-acf2-7abb17d46227"
+    "traceContext": "00-7254e574a44648f7b07cac34ace801c2-fa1c0011f536427b-01",
+    "traceId": "7254e574a44648f7b07cac34ace801c2",
+    "spanId": "fa1c0011f536427b",
+    "id": "EVENT^0346bbe4-0154-449f-860d-f3c1819aa174^00000000",
+    "partitionKey": "c8a6b519-3323-4bcb-9945-ab30d8ff96ff",
+    "typeName": "event",
+    "version": 0,
+    "createdDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "updatedDateTimeOffset": "2025-05-21T05:08:15.717886+00:00",
+    "deletedDateTimeOffset": null,
+    "isDeleted": null,
+    "_etag": "2cc85775-2d92-49f7-acf2-7abb17d46227"
   }
 ```
 
@@ -567,13 +550,13 @@ Notice the `Changes` element does not include a property change for `privateMess
 
 ### InMemoryDataProvider
 
-`InMemoryDataProvider` is an `IDataProvider` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
+`InMemoryDataProvider` is an `IDataProvider<TItem>` that uses memory as a temporary backing store. It does not provide persistence. It is intended to assist development and testing of their business logic.
 
 #### InMemoryDataProvider - Dependency Injection
 
-The `AddInMemoryDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate will configure any necessary [Data Providers](#idataprovider) for the application.
+The `AddInMemoryDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate will configure any necessary [Data Providers](#data-providers) for the application.
 
-In this example, we configure a data provider for the `IUser` interface and its `User` DTO.
+In this example, we configure a data provider for the `User` entity.
 
 ```csharp
     public static void Add(
@@ -599,9 +582,9 @@ In this example, we configure a data provider for the `IUser` interface and its 
         this IDataProviderOptions options)
     {
         return options
-            .Add<IUser, User>(
+            .Add<User>(
                 typeName: "user",
-                validator: User.Validator,
+                itemValidator: User.Validator,
                 commandOperations: CommandOperations.All);
     }
 ```

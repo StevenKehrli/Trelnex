@@ -12,7 +12,7 @@ internal record ItemEventWithExpiration : ItemEvent
     }
 
     /// <summary>
-    /// Optional time to live for the event.
+    /// Gets the expiration time for automatic deletion of this event record.
     /// </summary>
     [JsonInclude]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

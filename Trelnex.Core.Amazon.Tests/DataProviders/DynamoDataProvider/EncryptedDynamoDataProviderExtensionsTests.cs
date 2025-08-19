@@ -52,15 +52,15 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             .AddDynamoDataProviders(
                 configuration,
                 bootstrapLogger,
-                options => options.Add<ITestItem, TestItem>(
+                options => options.Add(
                     typeName: "encrypted-test-item",
-                    validator: TestItem.Validator,
+                    itemValidator: TestItem.Validator,
                     commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
         // Get the data provider from the DI container.
-        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<ITestItem>>();
+        _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
     }
 
     [Test]
@@ -93,7 +93,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();
@@ -153,7 +153,7 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             { "id", id }
         };
 
-        var document = await _encryptedTable.GetItemAsync(key, default);
+        var document = await _itemTable.GetItemAsync(key, default);
 
         // Convert to json
         var json = document.ToJson();

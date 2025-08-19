@@ -26,11 +26,6 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     protected Container _container = null!;
 
     /// <summary>
-    /// The CosmosDB container used for encryption testing.
-    /// </summary>
-    protected Container _encryptedContainer = null!;
-
-    /// <summary>
     /// The endpoint URI for the Cosmos DB account.
     /// </summary>
     /// <example>https://cosmosdb-account.documents.azure.com:443/</example>
@@ -46,11 +41,6 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     /// The container id used for testing.
     /// </summary>
     protected string _containerId = null!;
-
-    /// <summary>
-    /// The container id used for encryption testing.
-    /// </summary>
-    protected string _encryptedContainerId = null!;
 
     /// <summary>
     /// The block cipher service used for encrypting and decrypting test data.
@@ -101,15 +91,19 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
 
         // Get the container ID from the configuration.
         // Example: "test-items"
-        _containerId = configuration
+        var testItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
             .Get<string>()!;
 
         // Get the encypted container ID from the configuration.
-        // Example: "encrypted-test-items"
-        _encryptedContainerId = configuration
+        // Example: "test-items"
+        var encryptedTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:ContainerId")
             .Get<string>()!;
+
+        Assert.That(encryptedTestItemContainerId, Is.EqualTo(testItemContainerId));
+
+        _containerId = testItemContainerId;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -130,10 +124,6 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             databaseId: _databaseId,
             containerId: _containerId);
 
-        _encryptedContainer = cosmosClient.GetContainer(
-            databaseId: _databaseId,
-            containerId: _encryptedContainerId);
-
         return configuration;
     }
 
@@ -148,7 +138,6 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     public async Task TearDown()
     {
         await ContainerCleanup(_container);
-        await ContainerCleanup(_encryptedContainer);
     }
 
     private static async Task ContainerCleanup(

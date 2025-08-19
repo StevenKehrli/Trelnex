@@ -5,6 +5,13 @@
     "RelatedTypeName": "test-item",
     "Changes": [
       {
+        "PropertyName": "/encryptedMessage",
+        "OldValue": null,
+        "NewValue": {
+          "ValueKind": "String"
+        }
+      },
+      {
         "PropertyName": "/publicId",
         "OldValue": {
           "ValueKind": "Number"
@@ -21,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-996a45690dcce677fc1328ebc2f7f525-0f45af058db3168e-01",
-    "TraceId": "996a45690dcce677fc1328ebc2f7f525",
-    "SpanId": "0f45af058db3168e",
-    "Id": "EVENT^^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
+    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
+    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
+    "SpanId": "540f52b8b7660be0",
+    "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-10T21:54:21.087434+00:00",
-    "UpdatedDateTimeOffset": "2025-08-10T21:54:21.087434+00:00",
+    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
+    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "6fb0af3c-a2a8-4277-8f8f-049da8d9aabc"
+    "ETag": "5fdfecc3-93a7-4cb5-8e5e-15b0f889400f"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-996a45690dcce677fc1328ebc2f7f525-0f45af058db3168e-01",
-    "TraceId": "996a45690dcce677fc1328ebc2f7f525",
-    "SpanId": "0f45af058db3168e",
-    "Id": "EVENT^^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
+    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
+    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
+    "SpanId": "540f52b8b7660be0",
+    "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-10T21:54:21.087599+00:00",
-    "UpdatedDateTimeOffset": "2025-08-10T21:54:21.087599+00:00",
+    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
+    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "b2b839ec-c9a0-4a25-8031-4de26f8989ec"
+    "ETag": "2987f58f-200b-4e1d-9448-99b9b24c95fd"
   }
 ]

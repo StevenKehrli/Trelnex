@@ -1,34 +1,34 @@
 ﻿[
   {
     "Item": {
-      "Id": "767d7455-d555-41db-b184-5f862ed7a3ec",
-      "PartitionKey": "57158015-9141-4a67-9936-2c2c2d18f9e6",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:53:31.43217+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:53:31.43217+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "f8ffc023-cc63-4a0e-a56e-79ae7c6ff58e",
       "PublicMessage": "Public Message #2",
       "PrivateMessage": "Private Message #2",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "6e4b960a-9e4b-48cb-a78d-5e1bd78a001e",
+      "PartitionKey": "65493acc-b61b-4e07-99ae-7e391b4ceb25",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:59.065918+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:59.065918+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "eb76089d-5566-4688-a32f-c609821c2015"
     }
   },
   {
     "Item": {
-      "Id": "2f8b8b1c-5da9-42de-a8c2-2434d9893a3c",
-      "PartitionKey": "ef3f56b9-c44b-46b2-813e-2783088be945",
-      "TypeName": "test-item",
-      "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-10T21:53:31.399624+00:00",
-      "UpdatedDateTimeOffset": "2025-08-10T21:53:31.399624+00:00",
-      "DeletedDateTimeOffset": null,
-      "IsDeleted": null,
-      "ETag": "8fe2663d-909a-4399-8537-be90a9fb4b72",
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
-      "OptionalMessage": null
+      "OptionalMessage": null,
+      "Id": "ba183bc6-3eb3-4265-a409-cab793b438e0",
+      "PartitionKey": "3f770690-dc68-481b-ac92-bf74374171c2",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-08-16T21:33:59.032417+00:00",
+      "UpdatedDateTimeOffset": "2025-08-16T21:33:59.032417+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "9171cae8-4104-4a83-a984-70ff5658579a"
     }
   }
 ]
