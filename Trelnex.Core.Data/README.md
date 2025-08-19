@@ -14,7 +14,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 
 - **Interface-based programming** - Work with strongly-typed interfaces rather than concrete implementation details
 - **Pluggable architecture** - Support for multiple backend data stores (in-memory, database via LinqToDB)
-- **Configurable event tracking** - Control change tracking behavior with EventPolicy (Disabled, NoChanges, DecoratedChanges, AllChanges)
+- **Configurable event tracking** - Control change tracking behavior with EventPolicy (Disabled, NoChanges, OnlyTrackAttributeChanges, AllChanges)
 - **Change tracking** - Automatically track changes to model properties using the `Track` attribute with JSON Pointer paths
 - **Property encryption** - Securely encrypt sensitive data with field-level encryption using AES-GCM
 - **Event sourcing** - Complete audit trail with W3C trace context integration for all data modifications
@@ -422,7 +422,7 @@ The system provides configurable change tracking through the `EventPolicy` enum,
 
 - **Disabled** - Event tracking is completely disabled; no events are generated
 - **NoChanges** - Events are generated but no property changes are tracked
-- **DecoratedChanges** - Only properties explicitly marked with `[Track]` attribute are tracked
+- **OnlyTrackAttributeChanges** - Only properties explicitly marked with `[Track]` attribute are tracked
 - **AllChanges** (Default) - All properties with `[JsonPropertyName]` are tracked, except those marked with `[DoNotTrack]`
 
 ### Configuration
@@ -436,7 +436,7 @@ EventPolicy can be configured in several ways:
     "DynamoDataProviders": {
       "TestItem": {
         "TableName": "my-table",
-        "EventPolicy": "DecoratedChanges"
+        "EventPolicy": "OnlyTrackAttributeChanges"
       }
     }
   }
@@ -450,7 +450,7 @@ Control tracking behavior at the property level:
 ```csharp
 public record TestItem : BaseItem
 {
-    // Tracked only with DecoratedChanges policy
+    // Tracked with AllChanges or OnlyTrackAttributeChanges policy
     [Track]
     [JsonPropertyName("trackedMessage")]
     public string TrackedMessage { get; set; } = string.Empty;
@@ -532,7 +532,7 @@ When properties are tracked according to the EventPolicy, the system:
 
 **Recommendations:**
 - Use `[Track]` judiciously on sensitive properties
-- Consider using `EventPolicy.DecoratedChanges` or `[DoNotTrack]` for sensitive data
+- Consider using `EventPolicy.OnlyTrackAttributeChanges` or `[DoNotTrack]` for sensitive data
 - Properties with `[Encrypt]` maintain their encryption in event audit trails
 - Implement appropriate access controls for event logs and audit trails
 

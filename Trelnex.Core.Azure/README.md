@@ -89,7 +89,7 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
       },
       "encrypted-test-item": {
         "ContainerId": "test-items",
-        "EventPolicy": "DecoratedChanges",
+        "EventPolicy": "OnlyTrackAttributeChanges",
         "Encryption": {
           "Primary": {
             "CipherName": "AesGcm",
@@ -110,7 +110,7 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
 The `EventPolicy` property controls change tracking behavior. Options include:
 - `Disabled` - No events generated
 - `NoChanges` - Events without property changes
-- `DecoratedChanges` - Only `[Track]` decorated properties tracked
+- `OnlyTrackAttributeChanges` - Only `[Track]` decorated properties tracked
 - `AllChanges` - All properties tracked except `[DoNotTrack]` (default)
 
 The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from CosmosDB. The value is expressed in seconds.
@@ -193,7 +193,7 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
       "encrypted-test-item": {
         "ItemTableName": "test-items",
         "EventTableName": "test-items-events",
-        "EventPolicy": "DecoratedChanges",
+        "EventPolicy": "OnlyTrackAttributeChanges",
         "Encryption": {
           "Primary": {
             "CipherName": "AesGcm",
@@ -214,7 +214,7 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
 The `EventPolicy` property controls change tracking behavior. Options include:
 - `Disabled` - No events generated
 - `NoChanges` - Events without property changes
-- `DecoratedChanges` - Only `[Track]` decorated properties tracked
+- `OnlyTrackAttributeChanges` - Only `[Track]` decorated properties tracked
 - `AllChanges` - All properties tracked except `[DoNotTrack]` (default)
 
 The `EventTableName` property is optional and defaults to `{ItemTableName}-events` if not specified.

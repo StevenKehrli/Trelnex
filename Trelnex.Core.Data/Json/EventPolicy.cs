@@ -18,7 +18,7 @@ public enum EventPolicy
     /// <summary>
     /// Only properties explicitly marked with TrackAttribute are tracked.
     /// </summary>
-    DecoratedChanges,
+    OnlyTrackAttributeChanges,
 
     /// <summary>
     /// All properties with JsonPropertyNameAttribute are tracked, except those marked with DoNotTrackAttribute.

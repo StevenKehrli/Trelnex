@@ -199,7 +199,7 @@ public abstract partial class DataProvider<TItem>
                 : null
         };
 
-        var optionsForDecoratedChanges = new JsonSerializerOptions(defaultOptions)
+        var optionsForOnlyTrackAttributeChanges = new JsonSerializerOptions(defaultOptions)
         {
             TypeInfoResolver = blockCipherService is not null
                 ? new CompositeJsonResolver(
@@ -230,9 +230,9 @@ public abstract partial class DataProvider<TItem>
         _serializeChanges = eventPolicy switch
         {
             EventPolicy.NoChanges => item => _jsonNodeEmpty,
-            EventPolicy.DecoratedChanges => item => JsonSerializer.SerializeToNode(
+            EventPolicy.OnlyTrackAttributeChanges => item => JsonSerializer.SerializeToNode(
                 value: item,
-                options: optionsForDecoratedChanges) ?? _jsonNodeEmpty,
+                options: optionsForOnlyTrackAttributeChanges) ?? _jsonNodeEmpty,
             null or EventPolicy.AllChanges => item => JsonSerializer.SerializeToNode(
                 value: item,
                 options: optionsForAllChanges) ?? _jsonNodeEmpty,

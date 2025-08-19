@@ -5,8 +5,8 @@ namespace Trelnex.Core.Data.Tests.PropertyChanges;
 public abstract partial class EventPolicyTests
 {
     [Test]
-    [Description("Tests that create commands generate changes for properties with [Track] when EventPolicy is DecoratedChanges")]
-    public async Task EventPolicy_DecoratedChanges_CreateCommand()
+    [Description("Tests that create commands generate changes for properties with [Track] when EventPolicy is OnlyTrackAttributeChanges")]
+    public async Task EventPolicy_OnlyTrackAttributeChanges_CreateCommand()
     {
         var activityListener = new ActivityListener
         {
@@ -28,7 +28,7 @@ public abstract partial class EventPolicyTests
         var dataProvider = GetDataProvider(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         // Create a new command to create our test item
         using var createCommand = dataProvider.Create(
@@ -76,8 +76,8 @@ public abstract partial class EventPolicyTests
     }
 
     [Test]
-    [Description("Tests that delete commands generate changes for properties with [Track] when EventPolicy is DecoratedChanges")]
-    public async Task EventPolicy_DecoratedChanges_DeleteCommand()
+    [Description("Tests that delete commands generate changes for properties with [Track] when EventPolicy is OnlyTrackAttributeChanges")]
+    public async Task EventPolicy_OnlyTrackAttributeChanges_DeleteCommand()
     {
         var activityListener = new ActivityListener
         {
@@ -99,7 +99,7 @@ public abstract partial class EventPolicyTests
         var dataProvider = GetDataProvider(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         // Create a new command to create our test item
         using var createCommand = dataProvider.Create(
@@ -167,8 +167,8 @@ public abstract partial class EventPolicyTests
     }
 
     [Test]
-    [Description("Tests that update commands generate changes for properties with [Track] when EventPolicy is DecoratedChanges")]
-    public async Task EventPolicy_DecoratedChanges_UpdateCommand()
+    [Description("Tests that update commands generate changes for properties with [Track] when EventPolicy is OnlyTrackAttributeChanges")]
+    public async Task EventPolicy_OnlyTrackAttributeChanges_UpdateCommand()
     {
         var activityListener = new ActivityListener
         {
@@ -190,7 +190,7 @@ public abstract partial class EventPolicyTests
         var dataProvider = GetDataProvider(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         // Create a new command to create our test item
         using var createCommand = dataProvider.Create(

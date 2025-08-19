@@ -19,7 +19,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -70,7 +70,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -105,7 +105,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -155,7 +155,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -206,7 +206,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -259,7 +259,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -309,7 +309,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -355,7 +355,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -389,7 +389,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -427,7 +427,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -461,7 +461,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -512,7 +512,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -547,7 +547,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -597,7 +597,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -649,7 +649,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -699,7 +699,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -745,7 +745,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -781,7 +781,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -828,7 +828,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -879,7 +879,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -932,7 +932,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -981,7 +981,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -1018,7 +1018,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
@@ -1055,7 +1055,7 @@ public class PropertyChangesTests
         var dataProvider = factory.Create<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
-            eventPolicy: EventPolicy.DecoratedChanges);
+            eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
 
         using var createCommand = dataProvider.Create(
             id: id,
