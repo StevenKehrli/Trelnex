@@ -62,33 +62,15 @@ public class SqlDataProviderTests : EventPolicyTests
 
         // Get the item table name from the configuration.
         // Example: "test-items"
-        var testItemItemTableName = configuration
+        _itemTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
             .Get<string>()!;
 
         // Get the item table name from the configuration.
         // Example: "test-items-events"
-        var testItemEventTableName = configuration
+        _eventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
             .Get<string>()!;
-
-        // Get the encrypted item table name from the configuration.
-        // Example: "test-items"
-        var encryptedTestItemItemTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:ItemTableName")
-            .Get<string>()!;
-
-        // Get the encrypted event table name from the configuration.
-        // Example: "test-items-events"
-        var encryptedTestItemEventTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:EventTableName")
-            .Get<string>()!;
-
-        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
-        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
-
-        _itemTableName = testItemItemTableName;
-        _eventTableName = testItemEventTableName;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()
