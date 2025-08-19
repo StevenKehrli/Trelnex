@@ -17,7 +17,7 @@ using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 
-// [Ignore("Requires a Postgres server.")]
+[Ignore("Requires a Postgres server.")]
 [Category("EventPolicy")]
 public class PostgresDataProviderTests : EventPolicyTests
 {
