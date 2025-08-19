@@ -1,35 +1,38 @@
 using System.Data.Common;
 using System.Text.Json;
-using Azure.Core;
-using Azure.Identity;
+using Amazon;
+using Amazon.RDS.Util;
+using Amazon.Runtime;
+using Amazon.Runtime.Credentials;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
+using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Api.Configuration;
-using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.PropertyChanges;
 using Trelnex.Core.Encryption;
 
 namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 
-[Ignore("Requires a SQL server.")]
+// [Ignore("Requires a Postgres server.")]
 [Category("EventPolicy")]
-public class SqlDataProviderTests : EventPolicyTests
+public class PostgresDataProviderTests : EventPolicyTests
 {
-    /// <summary>
-    /// The scope for the Azure token credential.
-    /// </summary>
-    private readonly string _scope = "https://database.windows.net/.default";
-
+    private ServiceConfiguration _serviceConfiguration = null!;
     private string _connectionString = null!;
+    private RegionEndpoint _region = null!;
+    private string _host = null!;
+    private int _port = 5432;
+    private string _database = null!;
+    private string _dbUser = null!;
+    private AWSCredentials _awsCredentials = null!;
     private string _eventTableName = null!;
     private string _itemTableName = null!;
-    private TokenCredential _tokenCredential = null!;
     private DataOptions _dataOptions = null!;
-    private SqlDataProviderFactory _factory = null!;
+    private PostgresDataProviderFactory _factory = null!;
 
     /// <summary>
     /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
@@ -44,47 +47,75 @@ public class SqlDataProviderTests : EventPolicyTests
             .Build();
 
         // Get the service configuration from the configuration.
-        var serviceConfiguration = configuration
+        _serviceConfiguration = configuration
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()!;
 
-        // Get the data source from the configuration.
-        // Example: "sqldataprovider-tests.database.windows.net"
-        var dataSource = configuration
-            .GetSection("Azure.SqlDataProviders:DataSource")
+        // Get the host from the configuration.
+        // Example: "instanceName.uniqueId.region.rds.amazonaws.com"
+        _host = configuration
+            .GetSection("Amazon.PostgresDataProviders:Host")
             .Get<string>()!;
 
-        // Get the initial catalog from the configuration.
+        // Get the region from the host.
+        // Example: "us-west-2"
+        var regionSystemName = _host.Split('.')[2];
+        _region = RegionEndpoint.GetBySystemName(regionSystemName);
+
+        // Get the port from the configuration.
+        // Example: 5432
+        _port = configuration
+            .GetSection("Amazon.PostgresDataProviders:Port")
+            .Get<int?>() ?? 5432;
+
+        // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        var initialCatalog = configuration
-            .GetSection("Azure.SqlDataProviders:InitialCatalog")
+        _database = configuration
+            .GetSection("Amazon.PostgresDataProviders:Database")
+            .Get<string>()!;
+
+        // Get the database user from the configuration.
+        // Example: "admin"
+        _dbUser = configuration
+            .GetSection("Amazon.PostgresDataProviders:DbUser")
             .Get<string>()!;
 
         // Get the item table name from the configuration.
         // Example: "test-items"
         _itemTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
+            .GetSection("Amazon.PostgresDataProviders:Tables:test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the item table name from the configuration.
+        // Get the event table name from the configuration.
         // Example: "test-items-events"
         _eventTableName = configuration
-            .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
+            .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
             .Get<string>()!;
 
-        // Create the token credential.
-        _tokenCredential = new DefaultAzureCredential();
+        // Create AWS credentials
+        _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        // Create the SQL connection string.
-        var scsBuilder = new SqlConnectionStringBuilder()
+        // Generate an RDS authentication token.
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
+
+        // Build the connection string.
+        var csb = new NpgsqlConnectionStringBuilder
         {
-            ApplicationName = serviceConfiguration.FullName,
-            DataSource = dataSource,
-            InitialCatalog = initialCatalog,
-            Encrypt = true,
+            ApplicationName = _serviceConfiguration.FullName,
+            Host = _host,
+            Port = _port,
+            Database = _database,
+            Username = _dbUser,
+            Password = pwd,
+            SslMode = SslMode.Require
         };
 
-        _connectionString = scsBuilder.ConnectionString;
+        _connectionString = csb.ConnectionString;
 
         // Create mapping schema for entity-to-table mapping
         var mappingSchema = new MappingSchema();
@@ -109,23 +140,25 @@ public class SqlDataProviderTests : EventPolicyTests
 
         // Initialize LinqToDB data options for SQL Server
         _dataOptions = new DataOptions()
-            .UseSqlServer(_connectionString)
+            .UsePostgreSQL(_connectionString)
             .UseBeforeConnectionOpened(BeforeConnectionOpened)
             .UseMappingSchema(mappingSchema);
 
-        // Configure the SQL client options.
-        var sqlClientOptions = new SqlClientOptions(
-            TokenCredential: _tokenCredential,
-            Scope: _scope,
-            DataSource: dataSource,
-            InitialCatalog: initialCatalog,
-            TableNames: [_itemTableName, _eventTableName]
+        // Create the PostgresClientOptions.
+        var postgresClientOptions = new PostgresClientOptions(
+            AWSCredentials: _awsCredentials,
+            Region: _region,
+            Host: _host,
+            Port: _port,
+            Database: _database,
+            DbUser: _dbUser,
+            TableNames: [ _itemTableName, _eventTableName ]
         );
 
-        // Create the SqlDataProviderFactory.
-        _factory = await SqlDataProviderFactory.Create(
-            serviceConfiguration,
-            sqlClientOptions);
+        // Create the PostgresDataProviderFactory.
+        _factory = await PostgresDataProviderFactory.Create(
+            _serviceConfiguration,
+            postgresClientOptions);
     }
 
     /// <summary>
@@ -145,16 +178,25 @@ public class SqlDataProviderTests : EventPolicyTests
     private void BeforeConnectionOpened(
         DbConnection dbConnection)
     {
-        // Only process SQL Server connections
-        if (dbConnection is not SqlConnection sqlConnection) return;
+        // Only process Npgsql connections
+        if (dbConnection is not NpgsqlConnection connection) return;
 
-        // Generate Azure authentication token for SQL Server
-        var tokenCredential = _tokenCredential;
-        var tokenRequestContext = new TokenRequestContext([ _scope ]);
-        var accessToken = tokenCredential.GetToken(tokenRequestContext, default).Token;
+        // Generate AWS IAM authentication token for PostgreSQL
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
 
-        // Set access token for Azure AD authentication
-        sqlConnection.AccessToken = accessToken;
+        // Update connection string with generated authentication token
+        var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        connection.ConnectionString = csb.ConnectionString;
     }
 
     protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
@@ -187,13 +229,23 @@ public class SqlDataProviderTests : EventPolicyTests
         return await items.ToArrayAsync();
     }
 
-    private SqlConnection GetConnection()
+    protected NpgsqlConnection GetConnection()
     {
-        // Establish a SQL connection using token authentication.
-        var sqlConnection = new SqlConnection(_connectionString);
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
 
-        var tokenRequestContext = new TokenRequestContext([_scope]);
-        sqlConnection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
+        var csb = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        // Establish a SQL connection using the connection string.
+        var sqlConnection = new NpgsqlConnection(csb.ConnectionString);
 
         sqlConnection.Open();
 
@@ -207,11 +259,10 @@ public class SqlDataProviderTests : EventPolicyTests
         using var sqlConnection = GetConnection();
 
         // Define the SQL command to delete all rows from the table
-        var cmdText = $"DELETE FROM [{tableName}];";
-        var sqlCommand = new SqlCommand(cmdText, sqlConnection);
+        var cmdText = $"DELETE FROM \"{tableName}\";";
+        var sqlCommand = new NpgsqlCommand(cmdText, sqlConnection);
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
     }
-
 }
