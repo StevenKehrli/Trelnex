@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace Trelnex.Core;
+namespace Trelnex.Core.Exceptions;
 
 /// <summary>
 /// Extension methods for the <see cref="HttpStatusCode"/> enumeration.
