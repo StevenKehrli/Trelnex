@@ -11,6 +11,7 @@ using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.DataProviders;
 using Trelnex.Core.Api.Swagger;
 using Trelnex.Core.Client;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Api.Tests;

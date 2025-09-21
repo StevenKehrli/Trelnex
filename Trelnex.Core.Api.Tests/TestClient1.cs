@@ -24,58 +24,73 @@ internal class TestClient1(
     /// Sends a DELETE request to the /delete1 endpoint.
     /// </summary>
     /// <returns>A <see cref="TestResponse"/> with a Message property value of "delete1" to verify the endpoint.</returns>
-    public async Task<TestResponse> Delete()
+    public async Task<TestResponse> DeleteAsync()
     {
         // Append "/delete1" to the base address and send the DELETE request.
-        return await Delete<TestResponse>(
-            uri: BaseAddress.AppendPath("/delete1"));
+        var (response, _) = await DeleteAsync<TestResponse>(
+            relativePath: "/delete1",
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 
     /// <summary>
     /// Sends a GET request to the /get1 endpoint.
     /// </summary>
     /// <returns>A <see cref="TestResponse"/> with a Message property value of "get1" to verify the endpoint.</returns>
-    public async Task<TestResponse> Get()
+    public async Task<TestResponse> GetAsync()
     {
         // Append "/get1" to the base address and send the GET request.
-        return await Get<TestResponse>(
-            uri: BaseAddress.AppendPath("/get1"));
+        var (response, _) = await GetAsync<TestResponse>(
+            relativePath: "/get1",
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 
     /// <summary>
     /// Sends a PATCH request to the /patch1 endpoint.
     /// </summary>
     /// <returns>A <see cref="TestResponse"/> with a Message property value of "patch1" to verify the endpoint.</returns>
-    public async Task<TestResponse> Patch()
+    public async Task<TestResponse> PatchAsync()
     {
         // Append "/patch1" to the base address and send the PATCH request with no content.
-        return await Patch<string, TestResponse>(
-            uri: BaseAddress.AppendPath("/patch1"),
-            content: null);
+        var (response, _) = await PatchAsync<string, TestResponse>(
+            relativePath: "/patch1",
+            content: null,
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 
     /// <summary>
     /// Sends a POST request to the /post1 endpoint.
     /// </summary>
     /// <returns>A <see cref="TestResponse"/> with a Message property value of "post1" to verify the endpoint.</returns>
-    public async Task<TestResponse> Post()
+    public async Task<TestResponse> PostAsync()
     {
         // Append "/post1" to the base address and send the POST request with no content.
-        return await Post<string, TestResponse>(
-            uri: BaseAddress.AppendPath("/post1"),
-            content: null);
+        var (response, _) = await PostAsync<string, TestResponse>(
+            relativePath: "/post1",
+            content: null,
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 
     /// <summary>
     /// Sends a PUT request to the /put1 endpoint.
     /// </summary>
     /// <returns>A <see cref="TestResponse"/> with a Message property value of "put1" to verify the endpoint.</returns>
-    public async Task<TestResponse> Put()
+    public async Task<TestResponse> PutAsync()
     {
         // Append "/put1" to the base address and send the PUT request with no content.
-        return await Put<string, TestResponse>(
-            uri: BaseAddress.AppendPath("/put1"),
-            content: null);
+        var (response, _) = await PutAsync<string, TestResponse>(
+            relativePath: "/put1",
+            content: null,
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 
     /// <summary>
@@ -84,14 +99,17 @@ internal class TestClient1(
     /// <param name="value">The value to pass as a query string parameter.</param>
     /// <returns>A <see cref="TestResponse"/> with a Message property value matching the input parameter,
     /// demonstrating that query string parameters are correctly received and processed.</returns>
-    public async Task<TestResponse> QueryString(
+    public async Task<TestResponse> QueryStringAsync(
         string value)
     {
         // Append "/queryString" to the base string and append "value" to the query string and send the GET request.
-        var uri = BaseAddress
-            .AppendPath("/queryString")
+        var relativePath = "/queryString"
             .AddQueryString(("value", value));
 
-        return await Get<TestResponse>(uri);
+        var (response, _) = await GetAsync<TestResponse>(
+            relativePath: relativePath,
+            cancellationToken: CancellationToken.None);
+
+        return response;
     }
 }
