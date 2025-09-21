@@ -1,4 +1,5 @@
 using Trelnex.Core.Client;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Identity;
@@ -49,9 +50,11 @@ internal class AccessTokenClient(
         var content = new FormUrlEncodedContent(nameValueCollection);
 
         // Send the POST request to the token endpoint and return the access token
-        return await Post<FormUrlEncodedContent, AccessToken>(
-            uri: BaseAddress.AppendPath("/oauth2/token"),
+        var (response, _) = await PostAsync<FormUrlEncodedContent, AccessToken>(
+            relativePath: "/oauth2/token",
             content: content);
+
+        return response;
     }
 
     #endregion

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Amazon.Runtime;
 using Microsoft.Extensions.Logging;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Core.Amazon.Identity;
