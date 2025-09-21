@@ -1,4 +1,5 @@
 using System.Net;
+using Trelnex.Core.Exceptions;
 
 namespace Trelnex.Core.Data.Tests.Objects;
 
