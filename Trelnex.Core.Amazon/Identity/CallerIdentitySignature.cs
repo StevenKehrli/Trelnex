@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Amazon;
 using FluentValidation;
 using FluentValidation.Results;
+using Trelnex.Core.Exceptions;
 
 namespace Trelnex.Core.Amazon.Identity;
 
