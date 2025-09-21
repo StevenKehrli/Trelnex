@@ -1,8 +1,8 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Trelnex.Auth.Amazon.Services.RBAC;
-using Trelnex.Core;
 using Trelnex.Core.Api.Authentication;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Validation;
 
 namespace Trelnex.Auth.Amazon.Endpoints.RBAC;

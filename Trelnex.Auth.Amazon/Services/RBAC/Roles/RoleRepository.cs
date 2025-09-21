@@ -1,7 +1,7 @@
 using System.Net;
 using Trelnex.Auth.Amazon.Services.RBAC.Models;
 using Trelnex.Auth.Amazon.Services.RBAC.Roles;
-using Trelnex.Core;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Observability;
 using Trelnex.Core.Validation;
 
