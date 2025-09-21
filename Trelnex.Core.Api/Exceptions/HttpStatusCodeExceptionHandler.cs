@@ -1,30 +1,31 @@
 using System.Net.Mime;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Trelnex.Core.Exceptions;
 
 namespace Trelnex.Core.Api.Exceptions;
 
 /// <summary>
-/// Exception handler that converts <see cref="HttpStatusCodeException"/> instances into structured JSON API responses.
+/// Exception handler that converts <see cref="HttpStatusCodeException"/> instances into structured Problem Details JSON responses.
 /// </summary>
 /// <remarks>
-/// Integrates with ASP.NET Core's exception handling middleware to provide consistent HTTP error responses.
+/// Integrates with ASP.NET Core's exception handling middleware to provide consistent HTTP error responses
+/// conforming to RFC 7807 Problem Details specification. This handler extracts HTTP status codes and
+/// structured error information from exceptions to create standardized API error responses.
 /// </remarks>
 public class HttpStatusCodeExceptionHandler : IExceptionHandler
 {
     #region Private Static Fields
 
     /// <summary>
-    /// JSON serialization options for formatting error responses.
+    /// JSON serialization options configured for Problem Details responses with camelCase naming and null omission.
     /// </summary>
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
@@ -33,56 +34,50 @@ public class HttpStatusCodeExceptionHandler : IExceptionHandler
     #region Public Methods
 
     /// <summary>
-    /// Attempts to handle the specified exception.
+    /// Attempts to handle the specified exception by converting it to a Problem Details response.
     /// </summary>
     /// <param name="httpContext">The HTTP context for the current request.</param>
     /// <param name="exception">The exception to handle.</param>
-    /// <param name="cancellationToken">A token that can be used to cancel the operation.</param>
+    /// <param name="cancellationToken">Cancellation token for async operations.</param>
     /// <returns>
-    /// <see langword="true"/> if the exception was handled successfully; otherwise, <see langword="false"/>.
+    /// <see langword="true"/> if the exception was an <see cref="HttpStatusCodeException"/> and was handled;
+    /// otherwise, <see langword="false"/> to allow other handlers to process the exception.
     /// </returns>
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
         CancellationToken cancellationToken)
     {
-        // Only handle exceptions of the specific HTTP status code type.
-        if (exception is not HttpStatusCodeException httpStatusCodeException)
-        {
-            return false;
-        }
+        // Only handle HttpStatusCodeException instances; let other handlers process different exception types
+        if (exception is not HttpStatusCodeException httpStatusCodeException) return false;
 
-        // Create a Problem Details response.
+        // Build RFC 7807 Problem Details response from the exception
         var problemDetails = new ProblemDetails
         {
-            // Use the standard reason phrase for the status code as the title.
+            // Standard reason phrase for the HTTP status code (e.g., "Bad Request", "Not Found")
             Title = httpStatusCodeException.HttpStatusCode.ToReason(),
 
-            // Use the numeric status code from the exception.
+            // Numeric HTTP status code from the exception
             Status = (int)httpStatusCodeException.HttpStatusCode,
 
-            // Use the exception message as the detailed explanation.
+            // Detailed error message from the exception
             Detail = httpStatusCodeException.Message,
 
-            // Use the current request path as the instance URI.
+            // Current request path for problem instance identification
             Instance = httpContext.Request.Path.ToString(),
 
-            // Map validation errors to the extensions dictionary if present; otherwise, use an empty dictionary.
-            Extensions = httpStatusCodeException.Errors?.ToDictionary(
-                kvp => kvp.Key,
-                kvp => (object?)kvp.Value) ?? []
+            // Include structured validation errors in extensiojs if available
+            Extensions = httpStatusCodeException.Errors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
         };
 
-        // Set the HTTP status code on the response.
+        // Configure response with appropriate status code and content type
         httpContext.Response.StatusCode = (int)httpStatusCodeException.HttpStatusCode;
-
-        // Set the content type for RFC 7807.
         httpContext.Response.ContentType = MediaTypeNames.Application.ProblemJson;
 
-        // Write the structured response as JSON.
+        // Serialize Problem Details as JSON response
         await httpContext.Response.WriteAsJsonAsync(problemDetails, _jsonSerializerOptions, cancellationToken);
 
-        // Indicate that the exception has been handled.
+        // Signal successful handling to prevent further exception processing
         return true;
     }
 

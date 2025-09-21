@@ -41,7 +41,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the Delete method on the test client
-        var response = await testClient.Delete();
+        var response = await testClient.DeleteAsync();
 
         // Verify that the message in the TestResponse is equal to "delete1"
         // This confirms the response came from the /delete1 endpoint
@@ -72,7 +72,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the Get method on the test client
-        var response = await testClient.Get();
+        var response = await testClient.GetAsync();
 
         // Verify that the message in the TestResponse is equal to "get1"
         // This confirms the response came from the /get1 endpoint
@@ -92,7 +92,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the QueryString method on the test client
-        var response = await testClient.QueryString("value");
+        var response = await testClient.QueryStringAsync("value");
 
         // Verify that the message in the TestResponse is equal to "value"
         // This confirms the query string parameter was correctly passed to and processed by the endpoint
@@ -123,7 +123,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the Patch method on the test client
-        var response = await testClient.Patch();
+        var response = await testClient.PatchAsync();
 
         // Verify that the message in the TestResponse is equal to "patch1"
         // This confirms the response came from the /patch1 endpoint
@@ -154,7 +154,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the Post method on the test client
-        var response = await testClient.Post();
+        var response = await testClient.PostAsync();
 
         // Verify that the message in the TestResponse is equal to "post1"
         // This confirms the response came from the /post1 endpoint
@@ -185,7 +185,7 @@ public class ClientTests : BaseApiTests
         var testClient = new TestClient1(httpClient);
 
         // Call the Put method on the test client
-        var response = await testClient.Put();
+        var response = await testClient.PutAsync();
 
         // Verify that the message in the TestResponse is equal to "put1"
         // This confirms the response came from the /put1 endpoint
