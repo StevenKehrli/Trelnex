@@ -30,7 +30,7 @@ public class HttpStatusCodeException : Exception
     {
         HttpStatusCode = httpStatusCode;
 
-        Errors = errors?.ToImmutableDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value) ?? s_emptyErrors;
+        Errors = errors?.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value) ?? s_emptyErrors;
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class HttpStatusCodeException : Exception
     {
         HttpStatusCode = httpStatusCode;
 
-        Errors = errors?.ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value) ?? s_emptyErrors;
+        Errors = errors?.ToImmutableDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value) ?? s_emptyErrors;
     }
 
     /// <summary>
