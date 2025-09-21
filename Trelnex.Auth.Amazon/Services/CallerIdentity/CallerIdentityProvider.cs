@@ -8,7 +8,7 @@ using Amazon.Runtime.Internal.Auth;
 using Amazon.Runtime.Internal.Util;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
-using Trelnex.Core;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Services.CallerIdentity;

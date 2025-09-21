@@ -6,8 +6,8 @@ using Trelnex.Auth.Amazon.Services.CallerIdentity;
 using Trelnex.Auth.Amazon.Services.JWT;
 using Trelnex.Auth.Amazon.Services.RBAC;
 using Trelnex.Auth.Amazon.Services.Validators;
-using Trelnex.Core;
 using Trelnex.Core.Amazon.Identity;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 using Trelnex.Core.Validation;
 

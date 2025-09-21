@@ -6,7 +6,7 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Trelnex.Auth.Amazon.Services.RBAC.Models;
 using Trelnex.Auth.Amazon.Services.Validators;
-using Trelnex.Core;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Identity;
 
 namespace Trelnex.Auth.Amazon.Services.RBAC;

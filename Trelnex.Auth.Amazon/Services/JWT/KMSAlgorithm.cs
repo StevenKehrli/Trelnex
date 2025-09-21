@@ -8,7 +8,7 @@ using JWT.Algorithms;
 using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
-using Trelnex.Core;
+using Trelnex.Core.Exceptions;
 
 namespace Trelnex.Auth.Amazon.Services.JWT;
 

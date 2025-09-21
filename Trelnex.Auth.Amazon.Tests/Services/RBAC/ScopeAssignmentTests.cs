@@ -1,5 +1,5 @@
 using Snapshooter.NUnit;
-using Trelnex.Core;
+using Trelnex.Core.Exceptions;
 using Trelnex.Core.Validation;
 
 namespace Trelnex.Auth.Amazon.Tests.Services.RBAC;
