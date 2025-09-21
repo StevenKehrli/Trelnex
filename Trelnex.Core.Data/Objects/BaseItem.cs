@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json.Serialization;
+using Trelnex.Core.Exceptions;
 
 namespace Trelnex.Core.Data;
 
