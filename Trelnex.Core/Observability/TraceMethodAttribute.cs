@@ -91,7 +91,10 @@ public class TraceMethodAttribute(
         // If the method execution tag is an activity, set the status to error and dispose the activity.
         if (args.MethodExecutionTag is Activity activity)
         {
-            activity.SetStatus(ActivityStatusCode.Error, args.Exception.Message);
+            activity.SetStatus(
+                code: ActivityStatusCode.Error,
+                description: args.Exception.Message);
+
             activity.Dispose();
         }
     }
@@ -103,16 +106,54 @@ public class TraceMethodAttribute(
     public override void OnSuccess(
         MethodExecutionArgs args)
     {
-        // If the method execution tag is an activity, dispose the activity.
+        // If the method execution tag is an activity, handle disposal based on return value.
         if (args.MethodExecutionTag is Activity activity)
         {
-            activity.Dispose();
+            if (args.ReturnValue is Task task)
+            {
+                // Attach continuation - don't dispose yet, let the task completion handle it.
+                _ = DisposeActivityOnTaskCompletion(task, activity);
+            }
+            else
+            {
+                // For synchronous methods, dispose the activity immediately.
+                activity.Dispose();
+            }
         }
     }
 
     #endregion
 
     #region Private Static Methods
+
+    /// <summary>
+    /// Attaches a continuation to dispose the activity when the task completes.
+    /// </summary>
+    /// <param name="task">The task to await.</param>
+    /// <param name="activity">The activity to dispose when the task completes.</param>
+    /// <returns>A task that completes when the activity is disposed.</returns>
+    private static async Task DisposeActivityOnTaskCompletion(
+        Task task,
+        Activity? activity)
+    {
+        try
+        {
+            // Wait for the task to complete.
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Set error status if an exception occurs in the task.
+            activity?.SetStatus(
+                code: ActivityStatusCode.Error,
+                description: ex.Message);
+        }
+        finally
+        {
+            // Always dispose the activity when the task completes.
+            activity?.Dispose();
+        }
+    }
 
     /// <summary>
     /// Generates an activity name from the method information.
