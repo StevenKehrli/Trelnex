@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Trelnex.Core.Api.Swagger;
@@ -19,11 +19,15 @@ internal class SchemaFilter : ISchemaFilter
     /// <param name="schema">The OpenAPI schema being modified.</param>
     /// <param name="context">The schema filter context.</param>
     public void Apply(
-        OpenApiSchema schema,
+        IOpenApiSchema schema,
         SchemaFilterContext context)
     {
-        // Disable additional properties for strict schema validation.
-        schema.AdditionalPropertiesAllowed = false;
+        // Cast to concrete type to modify properties.
+        if (schema is OpenApiSchema openApiSchema)
+        {
+            // Disable additional properties for strict schema validation.
+            openApiSchema.AdditionalPropertiesAllowed = false;
+        }
     }
 
     #endregion

@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Trelnex.Core.Api.Authentication;
 
@@ -25,6 +25,10 @@ internal class SecurityFilter(
         OpenApiDocument document,
         DocumentFilterContext context)
     {
+        // Ensure Components is initialized.
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
         // Get the security definitions and add to this document.
         var securityDefinitions = securityProvider.GetSecurityDefinitions();
 

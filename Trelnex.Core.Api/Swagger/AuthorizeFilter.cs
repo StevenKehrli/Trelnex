@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Trelnex.Core.Api.Authentication;
 
@@ -38,21 +38,14 @@ internal class AuthorizeFilter(
             var securityRequirement = securityProvider.GetSecurityRequirement(authorizeAttribute.Policy!);
 
             // Create the security requirement and add to this operation.
+            var scheme = new OpenApiSecuritySchemeReference(securityRequirement.JwtBearerScheme, context.Document);
+
+            var requiredRoles = securityRequirement.RequiredRoles
+                .Select(requiredRole => $"{securityRequirement.Audience}/{securityRequirement.Scope}/{requiredRole}");
+
             var openApiSecurityRequirement = new OpenApiSecurityRequirement
             {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = securityRequirement.JwtBearerScheme
-                        }
-                    },
-                    securityRequirement.RequiredRoles
-                        .Select(requiredRole => $"{securityRequirement.Audience}/{securityRequirement.Scope}/{requiredRole}")
-                        .ToArray()
-                }
+                [scheme] = [.. requiredRoles]
             };
 
             operation.Security.Add(openApiSecurityRequirement);
