@@ -30,7 +30,7 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Npgsql" Version="9.0.4" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AWS" Version="1.14.0" />
-        <PackageReference Include="Trelnex.Core.Api" Version="0.9.0" />
+        <PackageReference Include="Trelnex.Core.Api" Version="0.10.0" />
     </ItemGroup>
 
 </Project>
