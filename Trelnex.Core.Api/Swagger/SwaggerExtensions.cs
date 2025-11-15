@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using Semver;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Trelnex.Core.Api.Configuration;
 
 namespace Trelnex.Core.Api.Swagger;
@@ -33,6 +36,10 @@ public static class SwaggerExtensions
         var versionString = FormatVersionString(serviceConfiguration.SemVersion);
 
         services.AddEndpointsApiExplorer();
+
+        // Register the configuration class that will add security definitions.
+        // This is called by the options framework before SwaggerGen is fully configured.
+        services.ConfigureOptions<ConfigureSwaggerGenOptions>();
 
         services.AddSwaggerGen(options =>
         {
@@ -73,7 +80,7 @@ public static class SwaggerExtensions
 
             options.SchemaFilter<SchemaFilter>();
             options.OperationFilter<AuthorizeFilter>();
-            options.DocumentFilter<SecurityFilter>();
+            options.DocumentFilter<RemoveTagsFilter>();
         });
 
         return services;
@@ -131,4 +138,39 @@ public static class SwaggerExtensions
     }
 
     #endregion
+}
+
+/// <summary>
+/// Configures SwaggerGen options with security definitions from the security provider.
+/// </summary>
+/// <remarks>
+/// This class is called by the options framework to configure SwaggerGen before filters run.
+/// </remarks>
+/// <param name="securityProvider">The security provider that supplies authentication schemes.</param>
+internal class ConfigureSwaggerGenOptions(
+    Authentication.ISecurityProvider securityProvider) : IConfigureOptions<SwaggerGenOptions>
+{
+    /// <summary>
+    /// Configures SwaggerGen options by registering security definitions.
+    /// </summary>
+    /// <param name="options">The SwaggerGen options to configure.</param>
+    public void Configure(SwaggerGenOptions options)
+    {
+        // Register security definitions from the security provider.
+        // This must happen before the OperationFilter runs so that security scheme references can be resolved.
+        var securityDefinitions = securityProvider.GetSecurityDefinitions();
+
+        foreach (var securityDefinition in securityDefinitions)
+        {
+            options.AddSecurityDefinition(securityDefinition.JwtBearerScheme, new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                In = ParameterLocation.Header,
+                Description = $"Authorization Header JWT Bearer Token; Audience {securityDefinition.Audience}; Scope {securityDefinition.Scope}",
+                Name = "Authorization",
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            });
+        }
+    }
 }

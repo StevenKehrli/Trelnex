@@ -38,7 +38,10 @@ internal class AuthorizeFilter(
             var securityRequirement = securityProvider.GetSecurityRequirement(authorizeAttribute.Policy!);
 
             // Create the security requirement and add to this operation.
-            var scheme = new OpenApiSecuritySchemeReference(securityRequirement.JwtBearerScheme, context.Document);
+            // The scheme is resolved from the document's security schemes registered via AddSecurityDefinition.
+            var scheme = new OpenApiSecuritySchemeReference(
+                referenceId: securityRequirement.JwtBearerScheme,
+                hostDocument: context.Document);
 
             var requiredRoles = securityRequirement.RequiredRoles
                 .Select(requiredRole => $"{securityRequirement.Audience}/{securityRequirement.Scope}/{requiredRole}");
