@@ -23,7 +23,8 @@
               }
             }
           }
-        }
+        },
+        "security": [ ]
       }
     },
     "/delete1": {
@@ -68,7 +69,8 @@
               }
             }
           }
-        }
+        },
+        "security": [ ]
       }
     },
     "/get1": {
@@ -202,7 +204,8 @@
               }
             }
           }
-        }
+        },
+        "security": [ ]
       }
     },
     "/testRolePolicy1": {
@@ -363,5 +366,10 @@
         "bearerFormat": "JWT"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "testhost"
+    }
+  ]
 }

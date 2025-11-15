@@ -28,8 +28,8 @@
 
     <ItemGroup>
         <PackageReference Include="Castle.Core" Version="5.2.1" />
-        <PackageReference Include="linq2db" Version="5.4.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
+        <PackageReference Include="linq2db" Version="5.4.1.9" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="SystemTextJson.JsonDiffPatch" Version="2.0.0" />
         <PackageReference Include="Trelnex.Core" Version="0.8.0" />
