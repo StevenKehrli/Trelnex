@@ -157,19 +157,21 @@ public class SqlDataProviderTests : EventPolicyTests
         sqlConnection.AccessToken = accessToken;
     }
 
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        return _factory.Create<EventPolicyTestItem>(
+        var dataProvider = _factory.Create<EventPolicyTestItem>(
             typeName: typeName,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
+
+        return Task.FromResult(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(

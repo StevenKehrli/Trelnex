@@ -27,11 +27,8 @@ public class UpdateCommandEventTests
 
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -280,9 +277,6 @@ public class UpdateCommandEventTests
 
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Create the AesGcmCipher instance with the defined secret.
         var cipherConfiguration = new AesGcmCipherConfiguration
         {
@@ -295,7 +289,7 @@ public class UpdateCommandEventTests
         var blockCipherService = new BlockCipherService(cipher);
 
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges,

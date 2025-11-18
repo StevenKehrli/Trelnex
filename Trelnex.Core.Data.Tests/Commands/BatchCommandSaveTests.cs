@@ -14,11 +14,8 @@ public class BatchCommandSaveTests
         var id1 = Guid.NewGuid().ToString();
         var id2 = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -100,11 +97,8 @@ public class BatchCommandSaveTests
         var id1 = Guid.NewGuid().ToString();
         var id2 = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -202,11 +196,8 @@ public class BatchCommandSaveTests
         var id1 = Guid.NewGuid().ToString();
         var id2 = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -308,11 +299,8 @@ public class BatchCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 

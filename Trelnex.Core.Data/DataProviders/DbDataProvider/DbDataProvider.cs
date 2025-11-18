@@ -85,9 +85,8 @@ public abstract class DbDataProvider<TItem>(
 #pragma warning restore CS1998, CS8425
 
     /// <inheritdoc/>
-#pragma warning disable CS1998
     [TraceMethod]
-    protected override async Task<TItem?> ReadItemAsync(
+    protected override Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
@@ -103,7 +102,7 @@ public abstract class DbDataProvider<TItem>(
                 .Where(i => i.Id == id && i.PartitionKey == partitionKey && i.TypeName == TypeName)
                 .FirstOrDefault();
 
-            return item;
+            return Task.FromResult(item);
         }
         catch (Exception ex) when (IsDatabaseException(ex))
         {
@@ -111,7 +110,6 @@ public abstract class DbDataProvider<TItem>(
             throw new CommandException(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
-#pragma warning restore CS1998
 
     /// <inheritdoc/>
     [TraceMethod]

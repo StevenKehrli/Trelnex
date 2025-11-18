@@ -105,19 +105,21 @@ public class DynamoDataProviderTests : EventPolicyTests
         } while (search.IsDone is false);
     }
 
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        return _factory.Create<EventPolicyTestItem>(
+        var dataProvider = _factory.Create<EventPolicyTestItem>(
             typeName: typeName,
             itemTableName: _itemTable.TableName,
             eventTableName: _eventTable.TableName,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
+        
+        return Task.FromResult(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(

@@ -12,9 +12,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "end-");
             },
             "The type 'end-' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.");
@@ -29,9 +27,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "-start");
             },
             "The type '-start' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.");
@@ -46,9 +42,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "number1");
             },
             $"The type 'number1' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.");
@@ -63,9 +57,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "event");
             },
             $"The typeName 'event' is a reserved type name.");
@@ -80,9 +72,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "snake_case");
             },
             $"The type 'snake_case' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.");
@@ -97,9 +87,7 @@ public class TypeNameRulesTests
         Assert.ThrowsAsync<ArgumentException>(
             async () =>
             {
-                var factory = await InMemoryDataProviderFactory.Create();
-
-                var dataProvider = factory.Create<TestItem>(
+                var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
                     typeName: "UpperCase");
             },
             $"The type 'UpperCase' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.");

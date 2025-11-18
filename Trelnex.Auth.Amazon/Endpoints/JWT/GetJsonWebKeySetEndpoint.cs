@@ -48,8 +48,7 @@ internal static class GetJsonWebKeySetEndpoint
     /// Retrieves all available JSON Web Keys from the provider registry and formats them according to the JWKS specification.
     /// Only the public portions of the keys are exposed.
     /// </remarks>
-#pragma warning disable CS1998
-    internal static async Task<JsonWebKeySet> HandleRequest(
+    internal static Task<JsonWebKeySet> HandleRequest(
         [FromServices] IJwtProviderRegistry jwtProviderRegistry)
     {
         // Get the JSON Web Key Set from the registry and convert for serialization.
@@ -69,9 +68,8 @@ internal static class GetJsonWebKeySetEndpoint
         };
 
         // Return the JSON Web Key Set.
-        return jwks;
+        return Task.FromResult(jwks);
     }
-#pragma warning restore CS1998
 
     #endregion
 

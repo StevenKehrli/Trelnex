@@ -27,11 +27,8 @@ public class DeleteCommandEventTests
 
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with delete operations
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -239,9 +236,6 @@ public class DeleteCommandEventTests
 
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Create the AesGcmCipher instance with the defined secret.
         var cipherConfiguration = new AesGcmCipherConfiguration
         {
@@ -254,7 +248,7 @@ public class DeleteCommandEventTests
         var blockCipherService = new BlockCipherService(cipher);
 
         // Get a data provider for our test item type with delete operations
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges,

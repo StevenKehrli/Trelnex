@@ -19,11 +19,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -64,11 +61,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -104,11 +98,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -147,11 +138,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -191,11 +179,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -235,11 +220,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -285,11 +267,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -335,11 +314,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -384,11 +360,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -434,11 +407,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
