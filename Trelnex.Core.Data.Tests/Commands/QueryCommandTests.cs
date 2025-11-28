@@ -15,7 +15,7 @@ public class QueryCommandTests
         var partitionKey2 = "0ab56811-b146-4465-948e-3c0816021954";
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -62,7 +62,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -105,7 +105,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
@@ -147,7 +147,7 @@ public class QueryCommandTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -200,7 +200,7 @@ public class QueryCommandTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -251,7 +251,7 @@ public class QueryCommandTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -303,7 +303,7 @@ public class QueryCommandTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -352,7 +352,7 @@ public class QueryCommandTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -405,7 +405,7 @@ public class QueryCommandTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -458,7 +458,7 @@ public class QueryCommandTests
         var partitionKey2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -508,7 +508,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -562,7 +562,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -602,7 +602,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -642,7 +642,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -695,7 +695,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -735,7 +735,7 @@ public class QueryCommandTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 

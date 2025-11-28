@@ -34,9 +34,9 @@ public class InMemoryDataProviderExtensionsTests
             });
 
         // Verify that adding the InMemoryDataProviders twice throws an InvalidOperationException
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<InvalidOperationException>(async () =>
         {
-            services.AddInMemoryDataProviders(
+            await services.AddInMemoryDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options

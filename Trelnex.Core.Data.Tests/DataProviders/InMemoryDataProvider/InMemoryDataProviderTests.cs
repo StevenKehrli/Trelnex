@@ -39,9 +39,9 @@ public class InMemoryDataProviderTests : DataProviderTests
     /// via reflection to allow cleaning up between tests.
     /// </remarks>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
-        _dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        _dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             TestItem.Validator,
             CommandOperations.All);

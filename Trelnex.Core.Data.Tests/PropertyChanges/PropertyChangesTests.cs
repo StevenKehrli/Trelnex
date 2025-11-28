@@ -13,7 +13,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -55,13 +55,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when creating a new array with initial items")]
-    public async Task PropertyChanges_Array_CreateNew()
+    public void PropertyChanges_Array_CreateNew()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -93,7 +93,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -140,7 +140,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -188,7 +188,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -238,7 +238,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -285,7 +285,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -328,7 +328,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -359,7 +359,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -394,7 +394,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -425,7 +425,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -473,7 +473,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -505,7 +505,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -552,7 +552,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -601,7 +601,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -648,7 +648,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -691,7 +691,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -724,7 +724,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -768,7 +768,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -816,7 +816,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -866,7 +866,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -912,7 +912,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -946,7 +946,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -980,7 +980,7 @@ public class PropertyChangesTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<PolicyChangesTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);

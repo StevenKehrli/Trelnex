@@ -161,7 +161,7 @@ public abstract class BaseApiTests
         // Create the web application using a test configuration
         _webApplication = Application.CreateWebApplication(
             args: [],
-            addApplication: (services, configuration, logger) =>
+            addApplication: async (services, configuration, logger) =>
             {
                 // Add the test server (in-memory)
                 services.AddSingleton<IHostLifetime, NoopHostLifetime>();
@@ -178,9 +178,9 @@ public abstract class BaseApiTests
                     .AddPermissions<TestPermission2>(logger);
 
                 // Add Swagger and in-memory data providers for testing
-                services
+                await services
                     .AddSwaggerToServices()
-                    .AddInMemoryDataProviders(
+                    .AddInMemoryDataProvidersAsync(
                         configuration,
                         logger,
                         options => { }); // No specific options for in-memory provider in base test

@@ -31,8 +31,8 @@ public class PostgresDataProviderTests : EventPolicyTests
     private AWSCredentials _awsCredentials = null!;
     private string _eventTableName = null!;
     private string _itemTableName = null!;
-    private DataOptions _dataOptions = null!;
-    private PostgresDataProviderFactory _factory = null!;
+    private DataOptions _baseDataOptions = null!;
+    private Action<DbConnection> _beforeConnectionOpened = null!;
 
     /// <summary>
     /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
@@ -117,48 +117,11 @@ public class PostgresDataProviderTests : EventPolicyTests
 
         _connectionString = csb.ConnectionString;
 
-        // Create mapping schema for entity-to-table mapping
-        var mappingSchema = new MappingSchema();
+        // Create BeforeConnectionOpened callback for AWS IAM authentication
+        _beforeConnectionOpened = BeforeConnectionOpened;
 
-        // Configure metadata reader to use JSON property names as column names
-        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
-
-        var fmBuilder = new FluentMappingBuilder(mappingSchema);
-
-        var jsonSerializerOptions = new JsonSerializerOptions();
-
-        // Configure events table mapping
-        fmBuilder.Entity<ItemEvent>()
-            .HasTableName(_eventTableName)
-            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.Changes).HasConversion(
-                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
-                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
-
-        fmBuilder.Build();
-
-        // Initialize LinqToDB data options for SQL Server
-        _dataOptions = new DataOptions()
-            .UsePostgreSQL(_connectionString)
-            .UseBeforeConnectionOpened(BeforeConnectionOpened)
-            .UseMappingSchema(mappingSchema);
-
-        // Create the PostgresClientOptions.
-        var postgresClientOptions = new PostgresClientOptions(
-            AWSCredentials: _awsCredentials,
-            Region: _region,
-            Host: _host,
-            Port: _port,
-            Database: _database,
-            DbUser: _dbUser,
-            TableNames: [ _itemTableName, _eventTableName ]
-        );
-
-        // Create the PostgresDataProviderFactory.
-        _factory = await PostgresDataProviderFactory.Create(
-            _serviceConfiguration,
-            postgresClientOptions);
+        // Create base DataOptions with PostgreSQL connection string
+        _baseDataOptions = new DataOptions().UsePostgreSQL(_connectionString);
     }
 
     /// <summary>
@@ -205,23 +168,51 @@ public class PostgresDataProviderTests : EventPolicyTests
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        var dataProvider = _factory.Create<EventPolicyTestItem>(
-            typeName: typeName,
+        // Build configured DataOptions with mapping schema
+        var dataOptions = DataOptionsBuilder.Build<EventPolicyTestItem>(
+            baseDataOptions: _baseDataOptions,
+            beforeConnectionOpened: _beforeConnectionOpened,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
+            blockCipherService: blockCipherService);
+
+        var dataProvider = new PostgresDataProvider<EventPolicyTestItem>(
+            typeName: typeName,
+            dataOptions: dataOptions,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
 
-        return Task.FromResult(dataProvider);
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(
         string id,
         string partitionKey)
     {
+        // Build DataOptions for querying events table
+        var mappingSchema = new MappingSchema();
+        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
+
+        var fmBuilder = new FluentMappingBuilder(mappingSchema);
+        var jsonSerializerOptions = new JsonSerializerOptions();
+
+        fmBuilder.Entity<ItemEvent>()
+            .HasTableName(_eventTableName)
+            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.Changes).HasConversion(
+                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
+                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
+
+        fmBuilder.Build();
+
+        var dataOptions = _baseDataOptions
+            .UseMappingSchema(mappingSchema)
+            .UseBeforeConnectionOpened(_beforeConnectionOpened);
+
         // Create database connection
-        using var dataConnection = new DataConnection(_dataOptions);
+        using var dataConnection = new DataConnection(dataOptions);
 
         // Query for specific item by primary key
         var items = dataConnection

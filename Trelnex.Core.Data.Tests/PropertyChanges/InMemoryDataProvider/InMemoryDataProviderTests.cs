@@ -7,22 +7,22 @@ public class InMemoryDataProviderTests : EventPolicyTests
 {
     private InMemoryDataProvider<EventPolicyTestItem> _dataProvider = null!;
 
-    protected override async Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
         // Create our data provider.
-        var dataProvider = await InMemoryDataProvider<EventPolicyTestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<EventPolicyTestItem>(
             typeName: typeName,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
 
-        _dataProvider = (dataProvider as InMemoryDataProvider<EventPolicyTestItem>)!;
+        _dataProvider = dataProvider;
 
-        return dataProvider;
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override Task<ItemEvent[]> GetItemEventsAsync(

@@ -28,7 +28,7 @@ public class DeleteCommandEventTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Get a data provider for our test item type with delete operations
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -248,7 +248,7 @@ public class DeleteCommandEventTests
         var blockCipherService = new BlockCipherService(cipher);
 
         // Get a data provider for our test item type with delete operations
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges,

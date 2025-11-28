@@ -28,7 +28,7 @@ public class UpdateCommandEventTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -289,7 +289,7 @@ public class UpdateCommandEventTests
         var blockCipherService = new BlockCipherService(cipher);
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges,

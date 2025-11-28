@@ -13,7 +13,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// Translates LINQ expressions to DynamoDB query expressions and applies remaining filters in-memory.
 /// </summary>
 /// <typeparam name="T">The type of items being queried.</typeparam>
-public class QueryHelper<T>
+internal class QueryHelper<T>
 {
     #region Private Fields
 

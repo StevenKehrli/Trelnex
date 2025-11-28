@@ -15,7 +15,7 @@ namespace Trelnex.Core.Data;
 /// In-memory data provider implementation for testing and development purposes.
 /// </summary>
 /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
-internal class InMemoryDataProvider<TItem>
+public class InMemoryDataProvider<TItem>
     : DataProvider<TItem>
     where TItem : BaseItem, new()
 {
@@ -40,7 +40,7 @@ internal class InMemoryDataProvider<TItem>
     /// <param name="eventPolicy">Optional event policy for change tracking.</param>
     /// <param name="blockCipherService">Optional service for encrypting sensitive data.</param>
     /// <param name="logger">Optional logger for diagnostics.</param>
-    private InMemoryDataProvider(
+    public InMemoryDataProvider(
         string typeName,
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
@@ -56,39 +56,6 @@ internal class InMemoryDataProvider<TItem>
             logger: logger)
     {
         _store = CreateStore();
-    }
-
-    #endregion
-
-    #region Public Static Methods
-
-    /// <summary>
-    /// Creates an in-memory data provider for the specified item type.
-    /// </summary>
-    /// <param name="typeName">Type name identifier for the items.</param>
-    /// <param name="itemValidator">Optional validator for items.</param>
-    /// <param name="commandOperations">Allowed operations for this provider.</param>
-    /// <param name="eventPolicy">Optional event policy for change tracking.</param>
-    /// <param name="blockCipherService">Optional encryption service for sensitive data.</param>
-    /// <param name="logger">Optional logger for diagnostics.</param>
-    /// <returns>A configured in-memory data provider instance.</returns>
-    public static Task<IDataProvider<TItem>> CreateAsync(
-        string typeName,
-        IValidator<TItem>? itemValidator = null,
-        CommandOperations? commandOperations = null,
-        EventPolicy? eventPolicy = null,
-        IBlockCipherService? blockCipherService = null,
-        ILogger? logger = null)
-    {
-        var provider = new InMemoryDataProvider<TItem>(
-            typeName: typeName,
-            itemValidator: itemValidator,
-            commandOperations: commandOperations,
-            eventPolicy: eventPolicy,
-            blockCipherService: blockCipherService,
-            logger: logger);
-        
-        return Task.FromResult(provider as IDataProvider<TItem>);
     }
 
     #endregion

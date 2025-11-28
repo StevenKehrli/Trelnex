@@ -7,13 +7,13 @@ public class UpdateCommandSaveTests
 {
     [Test]
     [Description("Tests that update command throws when operations are not supported")]
-    public async Task UpdateCommandSave_SaveAsync_NotSupported()
+    public void UpdateCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider with no supported operations
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Read);
 
@@ -32,7 +32,7 @@ public class UpdateCommandSaveTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             logger: logger);
@@ -97,7 +97,7 @@ public class UpdateCommandSaveTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             logger: logger);
@@ -156,7 +156,7 @@ public class UpdateCommandSaveTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 

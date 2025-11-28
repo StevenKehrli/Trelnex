@@ -15,7 +15,7 @@ public class BatchCommandSaveTests
         var id2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -98,7 +98,7 @@ public class BatchCommandSaveTests
         var id2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -197,7 +197,7 @@ public class BatchCommandSaveTests
         var id2 = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 
@@ -300,7 +300,7 @@ public class BatchCommandSaveTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.All);
 

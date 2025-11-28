@@ -15,12 +15,11 @@ namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 [Category("EventPolicy")]
 public class DynamoDataProviderTests : EventPolicyTests
 {
-    private Table _itemTable = null!;
-    private Table _eventTable = null!;
-    private DynamoDataProviderFactory _factory = null!;
+    private Table _itemTable;
+    private Table _eventTable;
 
     /// <summary>
-    /// Sets up the DynamoDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the DynamoDataProvider for testing.
     /// </summary>
     [OneTimeSetUp]
     public async Task TestFixtureSetup()
@@ -52,23 +51,18 @@ public class DynamoDataProviderTests : EventPolicyTests
         // Create AWS credentials
         var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        // Create a DynamoDB client for cleanup
+        // Create a DynamoDB client and load table objects
         var dynamoClient = new AmazonDynamoDBClient(
             awsCredentials,
             RegionEndpoint.GetBySystemName(region));
 
-        // Create the data provider using direct factory instantiation.
-        var dynamoClientOptions = new DynamoClientOptions(
-            AWSCredentials: awsCredentials,
-            Region: region,
-            TableNames: [ itemTableName, eventTableName ]
-        );
+        _itemTable = await dynamoClient.LoadTableAsync(
+            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            itemTableName);
 
-        _itemTable = dynamoClient.GetTable(itemTableName);
-        _eventTable = dynamoClient.GetTable(eventTableName);
-
-        _factory = await DynamoDataProviderFactory.Create(
-            dynamoClientOptions: dynamoClientOptions);
+        _eventTable = await dynamoClient.LoadTableAsync(
+            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            eventTableName);
     }
 
     /// <summary>
@@ -85,41 +79,21 @@ public class DynamoDataProviderTests : EventPolicyTests
         await TableCleanup(_itemTable);
     }
 
-    private static async Task TableCleanup(
-        Table table)
-    {
-        // Create a scan filter to find all documents in the table.
-        var scanFilter = new ScanFilter();
-        var search = table.Scan(scanFilter);
-
-        // Iterate through the results in batches.
-        do
-        {
-            var documents = await search.GetNextSetAsync();
-
-            // Delete each document individually.
-            foreach (var document in documents)
-            {
-                await table.DeleteItemAsync(document);
-            }
-        } while (search.IsDone is false);
-    }
-
     protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        var dataProvider = _factory.Create<EventPolicyTestItem>(
+        var dataProvider = new DynamoDataProvider<EventPolicyTestItem>(
             typeName: typeName,
-            itemTableName: _itemTable.TableName,
-            eventTableName: _eventTable.TableName,
+            itemTable: _itemTable,
+            eventTable: _eventTable,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
-        
-        return Task.FromResult(dataProvider);
+
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(
@@ -148,5 +122,25 @@ public class DynamoDataProviderTests : EventPolicyTests
         }
 
         return results.ToArray();
+    }
+
+    private static async Task TableCleanup(
+        Table table)
+    {
+        // Create a scan filter to find all documents in the table.
+        var scanFilter = new ScanFilter();
+        var search = table.Scan(scanFilter);
+
+        // Iterate through the results in batches.
+        do
+        {
+            var documents = await search.GetNextSetAsync();
+
+            // Delete each document individually.
+            foreach (var document in documents)
+            {
+                await table.DeleteItemAsync(document);
+            }
+        } while (search.IsDone is false);
     }
 }

@@ -15,7 +15,7 @@ public class InMemoryDataProviderTests : DataProviderTests
     private MethodInfo? _clearMethod = null!;
 
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create a new service collection
         var services = new ServiceCollection();
@@ -37,7 +37,7 @@ public class InMemoryDataProviderTests : DataProviderTests
             });
 
         // Add the in-memory data providers
-        services.AddInMemoryDataProviders(
+        await services.AddInMemoryDataProvidersAsync(
             configuration,
             bootstrapLogger,
             options => options.Add(

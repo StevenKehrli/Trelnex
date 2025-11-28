@@ -9,7 +9,7 @@ public class BatchCommandValidateTests
 {
     [Test]
     [Description("Tests validation exception with multiple empty errors for public message")]
-    public async Task BatchCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
+    public void BatchCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for public message
         var itemValidator = new InlineValidator<TestItem>();
@@ -20,7 +20,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -55,7 +55,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when both public and private messages are empty")]
-    public async Task BatchCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
+    public void BatchCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
     {
         // Setup validator requiring both public and private messages
         var itemValidator = new InlineValidator<TestItem>();
@@ -66,7 +66,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -97,7 +97,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when private message is empty")]
-    public async Task BatchCommandValidate_SaveAsync_MissingPrivateMessage()
+    public void BatchCommandValidate_SaveAsync_MissingPrivateMessage()
     {
         // Setup validator requiring private message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -107,7 +107,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -141,7 +141,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when public message is empty")]
-    public async Task BatchCommandValidate_SaveAsync_MissingPublicMessage()
+    public void BatchCommandValidate_SaveAsync_MissingPublicMessage()
     {
         // Setup validator requiring public message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -151,7 +151,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -196,7 +196,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -243,7 +243,7 @@ public class BatchCommandValidateTests
         var partitionKey2 = "823bcd49-bb5b-4cb3-8a3a-f678cf03a78a";
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -286,7 +286,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception with wrong partition key for batch command during save")]
-    public async Task BatchCommandValidate_SaveAsync_WrongPartitionKeyAndErrors()
+    public void BatchCommandValidate_SaveAsync_WrongPartitionKeyAndErrors()
     {
         // Setup validator with multiple rules for public message
         var itemValidator = new InlineValidator<TestItem>();
@@ -299,7 +299,7 @@ public class BatchCommandValidateTests
         var partitionKey2 = "748af380-281b-4d9f-b375-56d62b4f34b6";
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -353,7 +353,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -390,7 +390,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -422,7 +422,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -457,7 +457,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -493,7 +493,7 @@ public class BatchCommandValidateTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -531,7 +531,7 @@ public class BatchCommandValidateTests
         var partitionKey2 = "59cdc22b-04b2-46de-a90f-04b1ed0b6a62";
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);
@@ -578,7 +578,7 @@ public class BatchCommandValidateTests
         var partitionKey2 = "a87d1e2e-c67f-402f-8780-092a8225f80f";
 
         // Get a data provider for our test item type with validator
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.All);

@@ -7,13 +7,13 @@ public class DeleteCommandSaveTests
 {
     [Test]
     [Description("Tests that delete command throws when operations are not supported")]
-    public async Task DeleteCommandSave_SaveAsync_NotSupported()
+    public void DeleteCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider with no supported operations
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Read);
 
@@ -32,7 +32,7 @@ public class DeleteCommandSaveTests
 
         // Get a data provider for our test item type with delete operations
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             logger: logger);
@@ -93,7 +93,7 @@ public class DeleteCommandSaveTests
 
         // Get a data provider for our test item type with delete operations
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             logger: logger);
@@ -148,7 +148,7 @@ public class DeleteCommandSaveTests
         var partitionKey = Guid.NewGuid().ToString();
 
         // Get a data provider for our test item type with delete operations
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 

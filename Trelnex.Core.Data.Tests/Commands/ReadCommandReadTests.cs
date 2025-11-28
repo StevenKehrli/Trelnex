@@ -14,7 +14,7 @@ public class ReadCommandReadTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -68,7 +68,7 @@ public class ReadCommandReadTests
 
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = await InMemoryDataProvider<TestItem>.CreateAsync(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
