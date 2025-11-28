@@ -26,13 +26,13 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
     /// Sets up the DynamoDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
 
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
+        // Initialize shared resources from configuration and load tables
+        var configuration = await TestSetupAsync();
 
         services.AddSingleton(_serviceConfiguration);
 
@@ -48,8 +48,8 @@ public class EncryptedDynamoDataProviderExtensionsTests : DynamoDataProviderTest
             _serviceConfiguration);
 
         // Add DynamoDataProviders to the service collection.
-        services
-            .AddDynamoDataProviders(
+        await services
+            .AddDynamoDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(

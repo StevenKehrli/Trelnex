@@ -1,9 +1,10 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Runtime.Credentials;
-using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.PropertyChanges;
@@ -57,11 +58,11 @@ public class DynamoDataProviderTests : EventPolicyTests
             RegionEndpoint.GetBySystemName(region));
 
         _itemTable = await dynamoClient.LoadTableAsync(
-            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            NullLogger.Instance,
             itemTableName);
 
         _eventTable = await dynamoClient.LoadTableAsync(
-            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            NullLogger.Instance,
             eventTableName);
     }
 

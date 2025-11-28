@@ -44,16 +44,6 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the item table used for testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
     /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
     protected IBlockCipherService _blockCipherService = null!;
@@ -72,7 +62,7 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
     /// Sets up the common test infrastructure for DynamoDB data provider tests.
     /// </summary>
     /// <returns>The loaded configuration.</returns>
-    protected IConfiguration TestSetup()
+    protected async Task<IConfiguration> TestSetupAsync()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
@@ -115,11 +105,11 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
             .GetSection("Amazon.DynamoDataProviders:Tables:encrypted-test-item:EventTableName")
             .Get<string>()!;
 
-        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
-        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
-
-        _itemTableName = testItemItemTableName;
-        _eventTableName = testItemEventTableName;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
+            Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        }
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -130,13 +120,18 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        // Create a DynamoDB client for cleanup
+        // Create DynamoDB client and load tables
         var dynamoClient = new AmazonDynamoDBClient(
             _awsCredentials,
             RegionEndpoint.GetBySystemName(_region));
 
-        _itemTable = dynamoClient.GetTable(_itemTableName);
-        _eventTable = dynamoClient.GetTable(_eventTableName);
+        _itemTable = await dynamoClient.LoadTableAsync(
+            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            testItemItemTableName);
+
+        _eventTable = await dynamoClient.LoadTableAsync(
+            Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance,
+            testItemEventTableName);
 
         return configuration;
     }

@@ -1,7 +1,0 @@
-﻿{
-  "ExpressionStatement": "contains(values, :val1)",
-  "ExpressionAttributeValues": {
-    ":val1": "1"
-  },
-  "MethodCallExpressions": []
-}

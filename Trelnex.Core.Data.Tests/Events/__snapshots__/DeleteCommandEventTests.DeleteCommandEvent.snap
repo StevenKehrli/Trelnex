@@ -28,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
-    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
-    "SpanId": "540f52b8b7660be0",
+    "TraceContext": "00-4e0c17f467a2e36b790e8a481cbb0a6e-c9f0225cec64fcad-01",
+    "TraceId": "4e0c17f467a2e36b790e8a481cbb0a6e",
+    "SpanId": "c9f0225cec64fcad",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
+    "CreatedDateTimeOffset": "2025-11-28T20:26:39.380689+00:00",
+    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.380689+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "5fdfecc3-93a7-4cb5-8e5e-15b0f889400f"
+    "ETag": "414a6335-ed71-436e-8089-59674a653e6a"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
-    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
-    "SpanId": "540f52b8b7660be0",
+    "TraceContext": "00-4e0c17f467a2e36b790e8a481cbb0a6e-c9f0225cec64fcad-01",
+    "TraceId": "4e0c17f467a2e36b790e8a481cbb0a6e",
+    "SpanId": "c9f0225cec64fcad",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
+    "CreatedDateTimeOffset": "2025-11-28T20:26:39.381145+00:00",
+    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.381145+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "2987f58f-200b-4e1d-9448-99b9b24c95fd"
+    "ETag": "d230be19-5dd4-4920-99c3-2b4e1fe38139"
   }
 ]

@@ -185,7 +185,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception with multiple null errors for private message")]
-    public async Task BatchCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
+    public void BatchCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for private message
         var itemValidator = new InlineValidator<TestItem>();
@@ -230,7 +230,7 @@ public class BatchCommandValidateTests
 
     [Test]
     [Description("Tests validation exception with wrong partition key for batch command during save")]
-    public async Task BatchCommandValidate_SaveAsync_WrongPartitionKey()
+    public void BatchCommandValidate_SaveAsync_WrongPartitionKey()
     {
         // Setup validator with multiple rules for public message
         var itemValidator = new InlineValidator<TestItem>();

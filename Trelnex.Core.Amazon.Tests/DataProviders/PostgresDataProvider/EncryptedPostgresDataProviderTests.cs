@@ -1,3 +1,4 @@
+using LinqToDB;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
@@ -6,14 +7,14 @@ using Trelnex.Core.Encryption;
 namespace Trelnex.Core.Amazon.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the PostgresDataProvider implementation using direct factory instantiation.
+/// Tests for the PostgresDataProvider implementation using direct constructor instantiation.
 /// </summary>
 /// <remarks>
 /// This class inherits from <see cref="PostgresDataProviderTestBase"/> to leverage the shared
 /// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
 ///
-/// This approach tests the factory pattern and provider implementation directly.
+/// This approach tests the constructor pattern and provider implementation directly with encryption.
 ///
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual PostgreSQL server
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
@@ -23,37 +24,31 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 public class EncryptedPostgresDataProviderTests : PostgresDataProviderTestBase
 {
     /// <summary>
-    /// Sets up the PostgresDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the PostgresDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
 
-        // Create the PostgresClientOptions.
-        var postgresClientOptions = new PostgresClientOptions(
-            AWSCredentials: _awsCredentials,
-            Region: _region,
-            Host: _host,
-            Port: _port,
-            Database: _database,
-            DbUser: _dbUser,
-            TableNames: [ _itemTableName, _eventTableName ]
-        );
+        // Create base DataOptions with PostgreSQL connection string
+        var baseDataOptions = new DataOptions().UsePostgreSQL(_connectionString);
 
-        // Create the PostgresDataProviderFactory.
-        var factory = await PostgresDataProviderFactory.Create(
-            _serviceConfiguration,
-            postgresClientOptions);
-
-        // Create the data provider instance.
-        _dataProvider = factory.Create(
-            typeName: "encrypted-test-item",
+        // Create the data provider using DataOptionsBuilder and constructor
+        var dataOptions = DataOptionsBuilder.Build<TestItem>(
+            baseDataOptions: baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
+            blockCipherService: _blockCipherService);
+
+        _dataProvider = new PostgresDataProvider<TestItem>(
+            typeName: "encrypted-test-item",
+            dataOptions: dataOptions,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges,
             blockCipherService: _blockCipherService);
     }
 

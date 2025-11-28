@@ -1,8 +1,9 @@
+using System.Data.Common;
+using Microsoft.Extensions.Configuration;
 using Amazon;
 using Amazon.RDS.Util;
 using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
-using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
@@ -155,8 +156,11 @@ public abstract class PostgresDataProviderEventTestBase
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
             .Get<string>()!;
 
-        Assert.That(persistanceTestItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
-        Assert.That(persistanceTestItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(persistanceTestItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+            Assert.That(persistanceTestItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+        }
 
         _itemTableName = expirationTestItemItemTableName;
         _eventTableName = expirationTestItemEventTableName;
@@ -221,6 +225,30 @@ public abstract class PostgresDataProviderEventTestBase
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
+    }
+
+    protected void BeforeConnectionOpened(
+        DbConnection dbConnection)
+    {
+        // Only process Npgsql connections
+        if (dbConnection is not NpgsqlConnection connection) return;
+
+        // Generate AWS IAM authentication token for PostgreSQL
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
+
+        // Update connection string with generated authentication token
+        var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        connection.ConnectionString = csb.ConnectionString;
     }
 
     protected NpgsqlConnection GetConnection()

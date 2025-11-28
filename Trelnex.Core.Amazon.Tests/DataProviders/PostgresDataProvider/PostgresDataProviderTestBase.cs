@@ -1,8 +1,9 @@
+using System.Data.Common;
+using Microsoft.Extensions.Configuration;
 using Amazon;
 using Amazon.RDS.Util;
 using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
-using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Encryption;
@@ -156,8 +157,11 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:EventTableName")
             .Get<string>()!;
 
-        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
-        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
+            Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        }
 
         _itemTableName = testItemItemTableName;
         _eventTableName = testItemEventTableName;
@@ -267,5 +271,29 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();
+    }
+
+    protected void BeforeConnectionOpened(
+        DbConnection dbConnection)
+    {
+        // Only process Npgsql connections
+        if (dbConnection is not NpgsqlConnection connection) return;
+
+        // Generate AWS IAM authentication token for PostgreSQL
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
+
+        // Update connection string with generated authentication token
+        var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        connection.ConnectionString = csb.ConnectionString;
     }
 }

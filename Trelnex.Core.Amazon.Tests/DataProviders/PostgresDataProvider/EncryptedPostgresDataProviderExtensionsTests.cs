@@ -31,7 +31,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
     /// Sets up the PostgresDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -53,8 +53,8 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
             _serviceConfiguration);
 
         // Add PostgreDataProviders to the service collection.
-        services
-            .AddPostgresDataProviders(
+        await services
+            .AddPostgresDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(

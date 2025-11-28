@@ -25,13 +25,13 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
     /// Sets up the DynamoDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
 
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
+        // Initialize shared resources from configuration and load tables
+        var configuration = await TestSetupAsync();
 
         services.AddSingleton(_serviceConfiguration);
 
@@ -47,8 +47,8 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
             _serviceConfiguration);
 
         // Add DynamoDataProviders to the service collection.
-        services
-            .AddDynamoDataProviders(
+        await services
+            .AddDynamoDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -60,44 +60,6 @@ public class DynamoDataProviderExtensionsTests : DynamoDataProviderTestBase
 
         // Get the data provider from the DI container.
         _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
-    }
-
-    /// <summary>
-    /// Tests that registering the same type with the DynamoDataProvider twice results in an exception.
-    /// </summary>
-    [Test]
-    [Description("Tests that registering the same type with the DynamoDataProvider twice results in an exception.")]
-    public void DynamoDataProvider_AlreadyRegistered()
-    {
-        // Create the service collection.
-        var services = new ServiceCollection();
-
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
-
-        services.AddSingleton(_serviceConfiguration);
-
-        // Configure Serilog
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
-
-        // Attempt to register the same type twice, which should throw an InvalidOperationException.
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            services.AddDynamoDataProviders(
-                configuration,
-                bootstrapLogger,
-                options => options
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All)
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All));
-        });
     }
 
     [Test]

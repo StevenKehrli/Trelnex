@@ -4,6 +4,7 @@ using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Data;
@@ -43,22 +44,12 @@ public abstract class DynamoDataProviderEventTestBase
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the item table used for expiration testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for persistence testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
-    /// The DynamoDB item table used for expiration testing.
+    /// The DynamoDB item table used for testing.
     /// </summary>
     protected Table _itemTable = null!;
 
     /// <summary>
-    /// The DynamoDB table used for persistence testing.
+    /// The DynamoDB table used for testing.
     /// </summary>
     protected Table _eventTable = null!;
 
@@ -71,7 +62,7 @@ public abstract class DynamoDataProviderEventTestBase
     /// Sets up the common test infrastructure for DynamoDB data provider tests.
     /// </summary>
     /// <returns>The loaded configuration.</returns>
-    protected IConfiguration TestSetup()
+    protected async Task<IConfiguration> TestSetupAsync()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
@@ -114,22 +105,27 @@ public abstract class DynamoDataProviderEventTestBase
             .GetSection("Amazon.DynamoDataProviders:Tables:test-item:EventTableName")
             .Get<string>()!;
 
-        Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
-        Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
-
-        _itemTableName = expirationTestItemItemTableName;
-        _eventTableName = expirationTestItemEventTableName;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+            Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+        }
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
-        // Create a DynamoDB client for cleanup
+        // Create DynamoDB client and load tables
         var dynamoClient = new AmazonDynamoDBClient(
             _awsCredentials,
             RegionEndpoint.GetBySystemName(_region));
 
-        _itemTable = dynamoClient.GetTable(_itemTableName);
-        _eventTable = dynamoClient.GetTable(_eventTableName);
+        _itemTable = await dynamoClient.LoadTableAsync(
+            NullLogger.Instance,
+            expirationTestItemItemTableName);
+
+        _eventTable = await dynamoClient.LoadTableAsync(
+            NullLogger.Instance,
+            expirationTestItemEventTableName);
 
         return configuration;
     }

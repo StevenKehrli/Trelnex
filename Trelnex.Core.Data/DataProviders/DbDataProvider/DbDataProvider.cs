@@ -232,7 +232,10 @@ public abstract class DbDataProvider<TItem>(
                 throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}");
         }
 
-        if (request.Event is not null)
+        var mappingSchema = dataConnection.MappingSchema;
+        var entityDescriptor = mappingSchema.GetEntityDescriptor(typeof(ItemEventWithExpiration));
+
+        if (request.Event is not null && entityDescriptor is not null)
         {
             // Calculate event expiration time if TTL is configured
             var eventExpireAt = (eventTimeToLive is null)

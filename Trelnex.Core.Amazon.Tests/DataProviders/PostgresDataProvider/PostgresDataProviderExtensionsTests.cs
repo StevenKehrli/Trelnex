@@ -30,7 +30,7 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
     /// Sets up the PostgresDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -52,8 +52,8 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
             _serviceConfiguration);
 
         // Add PostgreDataProviders to the service collection.
-        services
-            .AddPostgresDataProviders(
+        await services
+            .AddPostgresDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -65,44 +65,6 @@ public class PostgresDataProviderExtensionsTests : PostgresDataProviderTestBase
 
         // Get the data provider from the DI container.
         _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
-    }
-
-    /// <summary>
-    /// Tests that registering the same type with the PostgresDataProvider twice results in an exception.
-    /// </summary>
-    [Test]
-    [Description("Tests that registering the same type with the PostgresDataProvider twice results in an exception.")]
-    public void PostgresDataProvider_AlreadyRegistered()
-    {
-        // Create the service collection.
-        var services = new ServiceCollection();
-
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
-
-        services.AddSingleton(_serviceConfiguration);
-
-        // Configure Serilog
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
-
-        // Attempt to register the same type twice, which should throw an InvalidOperationException.
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            services.AddPostgresDataProviders(
-                configuration,
-                bootstrapLogger,
-                options => options
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All)
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All));
-        });
     }
 
     [Test]

@@ -3,15 +3,15 @@
     "Item": {
       "PublicMessage": "Public #1",
       "PrivateMessage": "Private #1",
-      "Id": "1f43ab49-2690-4e3a-b169-2c33cfbabd65",
-      "PartitionKey": "fb90ead2-3831-4485-acba-aa0e1f274afe",
+      "Id": "b7aacd5b-4ef9-4b82-8b1d-64e44819f0da",
+      "PartitionKey": "cc7b2bd4-860a-4c0d-850e-20f046585775",
       "TypeName": "test-item",
       "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-16T21:23:50.955476+00:00",
-      "UpdatedDateTimeOffset": "2025-08-16T21:23:50.955476+00:00",
+      "CreatedDateTimeOffset": "2025-11-28T20:26:39.09033+00:00",
+      "UpdatedDateTimeOffset": "2025-11-28T20:26:39.09033+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "001a73e2-fcb6-46f8-917c-9dd5d69c23fe"
+      "ETag": "778fd35c-e9dc-41df-914a-916ace9bd6b9"
     }
   }
 ]

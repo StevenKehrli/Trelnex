@@ -1,5 +1,0 @@
-﻿{
-  "ExpressionStatement": "attribute_not_exists(message)",
-  "ExpressionAttributeValues": {},
-  "MethodCallExpressions": []
-}

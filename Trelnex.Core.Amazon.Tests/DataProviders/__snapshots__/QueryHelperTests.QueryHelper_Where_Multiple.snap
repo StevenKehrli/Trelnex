@@ -1,8 +1,0 @@
-﻿{
-  "ExpressionStatement": "(id = :val1 AND message = :val2)",
-  "ExpressionAttributeValues": {
-    ":val1": "1",
-    ":val2": "yes"
-  },
-  "MethodCallExpressions": []
-}

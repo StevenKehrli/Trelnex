@@ -1,3 +1,4 @@
+using LinqToDB;
 using Trelnex.Core.Amazon.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
@@ -5,54 +6,47 @@ using Trelnex.Core.Data.Tests.DataProviders;
 namespace Trelnex.Core.Amazon.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the PostgresDataProvider implementation using direct factory instantiation.
+/// Tests for the PostgresDataProvider implementation using direct constructor instantiation.
 /// </summary>
 /// <remarks>
 /// Inherits from <see cref="PostgresDataProviderEventTestBase"/> to utilize shared test setup and infrastructure.
-/// These tests require a live SQL Server instance and are not suitable for CI/CD environments without proper infrastructure.
+/// These tests require a live PostgreSQL server instance and are not suitable for CI/CD environments without proper infrastructure.
 /// </remarks>
 [Ignore("Requires a Postgres server.")]
 [Category("PostgresDataProvider")]
 public class PostgresDataProviderEventExpirationTests : PostgresDataProviderEventTestBase
 {
     /// <summary>
-    /// Sets up the PostgresDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the PostgresDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
 
-        // Create the PostgresClientOptions.
-        var postgresClientOptions = new PostgresClientOptions(
-            AWSCredentials: _awsCredentials,
-            Region: _region,
-            Host: _host,
-            Port: _port,
-            Database: _database,
-            DbUser: _dbUser,
-            TableNames: [ _itemTableName, _eventTableName ]
-        );
+        // Create base DataOptions with PostgreSQL connection string
+        var baseDataOptions = new DataOptions().UsePostgreSQL(_connectionString);
 
-        // Create the PostgresDataProviderFactory.
-        var factory = await PostgresDataProviderFactory.Create(
-            _serviceConfiguration,
-            postgresClientOptions);
-
-        // Create the data provider instance.
-        _dataProvider = factory.Create(
-            typeName: "expiration-test-item",
+        // Create the data provider using DataOptionsBuilder and constructor
+        var dataOptions = DataOptionsBuilder.Build<TestItem>(
+            baseDataOptions: baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
-            eventTableName: _eventTableName,
+            eventTableName: _eventTableName);
+
+        _dataProvider = new PostgresDataProvider<TestItem>(
+            typeName: "expiration-test-item",
+            dataOptions: dataOptions,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges,
             eventTimeToLive: 2);
     }
 
     [Test]
     [Description("Tests PostgresDataProvider sets expireAtDateTimeOffset correctly")]
-    public async Task PostgresDataProviderr_WithExpiration()
+    public async Task PostgresDataProvider_WithExpiration()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();

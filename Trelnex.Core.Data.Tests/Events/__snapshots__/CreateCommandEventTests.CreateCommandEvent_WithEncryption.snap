@@ -28,17 +28,17 @@
         }
       }
     ],
-    "TraceContext": "00-5ffa059aee5daae5531058d56abdc6e0-82da2a921ff43589-01",
-    "TraceId": "5ffa059aee5daae5531058d56abdc6e0",
-    "SpanId": "82da2a921ff43589",
+    "TraceContext": "00-68b6532084e10064efc63bd1e95b00c9-b4e047478e43013f-01",
+    "TraceId": "68b6532084e10064efc63bd1e95b00c9",
+    "SpanId": "b4e047478e43013f",
     "Id": "EVENT^569d9c11-f66f-46b9-98be-ff0cff833475^00000001",
     "PartitionKey": "05f393b2-72af-409e-9186-0679773e9c55",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T22:29:24.69517+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T22:29:24.69517+00:00",
+    "CreatedDateTimeOffset": "2025-11-28T20:26:39.337651+00:00",
+    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.337651+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "d52f1f51-4bd8-45e5-952c-5ce60aea0675"
+    "ETag": "9584a936-3fae-4cff-8bea-53db5799ee3d"
   }
 ]

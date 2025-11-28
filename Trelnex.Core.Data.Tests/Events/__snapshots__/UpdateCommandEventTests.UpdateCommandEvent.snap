@@ -28,18 +28,18 @@
         }
       }
     ],
-    "TraceContext": "00-c1a712bbc53a3804d074e029fa2d561a-275345a461ad1bc9-01",
-    "TraceId": "c1a712bbc53a3804d074e029fa2d561a",
-    "SpanId": "275345a461ad1bc9",
+    "TraceContext": "00-5ebb57f3e574dc901567ca4bf690db6b-a9c0214c46fb581a-01",
+    "TraceId": "5ebb57f3e574dc901567ca4bf690db6b",
+    "SpanId": "a9c0214c46fb581a",
     "Id": "EVENT^404d6b21-f7ba-48c4-813c-7d3b5bf4f549^00000001",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.201887+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.201887+00:00",
+    "CreatedDateTimeOffset": "2025-11-28T20:26:39.398808+00:00",
+    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.398808+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "0224ff38-3271-4384-b1d8-6ca2e33f06f6"
+    "ETag": "f3836097-b916-4847-b130-1a2ba7fcdf82"
   },
   {
     "SaveAction": "UPDATED",
@@ -74,17 +74,17 @@
         }
       }
     ],
-    "TraceContext": "00-c1a712bbc53a3804d074e029fa2d561a-275345a461ad1bc9-01",
-    "TraceId": "c1a712bbc53a3804d074e029fa2d561a",
-    "SpanId": "275345a461ad1bc9",
+    "TraceContext": "00-5ebb57f3e574dc901567ca4bf690db6b-a9c0214c46fb581a-01",
+    "TraceId": "5ebb57f3e574dc901567ca4bf690db6b",
+    "SpanId": "a9c0214c46fb581a",
     "Id": "EVENT^404d6b21-f7ba-48c4-813c-7d3b5bf4f549^00000002",
     "PartitionKey": "d9a7a840-ce5c-43c9-9839-a8432068b197",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.202301+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.202301+00:00",
+    "CreatedDateTimeOffset": "2025-11-28T20:26:39.399239+00:00",
+    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.399239+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "8903232d-1309-4c9d-9245-7d0dd3489af1"
+    "ETag": "5ec8efdd-c9b0-48bf-b957-1a31b71292c2"
   }
 ]

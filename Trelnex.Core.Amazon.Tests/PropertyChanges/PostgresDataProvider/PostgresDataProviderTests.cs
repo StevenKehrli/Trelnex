@@ -38,7 +38,7 @@ public class PostgresDataProviderTests : EventPolicyTests
     /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
