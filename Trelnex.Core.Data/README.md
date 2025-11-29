@@ -105,7 +105,7 @@ See [Tracking Changes with the TrackAttribute](#tracking-changes-with-the-tracka
 
 ## Usage
 
-The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryDataProvider<TItem>`. In practice, data providers are created through factories and can be used as singletons. All operations are thread-safe and support cancellation tokens.
+The below examples demonstrate Create, Read, Update, Delete and Query using the `InMemoryDataProvider<TItem>`. In practice, data providers are created using constructors (with dependency injection support) and can be used as singletons. All operations are thread-safe and support cancellation tokens.
 
 ### Create
 
@@ -115,9 +115,8 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create data provider through factory
-var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(
+// Create data provider using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem",
     eventPolicy: EventPolicy.AllChanges,
     commandOperations: CommandOperations.All);
@@ -147,9 +146,8 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create data provider
-var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(
+// Create data provider using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem");
 
 // Read item by id and partition key
@@ -171,9 +169,8 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create data provider with update permissions
-var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(
+// Create data provider with update permissions using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem",
     commandOperations: CommandOperations.All,
     eventPolicy: EventPolicy.AllChanges);
@@ -206,9 +203,8 @@ using Trelnex.Core.Data;
 var id = "0346bbe4-0154-449f-860d-f3c1819aa174";
 var partitionKey = "c8a6b519-3323-4bcb-9945-ab30d8ff96ff";
 
-// Create data provider with delete permissions
-var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(
+// Create data provider with delete permissions using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem",
     commandOperations: CommandOperations.All,
     eventPolicy: EventPolicy.AllChanges);
@@ -235,9 +231,8 @@ using var result = await deleteCommand.SaveAsync(cancellationToken: default);
 using Trelnex.Core.Data;
 using Trelnex.Core.Disposables;
 
-// Create data provider
-var factory = new InMemoryDataProviderFactory();
-var dataProvider = factory.Create<TestItem>(
+// Create data provider using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem",
     eventPolicy: EventPolicy.AllChanges);
 
@@ -271,8 +266,8 @@ foreach (var item in materializedResults)
 ```csharp
 using Trelnex.Core.Data;
 
-// Create data provider
-var dataProvider = InMemoryDataProviderFactory.Create<TestItem>(
+// Create data provider using constructor
+var dataProvider = new InMemoryDataProvider<TestItem>(
     typeName: "TestItem",
     commandOperations: CommandOperations.All,
     eventPolicy: EventPolicy.AllChanges);
@@ -311,6 +306,11 @@ var batchResults = await batchCommand.SaveAsync(cancellationToken: cancellationT
 To implement your own data store, create a custom data provider by inheriting from `DataProvider<TItem>`:
 
 ```csharp
+using FluentValidation;
+using Microsoft.Extensions.Logging;
+using Trelnex.Core.Data;
+using Trelnex.Core.Encryption;
+
 /// <summary>
 /// Custom data provider implementation for your specific data store
 /// </summary>
@@ -323,8 +323,15 @@ public class CustomDataProvider<TItem>
         IValidator<TItem>? itemValidator = null,
         CommandOperations? commandOperations = null,
         EventPolicy? eventPolicy = null,
-        IBlockCipherService? blockCipherService = null)
-        : base(typeName, itemValidator, commandOperations, eventPolicy, blockCipherService)
+        IBlockCipherService? blockCipherService = null,
+        ILogger? logger = null)
+        : base(
+            typeName: typeName,
+            itemValidator: itemValidator,
+            commandOperations: commandOperations,
+            eventPolicy: eventPolicy,
+            blockCipherService: blockCipherService,
+            logger: logger)
     {
     }
 
@@ -338,14 +345,14 @@ public class CustomDataProvider<TItem>
     }
 
     /// <summary>
-    /// Execute the built query and return results
+    /// Execute the built query and return results asynchronously
     /// </summary>
-    protected override IEnumerable<TItem> ExecuteQueryable(
+    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default)
     {
         // Execute the query against your data store
-        // Apply any necessary translations and return materialized results
+        // Yield return results as they're retrieved for memory efficiency
     }
 
     /// <summary>
@@ -373,45 +380,37 @@ public class CustomDataProvider<TItem>
         // Return results with saved items and events
     }
 }
+```
 
-/// <summary>
-/// Factory for creating custom data provider instances
-/// </summary>
-public class CustomDataProviderFactory : IDataProviderFactory
-{
-    private readonly IServiceProvider _serviceProvider;
+### Database Providers with DataOptionsBuilder
 
-    public CustomDataProviderFactory(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
+For LinqToDB-based database providers, use `DataOptionsBuilder` to configure entity mappings:
 
-    public async Task<DataProviderFactoryStatus> GetStatusAsync(
-        CancellationToken cancellationToken = default)
-    {
-        return DataProviderFactoryStatus.Ready;
-    }
+```csharp
+using LinqToDB;
+using Trelnex.Core.Data;
 
-    public IDataProvider<TItem> Create<TItem>(
-        string typeName,
-        IValidator<TItem>? itemValidator = null,
-        CommandOperations? commandOperations = null)
-        where TItem : BaseItem, new()
-    {
-        var validator = itemValidator ?? GetValidator<TItem>();
+// Create base DataOptions with database connection
+var baseDataOptions = new DataOptions().UsePostgreSQL(connectionString);
 
-        return new CustomDataProvider<TItem>(
-            typeName,
-            itemValidator: validator,
-            commandOperations: commandOperations ?? CommandOperations.Read);
-    }
+// Build configured DataOptions with entity mappings
+var dataOptions = DataOptionsBuilder.Build<TestItem>(
+    baseDataOptions: baseDataOptions,
+    beforeConnectionOpened: connection => {
+        // Optional: Configure connection before opening
+        // Example: Set authentication tokens, timeouts, etc.
+    },
+    itemTableName: "test_items",
+    eventTableName: "test_items_events",
+    blockCipherService: null); // Optional encryption service
 
-    private IValidator<TItem>? GetValidator<TItem>()
-    {
-        // Resolve validator from DI container or create composite validator
-        return _serviceProvider.GetService<IValidator<TItem>>();
-    }
-}
+// Create the data provider
+var dataProvider = new PostgresDataProvider<TestItem>(
+    typeName: "test-item",
+    dataOptions: dataOptions,
+    itemValidator: TestItem.Validator,
+    commandOperations: CommandOperations.All,
+    eventPolicy: EventPolicy.AllChanges);
 ```
 
 ## Event Policy and Change Tracking
@@ -525,27 +524,55 @@ When properties are tracked according to the EventPolicy, the system:
 
 **Important:** Property change tracking captures and persists the actual values (both old and new) in the audit trail. This provides detailed auditing capabilities but may expose sensitive information:
 
-- **Data Exposure** - Old and new values are stored in the event log (encrypted values are preserved as encrypted in events)
+- **Data Exposure** - Old and new values are stored in the event log in their serialized form
 - **Compliance Risk** - May conflict with data privacy regulations (GDPR, CCPA) for sensitive data
 - **Access Control** - Event logs may be accessible to administrators or auditors
-- **Encryption Security** - Properties marked with `[Encrypt]` have their encrypted values captured in event changes, maintaining data protection
+- **Encrypted Properties** - Properties marked with `[Encrypt]` are captured in their encrypted form (since events record the serialized JSON representation)
 
 **Recommendations:**
 - Use `[Track]` judiciously on sensitive properties
-- Consider using `EventPolicy.OnlyTrackAttributeChanges` or `[DoNotTrack]` for sensitive data
-- Properties with `[Encrypt]` maintain their encryption in event audit trails
+- Consider using `EventPolicy.OnlyTrackAttributeChanges` or `[DoNotTrack]` for highly sensitive data
+- Properties with `[Encrypt]` appear in events in their encrypted form, providing protection at rest
 - Implement appropriate access controls for event logs and audit trails
 
-## Field-Level Encryption (Future Feature)
+## Field-Level Encryption
 
-The library is designed to support field-level encryption capabilities through pluggable `IBlockCipherService` implementations. This feature is planned for future releases and will provide:
+The library supports field-level encryption capabilities through pluggable `IBlockCipherService` implementations:
 
 - **AES-GCM Encryption** - Authenticated encryption with associated data (AEAD)
 - **Transparent Operation** - Automatic encryption/decryption during serialization
-- **Security Attributes** - Property-level encryption markers
+- **Security Attributes** - Property-level encryption markers using `[Encrypt]` attribute
 - **LINQ Compatibility** - Full query support on unencrypted properties
+- **Event Representation** - Encrypted values appear in their encrypted form in audit events
 
-*Note: Encryption features are not currently implemented in the codebase.*
+### Using Field-Level Encryption
+
+```csharp
+using Trelnex.Core.Encryption;
+
+// Define item with encrypted property
+public record SecureItem : BaseItem
+{
+    [Encrypt]
+    [JsonPropertyName("sensitiveData")]
+    public string SensitiveData { get; set; } = string.Empty;
+
+    [JsonPropertyName("publicData")]
+    public string PublicData { get; set; } = string.Empty;
+}
+
+// Create data provider with encryption service
+var dataProvider = new CustomDataProvider<SecureItem>(
+    typeName: "secure-item",
+    blockCipherService: myBlockCipherService,
+    commandOperations: CommandOperations.All);
+
+// Use normally - encryption happens automatically
+using var createCommand = dataProvider.Create(id, partitionKey);
+createCommand.Item.SensitiveData = "secret value"; // Encrypted in storage
+createCommand.Item.PublicData = "public value";    // Stored as plain text
+await createCommand.SaveAsync();
+```
 
 ## Optimistic Concurrency Control
 

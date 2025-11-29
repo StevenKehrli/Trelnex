@@ -13,7 +13,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 ## Key Features
 
 - **Data Access Integration** - DynamoDB and PostgreSQL data providers for the Trelnex.Core.Data system
-- **Data Provider Factories** - Simplified registration of AWS-based data stores
+- **Data Provider Extensions** - Simplified registration of AWS-based data stores with dependency injection
 - **Configurable Event Tracking** - EventPolicy support for controlling change tracking behavior
 - **AWS Identity Integration** - Managed credential handling for AWS services with automatic token refresh
 - **Query Translation** - LINQ to DynamoDB expression conversion for strongly-typed queries
@@ -38,10 +38,10 @@ The library includes data providers for AWS data services that implement the `ID
 
 #### DynamoDataProvider - Dependency Injection
 
-The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
+The `AddDynamoDataProvidersAsync` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
-    public static void Add(
+    public static async Task Add(
         IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
@@ -50,12 +50,12 @@ The `AddDynamoDataProviders` method takes a `Action<IDataProviderOptions>` `conf
             .AddAuthentication(configuration)
             .AddPermissions(bootstrapLogger);
 
-        services
+        await services
             .AddSwaggerToServices()
             .AddAmazonIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddDynamoDataProviders(
+            .AddDynamoDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.AddUsersDataProviders());
@@ -119,7 +119,7 @@ The `EventTableName` property is optional and defaults to `{ItemTableName}-event
 
 The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from DynamoDB. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties appear in their encrypted form in event change tracking.
 
 #### DynamoDataProvider - Table Schema
 
@@ -167,10 +167,10 @@ The query translation supports:
 
 #### PostgresDataProvider - Dependency Injection
 
-The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
+The `AddPostgresDataProvidersAsync` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
-    public static void Add(
+    public static async Task Add(
         IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
@@ -179,12 +179,12 @@ The `AddPostgresDataProviders` method takes a `Action<IDataProviderOptions>` `co
             .AddAuthentication(configuration)
             .AddPermissions(bootstrapLogger);
 
-        services
+        await services
             .AddSwaggerToServices()
             .AddAmazonIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddPostgresDataProviders(
+            .AddPostgresDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.AddUsersDataProviders());
@@ -250,7 +250,7 @@ The `EventTableName` property is optional and defaults to `{ItemTableName}-event
 
 The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from PostgreSQL. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties appear in their encrypted form in event change tracking.
 
 #### PostgresDataProvider - Item Schema
 
