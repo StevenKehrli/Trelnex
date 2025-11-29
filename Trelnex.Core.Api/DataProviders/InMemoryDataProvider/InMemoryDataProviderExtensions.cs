@@ -179,7 +179,7 @@ public static class InMemoryDataProviderExtensions
             ];
 
             logger.LogInformation(
-                message: "Added InMemoryDataProvider<{TItem:l}>: typeName = '{typeName:l}', commandOperations = '{commandOperations:l}'.",
+                message: "Added InMemoryDataProvider<{TItem:l}>: typeName = '{typeName:l}', commandOperations = '{commandOperations}'.",
                 args: args);
 
             return Task.CompletedTask;
