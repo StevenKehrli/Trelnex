@@ -1,0 +1,7 @@
+﻿{
+  "ExpressionStatement": "contains(Message, :val1)",
+  "ExpressionAttributeValues": {
+    ":val1": "ab"
+  },
+  "MethodCallExpressions": []
+}

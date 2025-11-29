@@ -51,7 +51,7 @@ public class CosmosDataProviderTests : EventPolicyTests
         var cosmosClient = new CosmosClient(
             accountEndpoint: endpointUri,
             tokenCredential: tokenCredential,
-            clientOptions: new Microsoft.Azure.Cosmos.CosmosClientOptions
+            clientOptions: new CosmosClientOptions
             {
                 Serializer = new SystemTextJsonSerializer()
             });

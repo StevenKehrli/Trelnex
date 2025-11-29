@@ -1,5 +1,6 @@
 using System.Dynamic;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Trelnex.Core.Api.Serilog;
 using Trelnex.Core.Azure.DataProviders;
@@ -91,7 +92,8 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
         Assert.That(item1.Resource, Is.Not.Null);
 
         var dictionary1 = item1.Resource as IDictionary<string, object>;
-        Assert.That(dictionary1["ttl"], Is.EqualTo(2));
+        var ttl = dictionary1["ttl"] is JsonElement jsonElement ? jsonElement.GetInt32() : dictionary1["ttl"];
+        Assert.That(ttl, Is.EqualTo(2));
 
         // Wait for the event expiration period (TTL)
         await Task.Delay(TimeSpan.FromSeconds(5));

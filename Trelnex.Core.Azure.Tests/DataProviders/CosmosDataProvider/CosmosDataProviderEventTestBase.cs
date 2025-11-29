@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Trelnex.Core.Api.Configuration;
+using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
 
@@ -87,7 +88,11 @@ public abstract class CosmosDataProviderEventTestBase
         // Create a CosmosClient instance.
         var cosmosClient = new CosmosClient(
             accountEndpoint: endpointUri,
-            tokenCredential: tokenCredential);
+            tokenCredential: tokenCredential,
+            clientOptions: new CosmosClientOptions
+            {
+                Serializer = new SystemTextJsonSerializer()
+            });
 
         // Get a reference to the container.
         _container = cosmosClient.GetContainer(

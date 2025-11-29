@@ -1,0 +1,7 @@
+﻿{
+  "ExpressionStatement": "id = :val1",
+  "ExpressionAttributeValues": {
+    ":val1": "1"
+  },
+  "MethodCallExpressions": []
+}

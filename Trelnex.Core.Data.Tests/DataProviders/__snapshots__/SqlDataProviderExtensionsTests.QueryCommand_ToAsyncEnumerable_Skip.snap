@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Item": {
+      "PublicMessage": "Public Message #2",
+      "PrivateMessage": "Private Message #2",
+      "OptionalMessage": null,
+      "Id": "d2ea2361-73c4-4a5e-9fc9-c694a7e09147",
+      "PartitionKey": "06cd5540-ce8d-4594-898b-bc3191643d39",
+      "TypeName": "test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-11-29T03:31:28.611341+00:00",
+      "UpdatedDateTimeOffset": "2025-11-29T03:31:28.611341+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "FE37075F-6237-4F08-AFD5-F5D7A168D671"
+    }
+  }
+]
