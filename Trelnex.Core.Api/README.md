@@ -32,16 +32,24 @@ Trelnex.Core.Api is designed around several core concepts:
 The `Application` class provides a standardized way to configure and run ASP.NET Core applications with consistent middleware and services. It handles configuration, dependency injection, logging, health checks, authentication, observability, and exception handling.
 
 ```csharp
-// Simple program.cs with standardized middleware
-Application.Run(args,
-    // Register application services
-    (services, configuration, logger) =>
+// Simple program.cs with standardized middleware and async service registration
+await Application.RunAsync(args,
+    // Register application services (async)
+    async (services, configuration, logger) =>
     {
         services
             .AddAuthentication(configuration)
             .AddPermissions<YourPermission>(logger);
 
         services.AddSwaggerToServices();
+
+        // Register data providers asynchronously
+        await services.AddInMemoryDataProvidersAsync(
+            configuration,
+            logger,
+            options => options.Add<MyItem>(
+                typeName: "my-item",
+                commandOperations: CommandOperations.All));
     },
     // Configure application endpoints
     app =>
@@ -179,14 +187,14 @@ Configuration for typed HTTP clients:
 
 ### Using the Application Class
 
-For simple setup, use the `Application` class:
+For simple setup, use the `Application.RunAsync` method with async service registration:
 
 ```csharp
 using Trelnex.Core.Api;
 
-Application.Run(args,
-    // Register services
-    (services, configuration, logger) =>
+await Application.RunAsync(args,
+    // Register services (async)
+    async (services, configuration, logger) =>
     {
         services
             .AddAuthentication(configuration)
@@ -196,6 +204,14 @@ Application.Run(args,
 
         // Register typed HTTP clients
         services.AddClient<IYourClient, YourClient>(configuration);
+
+        // Register data providers asynchronously
+        await services.AddCosmosDataProvidersAsync(
+            configuration,
+            logger,
+            options => options.Add<Customer>(
+                typeName: "customer",
+                commandOperations: CommandOperations.All));
     },
     // Configure endpoints
     app =>
@@ -254,13 +270,14 @@ public class YourService
 
 ## Best Practices
 
-1. **Use the Application class** for new projects to get standardized setup and middleware
+1. **Use the Application.RunAsync method** for new projects to get standardized setup and middleware with async service registration support
 2. **Create strongly-typed permission policies** rather than using string-based claims
 3. **Add health checks** for all external dependencies and critical services
 4. **Configure observability** to monitor application performance
 5. **Use typed HTTP clients** with the client extensions for external service integration
 6. **Implement proper exception handling** with HttpStatusCodeException for RFC 7807-compliant API error responses
 7. **Follow layered configuration** with environment-specific settings
+8. **Use async data provider registration** with methods like `AddCosmosDataProvidersAsync`, `AddDynamoDataProvidersAsync`, etc.
 
 ## Extension Points
 
