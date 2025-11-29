@@ -11,7 +11,7 @@
     <ItemGroup>
         <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.8" />
         <PackageReference Include="JWT" Version="11.0.0" />
-        <PackageReference Include="Trelnex.Core.Amazon" Version="0.11.0" />
+        <PackageReference Include="Trelnex.Core.Amazon" Version="0.12.0" />
     </ItemGroup>
 
 </Project>
