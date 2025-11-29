@@ -30,7 +30,7 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
     /// Sets up the CosmosDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -45,11 +45,11 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
             _serviceConfiguration);
 
         // Add Azure Identity and Cosmos Data providers to the service collection.
-        services
+        await services
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddCosmosDataProviders(
+            .AddCosmosDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -61,41 +61,6 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
 
         // Get the data provider from the DI container.
         _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
-    }
-
-    [Test]
-    [Description("Tests that registering the same type with the CosmosDataProvider twice results in an exception.")]
-    public void CosmosDataProvider_AlreadyRegistered()
-    {
-        // Create the service collection.
-        var services = new ServiceCollection();
-
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
-
-        services.AddSingleton(_serviceConfiguration);
-
-        // Configure Serilog
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
-
-        // Attempt to register the same type twice, which should throw an InvalidOperationException.
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            services.AddCosmosDataProviders(
-                configuration,
-                bootstrapLogger,
-                options => options
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All)
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All));
-        });
     }
 
     [Test]

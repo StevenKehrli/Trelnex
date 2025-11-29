@@ -31,7 +31,7 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
     /// Sets up the SqlDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -47,11 +47,11 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
             _serviceConfiguration);
 
         // Add Azure Identity and SqlDataProviders to the service collection.
-        services
+        await services
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddSqlDataProviders(
+            .AddSqlDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -99,13 +99,13 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);
 
         // Decrypt the optional message
-        var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
+        var encryptedOptionalMessage = (reader["optionalMessage"] as string);
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
             _blockCipherService);
@@ -152,7 +152,7 @@ public class EncryptedSqlDataProviderExtensionsTests : SqlDataProviderTestBase
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);

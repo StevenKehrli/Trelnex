@@ -1,3 +1,4 @@
+using LinqToDB;
 using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
@@ -5,7 +6,7 @@ using Trelnex.Core.Data.Tests.DataProviders;
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the SqlDataProvider implementation using direct factory instantiation.
+/// Tests for the SqlDataProvider implementation using direct constructor instantiation.
 /// </summary>
 /// <remarks>
 /// Inherits from <see cref="SqlDataProviderEventTestBase"/> to utilize shared test setup and infrastructure.
@@ -16,35 +17,30 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 public class SqlDataProviderEventExpirationTests : SqlDataProviderEventTestBase
 {
     /// <summary>
-    /// Sets up the SqlDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the SqlDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
 
-        // Configure the SQL client options.
-        var sqlClientOptions = new SqlClientOptions(
-            TokenCredential: _tokenCredential,
-            Scope: _scope,
-            DataSource: _dataSource,
-            InitialCatalog: _initialCatalog,
-            TableNames: [_itemTableName]
-        );
+        // Create base DataOptions with SQL Server connection string
+        var baseDataOptions = new DataOptions().UseSqlServer(_connectionString);
 
-        // Create the SqlDataProviderFactory.
-        var factory = await SqlDataProviderFactory.Create(
-            _serviceConfiguration,
-            sqlClientOptions);
-
-        // Create the data provider instance.
-        _dataProvider = factory.Create(
-            typeName: "expiration-test-item",
+        // Create the data provider using DataOptionsBuilder and constructor
+        var dataOptions = DataOptionsBuilder.Build<TestItem>(
+            baseDataOptions: baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
-            eventTableName: _eventTableName,
+            eventTableName: _eventTableName);
+
+        _dataProvider = new SqlDataProvider<TestItem>(
+            typeName: "expiration-test-item",
+            dataOptions: dataOptions,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges,
             eventTimeToLive: 2);
     }
 

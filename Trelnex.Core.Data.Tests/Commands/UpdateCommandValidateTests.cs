@@ -9,7 +9,7 @@ public class UpdateCommandValidateTests
 {
     [Test]
     [Description("Tests validation exception with multiple empty errors for public message")]
-    public async Task UpdateCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
+    public void UpdateCommandValidate_SaveAsync_EmptyPublicMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for public message
         var itemValidator = new InlineValidator<TestItem>();
@@ -19,11 +19,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -54,7 +51,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when both public and private messages are empty")]
-    public async Task UpdateCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
+    public void UpdateCommandValidate_SaveAsync_MissingPublicAndPrivateMessages()
     {
         // Setup validator requiring both public and private messages
         var itemValidator = new InlineValidator<TestItem>();
@@ -64,11 +61,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -95,7 +89,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when private message is empty")]
-    public async Task UpdateCommandValidate_SaveAsync_MissingPrivateMessage()
+    public void UpdateCommandValidate_SaveAsync_MissingPrivateMessage()
     {
         // Setup validator requiring private message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -104,11 +98,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -138,7 +129,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation exception when public message is empty")]
-    public async Task UpdateCommandValidate_SaveAsync_MissingPublicMessage()
+    public void UpdateCommandValidate_SaveAsync_MissingPublicMessage()
     {
         // Setup validator requiring public message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -147,11 +138,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -181,7 +169,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation exception with multiple null errors for private message")]
-    public async Task UpdateCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
+    public void UpdateCommandValidate_SaveAsync_NullPrivateMessageWithTwoErrors()
     {
         // Setup validator with multiple rules for private message
         var itemValidator = new InlineValidator<TestItem>();
@@ -191,11 +179,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -225,7 +210,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation result with multiple empty errors for public message in update command")]
-    public async Task UpdateCommandValidate_ValidateAsync_EmptyPublicMessageWithTwoErrors()
+    public async Task UpdateCommandValidate_ValidateAsync_EmptyPublicMessageWithTwoErrorsAsync()
     {
         // Setup validator with multiple rules for public message
         var itemValidator = new InlineValidator<TestItem>();
@@ -235,11 +220,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -275,7 +257,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation result when both public and private messages are missing in update command")]
-    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicAndPrivateMessages()
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicAndPrivateMessagesAsync()
     {
         // Setup validator requiring both public and private messages
         var itemValidator = new InlineValidator<TestItem>();
@@ -285,11 +267,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -326,7 +305,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation result when private message is missing in update command")]
-    public async Task UpdateCommandValidate_ValidateAsync_MissingPrivateMessage()
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPrivateMessageAsync()
     {
         // Setup validator requiring private message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -335,11 +314,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -375,7 +351,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation result when public message is missing in update command")]
-    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicMessage()
+    public async Task UpdateCommandValidate_ValidateAsync_MissingPublicMessageAsync()
     {
         // Setup validator requiring public message not empty
         var itemValidator = new InlineValidator<TestItem>();
@@ -384,11 +360,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);
@@ -424,7 +397,7 @@ public class UpdateCommandValidateTests
 
     [Test]
     [Description("Tests validation result with multiple null errors for private message in update command")]
-    public async Task UpdateCommandValidate_ValidateAsync_NullPrivateMessageWithTwoErrors()
+    public async Task UpdateCommandValidate_ValidateAsync_NullPrivateMessageWithTwoErrorsAsync()
     {
         // Setup validator with multiple rules for private message
         var itemValidator = new InlineValidator<TestItem>();
@@ -434,11 +407,8 @@ public class UpdateCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Update);

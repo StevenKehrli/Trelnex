@@ -7,16 +7,13 @@ public class PropertyChangesTests
 {
     [Test]
     [Description("Tests that property changes are tracked correctly when adding an item to an existing array")]
-    public async Task PropertyChanges_Array_AddItem()
+    public async Task PropertyChanges_Array_AddItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -58,16 +55,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when creating a new array with initial items")]
-    public async Task PropertyChanges_Array_CreateNew()
+    public void PropertyChanges_Array_CreateNew()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -93,16 +87,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when modifying properties of an existing array item")]
-    public async Task PropertyChanges_Array_ModifyItem()
+    public async Task PropertyChanges_Array_ModifyItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -143,16 +134,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when removing an item from an array")]
-    public async Task PropertyChanges_Array_RemoveItem()
+    public async Task PropertyChanges_Array_RemoveItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -194,16 +182,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when reordering array items")]
-    public async Task PropertyChanges_Array_ReorderItems()
+    public async Task PropertyChanges_Array_ReorderItemsAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -247,16 +232,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when replacing an entire array")]
-    public async Task PropertyChanges_Array_ReplaceEntireArray()
+    public async Task PropertyChanges_Array_ReplaceEntireArrayAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -297,16 +279,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when setting an existing array to null")]
-    public async Task PropertyChanges_Array_SetToNull()
+    public async Task PropertyChanges_Array_SetToNullAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -343,16 +322,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that no property changes are tracked when properties are set to their default values")]
-    public async Task PropertyChanges_Basic_NoChanges()
+    public void PropertyChanges_Basic_NoChanges()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -377,16 +353,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are not tracked when properties are set and then reset to their original values")]
-    public async Task PropertyChanges_Basic_SetAndReset()
+    public void PropertyChanges_Basic_SetAndReset()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -415,16 +388,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when properties are modified")]
-    public async Task PropertyChanges_Basic_SimpleProperties()
+    public void PropertyChanges_Basic_SimpleProperties()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -449,16 +419,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when adding an item to an existing dictionary")]
-    public async Task PropertyChanges_Dictionary_AddItem()
+    public async Task PropertyChanges_Dictionary_AddItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -500,16 +467,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when creating a new dictionary with initial items")]
-    public async Task PropertyChanges_Dictionary_CreateNew()
+    public void PropertyChanges_Dictionary_CreateNew()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -535,16 +499,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when modifying properties of an existing dictionary item")]
-    public async Task PropertyChanges_Dictionary_ModifyItem()
+    public async Task PropertyChanges_Dictionary_ModifyItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -585,16 +546,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when removing an item from a dictionary")]
-    public async Task PropertyChanges_Dictionary_RemoveItem()
+    public async Task PropertyChanges_Dictionary_RemoveItemAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -637,16 +595,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when replacing an entire dictionary")]
-    public async Task PropertyChanges_Dictionary_ReplaceEntireDictionary()
+    public async Task PropertyChanges_Dictionary_ReplaceEntireDictionaryAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -687,16 +642,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when setting an existing dictionary to null")]
-    public async Task PropertyChanges_Dictionary_SetToNull()
+    public async Task PropertyChanges_Dictionary_SetToNullAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -733,16 +685,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when a new nested object is created")]
-    public async Task PropertyChanges_NestedObject_CreateNew()
+    public void PropertyChanges_NestedObject_CreateNew()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -769,16 +718,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when modifying an existing property in a nested object")]
-    public async Task PropertyChanges_NestedObject_ModifyExistingProperty()
+    public async Task PropertyChanges_NestedObject_ModifyExistingPropertyAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -816,16 +762,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when modifying multiple properties in the same nested object")]
-    public async Task PropertyChanges_NestedObject_MultipleProperties()
+    public async Task PropertyChanges_NestedObject_MultiplePropertiesAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -867,16 +810,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when replacing an entire nested object")]
-    public async Task PropertyChanges_NestedObject_ReplaceEntireObject()
+    public async Task PropertyChanges_NestedObject_ReplaceEntireObjectAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -920,16 +860,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that property changes are tracked correctly when setting an existing nested object to null")]
-    public async Task PropertyChanges_NestedObject_SetToNull()
+    public async Task PropertyChanges_NestedObject_SetToNullAsync()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -969,16 +906,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that properties are tracked correctly when parent has Track and children have Track")]
-    public async Task PropertyChanges_TrackHierarchy_TrackedWithAttribute()
+    public void PropertyChanges_TrackHierarchy_TrackedWithAttribute()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -1006,16 +940,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that properties are NOT tracked when parent lacks Track even though children have Track")]
-    public async Task PropertyChanges_TrackHierarchy_TrackedWithoutAttribute()
+    public void PropertyChanges_TrackHierarchy_TrackedWithoutAttribute()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);
@@ -1043,16 +974,13 @@ public class PropertyChangesTests
 
     [Test]
     [Description("Tests that only object assignment is tracked when parent has Track but children lack Track")]
-    public async Task PropertyChanges_TrackHierarchy_UntrackedWithAttribute()
+    public void PropertyChanges_TrackHierarchy_UntrackedWithAttribute()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // get a data provider for our test item type
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<PolicyChangesTestItem>(
+        var dataProvider = new InMemoryDataProvider<PolicyChangesTestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.OnlyTrackAttributeChanges);

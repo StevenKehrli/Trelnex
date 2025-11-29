@@ -5,14 +5,14 @@ using Trelnex.Core.Data.Tests.DataProviders;
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the CosmosDataProvider implementation using direct factory instantiation.
+/// Tests for the CosmosDataProvider implementation using direct constructor instantiation.
 /// </summary>
 /// <remarks>
 /// This class inherits from <see cref="CosmosDataProviderTestBase"/> to leverage the shared
 /// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
 ///
-/// This approach tests the factory pattern and provider implementation directly.
+/// This approach tests the constructor pattern and provider implementation directly.
 ///
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual CosmosDB instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
@@ -22,32 +22,21 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 public class CosmosDataProviderTests : CosmosDataProviderTestBase
 {
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the CosmosDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
 
-        // Create the data provider using direct factory instantiation.
-        var cosmosClientOptions = new CosmosClientOptions(
-            TokenCredential: _tokenCredential,
-            AccountEndpoint: _endpointUri,
-            DatabaseId: _databaseId,
-            ContainerIds: [ _containerId ]
-        );
-
-        // Create the CosmosDataProviderFactory.
-        var factory = await CosmosDataProviderFactory.Create(
-            cosmosClientOptions);
-
-        // Create the data provider instance.
-        _dataProvider = factory.Create(
+        // Create the data provider using constructor
+        _dataProvider = new CosmosDataProvider<TestItem>(
             typeName: "test-item",
-            containerId: _containerId,
+            container: _container,
             itemValidator: TestItem.Validator,
-            commandOperations: CommandOperations.All);
+            commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges);
     }
 
     [Test]

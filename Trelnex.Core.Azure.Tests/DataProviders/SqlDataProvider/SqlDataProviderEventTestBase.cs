@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
@@ -31,16 +32,19 @@ public abstract class SqlDataProviderEventTestBase
     protected string _connectionString = null!;
 
     /// <summary>
-    /// The data source or server name for the SQL server.
+    /// The data provider used for testing.
     /// </summary>
-    /// <example>sqldataprovider-tests.database.windows.net</example>
-    protected string _dataSource = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
-    /// The initial catalog or database name for the SQL server.
+    /// The name of the event table used for expiration testing.
     /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _initialCatalog = null!;
+    protected string _eventTableName = null!;
+
+    /// <summary>
+    /// The name of the item table used for expiration testing.
+    /// </summary>
+    protected string _itemTableName = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -51,24 +55,9 @@ public abstract class SqlDataProviderEventTestBase
     protected ServiceConfiguration _serviceConfiguration = null!;
 
     /// <summary>
-    /// The name of the item table used for expiration testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for expiration testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
     /// The token credential used to authenticate with Azure.
     /// </summary>
     protected TokenCredential _tokenCredential = null!;
-
-    /// <summary>
-    /// The data provider used for testing.
-    /// </summary>
-    protected IDataProvider<TestItem> _dataProvider = null!;
 
     protected IConfiguration TestSetup()
     {
@@ -85,52 +74,55 @@ public abstract class SqlDataProviderEventTestBase
 
         // Get the data source from the configuration.
         // Example: "sqldataprovider-tests.database.windows.net"
-        _dataSource = configuration
+        var dataSource = configuration
             .GetSection("Azure.SqlDataProviders:DataSource")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the initial catalog from the configuration.
         // Example: "trelnex-core-data-tests"
-        _initialCatalog = configuration
+        var initialCatalog = configuration
             .GetSection("Azure.SqlDataProviders:InitialCatalog")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the expiration item table name from the configuration.
         // Example: "test-items"
         var expirationTestItemItemTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the expiration event table name from the configuration.
         // Example: "test-items-events"
         var expirationTestItemEventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:expiration-test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the persistence item table name from the configuration.
         // Example: "test-items"
         var testItemItemTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the persistence event table name from the configuration.
         // Example: "test-items-events"
         var testItemEventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
-        Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
-        Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(testItemItemTableName, Is.EqualTo(expirationTestItemItemTableName));
+            Assert.That(testItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
+        }
 
-        _itemTableName = expirationTestItemItemTableName;
-        _eventTableName = expirationTestItemEventTableName;
+        _itemTableName = expirationTestItemItemTableName!;
+        _eventTableName = expirationTestItemEventTableName!;
 
         // Create the SQL connection string.
         var scsBuilder = new SqlConnectionStringBuilder()
         {
             ApplicationName = _serviceConfiguration.FullName,
-            DataSource = _dataSource,
-            InitialCatalog = _initialCatalog,
+            DataSource = dataSource,
+            InitialCatalog = initialCatalog,
             Encrypt = true,
         };
 
@@ -174,6 +166,17 @@ public abstract class SqlDataProviderEventTestBase
 
         // Execute the SQL command.
         sqlCommand.ExecuteNonQuery();
+    }
+
+    protected void BeforeConnectionOpened(
+        DbConnection dbConnection)
+    {
+        // Only process SqlConnection connections
+        if (dbConnection is not SqlConnection connection) return;
+
+        // Get Azure authentication token for SQL Server
+        var tokenRequestContext = new TokenRequestContext([_scope]);
+        connection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
     }
 
     protected SqlConnection GetConnection()

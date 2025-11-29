@@ -15,7 +15,7 @@ namespace Trelnex.Core.Data;
 /// In-memory data provider implementation for testing and development purposes.
 /// </summary>
 /// <typeparam name="TItem">The item type that extends BaseItem and has a parameterless constructor.</typeparam>
-internal class InMemoryDataProvider<TItem>
+public class InMemoryDataProvider<TItem>
     : DataProvider<TItem>
     where TItem : BaseItem, new()
 {
@@ -103,7 +103,7 @@ internal class InMemoryDataProvider<TItem>
                 .CreateQuery<TItem>(methodCallExpression);
 
             // Return matching items
-            foreach (var item in queryableFromExpression.AsEnumerable())
+            foreach (var item in queryableFromExpression)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -119,8 +119,7 @@ internal class InMemoryDataProvider<TItem>
 #pragma warning restore CS1998, CS8425
 
     /// <inheritdoc/>
-#pragma warning disable CS1998
-    protected override async Task<TItem?> ReadItemAsync(
+    protected override Task<TItem?> ReadItemAsync(
         string id,
         string partitionKey,
         CancellationToken cancellationToken = default)
@@ -133,7 +132,7 @@ internal class InMemoryDataProvider<TItem>
             // Read item from store
             var read = _store.ReadItem(id, partitionKey);
 
-            return read;
+            return Task.FromResult(read);
         }
         finally
         {
@@ -141,11 +140,9 @@ internal class InMemoryDataProvider<TItem>
             _lock.ExitReadLock();
         }
     }
-#pragma warning restore CS1998
 
     /// <inheritdoc/>
-#pragma warning disable CS1998
-    protected override async Task<SaveResult<TItem>[]> SaveBatchAsync(
+    protected override Task<SaveResult<TItem>[]> SaveBatchAsync(
         SaveRequest<TItem>[] requests,
         CancellationToken cancellationToken = default)
     {
@@ -217,9 +214,8 @@ internal class InMemoryDataProvider<TItem>
         // Always release write lock
         _lock.ExitWriteLock();
 
-        return saveResults;
+        return Task.FromResult(saveResults);
     }
-#pragma warning restore CS1998
 
     #endregion
 

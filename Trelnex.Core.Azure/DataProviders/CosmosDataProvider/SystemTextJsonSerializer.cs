@@ -1,23 +1,34 @@
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core.Serialization;
 using Microsoft.Azure.Cosmos;
+using Azure.Core.Serialization;
 
 namespace Trelnex.Core.Azure.DataProviders;
 
 /// <summary>
 /// Cosmos DB serializer implementation using System.Text.Json for JSON serialization.
 /// </summary>
-/// <param name="options">JSON serializer options for serialization configuration.</param>
-internal class SystemTextJsonSerializer(
-    JsonSerializerOptions options)
-    : CosmosLinqSerializer
+internal class SystemTextJsonSerializer : CosmosLinqSerializer
 {
+    #region Private Static Fields
+
+    /// <summary>
+    /// Default JSON serializer options for Cosmos DB.
+    /// </summary>
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
+    #endregion
+
     #region Private Fields
 
     // Azure JSON serializer wrapper for System.Text.Json
-    private readonly JsonObjectSerializer _jsonObjectSerializer = new(options);
+    private readonly JsonObjectSerializer _jsonObjectSerializer = new(_jsonSerializerOptions);
 
     #endregion
 

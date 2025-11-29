@@ -31,7 +31,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
     /// Sets up the PostgresDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -53,8 +53,8 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
             _serviceConfiguration);
 
         // Add PostgreDataProviders to the service collection.
-        services
-            .AddPostgresDataProviders(
+        await services
+            .AddPostgresDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -103,13 +103,13 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);
 
         // Decrypt the optional message
-        var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
+        var encryptedOptionalMessage = (reader["optionalMessage"] as string);
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
             _blockCipherService);
@@ -157,7 +157,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);

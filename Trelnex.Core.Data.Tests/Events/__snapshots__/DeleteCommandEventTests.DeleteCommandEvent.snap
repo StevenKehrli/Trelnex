@@ -28,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
-    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
-    "SpanId": "540f52b8b7660be0",
+    "TraceContext": "00-5673c6dee0a9c21ee55444b50de81575-12c30979785bfca5-01",
+    "TraceId": "5673c6dee0a9c21ee55444b50de81575",
+    "SpanId": "12c30979785bfca5",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192132+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T03:33:49.495203+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T03:33:49.495203+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "5fdfecc3-93a7-4cb5-8e5e-15b0f889400f"
+    "ETag": "420c97d2-6dce-4931-9d7c-c7bb58a8857a"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-cf16460b632ba515715d48e3b2f03f75-540f52b8b7660be0-01",
-    "TraceId": "cf16460b632ba515715d48e3b2f03f75",
-    "SpanId": "540f52b8b7660be0",
+    "TraceContext": "00-5673c6dee0a9c21ee55444b50de81575-12c30979785bfca5-01",
+    "TraceId": "5673c6dee0a9c21ee55444b50de81575",
+    "SpanId": "12c30979785bfca5",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:23:51.192684+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T03:33:49.495643+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T03:33:49.495643+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "2987f58f-200b-4e1d-9448-99b9b24c95fd"
+    "ETag": "583b6032-abb6-4a72-8926-f998247681da"
   }
 ]

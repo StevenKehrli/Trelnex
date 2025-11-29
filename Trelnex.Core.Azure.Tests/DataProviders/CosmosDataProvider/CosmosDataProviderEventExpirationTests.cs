@@ -1,11 +1,10 @@
 using System.Dynamic;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Azure.Cosmos;
 using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
-
-using CosmosClientOptions = Trelnex.Core.Azure.DataProviders.CosmosClientOptions;
 
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
@@ -22,32 +21,21 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
 {
     /// <summary>
     /// One-time setup for the test fixture.
-    /// Initializes the CosmosDataProvider using direct factory instantiation,
+    /// Initializes the CosmosDataProvider using direct constructor instantiation,
     /// configuring event expiration for test items.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         TestSetup();
 
-        // Configure CosmosClientOptions with credentials and container info
-        var cosmosClientOptions = new CosmosClientOptions(
-            TokenCredential: _tokenCredential,
-            AccountEndpoint: _endpointUri,
-            DatabaseId: _databaseId,
-            ContainerIds: [ _containerId ]
-        );
-
-        // Instantiate the CosmosDataProviderFactory
-        var factory = await CosmosDataProviderFactory.Create(
-            cosmosClientOptions);
-
-        // Create the data provider with event expiration set to 2 seconds
-        _dataProvider = factory.Create(
+        // Create the data provider using constructor with event expiration set to 2 seconds
+        _dataProvider = new CosmosDataProvider<TestItem>(
             typeName: "expiration-test-item",
-            containerId: _containerId,
+            container: _container,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges,
             eventTimeToLive: 2);
     }
 
@@ -92,7 +80,8 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
         Assert.That(item1.Resource, Is.Not.Null);
 
         var dictionary1 = item1.Resource as IDictionary<string, object>;
-        Assert.That(dictionary1["ttl"], Is.EqualTo(2));
+        var ttl = dictionary1["ttl"] is JsonElement jsonElement ? jsonElement.GetInt32() : dictionary1["ttl"];
+        Assert.That(ttl, Is.EqualTo(2));
 
         // Wait for the event expiration period (TTL)
         await Task.Delay(TimeSpan.FromSeconds(5));

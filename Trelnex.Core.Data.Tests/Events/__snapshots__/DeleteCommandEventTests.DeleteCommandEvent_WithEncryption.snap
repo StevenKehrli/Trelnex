@@ -28,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-5239dab4f2168d95b8c7fcd40dad9127-3d45b0bd004ed77f-01",
-    "TraceId": "5239dab4f2168d95b8c7fcd40dad9127",
-    "SpanId": "3d45b0bd004ed77f",
+    "TraceContext": "00-d8239ec985fb02955095f3c6f7718c42-047300147ac620c2-01",
+    "TraceId": "d8239ec985fb02955095f3c6f7718c42",
+    "SpanId": "047300147ac620c2",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T22:33:03.387545+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T22:33:03.387545+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T03:33:49.504058+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T03:33:49.504058+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "2f035022-689f-4c4d-8588-ce8b38d9849f"
+    "ETag": "06f3efe5-2dc8-438d-a339-23eb6c85dcdd"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-5239dab4f2168d95b8c7fcd40dad9127-3d45b0bd004ed77f-01",
-    "TraceId": "5239dab4f2168d95b8c7fcd40dad9127",
-    "SpanId": "3d45b0bd004ed77f",
+    "TraceContext": "00-d8239ec985fb02955095f3c6f7718c42-047300147ac620c2-01",
+    "TraceId": "d8239ec985fb02955095f3c6f7718c42",
+    "SpanId": "047300147ac620c2",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-16T22:33:03.424087+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T22:33:03.424087+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T03:33:49.504969+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T03:33:49.504969+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "fe0172d6-ac17-41e1-94f2-90ad70e2b3a3"
+    "ETag": "67cbc7c6-36e3-47b2-ab15-d2e881849534"
   }
 ]

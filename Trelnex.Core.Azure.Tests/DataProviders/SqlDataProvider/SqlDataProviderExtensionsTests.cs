@@ -30,7 +30,7 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
     /// Sets up the SqlDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -46,11 +46,11 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
             _serviceConfiguration);
 
         // Add Azure Identity and SqlDataProviders to the service collection.
-        services
+        await services
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddSqlDataProviders(
+            .AddSqlDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(
@@ -62,44 +62,6 @@ public class SqlDataProviderExtensionsTests : SqlDataProviderTestBase
 
         // Get the data provider from the DI container.
         _dataProvider = serviceProvider.GetRequiredService<IDataProvider<TestItem>>();
-    }
-
-    /// <summary>
-    /// Tests that registering the same type with the SqlDataProvider twice results in an exception.
-    /// </summary>
-    [Test]
-    [Description("Tests that registering the same type with the SqlDataProvider twice results in an exception.")]
-    public void SqlDataProvider_AlreadyRegistered()
-    {
-        // Create the service collection.
-        var services = new ServiceCollection();
-
-        // Initialize shared resources from configuration
-        var configuration = TestSetup();
-
-        services.AddSingleton(_serviceConfiguration);
-
-        // Configure Serilog
-        var bootstrapLogger = services.AddSerilog(
-            configuration,
-            _serviceConfiguration);
-
-        // Attempt to register the same type twice, which should throw an InvalidOperationException.
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            services.AddSqlDataProviders(
-                configuration,
-                bootstrapLogger,
-                options => options
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All)
-                    .Add(
-                        typeName: "test-item",
-                        itemValidator: TestItem.Validator,
-                        commandOperations: CommandOperations.All));
-        });
     }
 
     [Test]

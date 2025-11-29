@@ -24,18 +24,17 @@ public class SqlDataProviderTests : EventPolicyTests
     /// </summary>
     private readonly string _scope = "https://database.windows.net/.default";
 
+    private DataOptions _baseDataOptions = null!;
     private string _connectionString = null!;
     private string _eventTableName = null!;
     private string _itemTableName = null!;
     private TokenCredential _tokenCredential = null!;
-    private DataOptions _dataOptions = null!;
-    private SqlDataProviderFactory _factory = null!;
 
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the SqlDataProvider for testing using the direct constructor instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
@@ -52,13 +51,13 @@ public class SqlDataProviderTests : EventPolicyTests
         // Example: "sqldataprovider-tests.database.windows.net"
         var dataSource = configuration
             .GetSection("Azure.SqlDataProviders:DataSource")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the initial catalog from the configuration.
         // Example: "trelnex-core-data-tests"
         var initialCatalog = configuration
             .GetSection("Azure.SqlDataProviders:InitialCatalog")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the item table name from the configuration.
         // Example: "test-items"
@@ -66,7 +65,7 @@ public class SqlDataProviderTests : EventPolicyTests
             .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
             .Get<string>()!;
 
-        // Get the item table name from the configuration.
+        // Get the event table name from the configuration.
         // Example: "test-items-events"
         _eventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
@@ -86,46 +85,8 @@ public class SqlDataProviderTests : EventPolicyTests
 
         _connectionString = scsBuilder.ConnectionString;
 
-        // Create mapping schema for entity-to-table mapping
-        var mappingSchema = new MappingSchema();
-
-        // Configure metadata reader to use JSON property names as column names
-        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
-
-        var fmBuilder = new FluentMappingBuilder(mappingSchema);
-
-        var jsonSerializerOptions = new JsonSerializerOptions();
-
-        // Configure events table mapping
-        fmBuilder.Entity<ItemEvent>()
-            .HasTableName(_eventTableName)
-            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.Changes).HasConversion(
-                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
-                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
-
-        fmBuilder.Build();
-
-        // Initialize LinqToDB data options for SQL Server
-        _dataOptions = new DataOptions()
-            .UseSqlServer(_connectionString)
-            .UseBeforeConnectionOpened(BeforeConnectionOpened)
-            .UseMappingSchema(mappingSchema);
-
-        // Configure the SQL client options.
-        var sqlClientOptions = new SqlClientOptions(
-            TokenCredential: _tokenCredential,
-            Scope: _scope,
-            DataSource: dataSource,
-            InitialCatalog: initialCatalog,
-            TableNames: [_itemTableName, _eventTableName]
-        );
-
-        // Create the SqlDataProviderFactory.
-        _factory = await SqlDataProviderFactory.Create(
-            serviceConfiguration,
-            sqlClientOptions);
+        // Create base DataOptions with SQL Server connection string
+        _baseDataOptions = new DataOptions().UseSqlServer(_connectionString);
     }
 
     /// <summary>
@@ -157,27 +118,62 @@ public class SqlDataProviderTests : EventPolicyTests
         sqlConnection.AccessToken = accessToken;
     }
 
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        return _factory.Create<EventPolicyTestItem>(
-            typeName: typeName,
+        // Create the data provider using DataOptionsBuilder and constructor
+        var dataOptions = DataOptionsBuilder.Build<EventPolicyTestItem>(
+            baseDataOptions: _baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
+            blockCipherService: blockCipherService);
+
+        var dataProvider = new SqlDataProvider<EventPolicyTestItem>(
+            typeName: typeName,
+            dataOptions: dataOptions,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
+
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(
         string id,
         string partitionKey)
     {
+        // Create mapping schema for entity-to-table mapping
+        var mappingSchema = new MappingSchema();
+
+        // Configure metadata reader to use JSON property names as column names
+        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
+
+        var fmBuilder = new FluentMappingBuilder(mappingSchema);
+
+        var jsonSerializerOptions = new JsonSerializerOptions();
+
+        // Configure events table mapping
+        fmBuilder.Entity<ItemEvent>()
+            .HasTableName(_eventTableName)
+            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.Changes).HasConversion(
+                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
+                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
+
+        fmBuilder.Build();
+
+        // Create data options with mapping schema
+        var dataOptions = _baseDataOptions
+            .UseMappingSchema(mappingSchema)
+            .UseBeforeConnectionOpened(BeforeConnectionOpened);
+
         // Create database connection
-        using var dataConnection = new DataConnection(_dataOptions);
+        using var dataConnection = new DataConnection(dataOptions);
 
         // Query for specific item by primary key
         var items = dataConnection

@@ -5,25 +5,24 @@ namespace Trelnex.Core.Data.Tests.PropertyChanges;
 [Category("EventPolicy")]
 public class InMemoryDataProviderTests : EventPolicyTests
 {
-    private InMemoryDataProviderFactory _factory = null!;
     private InMemoryDataProvider<EventPolicyTestItem> _dataProvider = null!;
 
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
         // Create our data provider.
-        var dataProvider = _factory.Create<EventPolicyTestItem>(
+        var dataProvider = new InMemoryDataProvider<EventPolicyTestItem>(
             typeName: typeName,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
 
-        _dataProvider = (dataProvider as InMemoryDataProvider<EventPolicyTestItem>)!;
+        _dataProvider = dataProvider;
 
-        return dataProvider;
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override Task<ItemEvent[]> GetItemEventsAsync(
@@ -35,20 +34,5 @@ public class InMemoryDataProviderTests : EventPolicyTests
             .ToArray();
 
         return Task.FromResult(events);
-    }
-
-    /// <summary>
-    /// Sets up the InMemoryDataProvider for testing.
-    /// </summary>
-    /// <remarks>
-    /// This method initializes the data provider that will be tested by all the test methods
-    /// inherited from <see cref="DataProviderTests"/>. It also captures the Clear method
-    /// via reflection to allow cleaning up between tests.
-    /// </remarks>
-    [OneTimeSetUp]
-    public async Task TestFixtureSetup()
-    {
-        // Create our data provider.
-        _factory = await InMemoryDataProviderFactory.Create();
     }
 }

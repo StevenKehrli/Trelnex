@@ -14,11 +14,8 @@ public class QueryCommandTests
         var id2 = "46046bff-12ff-42bc-850a-50da59e264c3";
         var partitionKey2 = "0ab56811-b146-4465-948e-3c0816021954";
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -64,11 +61,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -110,11 +104,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 
@@ -155,11 +146,8 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -211,11 +199,8 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -264,12 +249,9 @@ public class QueryCommandTests
         var id = "62b00aaa-cc22-47bb-b9a4-0efb2fdd20c2";
         var partitionKey = "b83cb6ab-9ce9-4a43-b4c5-d77749ffe1f9";
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -319,12 +301,9 @@ public class QueryCommandTests
         var id = "2413e431-5ed8-4fb3-a19b-6e27b0c4e064";
         var partitionKey = "50304572-190c-449a-b895-31428dd14670";
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -372,11 +351,8 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -428,11 +404,8 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -484,11 +457,8 @@ public class QueryCommandTests
         var id2 = Guid.NewGuid().ToString();
         var partitionKey2 = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -537,11 +507,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -594,11 +561,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -637,11 +601,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -680,11 +641,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -736,11 +694,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 
@@ -779,11 +734,8 @@ public class QueryCommandTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create);
 

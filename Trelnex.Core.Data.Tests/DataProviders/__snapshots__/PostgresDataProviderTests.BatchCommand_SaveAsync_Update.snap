@@ -10,11 +10,11 @@
         "PartitionKey": "0a7bc917-5670-41cf-87b7-7d97d51ecb82",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-16T21:34:48.194937+00:00",
-        "UpdatedDateTimeOffset": "2025-08-16T21:34:48.486403+00:00",
+        "CreatedDateTimeOffset": "2025-11-29T06:06:22.401329+00:00",
+        "UpdatedDateTimeOffset": "2025-11-29T06:06:22.638546+00:00",
         "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "41edc6aa-8a1b-432e-8a11-9b8ebf263ebd"
+        "ETag": "dce97909-3a11-4ecd-a3f2-700f9f26283f"
       }
     }
   },
@@ -29,11 +29,11 @@
         "PartitionKey": "0a7bc917-5670-41cf-87b7-7d97d51ecb82",
         "TypeName": "test-item",
         "Version": 2,
-        "CreatedDateTimeOffset": "2025-08-16T21:34:48.194959+00:00",
-        "UpdatedDateTimeOffset": "2025-08-16T21:34:48.50747+00:00",
+        "CreatedDateTimeOffset": "2025-11-29T06:06:22.401353+00:00",
+        "UpdatedDateTimeOffset": "2025-11-29T06:06:22.6561+00:00",
         "DeletedDateTimeOffset": null,
         "IsDeleted": null,
-        "ETag": "d523a7bc-e35f-414d-a942-0f77c7aaa2fc"
+        "ETag": "d1c4d84d-2203-49b1-84a9-526ff205a16a"
       }
     }
   }

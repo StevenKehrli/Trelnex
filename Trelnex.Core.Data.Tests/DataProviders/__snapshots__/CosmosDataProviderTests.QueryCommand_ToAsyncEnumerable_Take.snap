@@ -4,15 +4,15 @@
       "PublicMessage": "Public Message #1",
       "PrivateMessage": "Private Message #1",
       "OptionalMessage": null,
-      "Id": "581c1c0a-a12d-4055-a04d-ccb0a8c5596f",
-      "PartitionKey": "1112fc4a-e7a0-4184-acc1-ea3a04121a4c",
+      "Id": "6b55228a-747a-462b-937a-01c25af07091",
+      "PartitionKey": "13b57747-28ad-4d9d-9b19-c817db15a39b",
       "TypeName": "test-item",
       "Version": 1,
-      "CreatedDateTimeOffset": "2025-08-16T21:24:51.017182+00:00",
-      "UpdatedDateTimeOffset": "2025-08-16T21:24:51.017182+00:00",
+      "CreatedDateTimeOffset": "2025-11-29T03:28:03.930232+00:00",
+      "UpdatedDateTimeOffset": "2025-11-29T03:28:03.930232+00:00",
       "DeletedDateTimeOffset": null,
       "IsDeleted": null,
-      "ETag": "\"04004474-0000-0300-0000-68a0f7230000\""
+      "ETag": "\"00006969-0000-0300-0000-692a68440000\""
     }
   }
 ]

@@ -1,16 +1,10 @@
 ﻿{
   "status": "Healthy",
-  "duration": "00:00:00.0022282",
+  "duration": "00:00:00.0021692",
   "info": [
     {
-      "key": "DataProvider: InMemoryDataProviderFactory",
-      "duration": "00:00:00.0006793",
-      "status": "Healthy",
-      "data": {}
-    },
-    {
       "key": "Default",
-      "duration": "00:00:00.0003453",
+      "duration": "00:00:00.0002972",
       "status": "Healthy",
       "data": {}
     }

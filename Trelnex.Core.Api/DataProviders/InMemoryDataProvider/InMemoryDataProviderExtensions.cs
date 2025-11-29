@@ -1,3 +1,4 @@
+using System.Collections;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,30 +21,24 @@ public static class InMemoryDataProviderExtensions
     /// <param name="configuration">Application configuration.</param>
     /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
     /// <param name="configureDataProviders">Delegate to configure which providers to register.</param>
-    /// <returns>The service collection for method chaining.</returns>
-    public static IServiceCollection AddInMemoryDataProviders(
+    /// <returns>A task that completes when all providers are registered.</returns>
+    public static async Task<IServiceCollection> AddInMemoryDataProvidersAsync(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger,
         Action<IDataProviderOptions> configureDataProviders)
     {
-        // Create in-memory data provider factory
-        var providerFactory = InMemoryDataProviderFactory
-            .Create()
-            .GetAwaiter()
-            .GetResult();
+        // Create options to capture registrations
+        var options = new DataProviderOptions();
 
-        // Register factory with DI container
-        services.AddDataProviderFactory(providerFactory);
+        // Execute user configuration to capture registrations
+        configureDataProviders(options);
 
-        // Create configuration options for data providers
-        var dataProviderOptions = new DataProviderOptions(
-            services: services,
-            bootstrapLogger: bootstrapLogger,
-            providerFactory: providerFactory);
-
-        // Execute user configuration
-        configureDataProviders(dataProviderOptions);
+        // Create and register each provider
+        foreach (var registration in options)
+        {
+            await registration.CreateAndRegisterAsync(services, bootstrapLogger);
+        }
 
         return services;
     }
@@ -53,19 +48,24 @@ public static class InMemoryDataProviderExtensions
     #region DataProviderOptions
 
     /// <summary>
-    /// Handles configuration and registration of in-memory data providers.
+    /// Captures registration configurations for in-memory data providers.
     /// </summary>
-    /// <param name="services">Service collection for provider registration.</param>
-    /// <param name="bootstrapLogger">Logger for recording registration activities.</param>
-    /// <param name="providerFactory">Factory for creating data provider instances.</param>
-    private class DataProviderOptions(
-        IServiceCollection services,
-        ILogger bootstrapLogger,
-        InMemoryDataProviderFactory providerFactory)
-        : IDataProviderOptions
+    private class DataProviderOptions
+        : IDataProviderOptions, IEnumerable<IDataProviderRegistration>
     {
+        #region Private Fields
+
         /// <summary>
-        /// Registers an in-memory data provider for the specified entity type.
+        /// Collection of provider registrations to process.
+        /// </summary>
+        private readonly List<IDataProviderRegistration> _registrations = [];
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Captures an in-memory data provider registration for the specified entity type.
         /// </summary>
         /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
         /// <param name="typeName">Type name identifier for the entity in storage.</param>
@@ -79,33 +79,110 @@ public static class InMemoryDataProviderExtensions
             CommandOperations? commandOperations = null)
             where TItem : BaseItem, new()
         {
-            // Prevent duplicate registrations for the same entity type
-            if (services.Any(serviceDescriptor => serviceDescriptor.ServiceType == typeof(IDataProvider<TItem>)))
+            // Capture the registration data
+            var registration = new DataProviderRegistration<TItem>
             {
-                throw new InvalidOperationException($"The DataProvider<{typeof(TItem).Name}> is already registered.");
-            }
+                TypeName = typeName,
+                ItemValidator = itemValidator,
+                CommandOperations = commandOperations
+            };
 
-            // Create data provider instance using factory
-            var dataProvider = providerFactory.Create(
-                typeName: typeName,
-                itemValidator: itemValidator,
-                commandOperations: commandOperations,
-                logger: bootstrapLogger);
-
-            // Register provider as singleton in DI container
-            services.AddSingleton(dataProvider);
-
-            // Log successful registration
-            object[] args =
-            [
-                typeof(TItem) // TItem
-            ];
-
-            bootstrapLogger.LogInformation(
-                message: "Added InMemoryDataProvider<{TItem:l}>.",
-                args: args);
+            _registrations.Add(registration);
 
             return this;
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the registrations.
+        /// </summary>
+        /// <returns>An enumerator for the registrations.</returns>
+        public IEnumerator<IDataProviderRegistration> GetEnumerator() => _registrations.GetEnumerator();
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the registrations.
+        /// </summary>
+        /// <returns>An enumerator for the registrations.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #endregion
+    }
+
+    #endregion
+
+    #region DataProviderRegistration
+
+    /// <summary>
+    /// Interface for type-erased provider registration storage.
+    /// </summary>
+    private interface IDataProviderRegistration
+    {
+        /// <summary>
+        /// Creates and registers the data provider with the service collection.
+        /// </summary>
+        /// <param name="services">Service collection for provider registration.</param>
+        /// <param name="logger">Logger for recording registration activities.</param>
+        /// <returns>A task that completes when the provider is registered.</returns>
+        Task CreateAndRegisterAsync(
+            IServiceCollection services,
+            ILogger logger);
+    }
+
+    /// <summary>
+    /// Captures registration data for a single in-memory data provider.
+    /// </summary>
+    /// <typeparam name="TItem">The entity type that extends BaseItem and has a parameterless constructor.</typeparam>
+    private record DataProviderRegistration<TItem>
+        : IDataProviderRegistration
+        where TItem : BaseItem, new()
+    {
+        /// <summary>
+        /// Type name identifier for the entity in storage.
+        /// </summary>
+        public required string TypeName { get; init; }
+
+        /// <summary>
+        /// Optional validator for entity validation.
+        /// </summary>
+        public IValidator<TItem>? ItemValidator { get; init; }
+
+        /// <summary>
+        /// Optional CRUD operations to enable.
+        /// </summary>
+        public CommandOperations? CommandOperations { get; init; }
+
+        /// <summary>
+        /// Creates and registers the in-memory data provider with the service collection.
+        /// </summary>
+        /// <param name="services">Service collection for provider registration.</param>
+        /// <param name="logger">Logger for recording registration activities.</param>
+        /// <returns>A task that completes when the provider is registered.</returns>
+        public Task CreateAndRegisterAsync(
+            IServiceCollection services,
+            ILogger logger)
+        {
+            // Create data provider instance
+            var dataProvider = new InMemoryDataProvider<TItem>(
+                typeName: TypeName,
+                itemValidator: ItemValidator,
+                commandOperations: CommandOperations,
+                logger: logger);
+
+            // Register provider as singleton in DI container
+            services.AddSingleton<IDataProvider<TItem>>(dataProvider);
+
+            // Log successful registration
+            object?[] args =
+            [
+                typeof(TItem),    // TItem
+                TypeName,         // typeName
+                CommandOperations // commandOperations
+            ];
+
+            logger.LogInformation(
+                message: "Added InMemoryDataProvider<{TItem:l}>: typeName = '{typeName:l}', commandOperations = '{commandOperations:l}'.",
+                args: args);
+
+            return Task.CompletedTask;
         }
     }
 

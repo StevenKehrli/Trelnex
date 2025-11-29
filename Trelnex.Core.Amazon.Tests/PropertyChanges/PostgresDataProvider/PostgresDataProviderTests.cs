@@ -21,24 +21,21 @@ namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 [Category("EventPolicy")]
 public class PostgresDataProviderTests : EventPolicyTests
 {
-    private ServiceConfiguration _serviceConfiguration = null!;
-    private string _connectionString = null!;
-    private RegionEndpoint _region = null!;
-    private string _host = null!;
-    private int _port = 5432;
-    private string _database = null!;
-    private string _dbUser = null!;
     private AWSCredentials _awsCredentials = null!;
+    private DataOptions _baseDataOptions = null!;
+    private string _connectionString = null!;
+    private string _dbUser = null!;
     private string _eventTableName = null!;
+    private string _host = null!;
     private string _itemTableName = null!;
-    private DataOptions _dataOptions = null!;
-    private PostgresDataProviderFactory _factory = null!;
+    private int _port = 5432;
+    private RegionEndpoint _region = null!;
 
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the PostgresDataProvider for testing using the direct constructor instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
@@ -47,7 +44,7 @@ public class PostgresDataProviderTests : EventPolicyTests
             .Build();
 
         // Get the service configuration from the configuration.
-        _serviceConfiguration = configuration
+        var serviceConfiguration = configuration
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()!;
 
@@ -70,9 +67,9 @@ public class PostgresDataProviderTests : EventPolicyTests
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        _database = configuration
+        var database = configuration
             .GetSection("Amazon.PostgresDataProviders:Database")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the database user from the configuration.
         // Example: "admin"
@@ -106,10 +103,10 @@ public class PostgresDataProviderTests : EventPolicyTests
         // Build the connection string.
         var csb = new NpgsqlConnectionStringBuilder
         {
-            ApplicationName = _serviceConfiguration.FullName,
+            ApplicationName = serviceConfiguration.FullName,
             Host = _host,
             Port = _port,
-            Database = _database,
+            Database = database,
             Username = _dbUser,
             Password = pwd,
             SslMode = SslMode.Require
@@ -117,48 +114,8 @@ public class PostgresDataProviderTests : EventPolicyTests
 
         _connectionString = csb.ConnectionString;
 
-        // Create mapping schema for entity-to-table mapping
-        var mappingSchema = new MappingSchema();
-
-        // Configure metadata reader to use JSON property names as column names
-        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
-
-        var fmBuilder = new FluentMappingBuilder(mappingSchema);
-
-        var jsonSerializerOptions = new JsonSerializerOptions();
-
-        // Configure events table mapping
-        fmBuilder.Entity<ItemEvent>()
-            .HasTableName(_eventTableName)
-            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
-            .Property(itemEvent => itemEvent.Changes).HasConversion(
-                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
-                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
-
-        fmBuilder.Build();
-
-        // Initialize LinqToDB data options for SQL Server
-        _dataOptions = new DataOptions()
-            .UsePostgreSQL(_connectionString)
-            .UseBeforeConnectionOpened(BeforeConnectionOpened)
-            .UseMappingSchema(mappingSchema);
-
-        // Create the PostgresClientOptions.
-        var postgresClientOptions = new PostgresClientOptions(
-            AWSCredentials: _awsCredentials,
-            Region: _region,
-            Host: _host,
-            Port: _port,
-            Database: _database,
-            DbUser: _dbUser,
-            TableNames: [ _itemTableName, _eventTableName ]
-        );
-
-        // Create the PostgresDataProviderFactory.
-        _factory = await PostgresDataProviderFactory.Create(
-            _serviceConfiguration,
-            postgresClientOptions);
+        // Create base DataOptions with PostgreSQL connection string
+        _baseDataOptions = new DataOptions().UsePostgreSQL(_connectionString);
     }
 
     /// <summary>
@@ -199,27 +156,57 @@ public class PostgresDataProviderTests : EventPolicyTests
         connection.ConnectionString = csb.ConnectionString;
     }
 
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        return _factory.Create<EventPolicyTestItem>(
-            typeName: typeName,
+        // Build configured DataOptions with mapping schema
+        var dataOptions = DataOptionsBuilder.Build<EventPolicyTestItem>(
+            baseDataOptions: _baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
+            blockCipherService: blockCipherService);
+
+        var dataProvider = new PostgresDataProvider<EventPolicyTestItem>(
+            typeName: typeName,
+            dataOptions: dataOptions,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
+
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(
         string id,
         string partitionKey)
     {
+        // Build DataOptions for querying events table
+        var mappingSchema = new MappingSchema();
+        mappingSchema.AddMetadataReader(new JsonPropertyNameAttributeReader());
+
+        var fmBuilder = new FluentMappingBuilder(mappingSchema);
+        var jsonSerializerOptions = new JsonSerializerOptions();
+
+        fmBuilder.Entity<ItemEvent>()
+            .HasTableName(_eventTableName)
+            .Property(itemEvent => itemEvent.Id).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.PartitionKey).IsPrimaryKey()
+            .Property(itemEvent => itemEvent.Changes).HasConversion(
+                changes => JsonSerializer.Serialize(changes, jsonSerializerOptions),
+                s => JsonSerializer.Deserialize<PropertyChange[]>(s, jsonSerializerOptions));
+
+        fmBuilder.Build();
+
+        var dataOptions = _baseDataOptions
+            .UseMappingSchema(mappingSchema)
+            .UseBeforeConnectionOpened(BeforeConnectionOpened);
+
         // Create database connection
-        using var dataConnection = new DataConnection(_dataOptions);
+        using var dataConnection = new DataConnection(dataOptions);
 
         // Query for specific item by primary key
         var items = dataConnection

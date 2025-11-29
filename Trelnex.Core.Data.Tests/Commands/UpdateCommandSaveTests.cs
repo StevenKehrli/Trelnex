@@ -7,16 +7,13 @@ public class UpdateCommandSaveTests
 {
     [Test]
     [Description("Tests that update command throws when operations are not supported")]
-    public async Task UpdateCommandSave_SaveAsync_NotSupported()
+    public void UpdateCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider with no supported operations
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Read);
 
@@ -33,12 +30,9 @@ public class UpdateCommandSaveTests
         var id = "fb494bc5-0268-437a-bc61-0d60112571c8";
         var partitionKey = "5c833fcd-da29-4361-bab8-5e66c4c0caf3";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             logger: logger);
@@ -101,12 +95,9 @@ public class UpdateCommandSaveTests
         var id = "c4a1f396-13fe-433a-b4ab-979a5deb5d74";
         var partitionKey = "e550e6fa-1810-4d22-8f14-ebc2bff5f560";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             logger: logger);
@@ -164,11 +155,8 @@ public class UpdateCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update);
 

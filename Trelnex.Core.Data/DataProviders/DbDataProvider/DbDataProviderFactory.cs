@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using FluentValidation;
 using LinqToDB;
-using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Encryption;
@@ -17,7 +16,7 @@ namespace Trelnex.Core.Data;
 /// <summary>
 /// Abstract base factory for creating database-backed data providers using LinqToDB.
 /// </summary>
-public abstract class DbDataProviderFactory : IDataProviderFactory
+public abstract class DbDataProviderFactory
 {
     #region Static Fields
 
@@ -35,9 +34,6 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     // LinqToDB configuration for database connections
     private readonly DataOptions _dataOptions;
 
-    // Names of tables this factory manages
-    private readonly string[] _tableNames;
-
     #endregion
 
     #region Constructors
@@ -46,26 +42,13 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
     /// Initializes a new database data provider factory with connection options and table names.
     /// </summary>
     /// <param name="dataOptions">LinqToDB connection and configuration options.</param>
-    /// <param name="tableNames">Array of table names that this factory manages.</param>
     protected DbDataProviderFactory(
-        DataOptions dataOptions,
-        string[] tableNames)
+        DataOptions dataOptions)
     {
         // Configure data options with connection opening callback
         _dataOptions = CloneDataOptions(dataOptions)
             .UseBeforeConnectionOpened(BeforeConnectionOpened);
-
-        _tableNames = tableNames;
     }
-
-    #endregion
-
-    #region Protected Properties
-
-    /// <summary>
-    /// Gets the SQL query used to retrieve database version information.
-    /// </summary>
-    protected abstract string VersionQueryString { get; }
 
     #endregion
 
@@ -130,74 +113,6 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
             logger: logger);
     }
 
-    /// <inheritdoc/>
-#pragma warning disable CS1998
-    public async Task<DataProviderFactoryStatus> GetStatusAsync(
-        CancellationToken cancellationToken = default)
-    {
-        // Get base status information from derived class
-        var statusData = GetStatusData();
-        var data = new Dictionary<string, object>(statusData);
-
-        try
-        {
-            using var dataConnection = new DataConnection(_dataOptions);
-
-            // Query database version information
-            var version = dataConnection.Query<string>(VersionQueryString);
-
-            // Parse version string into array of lines
-            var versionArray = version
-                .FirstOrDefault()?
-                .Split(['\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .ToArray();
-
-            // Get database schema for table validation
-            var schemaProvider = dataConnection.DataProvider.GetSchemaProvider();
-            var databaseSchema = schemaProvider.GetSchema(dataConnection);
-
-            // Check for missing tables
-            var missingTableNames = new List<string>();
-            foreach (var tableName in _tableNames.OrderBy(tableName => tableName))
-            {
-                // Verify table exists
-                if (databaseSchema.Tables.Any(tableSchema => tableSchema.TableName == tableName) is false)
-                {
-                    missingTableNames.Add(tableName);
-                }
-            }
-
-            // Add version information if available
-            if (versionArray is not null)
-            {
-                data["version"] = versionArray;
-            }
-
-            // Add error information if tables are missing
-            if (missingTableNames.Count > 0)
-            {
-                data["error"] = $"Missing Tables: {string.Join(", ", missingTableNames)}";
-            }
-
-            var status = new DataProviderFactoryStatus(
-                IsHealthy: missingTableNames.Count == 0,
-                Data: data);
-
-            return status;
-        }
-        catch (Exception ex)
-        {
-            // Add exception information to status
-            data["error"] = ex.Message;
-
-            return new DataProviderFactoryStatus(
-                IsHealthy: false,
-                Data: data);
-        }
-    }
-#pragma warning restore CS1998
-
     #endregion
 
     #region Protected Methods
@@ -232,12 +147,6 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         ILogger? logger = null)
         where TItem : BaseItem, new();
 
-    /// <summary>
-    /// Provides database-specific status information for health monitoring.
-    /// </summary>
-    /// <returns>Dictionary containing provider-specific diagnostic information.</returns>
-    protected abstract IReadOnlyDictionary<string, object> GetStatusData();
-
     #endregion
 
     #region Private Static Methods
@@ -251,6 +160,35 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
         DataOptions dataOptions)
     {
         return ((dataOptions as ICloneable).Clone() as DataOptions)!;
+    }
+
+    /// <summary>
+    /// Determines if a property is a complex type requiring JSON serialization.
+    /// </summary>
+    /// <param name="propertyInfo">Property to analyze.</param>
+    /// <returns>True if the property needs JSON conversion.</returns>
+    private static bool IsComplexProperty(
+        PropertyInfo propertyInfo)
+    {
+        // Get underlying type for nullable properties
+        var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
+
+        // Check if type requires complex JSON handling
+        var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(propertyType, _jsonSerializerOptions);
+
+        return jsonTypeInfo?.Kind != JsonTypeInfoKind.None;
+    }
+
+    /// <summary>
+    /// Determines if a property should be encrypted based on EncryptAttribute.
+    /// </summary>
+    /// <param name="propertyInfo">Property to check for encryption requirements.</param>
+    /// <returns>True if the property should be encrypted.</returns>
+    private static bool IsEncryptProperty(
+        PropertyInfo propertyInfo)
+    {
+        // Check for EncryptAttribute presence
+        return propertyInfo.GetCustomAttribute<EncryptAttribute>() is not null;
     }
 
     /// <summary>
@@ -329,35 +267,6 @@ public abstract class DbDataProviderFactory : IDataProviderFactory
                     toProvider: value => JsonSerializer.Serialize(value, _jsonSerializerOptions),
                     toModel: json => JsonSerializer.Deserialize<TProperty>(json, _jsonSerializerOptions)!);
         }
-    }
-
-    /// <summary>
-    /// Determines if a property is a complex type requiring JSON serialization.
-    /// </summary>
-    /// <param name="propertyInfo">Property to analyze.</param>
-    /// <returns>True if the property needs JSON conversion.</returns>
-    private static bool IsComplexProperty(
-        PropertyInfo propertyInfo)
-    {
-        // Get underlying type for nullable properties
-        var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
-
-        // Check if type requires complex JSON handling
-        var jsonTypeInfo = JsonTypeInfo.CreateJsonTypeInfo(propertyType, _jsonSerializerOptions);
-
-        return jsonTypeInfo?.Kind != JsonTypeInfoKind.None;
-    }
-
-    /// <summary>
-    /// Determines if a property should be encrypted based on EncryptAttribute.
-    /// </summary>
-    /// <param name="propertyInfo">Property to check for encryption requirements.</param>
-    /// <returns>True if the property should be encrypted.</returns>
-    private static bool IsEncryptProperty(
-        PropertyInfo propertyInfo)
-    {
-        // Check for EncryptAttribute presence
-        return propertyInfo.GetCustomAttribute<EncryptAttribute>() is not null;
     }
 
     #endregion

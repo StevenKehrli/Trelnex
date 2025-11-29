@@ -1,8 +1,9 @@
+using System.Data.Common;
+using Microsoft.Extensions.Configuration;
 using Amazon;
 using Amazon.RDS.Util;
 using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
-using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Encryption;
@@ -29,15 +30,14 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     protected AWSCredentials _awsCredentials = null!;
 
     /// <summary>
+    /// The block cipher service used for encrypting and decrypting test data.
+    /// </summary>
+    protected IBlockCipherService _blockCipherService = null!;
+
+    /// <summary>
     /// The connection string used to connect to the PostgreSQL server.
     /// </summary>
     protected string _connectionString = null!;
-
-    /// <summary>
-    /// The database name for the PostgreSQL server.
-    /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _database = null!;
 
     /// <summary>
     /// The database user for the PostgreSQL server.
@@ -46,10 +46,20 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     protected string _dbUser = null!;
 
     /// <summary>
+    /// The name of the event table used for testing.
+    /// </summary>
+    protected string _eventTableName = null!;
+
+    /// <summary>
     /// The host or server name for the PostgreSQL server.
     /// </summary>
     /// <example>postgresdataprovider-tests.us-west-2.rds.amazonaws.com</example>
     protected string _host = null!;
+
+    /// <summary>
+    /// The name of the item table used for testing.
+    /// </summary>
+    protected string _itemTableName = null!;
 
     /// <summary>
     /// The port for the PostgreSQL server.
@@ -70,21 +80,6 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The name of the item table used for testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
-    /// The block cipher service used for encrypting and decrypting test data.
-    /// </summary>
-    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for PostgreSQL data provider tests.
@@ -122,7 +117,7 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        _database = configuration
+        var database = configuration
             .GetSection("Amazon.PostgresDataProviders:Database")
             .Get<string>()!;
 
@@ -136,31 +131,34 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
         // Example: "test-items"
         var testItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the event table name from the configuration.
         // Example: "test-items-events"
         var testItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted item table name from the configuration.
         // Example: "test-items"
         var encryptedTestItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted event table name from the configuration.
         // Example: "test-items-events"
         var encryptedTestItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
-        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
-        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
+            Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        }
 
-        _itemTableName = testItemItemTableName;
-        _eventTableName = testItemEventTableName;
+        _itemTableName = testItemItemTableName!;
+        _eventTableName = testItemEventTableName!;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -185,7 +183,7 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
             ApplicationName = _serviceConfiguration.FullName,
             Host = _host,
             Port = _port,
-            Database = _database,
+            Database = database,
             Username = _dbUser,
             Password = pwd,
             SslMode = SslMode.Require
@@ -267,5 +265,29 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();
+    }
+
+    protected void BeforeConnectionOpened(
+        DbConnection dbConnection)
+    {
+        // Only process Npgsql connections
+        if (dbConnection is not NpgsqlConnection connection) return;
+
+        // Generate AWS IAM authentication token for PostgreSQL
+        var pwd = RDSAuthTokenGenerator.GenerateAuthToken(
+            credentials: _awsCredentials,
+            region: _region,
+            hostname: _host,
+            port: _port,
+            dbUser: _dbUser);
+
+        // Update connection string with generated authentication token
+        var csb = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
+        {
+            Password = pwd,
+            SslMode = SslMode.Require
+        };
+
+        connection.ConnectionString = csb.ConnectionString;
     }
 }

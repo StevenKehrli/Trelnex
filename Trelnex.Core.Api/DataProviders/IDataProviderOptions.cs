@@ -1,6 +1,7 @@
 using FluentValidation;
+using Trelnex.Core.Data;
 
-namespace Trelnex.Core.Data;
+namespace Trelnex.Core.Api.DataProviders;
 
 /// <summary>
 /// Defines operations for configuring data provider entity registrations.

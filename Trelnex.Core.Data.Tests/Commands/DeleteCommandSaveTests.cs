@@ -7,16 +7,13 @@ public class DeleteCommandSaveTests
 {
     [Test]
     [Description("Tests that delete command throws when operations are not supported")]
-    public async Task DeleteCommandSave_SaveAsync_NotSupported()
+    public void DeleteCommandSave_SaveAsync_NotSupported()
     {
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider with no supported operations
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Read);
 
@@ -33,12 +30,9 @@ public class DeleteCommandSaveTests
         var id = "13fcc745-fe36-4f68-ad3c-977fed8d1833";
         var partitionKey = "b0d2c39c-23bc-4b4e-8cc3-49599056cfec";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with delete operations
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             logger: logger);
@@ -97,12 +91,9 @@ public class DeleteCommandSaveTests
         var id = "94bbfdb3-1fab-4d50-802f-5cdc405e35db";
         var partitionKey = "61a77f60-8911-4ecc-b41b-69386b8e99ae";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with delete operations
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             logger: logger);
@@ -156,11 +147,8 @@ public class DeleteCommandSaveTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with delete operations
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete);
 

@@ -25,7 +25,7 @@ public abstract partial class EventPolicyTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Get a data provider for our test item type
-        var dataProvider = GetDataProvider(
+        var dataProvider = await GetDataProviderAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             eventPolicy: EventPolicy.NoChanges);
@@ -84,7 +84,7 @@ public abstract partial class EventPolicyTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Get a data provider for our test item type
-        var dataProvider = GetDataProvider(
+        var dataProvider = await GetDataProviderAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Delete,
             eventPolicy: EventPolicy.NoChanges);
@@ -163,7 +163,7 @@ public abstract partial class EventPolicyTests
         var startDateTimeOffset = DateTimeOffset.UtcNow;
 
         // Get a data provider for our test item type
-        var dataProvider = GetDataProvider(
+        var dataProvider = await GetDataProviderAsync(
             typeName: "test-item",
             commandOperations: CommandOperations.Create | CommandOperations.Update,
             eventPolicy: EventPolicy.NoChanges);

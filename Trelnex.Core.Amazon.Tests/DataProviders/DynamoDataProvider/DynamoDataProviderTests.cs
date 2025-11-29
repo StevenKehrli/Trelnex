@@ -18,30 +18,22 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 public class DynamoDataProviderTests : DynamoDataProviderTestBase
 {
     /// <summary>
-    /// Sets up the DynamoDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the DynamoDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
     public async Task TestFixtureSetup()
     {
-        // Initialize shared resources from configuration
-        TestSetup();
+        // Initialize shared resources from configuration and load tables
+        await TestSetupAsync();
 
-        // Create the data provider using direct factory instantiation.
-        var dynamoClientOptions = new DynamoClientOptions(
-            AWSCredentials: _awsCredentials,
-            Region: _region,
-            TableNames: [ _itemTableName, _eventTableName ]
-        );
-
-        var factory = await DynamoDataProviderFactory.Create(
-            dynamoClientOptions);
-
-        _dataProvider = factory.Create(
+        // Create the data provider using constructor
+        _dataProvider = new DynamoDataProvider<TestItem>(
             typeName: "test-item",
-            itemTableName: _itemTableName,
-            eventTableName: _eventTableName,
+            itemTable: _itemTable,
+            eventTable: _eventTable,
             itemValidator: TestItem.Validator,
-            commandOperations: CommandOperations.All);
+            commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges);
     }
 
     [Test]

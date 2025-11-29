@@ -1,10 +1,7 @@
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Azure.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
+using Azure.Identity;
 using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.PropertyChanges;
@@ -17,13 +14,12 @@ namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 public class CosmosDataProviderTests : EventPolicyTests
 {
     private Container _container = null!;
-    private CosmosDataProviderFactory _factory = null!;
 
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the CosmosDataProvider for testing using the direct constructor instantiation approach.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Create the test configuration.
         var configuration = new ConfigurationBuilder()
@@ -35,54 +31,35 @@ public class CosmosDataProviderTests : EventPolicyTests
         // Example: "https://cosmosdataprovider-tests.documents.azure.com:443/"
         var endpointUri = configuration
             .GetSection("Azure.CosmosDataProviders:EndpointUri")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the database ID from the configuration.
         // Example: "trelnex-core-data-tests"
         var databaseId = configuration
             .GetSection("Azure.CosmosDataProviders:DatabaseId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the container ID from the configuration.
         // Example: "test-items"
         var containerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Create a token credential for authentication.
         var tokenCredential = new DefaultAzureCredential();
 
-        // Create a CosmosClient instance.
-        var jsonSerializerOptions = new JsonSerializerOptions()
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
-
         var cosmosClient = new CosmosClient(
             accountEndpoint: endpointUri,
             tokenCredential: tokenCredential,
-            clientOptions: new Microsoft.Azure.Cosmos.CosmosClientOptions
+            clientOptions: new CosmosClientOptions
             {
-                Serializer = new SystemTextJsonSerializer(jsonSerializerOptions)
+                Serializer = new SystemTextJsonSerializer()
             });
 
         // Get a reference to the container.
         _container = cosmosClient.GetContainer(
             databaseId: databaseId,
             containerId: containerId);
-
-        // Create the data provider using direct factory instantiation.
-        var cosmosClientOptions = new Azure.DataProviders.CosmosClientOptions(
-            TokenCredential: tokenCredential,
-            AccountEndpoint: endpointUri,
-            DatabaseId: databaseId,
-            ContainerIds: [ containerId ]
-        );
-
-        // Create the CosmosDataProviderFactory.
-        _factory = await CosmosDataProviderFactory.Create(
-            cosmosClientOptions);
     }
 
     /// <summary>
@@ -121,27 +98,20 @@ public class CosmosDataProviderTests : EventPolicyTests
         }
     }
 
-    /// <summary>
-    /// Record representing a minimal CosmosDB item used for cleanup operations.
-    /// </summary>
-    /// <param name="id">The id of the CosmosDB item.</param>
-    /// <param name="partitionKey">The partition key of the CosmosDB item.</param>
-    protected record CosmosItem(
-        string id,
-        string partitionKey);
-
-    protected override IDataProvider<EventPolicyTestItem> GetDataProvider(
+    protected override Task<IDataProvider<EventPolicyTestItem>> GetDataProviderAsync(
         string typeName,
         CommandOperations commandOperations,
         EventPolicy eventPolicy,
         IBlockCipherService? blockCipherService = null)
     {
-        return _factory.Create<EventPolicyTestItem>(
+        var dataProvider = new CosmosDataProvider<EventPolicyTestItem>(
             typeName: typeName,
-            containerId: _container.Id,
+            container: _container,
             commandOperations: commandOperations,
             eventPolicy: eventPolicy,
             blockCipherService: blockCipherService);
+
+        return Task.FromResult<IDataProvider<EventPolicyTestItem>>(dataProvider);
     }
 
     protected override async Task<ItemEvent[]> GetItemEventsAsync(
@@ -168,4 +138,13 @@ public class CosmosDataProviderTests : EventPolicyTests
 
         return results.ToArray();
     }
+
+    /// <summary>
+    /// Record representing a minimal CosmosDB item used for cleanup operations.
+    /// </summary>
+    /// <param name="id">The id of the CosmosDB item.</param>
+    /// <param name="partitionKey">The partition key of the CosmosDB item.</param>
+    protected record CosmosItem(
+        string id,
+        string partitionKey);
 }

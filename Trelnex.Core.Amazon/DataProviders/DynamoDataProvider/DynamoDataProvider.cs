@@ -16,7 +16,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 /// </summary>
 /// <param name="typeName">Type name identifier for filtering items.</param>
 /// <param name="itemTable">DynamoDB table instance for data operations.</param>
-/// <param name="eventTable">DynamoDB table instance for event tracking.</param>
+/// <param name="eventTable">DynamoDB table instance for event tracking, or null if EventPolicy is Disabled.</param>
 /// <param name="itemValidator">Optional validator for items before saving.</param>
 /// <param name="commandOperations">Optional CRUD operations override.</param>
 /// <param name="eventPolicy">Optional event policy for change tracking.</param>
@@ -26,7 +26,7 @@ namespace Trelnex.Core.Amazon.DataProviders;
 internal class DynamoDataProvider<TItem>(
     string typeName,
     Table itemTable,
-    Table eventTable,
+    Table? eventTable,
     IValidator<TItem>? itemValidator = null,
     CommandOperations? commandOperations = null,
     EventPolicy? eventPolicy = null,
@@ -180,7 +180,7 @@ internal class DynamoDataProvider<TItem>(
 
         // Create DynamoDB transaction batch
         var itemBatch = itemTable.CreateTransactWrite();
-        var eventBatch = eventTable.CreateTransactWrite();
+        var eventBatch = eventTable?.CreateTransactWrite();
 
         // Process each request and add to transaction
         for (var index = 0; index < requests.Length; index++)
@@ -238,17 +238,17 @@ internal class DynamoDataProvider<TItem>(
             var jsonEvent = SerializeEvent(responseEvent);
             var documentEvent = Document.FromJson(jsonEvent);
 
-            eventBatch.AddDocumentToUpdate(documentEvent);
+            eventBatch?.AddDocumentToUpdate(documentEvent);
         }
 
         try
         {
             // Execute the entire transactions atomically
-            var multiTableBatch = new MultiTableDocumentTransactWrite(
-                [
-                    itemBatch,
-                    eventBatch
-                ]);
+            var batches = eventBatch is not null
+                ? new[] { itemBatch, eventBatch }
+                : new[] { itemBatch };
+
+            var multiTableBatch = new MultiTableDocumentTransactWrite(batches);
 
             await multiTableBatch.ExecuteAsync(cancellationToken);
         }

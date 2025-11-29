@@ -12,12 +12,9 @@ public class ReadCommandReadTests
         var id = "a15f192b-e695-4220-9fd8-bc07653ca2ce";
         var partitionKey = "76f66bd8-c265-4b9c-9ff0-8ade598e1cc7";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);
@@ -69,12 +66,9 @@ public class ReadCommandReadTests
         var id = "36db3199-97ce-4dc4-9181-b2add674d03b";
         var partitionKey = "f98be670-d708-4722-8551-bd5ef4515aab";
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type
         var logger = new TestLogger();
-        var dataProvider = factory.Create<TestItem>(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             commandOperations: CommandOperations.Create,
             logger: logger);

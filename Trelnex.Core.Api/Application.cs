@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Trelnex.Core.Api.Authentication;
-using Trelnex.Core.Api.DataProviders;
 using Trelnex.Core.Api.Configuration;
 using Trelnex.Core.Api.Exceptions;
 using Trelnex.Core.Api.HealthChecks;
@@ -128,7 +127,6 @@ public static class Application
 
         // Add health check services.
         builder.Services.AddIdentityHealthChecks();
-        builder.Services.AddDataProviderHealthChecks();
         builder.Services.AddDefaultHealthChecks();
 
         var app = builder.Build();

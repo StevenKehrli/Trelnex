@@ -7,10 +7,10 @@
     "PartitionKey": "b297ff5b-2ab5-4b8d-9dfd-57d2e1d8c3d2",
     "TypeName": "test-item",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-08-16T21:34:49.563726+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:34:49.563726+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T06:06:23.709819+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T06:06:23.709819+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "df3a2ca0-4cf9-4891-b157-02446cf2e03f"
+    "ETag": "1f6c9f72-64c7-41ad-9158-3eb9ebdd4341"
   }
 }

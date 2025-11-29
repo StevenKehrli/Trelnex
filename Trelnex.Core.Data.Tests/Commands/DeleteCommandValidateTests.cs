@@ -17,11 +17,8 @@ public class DeleteCommandValidateTests
         var id = Guid.NewGuid().ToString();
         var partitionKey = Guid.NewGuid().ToString();
 
-        // Create our in-memory data provider factory
-        var factory = await InMemoryDataProviderFactory.Create();
-
         // Get a data provider for our test item type with validator and delete operations
-        var dataProvider = factory.Create(
+        var dataProvider = new InMemoryDataProvider<TestItem>(
             typeName: "test-item",
             itemValidator: itemValidator,
             commandOperations: CommandOperations.Create | CommandOperations.Delete);

@@ -7,10 +7,10 @@
     "PartitionKey": "fbc8502a-38ee-4edb-8a2d-485888af5bd3",
     "TypeName": "encrypted-test-item",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-08-16T21:25:21.879596+00:00",
-    "UpdatedDateTimeOffset": "2025-08-16T21:25:21.879596+00:00",
-    "DeletedDateTimeOffset": "2025-08-16T21:25:22.006915+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T03:28:37.028625+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T03:28:37.028625+00:00",
+    "DeletedDateTimeOffset": "2025-11-29T03:28:37.174448+00:00",
     "IsDeleted": true,
-    "ETag": "\"0400f474-0000-0300-0000-68a0f7420000\""
+    "ETag": "\"0000136a-0000-0300-0000-692a68650000\""
   }
 }

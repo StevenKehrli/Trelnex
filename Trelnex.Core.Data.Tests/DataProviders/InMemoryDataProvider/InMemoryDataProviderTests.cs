@@ -39,16 +39,12 @@ public class InMemoryDataProviderTests : DataProviderTests
     /// via reflection to allow cleaning up between tests.
     /// </remarks>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
-        // Create our data provider.
-        var factory = await InMemoryDataProviderFactory.Create();
-
-        _dataProvider =
-            factory.Create(
-                typeName: "test-item",
-                TestItem.Validator,
-                CommandOperations.All);
+        _dataProvider = new InMemoryDataProvider<TestItem>(
+            typeName: "test-item",
+            TestItem.Validator,
+            CommandOperations.All);
 
         // Use reflection to get the Clear method from the underlying InMemoryDataProvider.
         // This is necessary because the Clear method is non-public.

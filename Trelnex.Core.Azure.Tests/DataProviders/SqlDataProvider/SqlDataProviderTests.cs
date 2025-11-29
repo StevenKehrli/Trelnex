@@ -1,3 +1,4 @@
+using LinqToDB;
 using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
@@ -5,14 +6,14 @@ using Trelnex.Core.Data.Tests.DataProviders;
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
 /// <summary>
-/// Tests for the SqlDataProvider implementation using direct factory instantiation.
+/// Tests for the SqlDataProvider implementation using direct constructor instantiation.
 /// </summary>
 /// <remarks>
 /// This class inherits from <see cref="SqlDataProviderTestBase"/> to leverage the shared
 /// test infrastructure and from <see cref="DataProviderTests"/> (indirectly) to leverage
 /// the extensive test suite defined in that base class.
 ///
-/// This approach tests the factory pattern and provider implementation directly.
+/// This approach tests the constructor pattern and provider implementation directly.
 ///
 /// This test class is marked with <see cref="IgnoreAttribute"/> as it requires an actual SQL Server instance
 /// to run, making it unsuitable for automated CI/CD pipelines without proper infrastructure setup.
@@ -22,35 +23,30 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 public class SqlDataProviderTests : SqlDataProviderTestBase
 {
     /// <summary>
-    /// Sets up the SqlDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the SqlDataProvider for testing using direct constructor instantiation.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared resources from configuration
         TestSetup();
 
-        // Configure the SQL client options.
-        var sqlClientOptions = new SqlClientOptions(
-            TokenCredential: _tokenCredential,
-            Scope: _scope,
-            DataSource: _dataSource,
-            InitialCatalog: _initialCatalog,
-            TableNames: [_itemTableName, _eventTableName]
-        );
+        // Create base DataOptions with SQL Server connection string
+        var baseDataOptions = new DataOptions().UseSqlServer(_connectionString);
 
-        // Create the SqlDataProviderFactory.
-        var factory = await SqlDataProviderFactory.Create(
-            _serviceConfiguration,
-            sqlClientOptions);
-
-        // Create the data provider instance.
-        _dataProvider = factory.Create(
-            typeName: "test-item",
+        // Create the data provider using DataOptionsBuilder and constructor
+        var dataOptions = DataOptionsBuilder.Build<TestItem>(
+            baseDataOptions: baseDataOptions,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
-            eventTableName: _eventTableName,
+            eventTableName: _eventTableName);
+
+        _dataProvider = new SqlDataProvider<TestItem>(
+            typeName: "test-item",
+            dataOptions: dataOptions,
             itemValidator: TestItem.Validator,
-            commandOperations: CommandOperations.All);
+            commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges);
     }
 
     [Test]
