@@ -90,11 +90,8 @@ public class InMemoryDataProvider<TItem>
             var constantValue = _store.AsQueryable();
             var constantExpression = Expression.Constant(constantValue);
 
-            // Build new expression with store as data source
-            var methodCallExpression = Expression.Call(
-                mce.Method,
-                constantExpression,
-                mce.Arguments[1]!);
+            // Recursively rebuild the expression tree with the store as the source
+            var methodCallExpression = ReplaceQueryableSource(mce, constantExpression);
 
             // Execute query against the store
             var queryableFromExpression = _store
@@ -259,6 +256,36 @@ public class InMemoryDataProvider<TItem>
     #endregion
 
     #region Private Static Methods
+
+    /// <summary>
+    /// Recursively replaces the empty queryable source with the actual store data.
+    /// </summary>
+    /// <param name="expression">The method call expression to process.</param>
+    /// <param name="constantExpression">The constant expression containing the store data.</param>
+    /// <returns>A new expression with the store as the data source.</returns>
+    private static Expression ReplaceQueryableSource(
+        MethodCallExpression expression,
+        ConstantExpression constantExpression)
+    {
+        // If the first argument is a MethodCallExpression, recursively process it
+        if (expression.Arguments[0] is MethodCallExpression nestedMethodCall)
+        {
+            var replacedSource = ReplaceQueryableSource(nestedMethodCall, constantExpression);
+
+            // Rebuild this method call with the replaced source
+            var newArguments = new[] { replacedSource }.Concat(expression.Arguments.Skip(1));
+            return Expression.Call(
+                expression.Method,
+                newArguments);
+        }
+
+        // Base case: first argument is not a method call (should be the empty source constant)
+        // Replace it with the store constant expression
+        var arguments = new[] { constantExpression }.Concat(expression.Arguments.Skip(1));
+        return Expression.Call(
+            expression.Method,
+            arguments);
+    }
 
     /// <summary>
     /// Saves an item to the specified store based on the save action type.
