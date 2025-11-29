@@ -8,7 +8,7 @@ using Trelnex.Core.Api.Authentication;
 using Trelnex.Core.Api.Swagger;
 
 // Start the authentication service application using the core Application framework.
-Application.Run(args, AuthApplication.AddApplication, AuthApplication.UseApplication);
+await Application.RunAsync(args, AuthApplication.AddApplication, AuthApplication.UseApplication);
 
 /// <summary>
 /// Provides application configuration and startup functionality for the Trelnex Authentication Service.
@@ -36,7 +36,7 @@ internal static class AuthApplication
     /// - AWS identity services
     /// - Application-specific services
     /// </remarks>
-    public static void AddApplication(
+    public static async Task AddApplication(
         IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
