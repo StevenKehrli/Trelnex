@@ -374,7 +374,7 @@ public static partial class PostgresDataProvidersExtensions
 
             // Log successful registration
             logger.LogInformation(
-                "Added PostgresDataProvider<{TItem:l}>: typeName = '{typeName:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations:l}'.",
+                "Added PostgresDataProvider<{TItem:l}>: typeName = '{typeName:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations}'.",
                 typeof(TItem),
                 TypeName,
                 TableConfiguration.ItemTableName,

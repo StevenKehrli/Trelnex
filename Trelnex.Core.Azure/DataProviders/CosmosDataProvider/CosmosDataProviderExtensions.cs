@@ -283,7 +283,7 @@ public static class CosmosDataProvidersExtensions
 
             // Log successful registration
             logger.LogInformation(
-                "Added CosmosDataProvider<{TItem:l}>: typeName = '{typeName:l}', containerId = '{containerId:l}', commandOperations = '{commandOperations:l}'.",
+                "Added CosmosDataProvider<{TItem:l}>: typeName = '{typeName:l}', containerId = '{containerId:l}', commandOperations = '{commandOperations}'.",
                 typeof(TItem),
                 TypeName,
                 ContainerConfiguration.Container.Id,

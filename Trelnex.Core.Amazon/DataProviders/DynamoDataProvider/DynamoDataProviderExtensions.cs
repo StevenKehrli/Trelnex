@@ -318,7 +318,7 @@ public static class DynamoDataProvidersExtensions
             ];
 
             logger.LogInformation(
-                message: "Added DynamoDataProvider<{TItem:l}>: typeName = '{typeName:l}', region = '{region:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations:l}'.",
+                message: "Added DynamoDataProvider<{TItem:l}>: typeName = '{typeName:l}', region = '{region:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations}'.",
                 args: args);
 
             return Task.CompletedTask;
