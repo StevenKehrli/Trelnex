@@ -95,13 +95,13 @@ The configuration system uses a layered approach with well-defined precedence:
 The framework integrates with Trelnex.Core.Data data providers for data access:
 
 ```csharp
-// Register data provider factories
-services.AddInMemoryDataProviders(
+// Register in-memory data providers
+await services.AddInMemoryDataProvidersAsync(
     configuration,
-    logger,
+    bootstrapLogger,
     options => options.AddCustomerDataProviders());
 
-// Example customer data providers with EventPolicy
+// Example customer data provider configuration
 public static IDataProviderOptions AddCustomerDataProviders(
     this IDataProviderOptions options)
 {
@@ -112,6 +112,13 @@ public static IDataProviderOptions AddCustomerDataProviders(
             commandOperations: CommandOperations.All);
 }
 ```
+
+**Available Data Provider Extensions:**
+- `AddInMemoryDataProvidersAsync` - In-memory providers for testing and development
+- `AddDynamoDataProvidersAsync` - Amazon DynamoDB providers (Trelnex.Core.Amazon)
+- `AddPostgresDataProvidersAsync` - PostgreSQL providers (Trelnex.Core.Amazon)
+- `AddCosmosDataProvidersAsync` - Azure Cosmos DB providers (Trelnex.Core.Azure)
+- `AddSqlDataProvidersAsync` - Azure SQL Server providers (Trelnex.Core.Azure)
 
 ## Configuration
 
@@ -188,7 +195,7 @@ Application.Run(args,
         services.AddSwaggerToServices();
 
         // Register typed HTTP clients
-        services.AddClient(configuration, new YourClientFactory());
+        services.AddClient<IYourClient, YourClient>(configuration);
     },
     // Configure endpoints
     app =>
@@ -203,24 +210,29 @@ Application.Run(args,
 ### Registering HTTP Clients
 
 ```csharp
-// Define client interface and factory
+using Trelnex.Core.Client;
+
+// Define client interface and implementation
 public interface IExampleClient
 {
     Task<string> GetDataAsync();
 }
 
-public class ExampleClientFactory : IClientFactory<IExampleClient>
+public class ExampleClient : BaseClient, IExampleClient
 {
-    public string Name => "ExampleClient";
-
-    public IExampleClient Create(HttpClient httpClient, IAccessTokenProvider? accessTokenProvider)
+    public ExampleClient(HttpClient httpClient)
+        : base(httpClient)
     {
-        return new ExampleClient(httpClient, accessTokenProvider);
+    }
+
+    public async Task<string> GetDataAsync()
+    {
+        return await GetAsync<string>("/data");
     }
 }
 
-// Register the client
-services.AddClient<IExampleClient>(configuration, new ExampleClientFactory());
+// Register the client with both interface and implementation types
+services.AddClient<IExampleClient, ExampleClient>(configuration);
 
 // Use the client in your services
 public class YourService
@@ -253,8 +265,8 @@ public class YourService
 ## Extension Points
 
 - **Custom Authentication**: Extend `JwtBearerPermission` or `MicrosoftIdentityPermission`
-- **Typed HTTP Clients**: Implement `IClientFactory<T>` for custom client creation logic
-- **Data Providers**: Register custom data provider factories for data access
+- **Typed HTTP Clients**: Extend `BaseClient` and register with `AddClient<IClient, TClient>`
+- **Data Providers**: Use extension methods like `AddInMemoryDataProvidersAsync` or create custom providers extending `DataProvider<TItem>`
 
 ## Related Libraries
 

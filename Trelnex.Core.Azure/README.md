@@ -13,7 +13,7 @@ See [NOTICE.md](NOTICE.md) for more information.
 ## Key Features
 
 - **Data Access Integration** - SQL Server and Cosmos DB data providers for the Trelnex.Core.Data system
-- **Data Provider Factories** - Simplified registration of Azure-based data stores
+- **Data Provider Extensions** - Simplified registration of Azure-based data stores with dependency injection
 - **Configurable Event Tracking** - EventPolicy support for controlling change tracking behavior
 - **Azure Identity Integration** - Managed credential handling for Azure services with automatic token refresh
 
@@ -37,10 +37,10 @@ The library includes data providers for Azure data services that implement the `
 
 #### CosmosDataProvider - Dependency Injection
 
-The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
+The `AddCosmosDataProvidersAsync` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
-    public static void Add(
+    public static async Task Add(
         IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
@@ -49,12 +49,12 @@ The `AddCosmosDataProviders` method takes a `Action<IDataProviderOptions>` `conf
             .AddAuthentication(configuration)
             .AddPermissions(bootstrapLogger);
 
-        services
+        await services
             .AddSwaggerToServices()
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddCosmosDataProviders(
+            .AddCosmosDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.AddUsersDataProviders());
@@ -115,7 +115,7 @@ The `EventPolicy` property controls change tracking behavior. Options include:
 
 The `EventTimeToLive` property is optional and allows automatic expiration and deletion of the events from CosmosDB. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties appear in their encrypted form in event change tracking.
 
 #### CosmosDataProvider - Container Schema
 
@@ -139,10 +139,10 @@ The document schema in Cosmos DB follows these conventions:
 
 #### SqlDataProvider - Dependency Injection
 
-The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
+The `AddSqlDataProvidersAsync` method takes a `Action<IDataProviderOptions>` `configureDataProviders` delegate. This delegate configures the necessary `IDataProvider` instances for the application.
 
 ```csharp
-    public static void Add(
+    public static async Task Add(
         IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
@@ -151,12 +151,12 @@ The `AddSqlDataProviders` method takes a `Action<IDataProviderOptions>` `configu
             .AddAuthentication(configuration)
             .AddPermissions(bootstrapLogger);
 
-        services
+        await services
             .AddSwaggerToServices()
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddSqlDataProviders(
+            .AddSqlDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.AddUsersDataProviders());
@@ -221,7 +221,7 @@ The `EventTableName` property is optional and defaults to `{ItemTableName}-event
 
 The `EventTimeToLive` property is optional. When provided, it will set the expireAtDateTimeOffset value in the table. A cron job can be developed to automatically delete the events from SQL. The value is expressed in seconds.
 
-The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties maintain their encrypted values in event change tracking for complete security.
+The `Encryption` section is optional and enables client-side encryption for the specified type name. When provided, properties marked with the `[Encrypt]` attribute will be automatically encrypted before storage and decrypted when retrieved, ensuring sensitive data remains protected at rest. Encrypted properties appear in their encrypted form in event change tracking.
 
 #### SqlDataProvider - Item Schema
 
