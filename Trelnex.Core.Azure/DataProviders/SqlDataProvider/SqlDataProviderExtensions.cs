@@ -343,7 +343,7 @@ public static class SqlDataProvidersExtensions
 
             // Log successful registration
             logger.LogInformation(
-                "Added SqlDataProvider<{TItem:l}>: typeName = '{typeName:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations:l}'.",
+                "Added SqlDataProvider<{TItem:l}>: typeName = '{typeName:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations}'.",
                 typeof(TItem),
                 TypeName,
                 TableConfiguration.ItemTableName,
