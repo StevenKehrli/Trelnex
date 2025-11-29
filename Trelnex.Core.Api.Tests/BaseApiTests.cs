@@ -159,9 +159,9 @@ public abstract class BaseApiTests
             expirationInMinutes: 15); // Same expiration time
 
         // Create the web application using a test configuration
-        _webApplication = Application.CreateWebApplication(
+        _webApplication = await Application.CreateWebApplicationAsync(
             args: [],
-            addApplication: async (services, configuration, logger) =>
+            addApplicationAsync: async (services, configuration, logger) =>
             {
                 // Add the test server (in-memory)
                 services.AddSingleton<IHostLifetime, NoopHostLifetime>();

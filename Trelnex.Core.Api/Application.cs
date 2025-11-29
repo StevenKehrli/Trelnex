@@ -27,10 +27,10 @@ public static class Application
     #region Public Static Methods
 
     /// <summary>
-    /// Configures and runs an ASP.NET Core web application.
+    /// Configures and runs an ASP.NET Core web application with async service registration.
     /// </summary>
     /// <param name="args">Command line arguments passed to the application.</param>
-    /// <param name="addApplication">Delegate to register application-specific services.</param>
+    /// <param name="addApplicationAsync">Async delegate to register application-specific services.</param>
     /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
     /// <exception cref="ConfigurationErrorsException">
     /// Thrown when the required ServiceConfiguration section is missing.
@@ -38,19 +38,19 @@ public static class Application
     /// <exception cref="InvalidOperationException">
     /// Thrown when authentication is not properly configured.
     /// </exception>
-    public static void Run(
+    public static async Task RunAsync(
         string[] args,
-        Action<IServiceCollection, IConfiguration, ILogger> addApplication,
+        Func<IServiceCollection, IConfiguration, ILogger, Task> addApplicationAsync,
         Action<WebApplication> useApplication)
     {
         // Create the web application using the standardized configuration.
-        var app = CreateWebApplication(
+        var app = await CreateWebApplicationAsync(
             args,
-            addApplication,
+            addApplicationAsync,
             useApplication);
 
         // Run the application.
-        app.Run();
+        await app.RunAsync();
     }
 
     #endregion
@@ -61,7 +61,7 @@ public static class Application
     /// Creates and configures an ASP.NET Core web application.
     /// </summary>
     /// <param name="args">Command line arguments passed to the application.</param>
-    /// <param name="addApplication">Delegate to register application-specific services.</param>
+    /// <param name="addApplicationAsync">Async delegate to register application-specific services.</param>
     /// <param name="useApplication">Delegate to configure application-specific endpoints and middleware.</param>
     /// <returns>A configured <see cref="WebApplication"/> instance ready to run.</returns>
     /// <exception cref="ConfigurationErrorsException">
@@ -70,9 +70,9 @@ public static class Application
     /// <exception cref="InvalidOperationException">
     /// Thrown when authentication is not properly configured.
     /// </exception>
-    internal static WebApplication CreateWebApplication(
+    internal static async Task<WebApplication> CreateWebApplicationAsync(
         string[] args,
-        Action<IServiceCollection, IConfiguration, ILogger> addApplication,
+        Func<IServiceCollection, IConfiguration, ILogger, Task> addApplicationAsync,
         Action<WebApplication> useApplication)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -123,7 +123,7 @@ public static class Application
         builder.Services.AddSingleton<ISecurityProvider>(securityProvider);
 
         // Register application-specific services.
-        addApplication(builder.Services, builder.Configuration, bootstrapLogger);
+        await addApplicationAsync(builder.Services, builder.Configuration, bootstrapLogger);
 
         // Add health check services.
         builder.Services.AddIdentityHealthChecks();
