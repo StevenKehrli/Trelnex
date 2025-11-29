@@ -502,6 +502,62 @@ public class QueryCommandTests
     }
 
     [Test]
+    public async Task QueryCommand_ToAsyncEnumerable_Where_WithDeletedItem()
+    {
+        var id1 = Guid.NewGuid().ToString();
+        var partitionKey1 = Guid.NewGuid().ToString();
+
+        var id2 = Guid.NewGuid().ToString();
+        var partitionKey2 = Guid.NewGuid().ToString();
+
+        // Get a data provider for our test item type
+        var dataProvider = new InMemoryDataProvider<TestItem>(
+            typeName: "test-item",
+            commandOperations: CommandOperations.Create | CommandOperations.Delete);
+
+        using var createCommand1 = dataProvider.Create(
+            id: id1,
+            partitionKey: partitionKey1);
+
+        createCommand1.Item.PublicMessage = "Public #1";
+        createCommand1.Item.PrivateMessage = "Private #1";
+
+        // save it
+        await createCommand1.SaveAsync(
+            cancellationToken: default);
+
+        using var createCommand2 = dataProvider.Create(
+            id: id2,
+            partitionKey: partitionKey2);
+
+        createCommand2.Item.PublicMessage = "Public #2";
+        createCommand2.Item.PrivateMessage = "Private #2";
+
+        // save it
+        await createCommand2.SaveAsync(
+            cancellationToken: default);
+
+        // delete the second item
+        using var deleteCommand = await dataProvider.DeleteAsync(
+            id: id2,
+            partitionKey: partitionKey2);
+
+        await deleteCommand!.SaveAsync(
+            cancellationToken: default);
+
+        // query with a Where clause that would match both items if not for the IsDeleted filter
+        var queryCommand = dataProvider.Query();
+        queryCommand.Where(i => i.PublicMessage.StartsWith("Public"));
+
+        // should return only the first item (second is deleted)
+        using var read = await queryCommand.ToDisposableEnumerableAsync();
+
+        Assert.That(read, Is.Not.Null);
+        Assert.That(read, Has.Length.EqualTo(1));
+        Assert.That(read[0].Item.PublicMessage, Is.EqualTo("Public #1"));
+    }
+
+    [Test]
     public async Task QueryCommand_ToAsyncEnumerable_Delete()
     {
         var id = Guid.NewGuid().ToString();
