@@ -1,0 +1,16 @@
+﻿{
+  "principalsAfter": [],
+  "items": [
+    {
+      "_resourceName": "urn://resource-deletescopeassignment-notexists",
+      "_scopeName": "scope-deletescopeassignment-notexists",
+      "entityName": "RESOURCE#urn://resource-deletescopeassignment-notexists",
+      "subjectName": "SCOPE#scope-deletescopeassignment-notexists"
+    },
+    {
+      "_resourceName": "urn://resource-deletescopeassignment-notexists",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deletescopeassignment-notexists"
+    }
+  ]
+}

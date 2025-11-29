@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Item": {
+      "PublicMessage": "Public Message #1",
+      "PrivateMessage": "Private Message #1",
+      "OptionalMessage": null,
+      "Id": "3ac08bf5-0c6d-48e3-859f-222b19af4914",
+      "PartitionKey": "cfbe285e-a602-4ac9-a67e-1150c99591ef",
+      "TypeName": "encrypted-test-item",
+      "Version": 1,
+      "CreatedDateTimeOffset": "2025-11-29T05:27:16.497541+00:00",
+      "UpdatedDateTimeOffset": "2025-11-29T05:27:16.497541+00:00",
+      "DeletedDateTimeOffset": null,
+      "IsDeleted": null,
+      "ETag": "b82d05e9-0ec7-4c1e-a9fb-a20a5794d216"
+    }
+  }
+]

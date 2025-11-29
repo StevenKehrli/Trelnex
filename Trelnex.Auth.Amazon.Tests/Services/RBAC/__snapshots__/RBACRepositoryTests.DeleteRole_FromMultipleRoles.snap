@@ -1,0 +1,30 @@
+﻿{
+  "role1After": {
+    "ResourceName": "urn://resource-deleterole-frommultipleroles",
+    "RoleName": "role-1-createrole-multiplerolesinresource"
+  },
+  "role2After": null,
+  "role3After": {
+    "ResourceName": "urn://resource-deleterole-frommultipleroles",
+    "RoleName": "role-3-createrole-multiplerolesinresource"
+  },
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleterole-frommultipleroles",
+      "_roleName": "role-1-createrole-multiplerolesinresource",
+      "entityName": "RESOURCE#urn://resource-deleterole-frommultipleroles",
+      "subjectName": "ROLE#role-1-createrole-multiplerolesinresource"
+    },
+    {
+      "_resourceName": "urn://resource-deleterole-frommultipleroles",
+      "_roleName": "role-3-createrole-multiplerolesinresource",
+      "entityName": "RESOURCE#urn://resource-deleterole-frommultipleroles",
+      "subjectName": "ROLE#role-3-createrole-multiplerolesinresource"
+    },
+    {
+      "_resourceName": "urn://resource-deleterole-frommultipleroles",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleterole-frommultipleroles"
+    }
+  ]
+}

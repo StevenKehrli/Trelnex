@@ -1,0 +1,16 @@
+﻿{
+  "Item": {
+    "PublicMessage": "Public Message #2",
+    "PrivateMessage": "Private Message #2",
+    "OptionalMessage": null,
+    "Id": "7dded065-d204-4913-97ad-591e382baba5",
+    "PartitionKey": "48953713-d269-42c1-b803-593f8c027aef",
+    "TypeName": "test-item",
+    "Version": 2,
+    "CreatedDateTimeOffset": "2025-11-29T06:06:19.808672+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T06:06:19.974189+00:00",
+    "DeletedDateTimeOffset": null,
+    "IsDeleted": null,
+    "ETag": "d8526ea3-f57a-4cb2-85ae-e06046e15a41"
+  }
+}

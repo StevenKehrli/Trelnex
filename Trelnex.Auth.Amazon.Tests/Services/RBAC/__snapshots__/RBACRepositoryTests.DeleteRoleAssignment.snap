@@ -1,0 +1,25 @@
+﻿{
+  "principalIdsBefore": [
+    "principal-deleteroleassignment"
+  ],
+  "principalIdsAfter": [],
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteroleassignment",
+      "_roleName": "role-deleteroleassignment",
+      "entityName": "RESOURCE#urn://resource-deleteroleassignment",
+      "subjectName": "ROLE#role-deleteroleassignment"
+    },
+    {
+      "_resourceName": "urn://resource-deleteroleassignment",
+      "_scopeName": "scope-deleteroleassignment",
+      "entityName": "RESOURCE#urn://resource-deleteroleassignment",
+      "subjectName": "SCOPE#scope-deleteroleassignment"
+    },
+    {
+      "_resourceName": "urn://resource-deleteroleassignment",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleteroleassignment"
+    }
+  ]
+}

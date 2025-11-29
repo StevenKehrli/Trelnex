@@ -1,0 +1,14 @@
+﻿{
+  "resourceAfter": {
+    "ResourceName": "urn://resource-getresource",
+    "ScopeNames": [],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "_resourceName": "urn://resource-getresource",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getresource"
+    }
+  ]
+}

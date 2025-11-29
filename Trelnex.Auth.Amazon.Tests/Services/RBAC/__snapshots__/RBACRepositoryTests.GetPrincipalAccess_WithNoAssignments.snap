@@ -1,0 +1,15 @@
+﻿{
+  "principalAccess": {
+    "PrincipalId": "principal-getprincipalaccess-withnoassignments",
+    "ResourceName": "urn://resource-getprincipalaccess-withnoassignments",
+    "ScopeNames": [],
+    "RoleNames": []
+  },
+  "items": [
+    {
+      "_resourceName": "urn://resource-getprincipalaccess-withnoassignments",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getprincipalaccess-withnoassignments"
+    }
+  ]
+}

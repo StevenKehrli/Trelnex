@@ -1,0 +1,19 @@
+﻿{
+  "scopeAfter": {
+    "ResourceName": "urn://resource-getscope",
+    "ScopeName": "scope-getscope"
+  },
+  "items": [
+    {
+      "_resourceName": "urn://resource-getscope",
+      "_scopeName": "scope-getscope",
+      "entityName": "RESOURCE#urn://resource-getscope",
+      "subjectName": "SCOPE#scope-getscope"
+    },
+    {
+      "_resourceName": "urn://resource-getscope",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getscope"
+    }
+  ]
+}

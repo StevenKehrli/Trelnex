@@ -1,0 +1,12 @@
+﻿{
+  "resourcesAfter": [
+    "urn://resource-getresources-oneresource"
+  ],
+  "items": [
+    {
+      "_resourceName": "urn://resource-getresources-oneresource",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-getresources-oneresource"
+    }
+  ]
+}

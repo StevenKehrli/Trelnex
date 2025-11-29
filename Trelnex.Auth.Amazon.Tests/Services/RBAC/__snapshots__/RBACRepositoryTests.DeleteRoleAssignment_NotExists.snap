@@ -1,0 +1,16 @@
+﻿{
+  "principalsAfter": [],
+  "items": [
+    {
+      "_resourceName": "urn://resource-deleteroleassignment-notexists",
+      "_roleName": "role-deleteroleassignment-notexists",
+      "entityName": "RESOURCE#urn://resource-deleteroleassignment-notexists",
+      "subjectName": "ROLE#role-deleteroleassignment-notexists"
+    },
+    {
+      "_resourceName": "urn://resource-deleteroleassignment-notexists",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-deleteroleassignment-notexists"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+﻿{
+  "principalsAfterFirst": [
+    "principal-createroleassignment-alreadyexists"
+  ],
+  "itemsAfterFirst": [
+    {
+      "_principalId": "principal-createroleassignment-alreadyexists",
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "PRINCIPAL#principal-createroleassignment-alreadyexists",
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-createroleassignment-alreadyexists#ROLE#role-createroleassignment-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "RESOURCE#urn://resource-createroleassignment-alreadyexists",
+      "subjectName": "ROLE#role-createroleassignment-alreadyexists"
+    },
+    {
+      "_principalId": "principal-createroleassignment-alreadyexists",
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "RESOURCE#urn://resource-createroleassignment-alreadyexists",
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-createroleassignment-alreadyexists#PRINCIPAL#principal-createroleassignment-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createroleassignment-alreadyexists"
+    }
+  ],
+  "principalsAfterSecond": [
+    "principal-createroleassignment-alreadyexists"
+  ],
+  "itemsAfterSecond": [
+    {
+      "_principalId": "principal-createroleassignment-alreadyexists",
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "PRINCIPAL#principal-createroleassignment-alreadyexists",
+      "subjectName": "ROLEASSIGNMENT#RESOURCE#urn://resource-createroleassignment-alreadyexists#ROLE#role-createroleassignment-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "RESOURCE#urn://resource-createroleassignment-alreadyexists",
+      "subjectName": "ROLE#role-createroleassignment-alreadyexists"
+    },
+    {
+      "_principalId": "principal-createroleassignment-alreadyexists",
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "_roleName": "role-createroleassignment-alreadyexists",
+      "entityName": "RESOURCE#urn://resource-createroleassignment-alreadyexists",
+      "subjectName": "ROLEASSIGNMENT#ROLE#role-createroleassignment-alreadyexists#PRINCIPAL#principal-createroleassignment-alreadyexists"
+    },
+    {
+      "_resourceName": "urn://resource-createroleassignment-alreadyexists",
+      "entityName": "ROOT#",
+      "subjectName": "RESOURCE#urn://resource-createroleassignment-alreadyexists"
+    }
+  ]
+}
