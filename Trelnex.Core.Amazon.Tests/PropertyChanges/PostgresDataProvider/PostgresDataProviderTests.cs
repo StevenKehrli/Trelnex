@@ -21,21 +21,18 @@ namespace Trelnex.Core.Azure.Tests.PropertyChanges;
 [Category("EventPolicy")]
 public class PostgresDataProviderTests : EventPolicyTests
 {
-    private ServiceConfiguration _serviceConfiguration = null!;
-    private string _connectionString = null!;
-    private RegionEndpoint _region = null!;
-    private string _host = null!;
-    private int _port = 5432;
-    private string _database = null!;
-    private string _dbUser = null!;
     private AWSCredentials _awsCredentials = null!;
-    private string _eventTableName = null!;
-    private string _itemTableName = null!;
     private DataOptions _baseDataOptions = null!;
-    private Action<DbConnection> _beforeConnectionOpened = null!;
+    private string _connectionString = null!;
+    private string _dbUser = null!;
+    private string _eventTableName = null!;
+    private string _host = null!;
+    private string _itemTableName = null!;
+    private int _port = 5432;
+    private RegionEndpoint _region = null!;
 
     /// <summary>
-    /// Sets up the CosmosDataProvider for testing using the direct factory instantiation approach.
+    /// Sets up the PostgresDataProvider for testing using the direct constructor instantiation approach.
     /// </summary>
     [OneTimeSetUp]
     public void TestFixtureSetup()
@@ -47,7 +44,7 @@ public class PostgresDataProviderTests : EventPolicyTests
             .Build();
 
         // Get the service configuration from the configuration.
-        _serviceConfiguration = configuration
+        var serviceConfiguration = configuration
             .GetSection("ServiceConfiguration")
             .Get<ServiceConfiguration>()!;
 
@@ -70,9 +67,9 @@ public class PostgresDataProviderTests : EventPolicyTests
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        _database = configuration
+        var database = configuration
             .GetSection("Amazon.PostgresDataProviders:Database")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the database user from the configuration.
         // Example: "admin"
@@ -106,19 +103,16 @@ public class PostgresDataProviderTests : EventPolicyTests
         // Build the connection string.
         var csb = new NpgsqlConnectionStringBuilder
         {
-            ApplicationName = _serviceConfiguration.FullName,
+            ApplicationName = serviceConfiguration.FullName,
             Host = _host,
             Port = _port,
-            Database = _database,
+            Database = database,
             Username = _dbUser,
             Password = pwd,
             SslMode = SslMode.Require
         };
 
         _connectionString = csb.ConnectionString;
-
-        // Create BeforeConnectionOpened callback for AWS IAM authentication
-        _beforeConnectionOpened = BeforeConnectionOpened;
 
         // Create base DataOptions with PostgreSQL connection string
         _baseDataOptions = new DataOptions().UsePostgreSQL(_connectionString);
@@ -171,7 +165,7 @@ public class PostgresDataProviderTests : EventPolicyTests
         // Build configured DataOptions with mapping schema
         var dataOptions = DataOptionsBuilder.Build<EventPolicyTestItem>(
             baseDataOptions: _baseDataOptions,
-            beforeConnectionOpened: _beforeConnectionOpened,
+            beforeConnectionOpened: BeforeConnectionOpened,
             itemTableName: _itemTableName,
             eventTableName: _eventTableName,
             blockCipherService: blockCipherService);
@@ -209,7 +203,7 @@ public class PostgresDataProviderTests : EventPolicyTests
 
         var dataOptions = _baseDataOptions
             .UseMappingSchema(mappingSchema)
-            .UseBeforeConnectionOpened(_beforeConnectionOpened);
+            .UseBeforeConnectionOpened(BeforeConnectionOpened);
 
         // Create database connection
         using var dataConnection = new DataConnection(dataOptions);

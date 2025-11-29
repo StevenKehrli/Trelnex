@@ -34,10 +34,9 @@ public abstract class PostgresDataProviderEventTestBase
     protected string _connectionString = null!;
 
     /// <summary>
-    /// The database name for the PostgreSQL server.
+    /// The data provider used for testing.
     /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _database = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// The database user for the PostgreSQL server.
@@ -46,10 +45,20 @@ public abstract class PostgresDataProviderEventTestBase
     protected string _dbUser = null!;
 
     /// <summary>
+    /// The name of the event table used for expiration testing.
+    /// </summary>
+    protected string _eventTableName = null!;
+
+    /// <summary>
     /// The host or server name for the PostgreSQL server.
     /// </summary>
     /// <example>postgresdataprovider-tests.us-west-2.rds.amazonaws.com</example>
     protected string _host = null!;
+
+    /// <summary>
+    /// The name of the item table used for expiration testing.
+    /// </summary>
+    protected string _itemTableName = null!;
 
     /// <summary>
     /// The port for the PostgreSQL server.
@@ -70,21 +79,6 @@ public abstract class PostgresDataProviderEventTestBase
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The name of the item table used for expiration testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for expiration testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
-    /// The data provider used for testing.
-    /// </summary>
-    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for PostgreSQL data provider tests.
@@ -122,7 +116,7 @@ public abstract class PostgresDataProviderEventTestBase
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        _database = configuration
+        var database = configuration
             .GetSection("Amazon.PostgresDataProviders:Database")
             .Get<string>()!;
 
@@ -136,25 +130,25 @@ public abstract class PostgresDataProviderEventTestBase
         // Example: "test-items"
         var expirationTestItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:expiration-test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the expiration event table name from the configuration.
         // Example: "test-items-events"
         var expirationTestItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:expiration-test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the persistence item table name from the configuration.
         // Example: "test-items"
         var persistanceTestItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the persistence event table name from the configuration.
         // Example: "test-items-events"
         var persistanceTestItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         using (Assert.EnterMultipleScope())
         {
@@ -162,8 +156,8 @@ public abstract class PostgresDataProviderEventTestBase
             Assert.That(persistanceTestItemEventTableName, Is.EqualTo(expirationTestItemEventTableName));
         }
 
-        _itemTableName = expirationTestItemItemTableName;
-        _eventTableName = expirationTestItemEventTableName;
+        _itemTableName = expirationTestItemItemTableName!;
+        _eventTableName = expirationTestItemEventTableName!;
 
         // Create AWS credentials
         _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
@@ -182,7 +176,7 @@ public abstract class PostgresDataProviderEventTestBase
             ApplicationName = _serviceConfiguration.FullName,
             Host = _host,
             Port = _port,
-            Database = _database,
+            Database = database,
             Username = _dbUser,
             Password = pwd,
             SslMode = SslMode.Require

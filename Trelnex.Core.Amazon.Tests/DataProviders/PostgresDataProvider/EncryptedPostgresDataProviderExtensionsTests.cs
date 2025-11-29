@@ -103,13 +103,13 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);
 
         // Decrypt the optional message
-        var encryptedOptionalMessage = (reader["optionalMessage"] as string)!;
+        var encryptedOptionalMessage = (reader["optionalMessage"] as string);
         var optionalMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedOptionalMessage,
             _blockCipherService);
@@ -157,7 +157,7 @@ public class EncryptedPostgresDataProviderExtensionsTests : PostgresDataProvider
         Assert.That(reader.Read(), Is.True);
 
         // Decrypt the private message
-        var encryptedPrivateMessage = (reader["privateMessage"] as string)!;
+        var encryptedPrivateMessage = (reader["privateMessage"] as string);
         var privateMessage = EncryptedJsonService.DecryptFromBase64<string>(
             encryptedPrivateMessage,
             _blockCipherService);

@@ -25,21 +25,9 @@ public abstract class CosmosDataProviderEventTestBase
     protected Container _container = null!;
 
     /// <summary>
-    /// The endpoint URI for the Cosmos DB account.
+    /// The data provider used for testing.
     /// </summary>
-    /// <example>https://cosmosdb-account.documents.azure.com:443/</example>
-    protected string _endpointUri = null!;
-
-    /// <summary>
-    /// The database ID for the Cosmos DB database.
-    /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _databaseId = null!;
-
-    /// <summary>
-    /// The container id used for expiration testing.
-    /// </summary>
-    protected string _containerId = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -48,16 +36,6 @@ public abstract class CosmosDataProviderEventTestBase
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The token credential used to authenticate with Azure.
-    /// </summary>
-    protected DefaultAzureCredential _tokenCredential = null!;
-
-    /// <summary>
-    /// The data provider used for testing.
-    /// </summary>
-    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// Initializes shared test resources from configuration.
@@ -79,44 +57,42 @@ public abstract class CosmosDataProviderEventTestBase
 
         // Get the endpoint URI from the configuration.
         // Example: "https://cosmosdataprovider-tests.documents.azure.com:443/"
-        _endpointUri = configuration
+        var endpointUri = configuration
             .GetSection("Azure.CosmosDataProviders:EndpointUri")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the database ID from the configuration.
         // Example: "trelnex-core-data-tests"
-        _databaseId = configuration
+        var databaseId = configuration
             .GetSection("Azure.CosmosDataProviders:DatabaseId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the container ID from the configuration.
         // Example: "test-items"
         var expirationTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:expiration-test-item:ContainerId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encypted container ID from the configuration.
         // Example: "test-items"
         var persistenceTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
-            .Get<string>()!;
+            .Get<string>();
 
         Assert.That(persistenceTestItemContainerId, Is.EqualTo(expirationTestItemContainerId));
 
-        _containerId = expirationTestItemContainerId;
-
         // Create a token credential for authentication.
-        _tokenCredential = new DefaultAzureCredential();
+        var tokenCredential = new DefaultAzureCredential();
 
         // Create a CosmosClient instance.
         var cosmosClient = new CosmosClient(
-            accountEndpoint: _endpointUri,
-            tokenCredential: _tokenCredential);
+            accountEndpoint: endpointUri,
+            tokenCredential: tokenCredential);
 
         // Get a reference to the container.
         _container = cosmosClient.GetContainer(
-            databaseId: _databaseId,
-            containerId: _containerId);
+            databaseId: databaseId,
+            containerId: expirationTestItemContainerId);
 
         return configuration;
     }

@@ -24,7 +24,7 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
     /// Sets up the CosmosDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -39,11 +39,11 @@ public class CosmosDataProviderExtensionsEventExpirationTests : CosmosDataProvid
             _serviceConfiguration);
 
         // Add Azure Identity and Cosmos Data providers to the service collection.
-        services
+        await services
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddCosmosDataProviders(
+            .AddCosmosDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(

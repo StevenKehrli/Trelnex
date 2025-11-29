@@ -21,31 +21,14 @@ namespace Trelnex.Core.Azure.Tests.DataProviders;
 public abstract class CosmosDataProviderTestBase : DataProviderTests
 {
     /// <summary>
-    /// The CosmosDB container used for testing.
-    /// </summary>
-    protected Container _container = null!;
-
-    /// <summary>
-    /// The endpoint URI for the Cosmos DB account.
-    /// </summary>
-    /// <example>https://cosmosdb-account.documents.azure.com:443/</example>
-    protected string _endpointUri = null!;
-
-    /// <summary>
-    /// The database ID for the Cosmos DB database.
-    /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _databaseId = null!;
-
-    /// <summary>
-    /// The container id used for testing.
-    /// </summary>
-    protected string _containerId = null!;
-
-    /// <summary>
     /// The block cipher service used for encrypting and decrypting test data.
     /// </summary>
     protected IBlockCipherService _blockCipherService = null!;
+
+    /// <summary>
+    /// The CosmosDB container used for testing.
+    /// </summary>
+    protected Container _container = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -54,11 +37,6 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The token credential used to authenticate with Azure.
-    /// </summary>
-    protected DefaultAzureCredential _tokenCredential = null!;
 
     /// <summary>
     /// Initializes shared test resources from configuration.
@@ -79,31 +57,29 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
 
         // Get the endpoint URI from the configuration.
         // Example: "https://cosmosdataprovider-tests.documents.azure.com:443/"
-        _endpointUri = configuration
+        var endpointUri = configuration
             .GetSection("Azure.CosmosDataProviders:EndpointUri")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the database ID from the configuration.
         // Example: "trelnex-core-data-tests"
-        _databaseId = configuration
+        var databaseId = configuration
             .GetSection("Azure.CosmosDataProviders:DatabaseId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the container ID from the configuration.
         // Example: "test-items"
         var testItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:test-item:ContainerId")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encypted container ID from the configuration.
         // Example: "test-items"
         var encryptedTestItemContainerId = configuration
             .GetSection("Azure.CosmosDataProviders:Containers:encrypted-test-item:ContainerId")
-            .Get<string>()!;
+            .Get<string>();
 
         Assert.That(encryptedTestItemContainerId, Is.EqualTo(testItemContainerId));
-
-        _containerId = testItemContainerId;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -112,17 +88,17 @@ public abstract class CosmosDataProviderTestBase : DataProviderTests
             .CreateBlockCipherService()!;
 
         // Create a token credential for authentication.
-        _tokenCredential = new DefaultAzureCredential();
+        var tokenCredential = new DefaultAzureCredential();
 
         // Create a CosmosClient instance.
         var cosmosClient = new CosmosClient(
-            accountEndpoint: _endpointUri,
-            tokenCredential: _tokenCredential);
+            accountEndpoint: endpointUri,
+            tokenCredential: tokenCredential);
 
         // Get a reference to the container.
         _container = cosmosClient.GetContainer(
-            databaseId: _databaseId,
-            containerId: _containerId);
+            databaseId: databaseId,
+            containerId: testItemContainerId);
 
         return configuration;
     }

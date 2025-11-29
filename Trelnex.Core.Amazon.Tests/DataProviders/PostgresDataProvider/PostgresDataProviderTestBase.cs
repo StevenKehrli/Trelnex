@@ -30,15 +30,14 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     protected AWSCredentials _awsCredentials = null!;
 
     /// <summary>
+    /// The block cipher service used for encrypting and decrypting test data.
+    /// </summary>
+    protected IBlockCipherService _blockCipherService = null!;
+
+    /// <summary>
     /// The connection string used to connect to the PostgreSQL server.
     /// </summary>
     protected string _connectionString = null!;
-
-    /// <summary>
-    /// The database name for the PostgreSQL server.
-    /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _database = null!;
 
     /// <summary>
     /// The database user for the PostgreSQL server.
@@ -47,10 +46,20 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     protected string _dbUser = null!;
 
     /// <summary>
+    /// The name of the event table used for testing.
+    /// </summary>
+    protected string _eventTableName = null!;
+
+    /// <summary>
     /// The host or server name for the PostgreSQL server.
     /// </summary>
     /// <example>postgresdataprovider-tests.us-west-2.rds.amazonaws.com</example>
     protected string _host = null!;
+
+    /// <summary>
+    /// The name of the item table used for testing.
+    /// </summary>
+    protected string _itemTableName = null!;
 
     /// <summary>
     /// The port for the PostgreSQL server.
@@ -71,21 +80,6 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The name of the item table used for testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
-    /// The block cipher service used for encrypting and decrypting test data.
-    /// </summary>
-    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for PostgreSQL data provider tests.
@@ -123,7 +117,7 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
 
         // Get the database from the configuration.
         // Example: "trelnex-core-data-tests"
-        _database = configuration
+        var database = configuration
             .GetSection("Amazon.PostgresDataProviders:Database")
             .Get<string>()!;
 
@@ -137,25 +131,25 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
         // Example: "test-items"
         var testItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the event table name from the configuration.
         // Example: "test-items-events"
         var testItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted item table name from the configuration.
         // Example: "test-items"
         var encryptedTestItemItemTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted event table name from the configuration.
         // Example: "test-items-events"
         var encryptedTestItemEventTableName = configuration
             .GetSection("Amazon.PostgresDataProviders:Tables:encrypted-test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         using (Assert.EnterMultipleScope())
         {
@@ -163,8 +157,8 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
             Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
         }
 
-        _itemTableName = testItemItemTableName;
-        _eventTableName = testItemEventTableName;
+        _itemTableName = testItemItemTableName!;
+        _eventTableName = testItemEventTableName!;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -189,7 +183,7 @@ public abstract class PostgresDataProviderTestBase : DataProviderTests
             ApplicationName = _serviceConfiguration.FullName,
             Host = _host,
             Port = _port,
-            Database = _database,
+            Database = database,
             Username = _dbUser,
             Password = pwd,
             SslMode = SslMode.Require

@@ -35,7 +35,7 @@ public class DynamoDataProviderTests : EventPolicyTests
         // Example: "us-west-2"
         var region = configuration
             .GetSection("Amazon.DynamoDataProviders:Region")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the item table name from the configuration.
         // Example: "test-items"

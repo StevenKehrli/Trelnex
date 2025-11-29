@@ -28,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-d039b2b072f49c56e27f3f9b6c56ca13-0bbe37576316a8d9-01",
-    "TraceId": "d039b2b072f49c56e27f3f9b6c56ca13",
-    "SpanId": "0bbe37576316a8d9",
+    "TraceContext": "00-79912055fc2ac30760048463de196c1c-49412830f457b962-01",
+    "TraceId": "79912055fc2ac30760048463de196c1c",
+    "SpanId": "49412830f457b962",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-11-28T20:26:39.389639+00:00",
-    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.389639+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T02:26:14.608562+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T02:26:14.608562+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "e79e8f2c-9a5a-4e76-a058-6602f5a0ffa7"
+    "ETag": "d54cb347-1f03-4273-8f79-51ca60208eeb"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-d039b2b072f49c56e27f3f9b6c56ca13-0bbe37576316a8d9-01",
-    "TraceId": "d039b2b072f49c56e27f3f9b6c56ca13",
-    "SpanId": "0bbe37576316a8d9",
+    "TraceContext": "00-79912055fc2ac30760048463de196c1c-49412830f457b962-01",
+    "TraceId": "79912055fc2ac30760048463de196c1c",
+    "SpanId": "49412830f457b962",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-11-28T20:26:39.390567+00:00",
-    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.390567+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T02:26:14.609584+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T02:26:14.609584+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "8ddcead7-eee3-4f3d-a50c-cdbd9d375422"
+    "ETag": "f67ac313-d50c-49c2-a5e7-287ca0e8df44"
   }
 ]

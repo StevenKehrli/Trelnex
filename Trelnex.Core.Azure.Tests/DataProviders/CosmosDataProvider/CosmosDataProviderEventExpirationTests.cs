@@ -5,8 +5,6 @@ using Trelnex.Core.Azure.DataProviders;
 using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.DataProviders;
 
-using CosmosClientOptions = Trelnex.Core.Azure.DataProviders.CosmosClientOptions;
-
 namespace Trelnex.Core.Azure.Tests.DataProviders;
 
 /// <summary>
@@ -22,32 +20,21 @@ public class CosmosDataProviderEventExpirationTests : CosmosDataProviderEventTes
 {
     /// <summary>
     /// One-time setup for the test fixture.
-    /// Initializes the CosmosDataProvider using direct factory instantiation,
+    /// Initializes the CosmosDataProvider using direct constructor instantiation,
     /// configuring event expiration for test items.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         TestSetup();
 
-        // Configure CosmosClientOptions with credentials and container info
-        var cosmosClientOptions = new CosmosClientOptions(
-            TokenCredential: _tokenCredential,
-            AccountEndpoint: _endpointUri,
-            DatabaseId: _databaseId,
-            ContainerIds: [ _containerId ]
-        );
-
-        // Instantiate the CosmosDataProviderFactory
-        var factory = await CosmosDataProviderFactory.Create(
-            cosmosClientOptions);
-
-        // Create the data provider with event expiration set to 2 seconds
-        _dataProvider = factory.Create(
+        // Create the data provider using constructor with event expiration set to 2 seconds
+        _dataProvider = new CosmosDataProvider<TestItem>(
             typeName: "expiration-test-item",
-            containerId: _containerId,
+            container: _container,
             itemValidator: TestItem.Validator,
             commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges,
             eventTimeToLive: 2);
     }
 

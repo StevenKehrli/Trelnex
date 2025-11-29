@@ -25,15 +25,19 @@ namespace Trelnex.Core.Amazon.Tests.DataProviders;
 public abstract class DynamoDataProviderEventTestBase
 {
     /// <summary>
-    /// The AWS credentials for DynamoDB authentication.
+    /// The data provider used for testing.
     /// </summary>
-    protected AWSCredentials _awsCredentials = null!;
+    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
-    /// The region for AWS services.
+    /// The DynamoDB table used for testing.
     /// </summary>
-    /// <example>us-west-2</example>
-    protected string _region = null!;
+    protected Table _eventTable = null!;
+
+    /// <summary>
+    /// The DynamoDB item table used for testing.
+    /// </summary>
+    protected Table _itemTable = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -42,21 +46,6 @@ public abstract class DynamoDataProviderEventTestBase
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The DynamoDB item table used for testing.
-    /// </summary>
-    protected Table _itemTable = null!;
-
-    /// <summary>
-    /// The DynamoDB table used for testing.
-    /// </summary>
-    protected Table _eventTable = null!;
-
-    /// <summary>
-    /// The data provider used for testing.
-    /// </summary>
-    protected IDataProvider<TestItem> _dataProvider = null!;
 
     /// <summary>
     /// Sets up the common test infrastructure for DynamoDB data provider tests.
@@ -77,7 +66,7 @@ public abstract class DynamoDataProviderEventTestBase
 
         // Get the region from the configuration.
         // Example: "us-west-2"
-        _region = configuration
+        var region = configuration
             .GetSection("Amazon.DynamoDataProviders:Region")
             .Get<string>()!;
 
@@ -97,13 +86,13 @@ public abstract class DynamoDataProviderEventTestBase
         // Example: "test-items"
         var testItemItemTableName = configuration
             .GetSection("Amazon.DynamoDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the persistence event table name from the configuration.
         // Example: "test-items-events"
         var testItemEventTableName = configuration
             .GetSection("Amazon.DynamoDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         using (Assert.EnterMultipleScope())
         {
@@ -112,12 +101,12 @@ public abstract class DynamoDataProviderEventTestBase
         }
 
         // Create AWS credentials
-        _awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
+        var awsCredentials = DefaultAWSCredentialsIdentityResolver.GetCredentials();
 
         // Create DynamoDB client and load tables
         var dynamoClient = new AmazonDynamoDBClient(
-            _awsCredentials,
-            RegionEndpoint.GetBySystemName(_region));
+            awsCredentials,
+            RegionEndpoint.GetBySystemName(region));
 
         _itemTable = await dynamoClient.LoadTableAsync(
             NullLogger.Instance,

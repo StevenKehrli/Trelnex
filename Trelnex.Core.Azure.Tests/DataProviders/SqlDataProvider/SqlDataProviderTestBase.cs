@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
@@ -27,21 +28,24 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     protected readonly string _scope = "https://database.windows.net/.default";
 
     /// <summary>
+    /// The block cipher service used for encrypting and decrypting test data.
+    /// </summary>
+    protected IBlockCipherService _blockCipherService = null!;
+
+    /// <summary>
     /// The connection string used to connect to the SQL server.
     /// </summary>
     protected string _connectionString = null!;
 
     /// <summary>
-    /// The data source or server name for the SQL server.
+    /// The name of the event table used for testing.
     /// </summary>
-    /// <example>sqldataprovider-tests.database.windows.net</example>
-    protected string _dataSource = null!;
+    protected string _eventTableName = null!;
 
     /// <summary>
-    /// The initial catalog or database name for the SQL server.
+    /// The name of the item table used for testing.
     /// </summary>
-    /// <example>trelnex-core-data-tests</example>
-    protected string _initialCatalog = null!;
+    protected string _itemTableName = null!;
 
     /// <summary>
     /// The service configuration containing application settings like name, version, and description.
@@ -50,21 +54,6 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
     /// This configuration is loaded from the ServiceConfiguration section in appsettings.json.
     /// </remarks>
     protected ServiceConfiguration _serviceConfiguration = null!;
-
-    /// <summary>
-    /// The name of the item table used for testing.
-    /// </summary>
-    protected string _itemTableName = null!;
-
-    /// <summary>
-    /// The name of the event table used for testing.
-    /// </summary>
-    protected string _eventTableName = null!;
-
-    /// <summary>
-    /// The block cipher service used for encrypting and decrypting test data.
-    /// </summary>
-    protected IBlockCipherService _blockCipherService = null!;
 
     /// <summary>
     /// The token credential used to authenticate with Azure.
@@ -86,45 +75,48 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
 
         // Get the data source from the configuration.
         // Example: "sqldataprovider-tests.database.windows.net"
-        _dataSource = configuration
+        var dataSource = configuration
             .GetSection("Azure.SqlDataProviders:DataSource")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the initial catalog from the configuration.
         // Example: "trelnex-core-data-tests"
-        _initialCatalog = configuration
+        var initialCatalog = configuration
             .GetSection("Azure.SqlDataProviders:InitialCatalog")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the item table name from the configuration.
         // Example: "test-items"
         var testItemItemTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the item table name from the configuration.
         // Example: "test-items-events"
         var testItemEventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted item table name from the configuration.
         // Example: "test-items"
         var encryptedTestItemItemTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:ItemTableName")
-            .Get<string>()!;
+            .Get<string>();
 
         // Get the encrypted event table name from the configuration.
         // Example: "test-items-events"
         var encryptedTestItemEventTableName = configuration
             .GetSection("Azure.SqlDataProviders:Tables:encrypted-test-item:EventTableName")
-            .Get<string>()!;
+            .Get<string>();
 
-        Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
-        Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(encryptedTestItemItemTableName, Is.EqualTo(testItemItemTableName));
+            Assert.That(encryptedTestItemEventTableName, Is.EqualTo(testItemEventTableName));
+        }
 
-        _itemTableName = testItemItemTableName;
-        _eventTableName = testItemEventTableName;
+        _itemTableName = testItemItemTableName!;
+        _eventTableName = testItemEventTableName!;
 
         // Create the block cipher service from configuration using the factory pattern.
         // This deserializes the algorithm type and settings, then creates the appropriate service.
@@ -136,8 +128,8 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
         var scsBuilder = new SqlConnectionStringBuilder()
         {
             ApplicationName = _serviceConfiguration.FullName,
-            DataSource = _dataSource,
-            InitialCatalog = _initialCatalog,
+            DataSource = dataSource,
+            InitialCatalog = initialCatalog,
             Encrypt = true,
         };
 
@@ -210,5 +202,16 @@ public abstract class SqlDataProviderTestBase : DataProviderTests
         sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
 
         return await sqlCommand.ExecuteReaderAsync();
+    }
+
+    protected void BeforeConnectionOpened(
+        DbConnection dbConnection)
+    {
+        // Only process SqlConnection connections
+        if (dbConnection is not SqlConnection connection) return;
+
+        // Get Azure authentication token for SQL Server
+        var tokenRequestContext = new TokenRequestContext([_scope]);
+        connection.AccessToken = _tokenCredential.GetToken(tokenRequestContext, default).Token;
     }
 }

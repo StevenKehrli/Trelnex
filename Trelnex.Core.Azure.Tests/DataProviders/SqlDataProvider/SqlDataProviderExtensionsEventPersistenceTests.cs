@@ -23,7 +23,7 @@ public class SqlDataProviderExtensionsEventPersistenceTests : SqlDataProviderEve
     /// Sets up the SqlDataProvider for testing using the dependency injection approach.
     /// </summary>
     [OneTimeSetUp]
-    public void TestFixtureSetup()
+    public async Task TestFixtureSetup()
     {
         // Create the service collection.
         var services = new ServiceCollection();
@@ -39,11 +39,11 @@ public class SqlDataProviderExtensionsEventPersistenceTests : SqlDataProviderEve
             _serviceConfiguration);
 
         // Add Azure Identity and SqlDataProviders to the service collection.
-        services
+        await services
             .AddAzureIdentity(
                 configuration,
                 bootstrapLogger)
-            .AddSqlDataProviders(
+            .AddSqlDataProvidersAsync(
                 configuration,
                 bootstrapLogger,
                 options => options.Add(

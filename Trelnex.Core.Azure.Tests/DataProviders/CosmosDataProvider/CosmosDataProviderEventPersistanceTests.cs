@@ -18,33 +18,22 @@ public class CosmosDataProviderEventPersistanceTests : CosmosDataProviderEventTe
 {
     /// <summary>
     /// One-time setup for the test fixture.
-    /// Initializes the CosmosDataProvider using direct factory instantiation,
-    /// configuring event expiration for test items.
+    /// Initializes the CosmosDataProvider using direct constructor instantiation,
+    /// configuring event persistence for test items.
     /// </summary>
     [OneTimeSetUp]
-    public async Task TestFixtureSetup()
+    public void TestFixtureSetup()
     {
         // Initialize shared test resources from configuration
         TestSetup();
 
-        // Configure CosmosClientOptions with credentials and container info
-        var cosmosClientOptions = new CosmosClientOptions(
-            TokenCredential: _tokenCredential,
-            AccountEndpoint: _endpointUri,
-            DatabaseId: _databaseId,
-            ContainerIds: [ _containerId ]
-        );
-
-        // Instantiate the CosmosDataProviderFactory
-        var factory = await CosmosDataProviderFactory.Create(
-            cosmosClientOptions);
-
-        // Create the data provider with event expiration set to 2 seconds
-        _dataProvider = factory.Create(
+        // Create the data provider using constructor
+        _dataProvider = new CosmosDataProvider<TestItem>(
             typeName: "test-item",
-            containerId: _containerId,
+            container: _container,
             itemValidator: TestItem.Validator,
-            commandOperations: CommandOperations.All);
+            commandOperations: CommandOperations.All,
+            eventPolicy: EventPolicy.AllChanges);
     }
 
     [Test]

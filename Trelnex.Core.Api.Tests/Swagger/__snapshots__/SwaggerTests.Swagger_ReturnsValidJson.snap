@@ -1,0 +1,375 @@
+﻿{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "trelnex-core-api-tests",
+    "description": "trelnex-core-api-tests",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/anonymous": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    },
+    "/delete1": {
+      "delete": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/exception": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    },
+    "/get1": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/patch1": {
+      "patch": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/post1": {
+      "post": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/put1": {
+      "put": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/queryString": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    },
+    "/testRolePolicy1": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          }
+        ]
+      }
+    },
+    "/testRolePolicy1orPolicy2": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-1": [
+              "Audience.trelnex-auth-amazon-tests-authentication-1/Scope.trelnex-auth-amazon-tests-authentication-1/test.role.1"
+            ]
+          },
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-2": [
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2a",
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2b"
+            ]
+          }
+        ]
+      }
+    },
+    "/testRolePolicy2": {
+      "get": {
+        "tags": [
+          "testhost"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer.trelnex-auth-amazon-tests-authentication-2": [
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2a",
+              "Audience.trelnex-auth-amazon-tests-authentication-2/Scope.trelnex-auth-amazon-tests-authentication-2/test.role.2b"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "additionalProperties": false,
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "additionalProperties": false
+            },
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer.trelnex-auth-amazon-tests-authentication-1": {
+        "type": "http",
+        "description": "Authorization Header JWT Bearer Token; Audience Audience.trelnex-auth-amazon-tests-authentication-1; Scope Scope.trelnex-auth-amazon-tests-authentication-1",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "Bearer.trelnex-auth-amazon-tests-authentication-2": {
+        "type": "http",
+        "description": "Authorization Header JWT Bearer Token; Audience Audience.trelnex-auth-amazon-tests-authentication-2; Scope Scope.trelnex-auth-amazon-tests-authentication-2",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "testhost"
+    }
+  ]
+}

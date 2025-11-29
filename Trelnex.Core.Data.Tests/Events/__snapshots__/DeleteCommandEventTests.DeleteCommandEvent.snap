@@ -28,35 +28,35 @@
         }
       }
     ],
-    "TraceContext": "00-4e0c17f467a2e36b790e8a481cbb0a6e-c9f0225cec64fcad-01",
-    "TraceId": "4e0c17f467a2e36b790e8a481cbb0a6e",
-    "SpanId": "c9f0225cec64fcad",
+    "TraceContext": "00-a8fdd58522bafb42e161ab075d64f31c-69e14e9ed9943606-01",
+    "TraceId": "a8fdd58522bafb42e161ab075d64f31c",
+    "SpanId": "69e14e9ed9943606",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000001",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 1,
-    "CreatedDateTimeOffset": "2025-11-28T20:26:39.380689+00:00",
-    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.380689+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T02:26:14.599123+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T02:26:14.599123+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "414a6335-ed71-436e-8089-59674a653e6a"
+    "ETag": "ec7e12fe-b74a-4401-8e54-eace9790699f"
   },
   {
     "SaveAction": "DELETED",
     "RelatedId": "bc4971e4-6dae-45ba-b3ee-43c036e0d957",
     "RelatedTypeName": "test-item",
     "Changes": null,
-    "TraceContext": "00-4e0c17f467a2e36b790e8a481cbb0a6e-c9f0225cec64fcad-01",
-    "TraceId": "4e0c17f467a2e36b790e8a481cbb0a6e",
-    "SpanId": "c9f0225cec64fcad",
+    "TraceContext": "00-a8fdd58522bafb42e161ab075d64f31c-69e14e9ed9943606-01",
+    "TraceId": "a8fdd58522bafb42e161ab075d64f31c",
+    "SpanId": "69e14e9ed9943606",
     "Id": "EVENT^bc4971e4-6dae-45ba-b3ee-43c036e0d957^00000002",
     "PartitionKey": "60525a8e-b084-4a37-b461-d08330760ef2",
     "TypeName": "event",
     "Version": 2,
-    "CreatedDateTimeOffset": "2025-11-28T20:26:39.381145+00:00",
-    "UpdatedDateTimeOffset": "2025-11-28T20:26:39.381145+00:00",
+    "CreatedDateTimeOffset": "2025-11-29T02:26:14.599577+00:00",
+    "UpdatedDateTimeOffset": "2025-11-29T02:26:14.599577+00:00",
     "DeletedDateTimeOffset": null,
     "IsDeleted": null,
-    "ETag": "d230be19-5dd4-4920-99c3-2b4e1fe38139"
+    "ETag": "ae7b694d-5b66-4423-95e5-98cb4da09668"
   }
 ]
