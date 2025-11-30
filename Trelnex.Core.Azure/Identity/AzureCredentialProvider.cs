@@ -6,21 +6,21 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Azure.Identity;
 
 /// <summary>
-/// A credential provider that manages Azure credentials.
+/// Provides Azure credentials and access tokens for Azure-based authentication.
 /// </summary>
 /// <remarks>
-/// Implements <see cref="ICredentialProvider{T}"/> for <see cref="TokenCredential"/>.
-/// Creates a <see cref="ChainedTokenCredential"/> wrapped in a <see cref="ManagedCredential"/> for token management.
-/// Configured via <see cref="AzureIdentityExtensions.AddAzureIdentity"/>.
+/// <para>
+/// Implements <see cref="ICredentialProvider{T}"/> for <see cref="TokenCredential"/>,
+/// serving as the entry point for Azure credential and token management.
+/// </para>
+/// <para>
+/// Wraps a <see cref="ManagedCredential"/> instance that handles token caching,
+/// automatic refresh, and Azure SDK integration.
+/// </para>
 /// </remarks>
 internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
 {
     #region Private Fields
-
-    /// <summary>
-    /// The logger used for diagnostic information.
-    /// </summary>
-    private readonly ILogger _logger;
 
     /// <summary>
     /// The managed credential that wraps the underlying <see cref="TokenCredential"/>.
@@ -37,14 +37,11 @@ internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureCredentialProvider"/> class.
     /// </summary>
-    /// <param name="logger">The logger used for diagnostic information.</param>
-    /// <param name="tokenCredential">The underlying token credential to use for authentication.</param>
+    /// <param name="managedCredential">The managed credential instance.</param>
     private AzureCredentialProvider(
-        ILogger logger,
-        TokenCredential tokenCredential)
+        ManagedCredential managedCredential)
     {
-        _logger = logger;
-        _managedCredential = new ManagedCredential(logger, tokenCredential);
+        _managedCredential = managedCredential;
     }
 
     #endregion
@@ -52,47 +49,55 @@ internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
     #region Public Static Methods
 
     /// <summary>
-    /// Creates a new instance of the <see cref="AzureCredentialProvider"/> class with the specified options.
+    /// Creates a new <see cref="AzureCredentialProvider"/> instance with initialized credentials.
     /// </summary>
-    /// <param name="logger">The logger used for diagnostic information.</param>
-    /// <param name="credentialOptions">The options that configure which credential sources to use.</param>
-    /// <returns>A new instance of the <see cref="AzureCredentialProvider"/>.</returns>
+    /// <param name="credentialOptions">Configuration options for which credential sources to use.</param>
+    /// <param name="logger">The logger for recording operations.</param>
+    /// <returns>A fully initialized <see cref="AzureCredentialProvider"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="credentialOptions.Sources"/> is null or empty.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported <see cref="CredentialSource"/> is specified.</exception>
     /// <remarks>
+    /// <para>
     /// Creates a <see cref="ChainedTokenCredential"/> from the credential sources in <paramref name="credentialOptions.Sources"/>.
     /// Credential sources are tried in the order provided.
+    /// </para>
+    /// <para>
+    /// This is the primary entry point for creating an Azure credential provider.
+    /// </para>
     /// </remarks>
-    public static AzureCredentialProvider Create(
-        ILogger logger,
-        AzureCredentialOptions credentialOptions)
+    public static async Task<AzureCredentialProvider> CreateAsync(
+        AzureCredentialOptions credentialOptions,
+        ILogger logger)
     {
-        // Ensure that the Sources array is not null or empty.
+        // Ensure that the Sources array is not null or empty
         if (credentialOptions?.Sources is null || credentialOptions.Sources.Length == 0)
         {
             throw new ArgumentNullException(nameof(credentialOptions.Sources));
         }
 
-        // Create a ChainedTokenCredential from the specified sources.
+        // Create a ChainedTokenCredential from the specified sources
         var sources = credentialOptions.Sources
             .Select(source => source switch
             {
-                // Use WorkloadIdentityCredential for Kubernetes and Azure services.
+                // Use WorkloadIdentityCredential for Kubernetes and Azure services
                 CredentialSource.WorkloadIdentity => new WorkloadIdentityCredential() as TokenCredential,
-                // Use AzureCliCredential for local development environments.
+                // Use AzureCliCredential for local development environments
                 CredentialSource.AzureCli => new AzureCliCredential() as TokenCredential,
 
-                // Throw an exception if an unsupported credential source is specified.
+                // Throw an exception if an unsupported credential source is specified
                 _ => throw new ArgumentOutOfRangeException(nameof(credentialOptions.Sources))
             })
             .ToArray();
 
-        // Create a ChainedTokenCredential that tries each source in order.
-        // This allows the application to authenticate using different methods depending on the environment.
+        // Create a ChainedTokenCredential that tries each source in order
+        // This allows the application to authenticate using different methods depending on the environment
         var tokenCredential = new ChainedTokenCredential(sources);
 
-        // Return a new AzureCredentialProvider with the created credential.
-        return new AzureCredentialProvider(logger, tokenCredential);
+        // Initialize the managed credential with the token credential
+        var managedCredential = await ManagedCredential.CreateAsync(tokenCredential, logger);
+
+        // Wrap in the provider
+        return new AzureCredentialProvider(managedCredential);
     }
 
     #endregion

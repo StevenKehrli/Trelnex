@@ -67,7 +67,7 @@ internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
         var awsCredentials = AWSCredentialsManager.CreateAWSCredentials(logger);
 
         // Initialize the managed credential with STS and token client
-        var managedCredential = await ManagedCredential.Create(awsCredentials, options, logger);
+        var managedCredential = await ManagedCredential.CreateAsync(awsCredentials, options, logger);
 
         // Wrap in the provider
         return new AmazonCredentialProvider(managedCredential);

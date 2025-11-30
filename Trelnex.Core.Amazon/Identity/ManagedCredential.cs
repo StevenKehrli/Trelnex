@@ -108,7 +108,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
     /// The caller identity is used to authenticate access token requests via AWS SigV4 signatures.
     /// </para>
     /// </remarks>
-    public static async Task<ManagedCredential> Create(
+    public static async Task<ManagedCredential> CreateAsync(
         AWSCredentials awsCredentials,
         AmazonCredentialOptions options,
         ILogger logger)

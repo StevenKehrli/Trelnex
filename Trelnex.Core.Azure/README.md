@@ -51,7 +51,7 @@ The `AddCosmosDataProvidersAsync` method takes a `Action<IDataProviderOptions>` 
 
         await services
             .AddSwaggerToServices()
-            .AddAzureIdentity(
+            .AddAzureIdentityAsync(
                 configuration,
                 bootstrapLogger)
             .AddCosmosDataProvidersAsync(
@@ -153,7 +153,7 @@ The `AddSqlDataProvidersAsync` method takes a `Action<IDataProviderOptions>` `co
 
         await services
             .AddSwaggerToServices()
-            .AddAzureIdentity(
+            .AddAzureIdentityAsync(
                 configuration,
                 bootstrapLogger)
             .AddSqlDataProvidersAsync(
@@ -382,27 +382,27 @@ Azure Identity integration provides managed authentication for Azure services.
 
 Trelnex.Core.Azure uses Azure's managed identity service for secure authentication. Applications should register the `AzureCredentialProvider` and use dependency injection to obtain `TokenCredential` and access tokens.
 
-#### Key Features of AzureCredentialProvider
+### Key Features of AzureCredentialProvider
 
 - **Credential Chaining** - Tries multiple credential sources in order of preference
-- **Token Caching** - Caches access tokens to reduce authentication requests
-- **Automatic Token Refresh** - Manages token lifecycle and refreshes before expiration
+- **Token Caching** - Caches access tokens by request context to reduce authentication requests
+- **Automatic Token Refresh** - Proactively refreshes tokens before expiration using async scheduling
 - **Token Status Reporting** - Provides health status of all managed tokens
 - **Multiple Credential Sources** - Supports WorkloadIdentity and AzureCli credential sources
 
-#### Azure Managed Identities
+### Azure Managed Identities
 
 Trelnex.Core.Azure uses Azure's managed identity service.
 
-##### Workload Identity
+#### Workload Identity
 
 Workload Identity is recommended for production environments in AKS. See [Use a Kubernetes service account with workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-use-system-assigned).
 
-##### Azure CLI for Development
+#### Azure CLI for Development
 
 For local development, `AzureCliCredential` allows developers to use their Azure CLI login context.
 
-#### Credential Chain Fallback
+### Credential Chain Fallback
 
 Trelnex.Core.Azure uses a credential chain approach:
 
@@ -421,7 +421,15 @@ With this configuration, the application will:
 
 This pattern ensures that your application can run both in production with secure managed identities and in development environments with minimal configuration changes.
 
-#### AzureCredentialProvider - Configuration
+### Azure Credential Management
+
+Trelnex.Core.Azure manages Azure credentials and access tokens through the following components:
+
+1. **AzureCredentialProvider** - Entry point for Azure credentials and token access
+2. **ManagedCredential** - Implements both `TokenCredential` and `ICredential`, managing token caching and automatic refresh
+3. **ChainedTokenCredential** - Azure SDK credential that tries multiple sources in order
+
+### AzureCredentialProvider - Configuration
 
 Configure Azure credentials in your `appsettings.json`:
 
@@ -433,18 +441,18 @@ Configure Azure credentials in your `appsettings.json`:
 }
 ```
 
-#### AzureCredentialProvider - Dependency Injection
+### AzureCredentialProvider - Dependency Injection
 
 Add Azure Identity to your service collection:
 
 ```csharp
     services
-        .AddAzureIdentity(
+        .AddAzureIdentityAsync(
             configuration,
             bootstrapLogger);
 ```
 
-#### IAccessTokenProvider - Dependency Injection
+### IAccessTokenProvider - Dependency Injection
 
 Register clients that require access tokens:
 
@@ -453,7 +461,7 @@ Register clients that require access tokens:
     services.AddScoped<IUsersClient, UsersClient>();
 ```
 
-#### IAccessTokenProvider - Usage
+### IAccessTokenProvider - Usage
 
 Use the token provider in your HTTP clients:
 
@@ -485,14 +493,5 @@ internal class UsersClient(
     }
 }
 ```
-
-#### ManagedCredential
-
-The `ManagedCredential` class internally manages access tokens with the following capabilities:
-
-- **Thread-safe Token Cache** - Prevents duplicate token acquisitions for the same context
-- **Automatic Token Refresh** - Uses a timer to refresh tokens before they expire
-- **Error Handling** - Proper handling of credential unavailability with meaningful exceptions
-- **Status Reporting** - Provides health status for all managed tokens
 
 </details>
