@@ -17,7 +17,7 @@ namespace Trelnex.Core.Amazon.Identity;
 /// and Trelnex access token acquisition via AWS SigV4 signed requests.
 /// </para>
 /// </remarks>
-internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
+public class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
 {
     #region Private Fields
 

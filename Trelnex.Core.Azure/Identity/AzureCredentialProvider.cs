@@ -18,7 +18,7 @@ namespace Trelnex.Core.Azure.Identity;
 /// automatic refresh, and Azure SDK integration.
 /// </para>
 /// </remarks>
-internal class AzureCredentialProvider : ICredentialProvider<TokenCredential>
+public class AzureCredentialProvider : ICredentialProvider<TokenCredential>
 {
     #region Private Fields
 

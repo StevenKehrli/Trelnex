@@ -8,5 +8,5 @@ namespace Trelnex.Core.Azure.Identity;
 /// Loaded from appsettings.json under the "Azure.Credentials" section.
 /// </remarks>
 /// <param name="Sources">The array of <see cref="CredentialSource"/> values to specify the credential sources when creating the <see cref="ChainedTokenCredential"/> instance.</param>
-internal record AzureCredentialOptions(
+public record AzureCredentialOptions(
     CredentialSource[] Sources);
