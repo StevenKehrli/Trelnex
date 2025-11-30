@@ -47,14 +47,14 @@ internal static class AuthApplication
             .AddPermissions(bootstrapLogger);
 
         // Add Swagger documentation, AWS identity services, and application-specific services.
-        services
-            .AddSwaggerToServices()
-            .AddAmazonIdentity(
-                configuration,
-                bootstrapLogger)
-            .AddServices(
-                configuration,
-                bootstrapLogger);
+        services.AddSwaggerToServices();
+        await services.AddAmazonIdentityAsync(
+            configuration,
+            bootstrapLogger);
+
+        services.AddServices(
+            configuration,
+            bootstrapLogger);
     }
 
     /// <summary>

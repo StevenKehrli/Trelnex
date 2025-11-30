@@ -20,9 +20,9 @@ public class Program
     /// Entry point for the Trelnex.Auth.Amazon.Token application.
     /// </summary>
     /// <param name="args">Command-line arguments.</param>
-    public static void Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        // Create the ILogger for logging console output and diagnostic information.
+        // Create the ILogger for logging console output and diagnostic information
         using var factory = LoggerFactory.Create(builder => builder
             .AddConsole(options =>
             {
@@ -32,24 +32,25 @@ public class Program
 
         var logger = factory.CreateLogger<Program>();
 
-        // Process command-line arguments using CommandLineParser library.
-        Parser.Default
+        // Process command-line arguments using CommandLineParser library
+        return await Parser.Default
             .ParseArguments<Options>(args)
-            .WithParsed(o =>
-            {
-                try
+            .MapResult(
+                async o =>
                 {
-                    HandleOptions(o, logger);
-                }
-                catch (Exception ex)
-                {
-                    // Log any exceptions that occur during token acquisition.
-                    logger.LogError(ex, "Error obtaining the access token: {message}", ex.Message);
-
-                    // Exit with non-zero status code to indicate failure to the caller.
-                    Environment.Exit(1);
-                }
-            });
+                    try
+                    {
+                        await HandleOptionsAsync(o, logger);
+                        return 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log any exceptions that occur during token acquisition
+                        logger.LogError(ex, "Error obtaining the access token: {message}", ex.Message);
+                        return 1;
+                    }
+                },
+                errors => Task.FromResult(1));
     }
 
     /// <summary>
@@ -58,12 +59,12 @@ public class Program
     /// <param name="options">The parsed command-line options containing authentication configuration.</param>
     /// <param name="logger">Logger instance for outputting diagnostic information.</param>
     /// <returns>A task representing the asynchronous token acquisition operation.</returns>
-    private static void HandleOptions(
+    private static async Task HandleOptionsAsync(
         Options options,
         ILogger logger)
     {
-        // Configure JSON serializer options for consistent token output formatting.
-        // This ensures the access token is displayed in a readable, properly indented format.
+        // Configure JSON serializer options for consistent token output formatting
+        // This ensures the access token is displayed in a readable, properly indented format
         var jsonSerializerOptions = new JsonSerializerOptions()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -71,33 +72,31 @@ public class Program
             WriteIndented = true
         };
 
-        // Create the access token client configuration with the specified OAuth 2.0 server URI.
-        // This tells the credentials manager where to send token requests.
+        // Create the access token client configuration with the specified OAuth 2.0 server URI
+        // This tells the credential provider where to send token requests
         var clientConfiguration = new AccessTokenClientConfiguration(
             BaseAddress: options.Uri);
 
-        // Set up AWS credential options combining the AWS region and OAuth 2.0 client configuration.
-        // The region is used for STS operations to get caller identity and sign requests.
+        // Set up AWS credential options combining the AWS region and OAuth 2.0 client configuration
+        // The region is used for STS operations to get caller identity and sign requests
         var credentialOptions = new AmazonCredentialOptions(
             Region: options.Region,
             AccessTokenClient: clientConfiguration);
 
-        // Create the AWS credentials manager using the default AWS credential chain.
-        // This handles the integration between AWS credentials and OAuth 2.0 token acquisition.
-        var credentialsManager = AWSCredentialsManager
-            .Create(logger: logger, options: credentialOptions)
-            .GetAwaiter()
-            .GetResult();
+        // Create the Amazon credential provider using the default AWS credential chain
+        // This handles the integration between AWS credentials and OAuth 2.0 token acquisition
+        var credentialProvider = await AmazonCredentialProvider
+            .CreateAsync(credentialOptions, logger);
 
-        // Request an access token using the client credentials OAuth 2.0 flow.
-        // The scope determines what resources and permissions the token will grant access to.
-        var accessToken = credentialsManager
-            .GetAccessToken(scope: options.Scope)
-            .GetAwaiter()
-            .GetResult();
+        // Get an access token provider for the requested scope
+        var accessTokenProvider = credentialProvider.GetAccessTokenProvider(options.Scope);
 
-        // Serialize the access token response to formatted JSON and output to console.
-        // This allows the token to be easily consumed by other tools or scripts.
+        // Request an access token using the client credentials OAuth 2.0 flow
+        // The scope determines what resources and permissions the token will grant access to
+        var accessToken = accessTokenProvider.GetAccessToken();
+
+        // Serialize the access token response to formatted JSON and output to console
+        // This allows the token to be easily consumed by other tools or scripts
         var json = JsonSerializer.Serialize(accessToken, jsonSerializerOptions);
         Console.WriteLine(json);
     }
