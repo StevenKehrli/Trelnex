@@ -46,17 +46,17 @@ public class EncryptedCosmosDataProviderExtensionsTests : CosmosDataProviderTest
             _serviceConfiguration);
 
         // Add Azure Identity and CosmosDataProviders to the service collection.
-        await services
-            .AddAzureIdentity(
-                configuration,
-                bootstrapLogger)
-            .AddCosmosDataProvidersAsync(
-                configuration,
-                bootstrapLogger,
-                options => options.Add(
-                    typeName: "encrypted-test-item",
-                    itemValidator: TestItem.Validator,
-                    commandOperations: CommandOperations.All));
+        await services.AddAzureIdentityAsync(
+            configuration,
+            bootstrapLogger);
+
+        await services.AddCosmosDataProvidersAsync(
+            configuration,
+            bootstrapLogger,
+            options => options.Add(
+                typeName: "encrypted-test-item",
+                itemValidator: TestItem.Validator,
+                commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 

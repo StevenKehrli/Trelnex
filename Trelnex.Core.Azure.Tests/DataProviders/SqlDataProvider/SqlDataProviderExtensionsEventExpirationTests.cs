@@ -39,17 +39,17 @@ public class SqlDataProviderExtensionsEventExpirationTests : SqlDataProviderEven
             _serviceConfiguration);
 
         // Add Azure Identity and SqlDataProviders to the service collection.
-        await services
-            .AddAzureIdentity(
-                configuration,
-                bootstrapLogger)
-            .AddSqlDataProvidersAsync(
-                configuration,
-                bootstrapLogger,
-                options => options.Add(
-                    typeName: "expiration-test-item",
-                    itemValidator: TestItem.Validator,
-                    commandOperations: CommandOperations.All));
+        await services.AddAzureIdentityAsync(
+            configuration,
+            bootstrapLogger);
+        
+        await services.AddSqlDataProvidersAsync(
+            configuration,
+            bootstrapLogger,
+            options => options.Add(
+                typeName: "expiration-test-item",
+                itemValidator: TestItem.Validator,
+                commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 
