@@ -29,7 +29,7 @@ public static class AmazonIdentityExtensions
     /// Configures and registers an <see cref="AmazonCredentialProvider"/> for authentication with AWS.
     /// Adds AWS instrumentation for observability.
     /// </remarks>
-    public static IServiceCollection AddAmazonIdentity(
+    public static async Task<IServiceCollection> AddAmazonIdentityAsync(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
@@ -44,10 +44,8 @@ public static class AmazonIdentityExtensions
             ?? throw new ConfigurationErrorsException("The Amazon.Credentials configuration is not valid.");
 
         // Create the credential provider using the extracted options
-        var credentialProvider = AmazonCredentialProvider
-            .Create(bootstrapLogger, options)
-            .GetAwaiter()
-            .GetResult();
+        var credentialProvider = await AmazonCredentialProvider
+            .CreateAsync(options, bootstrapLogger);
 
         // Register the credential provider for dependency injection
         services.AddCredentialProvider(credentialProvider);

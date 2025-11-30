@@ -5,23 +5,24 @@ using Trelnex.Core.Identity;
 namespace Trelnex.Core.Amazon.Identity;
 
 /// <summary>
-/// A credential provider that manages AWS credentials and access tokens.
+/// Provides AWS credentials and Trelnex access tokens for Amazon-based authentication.
 /// </summary>
 /// <remarks>
-/// Implements <see cref="ICredentialProvider{T}"/> for <see cref="AWSCredentials"/>.
-/// Creates a <see cref="ManagedCredential"/> that combines AWS credentials with token management.
+/// <para>
+/// Implements <see cref="ICredentialProvider{T}"/> for <see cref="AWSCredentials"/>,
+/// serving as the entry point for AWS credential and Trelnex token management.
+/// </para>
+/// <para>
+/// Wraps a <see cref="ManagedCredential"/> instance that handles AWS credential refresh
+/// and Trelnex access token acquisition via AWS SigV4 signed requests.
+/// </para>
 /// </remarks>
 internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
 {
     #region Private Fields
 
     /// <summary>
-    /// The logger.
-    /// </summary>
-    private readonly ILogger _logger;
-
-    /// <summary>
-    /// The managed credential.
+    /// The managed credential that provides both AWS credentials and Trelnex access tokens.
     /// </summary>
     private readonly ManagedCredential _managedCredential;
 
@@ -32,14 +33,11 @@ internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
     /// <summary>
     /// Initializes a new instance of the <see cref="AmazonCredentialProvider"/> class.
     /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="awsCredentialsManager">The credentials manager.</param>
+    /// <param name="managedCredential">The managed credential instance.</param>
     private AmazonCredentialProvider(
-        ILogger logger,
-        AWSCredentialsManager awsCredentialsManager)
+        ManagedCredential managedCredential)
     {
-        _logger = logger;
-        _managedCredential = new ManagedCredential(logger, awsCredentialsManager);
+        _managedCredential = managedCredential;
     }
 
     #endregion
@@ -47,23 +45,32 @@ internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
     #region Public Static Methods
 
     /// <summary>
-    /// Creates a new instance of the <see cref="AmazonCredentialProvider"/> class.
+    /// Creates a new <see cref="AmazonCredentialProvider"/> instance with initialized credentials.
     /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="options">The options that configure the AWS credentials and token client.</param>
-    /// <returns>A new instance of the <see cref="AmazonCredentialProvider"/>.</returns>
+    /// <param name="options">Configuration options for AWS region and token client endpoint.</param>
+    /// <param name="logger">The logger for recording operations.</param>
+    /// <returns>A fully initialized <see cref="AmazonCredentialProvider"/>.</returns>
     /// <remarks>
-    /// Initializes an <see cref="AWSCredentialsManager"/> and creates the provider.
+    /// <para>
+    /// Creates AWS credentials with proactive refresh using <see cref="AWSCredentialsManager.CreateAWSCredentials"/>,
+    /// then initializes a <see cref="ManagedCredential"/> with STS client and access token client.
+    /// </para>
+    /// <para>
+    /// This is the primary entry point for creating an Amazon credential provider.
+    /// </para>
     /// </remarks>
-    public static async Task<AmazonCredentialProvider> Create(
-        ILogger logger,
-        AmazonCredentialOptions options)
+    public static async Task<AmazonCredentialProvider> CreateAsync(
+        AmazonCredentialOptions options,
+        ILogger logger)
     {
-        // Create the AWS credentials manager
-        var awsCredentialsManager = await AWSCredentialsManager.Create(logger, options);
+        // Create AWS credentials with automatic proactive refresh
+        var awsCredentials = AWSCredentialsManager.CreateAWSCredentials(logger);
 
-        // Create and return the credential provider
-        return new AmazonCredentialProvider(logger, awsCredentialsManager);
+        // Initialize the managed credential with STS and token client
+        var managedCredential = await ManagedCredential.Create(awsCredentials, options, logger);
+
+        // Wrap in the provider
+        return new AmazonCredentialProvider(managedCredential);
     }
 
     #endregion
@@ -76,30 +83,38 @@ internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
     public string Name => "Amazon";
 
     /// <summary>
-    /// Creates an <see cref="IAccessTokenProvider"/> for the specified scope.
+    /// Creates an access token provider for the specified scope.
     /// </summary>
-    /// <param name="scope">The scope of the token to request.</param>
-    /// <returns>An <see cref="IAccessTokenProvider"/>.</returns>
+    /// <param name="scope">The scope required for the access token.</param>
+    /// <returns>An <see cref="IAccessTokenProvider"/> for the specified scope.</returns>
     /// <remarks>
-    /// Uses the underlying <see cref="ManagedCredential"/> to obtain tokens.
+    /// <para>
+    /// Creates an <see cref="AccessTokenProvider"/> that wraps the managed credential's
+    /// token acquisition functionality for the specified scope.
+    /// </para>
+    /// <para>
+    /// Each scope gets its own cached token with automatic refresh in the underlying
+    /// <see cref="ManagedCredential"/>.
+    /// </para>
     /// </remarks>
     public IAccessTokenProvider GetAccessTokenProvider(
         string scope)
     {
-        // Create and return a new AccessTokenProvider that uses the ManagedCredential
+        // Create a provider that wraps the managed credential for this scope
         return AccessTokenProvider.Create(_managedCredential, scope);
     }
 
     /// <summary>
-    /// Gets the current status of the credential.
+    /// Gets the health status of all managed access tokens.
     /// </summary>
-    /// <returns>A <see cref="CredentialStatus"/> object.</returns>
+    /// <returns>A <see cref="CredentialStatus"/> containing status information for all scopes.</returns>
     /// <remarks>
-    /// Delegates to <see cref="ManagedCredential.GetStatus"/>.
+    /// Delegates to the underlying <see cref="ManagedCredential"/> to collect status
+    /// information from all cached token items.
     /// </remarks>
     public CredentialStatus GetStatus()
     {
-        // Delegate to the ManagedCredential to get the status
+        // Retrieve status from the managed credential
         return _managedCredential.GetStatus();
     }
 
@@ -108,15 +123,21 @@ internal class AmazonCredentialProvider : ICredentialProvider<AWSCredentials>
     #region ICredentialProvider<AWSCredentials>
 
     /// <summary>
-    /// Gets the underlying <see cref="AWSCredentials"/>.
+    /// Gets the AWS credentials for use with AWS SDK clients.
     /// </summary>
     /// <returns>The <see cref="AWSCredentials"/> instance.</returns>
     /// <remarks>
-    /// Provides direct access to the underlying <see cref="AWSCredentials"/> for AWS SDK clients.
+    /// <para>
+    /// Returns the <see cref="ManagedCredential"/> which implements <see cref="AWSCredentials"/>
+    /// and can be passed directly to AWS SDK client constructors.
+    /// </para>
+    /// <para>
+    /// The returned credentials include automatic proactive refresh before expiration.
+    /// </para>
     /// </remarks>
     public AWSCredentials GetCredential()
     {
-        // Return the ManagedCredential, which implements AWSCredentials
+        // Return the managed credential as AWSCredentials
         return _managedCredential;
     }
 

@@ -414,19 +414,20 @@ Trelnex.Core.Amazon uses AWS's credential management for secure authentication. 
 
 ### Key Features of AmazonCredentialProvider
 
-- **Credential Management** - Handles AWS credentials and provides them securely to services
-- **Token Caching** - Caches access tokens to reduce authentication requests
-- **Automatic Token Refresh** - Manages token lifecycle and refreshes before expiration
-- **Token Status Reporting** - Provides health status of all managed tokens
-- **CallerIdentity Integration** - Supports AWS SigV4 signatures for authentication
+- **Credential Management** - Manages AWS credentials with proactive automatic refresh
+- **Token Caching** - Caches Trelnex access tokens by scope to reduce authentication requests
+- **Automatic Token Refresh** - Proactively refreshes both AWS credentials and access tokens before expiration
+- **Token Status Reporting** - Provides health status of all managed tokens across scopes
+- **AWS SigV4 Integration** - Uses AWS caller identity signatures to authenticate token requests
 
 ### AWS Credential Management
 
-Trelnex.Core.Amazon manages AWS credentials through the following components:
+Trelnex.Core.Amazon manages AWS credentials and Trelnex access tokens through the following components:
 
-1. **ManagedCredential** - Thread-safe credential wrapper with token caching and refresh
-2. **AccessTokenClient** - Client for requesting and validating tokens
-3. **CallerIdentitySignature** - Handler for AWS SigV4 signatures
+1. **AmazonCredentialProvider** - Entry point for AWS credentials and Trelnex token access
+2. **ManagedCredential** - Implements both `AWSCredentials` and `ICredential`, managing token caching and AWS SigV4 signing
+3. **AWSCredentialsManager** - Static helper that wraps `RefreshingAWSCredentials` for proactive refresh scheduling
+4. **AccessTokenClient** - Client for requesting Trelnex access tokens using signed AWS requests
 
 ### AmazonCredentialProvider - Dependency Injection
 
