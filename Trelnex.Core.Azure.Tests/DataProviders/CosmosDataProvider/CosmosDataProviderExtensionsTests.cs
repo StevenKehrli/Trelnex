@@ -45,17 +45,17 @@ public class CosmosDataProviderExtensionsTests : CosmosDataProviderTestBase
             _serviceConfiguration);
 
         // Add Azure Identity and Cosmos Data providers to the service collection.
-        await services
-            .AddAzureIdentity(
-                configuration,
-                bootstrapLogger)
-            .AddCosmosDataProvidersAsync(
-                configuration,
-                bootstrapLogger,
-                options => options.Add(
-                    typeName: "test-item",
-                    itemValidator: TestItem.Validator,
-                    commandOperations: CommandOperations.All));
+        await services.AddAzureIdentityAsync(
+            configuration,
+            bootstrapLogger);
+
+        await services.AddCosmosDataProvidersAsync(
+            configuration,
+            bootstrapLogger,
+            options => options.Add(
+                typeName: "test-item",
+                itemValidator: TestItem.Validator,
+                commandOperations: CommandOperations.All));
 
         var serviceProvider = services.BuildServiceProvider();
 

@@ -6,8 +6,8 @@ using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Trelnex.Core.Identity;
 
+using AccessToken = Trelnex.Core.Identity.AccessToken;
 using AzureToken = Azure.Core.AccessToken;
-using TrelnexToken = Trelnex.Core.Identity.AccessToken;
 
 namespace Trelnex.Core.Azure.Identity;
 
@@ -32,14 +32,19 @@ namespace Trelnex.Core.Azure.Identity;
 /// ManagedCredential is an internal class. Application code will interact with this via the <see cref="AzureCredentialProvider"/>.
 /// </para>
 /// </remarks>
-/// <param name="logger">The logger used for recording token acquisition and refresh events.</param>
-/// <param name="tokenCredential">The underlying credential used to acquire tokens from Azure.</param>
-internal class ManagedCredential(
-    ILogger logger,
-    TokenCredential tokenCredential)
-    : TokenCredential, ICredential
+internal class ManagedCredential : TokenCredential, ICredential
 {
     #region Private Fields
+
+    /// <summary>
+    /// The logger used for recording token acquisition and refresh events.
+    /// </summary>
+    private readonly ILogger _logger;
+
+    /// <summary>
+    /// The underlying credential used to acquire tokens from Azure.
+    /// </summary>
+    private readonly TokenCredential _tokenCredential;
 
     /// <summary>
     /// A thread-safe cache of token items indexed by their request contexts.
@@ -55,6 +60,46 @@ internal class ManagedCredential(
     /// </para>
     /// </remarks>
     private readonly ConcurrentDictionary<TokenRequestContextKey, Lazy<AzureTokenItem>> _azureTokenItemsByTokenRequestContextKey = new();
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ManagedCredential"/> class.
+    /// </summary>
+    /// <param name="tokenCredential">The underlying credential used to acquire tokens from Azure.</param>
+    /// <param name="logger">The logger used for recording token acquisition and refresh events.</param>
+    private ManagedCredential(
+        TokenCredential tokenCredential,
+        ILogger logger)
+    {
+        _tokenCredential = tokenCredential;
+        _logger = logger;
+    }
+
+    #endregion
+
+    #region Public Static Methods
+
+    /// <summary>
+    /// Creates a new <see cref="ManagedCredential"/> instance with initialized Azure credentials.
+    /// </summary>
+    /// <param name="tokenCredential">The underlying Azure credential for token acquisition.</param>
+    /// <param name="logger">The logger for recording operations.</param>
+    /// <returns>A fully initialized <see cref="ManagedCredential"/>.</returns>
+    /// <remarks>
+    /// This is the primary entry point for creating a managed credential instance.
+    /// </remarks>
+    public static Task<ManagedCredential> CreateAsync(
+        TokenCredential tokenCredential,
+        ILogger logger)
+    {
+        // Create and return the managed credential
+        var managedCredential = new ManagedCredential(tokenCredential, logger);
+
+        return Task.FromResult(managedCredential);
+    }
 
     #endregion
 
@@ -77,29 +122,29 @@ internal class ManagedCredential(
     /// and is valid, it is returned immediately. Otherwise, a new token is acquired and cached.
     /// </para>
     /// <para>
-    /// Tokens are refreshed before expiry by a background timer.
+    /// Tokens are proactively refreshed before expiry using async <see cref="Task.Delay"/> scheduling.
     /// </para>
     /// </remarks>
     public override AzureToken GetToken(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
-        // Create a cache key from the token request context.
+        // Create a cache key from the token request context
         var key = TokenRequestContextKey.FromTokenRequestContext(tokenRequestContext);
 
-        // Get or create a token item for this request context.
-        // Using Lazy<T> ensures thread safety during creation.
+        // Get or create a token item for this request context
+        // Using Lazy<T> ensures thread safety during creation
         // See: https://andrewlock.net/making-getoradd-on-concurrentdictionary-thread-safe-using-lazy/
         var lazyAzureTokenItem =
             _azureTokenItemsByTokenRequestContextKey.GetOrAdd(
                 key: key,
                 value: new Lazy<AzureTokenItem>(
-                    AzureTokenItem.Create(
-                        logger,
-                        tokenCredential,
-                        key)));
+                    new AzureTokenItem(
+                        _tokenCredential,
+                        key,
+                        _logger)));
 
-        // Return the token from the token item.
+        // Return the token from the token item
         return lazyAzureTokenItem.Value.GetAzureToken();
     }
 
@@ -117,9 +162,9 @@ internal class ManagedCredential(
         TokenRequestContext tokenRequestContext,
         CancellationToken cancellationToken)
     {
-        // Delegate to the synchronous GetToken method.
-        return ValueTask.FromResult(
-            GetToken(tokenRequestContext, cancellationToken));
+        // Delegate to the synchronous GetToken method
+        var azureToken = GetToken(tokenRequestContext, cancellationToken);
+        return ValueTask.FromResult(azureToken);
     }
 
     #endregion
@@ -142,20 +187,20 @@ internal class ManagedCredential(
     /// and converts it to a Trelnex token format.
     /// </para>
     /// </remarks>
-    public TrelnexToken GetAccessToken(
+    public AccessToken GetAccessToken(
         string scope)
     {
-        // Format the scope into a TokenRequestContext.
+        // Format the scope into a TokenRequestContext
         var tokenRequestContext = new TokenRequestContext(
             scopes: [ scope ]);
 
         try
         {
-            // Get the Azure access token.
+            // Get the Azure access token
             var azureToken = GetToken(tokenRequestContext, default);
 
-            // Convert to Trelnex access token format.
-            return new TrelnexToken{
+            // Convert to Trelnex access token format
+            return new AccessToken{
                 Token = azureToken.Token,
                 TokenType = azureToken.TokenType,
                 ExpiresOn = azureToken.ExpiresOn,
@@ -164,7 +209,7 @@ internal class ManagedCredential(
         }
         catch (CredentialUnavailableException ex)
         {
-            // Translate Azure exception to Trelnex exception.
+            // Translate Azure exception to Trelnex exception
             throw new AccessTokenUnavailableException(ex.Message, ex.InnerException);
         }
     }
@@ -185,7 +230,7 @@ internal class ManagedCredential(
     /// </remarks>
     public CredentialStatus GetStatus()
     {
-        // Collect status of all token items in the cache.
+        // Collect status of all token items in the cache
         var statuses = _azureTokenItemsByTokenRequestContextKey
             .Select(kvp =>
             {
@@ -197,7 +242,7 @@ internal class ManagedCredential(
             .OrderBy(status => string.Join(", ", status.Scopes))
             .ToArray();
 
-        // Return a consolidated credential status with all token statuses.
+        // Return a consolidated credential status with all token statuses
         return new CredentialStatus(
             Statuses: statuses ?? []);
     }
@@ -367,8 +412,8 @@ internal class ManagedCredential(
     /// <remarks>
     /// <para>
     /// An <see cref="AzureTokenItem"/> is responsible for acquiring, caching, and refreshing a token
-    /// for a specific request context. It uses a timer to refresh the token before it expires,
-    /// ensuring that valid tokens are always available.
+    /// for a specific request context. It uses async <see cref="Task.Delay"/> to refresh the token
+    /// before it expires, ensuring that valid tokens are always available.
     /// </para>
     /// <para>
     /// This class handles both successful token acquisition and failure cases, maintaining
@@ -395,24 +440,19 @@ internal class ManagedCredential(
         private readonly TokenRequestContextKey _tokenRequestContextKey;
 
         /// <summary>
-        /// The timer used to schedule token refresh operations.
-        /// </summary>
-        private readonly Timer _timer;
-
-        /// <summary>
         /// The current access token, or null if no valid token is available.
         /// </summary>
         private AzureToken? _azureToken;
 
         /// <summary>
-        /// The error message to use when a token is unavailable, or null if no error occurred.
-        /// </summary>
-        private string? _unavailableMessage;
-
-        /// <summary>
         /// The inner exception to include when a token is unavailable, or null if no error occurred.
         /// </summary>
         private Exception? _unavailableInnerException;
+
+        /// <summary>
+        /// The error message to use when a token is unavailable, or null if no error occurred.
+        /// </summary>
+        private string? _unavailableMessage;
 
         #endregion
 
@@ -421,49 +461,20 @@ internal class ManagedCredential(
         /// <summary>
         /// Initializes a new instance of the <see cref="AzureTokenItem"/> class.
         /// </summary>
-        /// <param name="logger">The logger used for diagnostic information.</param>
         /// <param name="tokenCredential">The credential used to acquire tokens.</param>
         /// <param name="tokenRequestContextKey">The request context for which to acquire tokens.</param>
-        private AzureTokenItem(
-            ILogger logger,
+        /// <param name="logger">The logger used for diagnostic information.</param>
+        public AzureTokenItem(
             TokenCredential tokenCredential,
-            TokenRequestContextKey tokenRequestContextKey)
+            TokenRequestContextKey tokenRequestContextKey,
+            ILogger logger)
         {
-            _logger = logger;
             _tokenCredential = tokenCredential;
             _tokenRequestContextKey = tokenRequestContextKey;
+            _logger = logger;
 
-            // Create a timer but don't start it yet.
-            _timer = new Timer(Refresh, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        }
-
-        #endregion
-
-        #region Public Static Methods
-
-        /// <summary>
-        /// Creates and initializes a new <see cref="AzureTokenItem"/> instance.
-        /// </summary>
-        /// <param name="logger">The logger used for diagnostic information.</param>
-        /// <param name="tokenCredential">The credential used to acquire tokens.</param>
-        /// <param name="tokenRequestContextKey">The request context for which to acquire tokens.</param>
-        /// <returns>A new <see cref="AzureTokenItem"/> instance with an initial token.</returns>
-        /// <remarks>This method creates the token item and immediately triggers a token refresh to acquire the initial token.</remarks>
-        public static AzureTokenItem Create(
-            ILogger logger,
-            TokenCredential tokenCredential,
-            TokenRequestContextKey tokenRequestContextKey)
-        {
-            // Create the token item.
-            var azureTokenItem = new AzureTokenItem(
-                logger,
-                tokenCredential,
-                tokenRequestContextKey);
-
-            // Immediately trigger a refresh to acquire the initial token.
-            azureTokenItem.Refresh(null);
-
-            return azureTokenItem;
+            // Start the refresh loop in the background (fire and forget)
+            _ = ScheduleRefreshTokenAsync();
         }
 
         #endregion
@@ -479,7 +490,7 @@ internal class ManagedCredential(
         {
             lock (this)
             {
-                // If no token is available, throw an exception with the error details.
+                // If no token is available, throw an exception with the error details
                 return _azureToken ?? throw new CredentialUnavailableException(_unavailableMessage, _unavailableInnerException);
             }
         }
@@ -492,12 +503,12 @@ internal class ManagedCredential(
         {
             lock (this)
             {
-                // Determine if the token is valid based on its expiration time.
+                // Determine if the token is valid based on its expiration time
                 var health = ((_azureToken?.ExpiresOn ?? DateTimeOffset.MinValue) < DateTimeOffset.UtcNow)
                     ? AccessTokenHealth.Expired
                     : AccessTokenHealth.Valid;
 
-                // Include additional metadata about the token.
+                // Include additional metadata about the token
                 var data = new Dictionary<string, object?>
                 {
                     { "tenantId", _tokenRequestContextKey.TenantId },
@@ -505,7 +516,7 @@ internal class ManagedCredential(
                     { "isCaeEnabled", _tokenRequestContextKey.IsCaeEnabled },
                 };
 
-                // Return a status object with all relevant information.
+                // Return a status object with all relevant information
                 return new AccessTokenStatus(
                     Health: health,
                     Scopes: _tokenRequestContextKey.Scopes,
@@ -519,85 +530,121 @@ internal class ManagedCredential(
         #region Private Methods
 
         /// <summary>
-        /// Refreshes the access token and schedules the next refresh.
+        /// Acquires a new access token and calculates when the next refresh should occur.
         /// </summary>
-        /// <param name="state">The state object passed by the Timer (not used).</param>
-        private void Refresh(
-            object? state)
+        /// <returns>The time span to wait before the next refresh attempt.</returns>
+        /// <remarks>
+        /// <para>
+        /// On success, stores the token and returns the duration until the token's refresh time.
+        /// On failure, stores the error and returns a 5-second retry delay.
+        /// </para>
+        /// <para>
+        /// Exceptions are caught to ensure the refresh loop continues even after failures.
+        /// </para>
+        /// </remarks>
+        private async Task<TimeSpan> RefreshTokenAsync()
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            // Log the refresh attempt.
-            _logger.LogInformation(
-                "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
-                string.Join(", ", _tokenRequestContextKey.Scopes),
-                _tokenRequestContextKey.TenantId,
-                _tokenRequestContextKey.Claims,
-                _tokenRequestContextKey.IsCaeEnabled);
-
-            // Default to refreshing in 5 seconds if something goes wrong.
+            // Default to retrying in 5 seconds on errors
             var dueTime = TimeSpan.FromSeconds(5);
 
             try
             {
-                // Attempt to get a new token.
-                var azureToken = _tokenCredential.GetToken(
+                // Attempt to get a new token
+                var azureToken = await _tokenCredential.GetTokenAsync(
                     requestContext: _tokenRequestContextKey.ToTokenRequestContext(),
                     cancellationToken: default);
 
-                // Store the new token.
+                // Store the new token
                 SetAzureToken(azureToken);
 
-                // Determine when to refresh the token.
-                // WorkloadIdentityCredential will have RefreshOn set - use that.
-                // AzureCliCredential will not - fall back to ExpiresOn.
+                // Determine when to refresh the token
+                // WorkloadIdentityCredential will have RefreshOn set - use that
+                // AzureCliCredential will not - fall back to ExpiresOn
                 var refreshOn = azureToken.RefreshOn ?? azureToken.ExpiresOn;
 
-                // Log the successful token acquisition.
+                // Log successful token acquisition with next refresh time
                 _logger.LogInformation(
-                    "AzureTokenItem.AccessToken: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', refreshOn = '{refreshOn:o}'.",
+                    "ManagedCredential.AzureTokenItem.RefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', refreshOn = '{refreshOn:o}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
                     _tokenRequestContextKey.IsCaeEnabled,
                     refreshOn);
 
-                // Schedule the next refresh at the token's refresh time.
+                // Calculate when to attempt the next refresh
                 dueTime = refreshOn - DateTimeOffset.UtcNow;
             }
             catch (CredentialUnavailableException ex)
             {
-                // Handle credential unavailable errors.
+                // Store error details for GetAzureToken to throw
                 SetUnavailable(ex);
 
-                // Log the error.
+                // Log credential unavailability
                 _logger.LogError(
-                    "AzureTokenItem.Unavailable: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
+                    "ManagedCredential.AzureTokenItem.Unavailable: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
                     _tokenRequestContextKey.IsCaeEnabled,
                     ex.Message);
             }
-            catch
+            catch (Exception ex)
             {
-                // Catch any other exceptions to ensure the timer is always rescheduled.
+                // Log unexpected errors but continue the refresh loop
+                _logger.LogError(
+                    "ManagedCredential.AzureTokenItem.Exception: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
+                    string.Join(", ", _tokenRequestContextKey.Scopes),
+                    _tokenRequestContextKey.TenantId,
+                    _tokenRequestContextKey.Claims,
+                    _tokenRequestContextKey.IsCaeEnabled,
+                    ex.Message);
             }
 
-            // Schedule the next refresh.
-            _timer.Change(
-                dueTime: dueTime,
-                period: Timeout.InfiniteTimeSpan);
+            return dueTime;
+        }
+
+        /// <summary>
+        /// Orchestrates the token refresh cycle with timing and recursion.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Calls <see cref="RefreshTokenAsync"/> to acquire a new token, waits for the calculated delay,
+        /// then recursively schedules the next refresh using fire-and-forget pattern.
+        /// </para>
+        /// <para>
+        /// Logs timing information to track refresh performance.
+        /// </para>
+        /// </remarks>
+        private async Task ScheduleRefreshTokenAsync()
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // Log the start of the refresh cycle
+            _logger.LogInformation(
+                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
+                string.Join(", ", _tokenRequestContextKey.Scopes),
+                _tokenRequestContextKey.TenantId,
+                _tokenRequestContextKey.Claims,
+                _tokenRequestContextKey.IsCaeEnabled);
+
+            // Perform the token refresh and get the next refresh delay
+            var dueTime = await RefreshTokenAsync();
 
             stopwatch.Stop();
             _logger.LogInformation(
-                "AzureTokenItem.Refresh: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
                 string.Join(", ", _tokenRequestContextKey.Scopes),
                 _tokenRequestContextKey.TenantId,
                 _tokenRequestContextKey.Claims,
                 _tokenRequestContextKey.IsCaeEnabled,
                 stopwatch.ElapsedMilliseconds);
+
+            // Wait for the calculated delay before the next refresh
+            await Task.Delay(dueTime);
+
+            // Schedule the next refresh cycle (fire and forget)
+            _ = ScheduleRefreshTokenAsync();
         }
 
         /// <summary>
@@ -609,10 +656,10 @@ internal class ManagedCredential(
         {
             lock (this)
             {
-                // Store the new token.
+                // Store the new token
                 _azureToken = azureToken;
 
-                // Clear any error state.
+                // Clear any error state
                 _unavailableMessage = null;
                 _unavailableInnerException = null;
             }
@@ -627,7 +674,7 @@ internal class ManagedCredential(
         {
             lock (this)
             {
-                // Store the error information.
+                // Store the error information
                 _unavailableMessage = ex.Message;
                 _unavailableInnerException = ex.InnerException;
             }

@@ -23,10 +23,18 @@ public static class AzureIdentityExtensions
     /// <param name="configuration">The application configuration containing Azure credential settings.</param>
     /// <param name="bootstrapLogger">The logger for setup and initialization information.</param>
     /// <returns>The same service collection to enable method chaining.</returns>
-    /// <exception cref="ConfigurationErrorsException">Thrown when the "Azure.Credentials" configuration section is not found.</exception>
+    /// <exception cref="ConfigurationErrorsException">Thrown when the "Azure.Credentials" configuration section is not valid.</exception>
     /// <remarks>
+    /// <para>
     /// Configures and registers an <see cref="AzureCredentialProvider"/> for authentication with Azure services.
+    /// </para>
+    /// <para>
+    /// Creates a <see cref="ChainedTokenCredential"/> from the configured sources, wraps it in a
+    /// <see cref="ManagedCredential"/> for token caching and automatic refresh.
+    /// </para>
+    /// <para>
     /// Expects an "Azure.Credentials" section in the configuration, containing <see cref="AzureCredentialOptions"/>.
+    /// </para>
     ///
     /// Example configuration:
     /// <code>
@@ -37,26 +45,25 @@ public static class AzureIdentityExtensions
     /// }
     /// </code>
     /// </remarks>
-    public static IServiceCollection AddAzureIdentity(
+    public static async Task<IServiceCollection> AddAzureIdentityAsync(
         this IServiceCollection services,
         IConfiguration configuration,
         ILogger bootstrapLogger)
     {
-        // Extract Azure credential options.
+        // Extract Azure credential options from the configuration
         var credentialOptions = configuration
             .GetSection("Azure.Credentials")
             .Get<AzureCredentialOptions>()
-            ?? throw new ConfigurationErrorsException("The AzureCredentials configuration is not valid.");
+            ?? throw new ConfigurationErrorsException("The Azure.Credentials configuration is not valid");
 
-        // Create the credential provider.
-        var credentialProvider = AzureCredentialProvider.Create(
-            bootstrapLogger,
-            credentialOptions);
+        // Create the credential provider using the extracted options
+        var credentialProvider = await AzureCredentialProvider
+            .CreateAsync(credentialOptions, bootstrapLogger);
 
-        // Register the provider for dependency injection.
+        // Register the credential provider for dependency injection
         services.AddCredentialProvider(credentialProvider);
 
-        // Return the service collection to allow for method chaining.
+        // Return the service collection to allow for method chaining
         return services;
     }
 
