@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
@@ -63,11 +64,10 @@ internal class CosmosDataProvider<TItem>(
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>Asynchronous enumerable of matching items.</returns>
     /// <exception cref="CommandException">Thrown when Cosmos DB operations fail.</exception>
-#pragma warning disable CS8425
     [TraceMethod]
-    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+    protected override async IAsyncEnumerable<IQueryResult<TItem>> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // Convert LINQ query to Cosmos DB SQL query
         var queryDefinition = queryable.ToQueryDefinition();
@@ -106,11 +106,12 @@ internal class CosmosDataProvider<TItem>(
 
                 if (item is null) continue;
 
-                yield return item;
+                var queryResult = ConvertToQueryResult(item);
+
+                yield return queryResult;
             }
         }
     }
-#pragma warning restore CS8425
 
     /// <summary>
     /// Retrieves a single item from Cosmos DB using its identifiers.
