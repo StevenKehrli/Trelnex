@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Transactions;
 using FluentValidation;
 using LinqToDB;
@@ -59,11 +60,10 @@ public abstract class DbDataProvider<TItem>(
     }
 
     /// <inheritdoc/>
-#pragma warning disable CS1998, CS8425
     [TraceMethod]
-    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+    protected override async IAsyncEnumerable<IQueryResult<TItem>> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // Create database connection
         using var dataConnection = new DataConnection(_dataOptions);
@@ -79,10 +79,11 @@ public abstract class DbDataProvider<TItem>(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            yield return item;
+            var queryResult = ConvertToQueryResult(item);
+
+            yield return queryResult;
         }
     }
-#pragma warning restore CS1998, CS8425
 
     /// <inheritdoc/>
     [TraceMethod]

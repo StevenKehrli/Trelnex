@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -73,10 +74,9 @@ public class InMemoryDataProvider<TItem>
     }
 
     /// <inheritdoc/>
-#pragma warning disable CS1998, CS8425
-    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+    protected override async IAsyncEnumerable<IQueryResult<TItem>> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         try
         {
@@ -104,7 +104,9 @@ public class InMemoryDataProvider<TItem>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                yield return item;
+                var queryResult = ConvertToQueryResult(item);
+
+                yield return queryResult;
             }
         }
         finally
@@ -113,7 +115,6 @@ public class InMemoryDataProvider<TItem>
             _lock.ExitReadLock();
         }
     }
-#pragma warning restore CS1998, CS8425
 
     /// <inheritdoc/>
     protected override Task<TItem?> ReadItemAsync(
