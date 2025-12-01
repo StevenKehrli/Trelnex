@@ -46,7 +46,7 @@
         <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="10.0.1" />
-        <PackageReference Include="Trelnex.Core.Data" Version="0.12.0" />
+        <PackageReference Include="Trelnex.Core.Data" Version="0.13.0" />
     </ItemGroup>
 
 </Project>
