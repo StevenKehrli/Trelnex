@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using Trelnex.Core.Disposables;
 
 namespace Trelnex.Core.Data;
@@ -52,11 +51,9 @@ public interface IQueryCommand<TItem>
     /// <summary>
     /// Executes the query and returns results as a lazy asynchronous enumerable.
     /// </summary>
-    /// <param name="cancellationToken">Token to cancel the query operation.</param>
     /// <returns>An asynchronous enumerable that yields query results lazily.</returns>
     /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
-    IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable(
-        CancellationToken cancellationToken = default);
+    IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable();
 
     /// <summary>
     /// Executes the query and returns all results materialized into a disposable enumerable.
@@ -83,8 +80,7 @@ public interface IQueryCommand<TItem>
 /// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
 internal class QueryCommand<TItem>(
     IQueryable<TItem> queryable,
-    QueryAsyncDelegate<TItem> queryAsyncDelegate,
-    Func<TItem, IQueryResult<TItem>> convertToQueryResult)
+    QueryAsyncDelegate<TItem> queryAsyncDelegate)
     : IQueryCommand<TItem>
     where TItem : BaseItem
 {
@@ -139,17 +135,16 @@ internal class QueryCommand<TItem>(
     }
 
     /// <inheritdoc/>
-    public IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable(
-        CancellationToken cancellationToken = default)
+    public IAsyncDisposableEnumerable<IQueryResult<TItem>> ToAsyncDisposableEnumerable()
     {
-        return QueryAsync(cancellationToken).ToAsyncDisposableEnumerable();
+        return queryAsyncDelegate(queryable).ToAsyncDisposableEnumerable();
     }
 
     /// <inheritdoc/>
     public async Task<IDisposableEnumerable<IQueryResult<TItem>>> ToDisposableEnumerableAsync(
         CancellationToken cancellationToken = default)
     {
-        return await QueryAsync(cancellationToken).ToDisposableEnumerableAsync(cancellationToken);
+        return await queryAsyncDelegate(queryable).ToDisposableEnumerableAsync(cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -162,26 +157,6 @@ internal class QueryCommand<TItem>(
         queryable = queryable.Where(predicate);
 
         return this;
-    }
-
-    #endregion
-
-    #region Private Methods
-
-    /// <summary>
-    /// Executes the query using the configured delegate and converts each item to a query result.
-    /// </summary>
-    /// <param name="cancellationToken">Token to cancel the query operation.</param>
-    /// <returns>An asynchronous enumerable of query results.</returns>
-    private async IAsyncEnumerable<IQueryResult<TItem>> QueryAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        // Execute the query through the delegate and wrap each item as it arrives
-        await foreach (var item in queryAsyncDelegate(queryable, cancellationToken))
-        {
-            // Convert each item to a query result wrapper and yield it
-            yield return convertToQueryResult(item);
-        }
     }
 
     #endregion

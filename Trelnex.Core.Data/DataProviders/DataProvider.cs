@@ -240,20 +240,9 @@ public abstract partial class DataProvider<TItem>
     {
         var queryable = CreateQueryable();
 
-        // Define how to convert items to query results
-        IQueryResult<TItem> convertToQueryResult(TItem item)
-        {
-            return QueryResult<TItem>.Create(
-                item: item,
-                createDeleteCommand: CreateDeleteCommand,
-                createUpdateCommand: CreateUpdateCommand,
-                logger: _logger);
-        }
-
         return new QueryCommand<TItem>(
             queryable: queryable,
-            queryAsyncDelegate: ExecuteQueryableAsync,
-            convertToQueryResult: convertToQueryResult);
+            queryAsyncDelegate: q => ExecuteQueryableAsync(q));
     }
 
     /// <inheritdoc />
@@ -311,9 +300,14 @@ public abstract partial class DataProvider<TItem>
     /// Executes a query against the data store and returns results asynchronously.
     /// </summary>
     /// <param name="queryable">The query to execute.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <param name="cancellationToken">Token to cancel the query operation.</param>
     /// <returns>Asynchronous enumerable of matching items.</returns>
-    protected abstract IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+    /// <remarks>
+    /// Implementations should decorate the <paramref name="cancellationToken"/> parameter with
+    /// <see cref="EnumeratorCancellationAttribute"/> to receive the cancellation token from the
+    /// async enumerator when consumers use <c>.WithCancellation(token)</c>.
+    /// </remarks>
+    protected abstract IAsyncEnumerable<IQueryResult<TItem>> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
         CancellationToken cancellationToken = default);
 
@@ -342,6 +336,25 @@ public abstract partial class DataProvider<TItem>
     #endregion
 
     #region Protected Methods
+
+    /// <summary>
+    /// Converts an item to a query result with command operations.
+    /// </summary>
+    /// <param name="item">The item to convert.</param>
+    /// <returns>A query result wrapping the item with delete and update command capabilities.</returns>
+    /// <remarks>
+    /// This method is used by derived classes in their query execution to convert each retrieved
+    /// item into an <see cref="IQueryResult{TItem}"/> that provides command operations.
+    /// </remarks>
+    protected IQueryResult<TItem> ConvertToQueryResult(
+        TItem item)
+    {
+        return QueryResult<TItem>.Create(
+            item: item,
+            createDeleteCommand: CreateDeleteCommand,
+            createUpdateCommand: CreateUpdateCommand,
+            logger: _logger);
+    }
 
     /// <summary>
     /// Deserializes a JSON string into an item using the configured serialization options.

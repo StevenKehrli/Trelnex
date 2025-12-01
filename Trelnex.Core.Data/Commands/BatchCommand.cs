@@ -219,9 +219,7 @@ internal class BatchCommand<TItem>(
         CancellationToken cancellationToken)
     {
         // Extract save requests from completed acquisition tasks
-        var requests = acquireTasks
-            .Select(at => at.Result)
-            .ToArray();
+        var requests = await Task.WhenAll(acquireTasks);
 
         // Execute the batch save using the configured delegate
         var saveResults = await saveBatchAsyncDelegate(
