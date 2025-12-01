@@ -1,5 +1,6 @@
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
@@ -74,11 +75,10 @@ internal class DynamoDataProvider<TItem>(
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>Asynchronous enumerable of matching items.</returns>
     /// <exception cref="CommandException">Thrown when DynamoDB operations fail.</exception>
-#pragma warning disable CS8425
     [TraceMethod]
-    protected override async IAsyncEnumerable<TItem> ExecuteQueryableAsync(
+    protected override async IAsyncEnumerable<IQueryResult<TItem>> ExecuteQueryableAsync(
         IQueryable<TItem> queryable,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // Convert LINQ expression to DynamoDB scan with filtering
         var queryHelper = QueryHelper<TItem>.FromLinqExpression(queryable.Expression);
@@ -123,10 +123,11 @@ internal class DynamoDataProvider<TItem>(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            yield return item;
+            var queryResult = ConvertToQueryResult(item);
+
+            yield return queryResult;
         }
     }
-#pragma warning restore CS8425
 
     /// <summary>
     /// Retrieves a single item from DynamoDB using composite primary key.
