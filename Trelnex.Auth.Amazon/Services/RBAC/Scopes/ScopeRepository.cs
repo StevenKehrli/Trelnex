@@ -202,10 +202,6 @@ internal partial class RBACRepository
             cancellationToken);
 
         // Extract scope names and return them in alphabetical order.
-        var result = scopeItems
-            .Select(scopeItem => scopeItem.ScopeName)
-            .Order();
-
-        return [.. result];
+        return [.. scopeItems.Select(scopeItem => scopeItem.ScopeName).Order()];
     }
 }

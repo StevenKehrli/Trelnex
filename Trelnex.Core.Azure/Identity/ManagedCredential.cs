@@ -383,7 +383,17 @@ internal class ManagedCredential : TokenCredential, ICredential
             }
 
             // Use structural comparison for the scopes array.
-            return StructuralComparisons.StructuralEqualityComparer.Equals(Scopes, other.Scopes) && string.Equals(TenantId, other.TenantId, StringComparison.Ordinal);
+            if (!StructuralComparisons.StructuralEqualityComparer.Equals(Scopes, other.Scopes))
+            {
+                return false;
+            }
+            
+            if (!string.Equals(TenantId, other.TenantId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

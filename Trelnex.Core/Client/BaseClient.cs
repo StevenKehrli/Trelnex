@@ -265,9 +265,11 @@ public abstract class BaseClient(
 
             if (response is not null)
             {
-                return (
+                return 
+                (
                     response: response,
-                    headers: httpResponseMessage.Headers);
+                    headers: httpResponseMessage.Headers
+                );
             }
         }
         catch (JsonException)

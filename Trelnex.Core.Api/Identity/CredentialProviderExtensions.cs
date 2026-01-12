@@ -139,7 +139,12 @@ public static class CredentialProviderExtensions
         }
 
         // Must have a string key for retrieval.
-        return serviceDescriptor.ServiceKey is not null and string;
+        if (serviceDescriptor.ServiceKey is null or not string)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     #endregion

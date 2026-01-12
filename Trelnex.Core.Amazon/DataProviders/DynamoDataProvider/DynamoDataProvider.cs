@@ -258,7 +258,7 @@ internal class DynamoDataProvider<TItem>(
         {
             // Execute the entire transactions atomically
             var batches = eventBatch is not null
-                ? [itemBatch, eventBatch]
+                ? new[] { itemBatch, eventBatch }
                 : new[] { itemBatch };
 
             var multiTableBatch = new MultiTableDocumentTransactWrite(batches);
