@@ -128,7 +128,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
         var response = await stsClient.GetCallerIdentityAsync(request);
 
         logger.LogInformation(
-            "ManagedCredential.Create: principalId = '{Arn:l}', region = '{region:l}'",
+            "ManagedCredential.Create: principalId = '{Arn:l}', region = '{Region:l}'",
             response.Arn,
             options.Region);
 
@@ -154,7 +154,10 @@ internal class ManagedCredential : AWSCredentials, ICredential
     #region AWSCredentials
 
     /// <inheritdoc />
-    public override ImmutableCredentials GetCredentials() => _awsCredentials.GetCredentials();
+    public override ImmutableCredentials GetCredentials()
+    {
+        return _awsCredentials.GetCredentials();
+    }
 
     #endregion
 
@@ -377,7 +380,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
                 // Return a status object with all relevant information.
                 return new AccessTokenStatus(
                     Health: health,
-                    Scopes: [ _scope ],
+                    Scopes: [_scope],
                     ExpiresOn: _accessToken?.ExpiresOn);
             }
         }
@@ -417,7 +420,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
 
                 // Log successful token acquisition with next refresh time
                 _logger.LogInformation(
-                    "ManagedCredential.AmazonTokenItem.RefreshTokenAsync: scope = '{scope:l}', refreshOn = '{refreshOn:o}'.",
+                    "ManagedCredential.AmazonTokenItem.RefreshTokenAsync: scope = '{Scope:l}', refreshOn = '{RefreshOn:o}'.",
                     _scope,
                     refreshOn);
 
@@ -431,7 +434,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
 
                 // Log HTTP-level token acquisition failures
                 _logger.LogError(
-                    "ManagedCredential.AmazonTokenItem.Unavailable: scope = '{scope:l}', message = '{message:}'.",
+                    "ManagedCredential.AmazonTokenItem.Unavailable: scope = '{Scope:l}', message = '{Message:}'.",
                     _scope,
                     ex.Message);
             }
@@ -439,7 +442,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
             {
                 // Log unexpected errors but continue the refresh loop
                 _logger.LogError(
-                    "ManagedCredential.AmazonTokenItem.Exception: scope = '{scope:l}', message = '{message:}'.",
+                    "ManagedCredential.AmazonTokenItem.Exception: scope = '{Scope:l}', message = '{Message:}'.",
                     _scope,
                     ex.Message);
             }
@@ -466,7 +469,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
 
             // Log the start of the refresh cycle
             _logger.LogInformation(
-                "ManagedCredential.AmazonTokenItem.ScheduleRefreshTokenAsync: scope = '{scope:l}'",
+                "ManagedCredential.AmazonTokenItem.ScheduleRefreshTokenAsync: scope = '{Scope:l}'",
                 _scope);
 
             // Perform the token refresh and get the next refresh delay
@@ -474,7 +477,7 @@ internal class ManagedCredential : AWSCredentials, ICredential
 
             stopwatch.Stop();
             _logger.LogInformation(
-                "ManagedCredential.AmazonTokenItem.ScheduleRefreshTokenAsync: scope = '{scope:l}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                "ManagedCredential.AmazonTokenItem.ScheduleRefreshTokenAsync: scope = '{Scope:l}', elapsedMilliseconds = {ElapsedMilliseconds} ms.",
                 _scope,
                 stopwatch.ElapsedMilliseconds);
 

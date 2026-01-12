@@ -165,7 +165,7 @@ internal static class AWSCredentialsManager
 
             // Log the calculated refresh time for monitoring
             _logger.LogInformation(
-                "AWSCredentialsManager.RefreshingCredentials.RefreshCredentials: refreshOn = '{refreshOn:o}'.",
+                "AWSCredentialsManager.RefreshingCredentials.RefreshCredentials: refreshOn = '{RefreshOn:o}'.",
                 refreshOn);
 
             // Apply minimum delay constraint
@@ -201,7 +201,7 @@ internal static class AWSCredentialsManager
 
             stopwatch.Stop();
             _logger.LogInformation(
-                "AWSCredentialsManager.RefreshingCredentials.ScheduleRefreshCredentialsAsync: elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                "AWSCredentialsManager.RefreshingCredentials.ScheduleRefreshCredentialsAsync: elapsedMilliseconds = {ElapsedMilliseconds} ms.",
                 stopwatch.ElapsedMilliseconds);
 
             // Calculate delay until next refresh

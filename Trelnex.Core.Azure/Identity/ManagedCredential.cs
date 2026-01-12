@@ -192,7 +192,7 @@ internal class ManagedCredential : TokenCredential, ICredential
     {
         // Format the scope into a TokenRequestContext
         var tokenRequestContext = new TokenRequestContext(
-            scopes: [ scope ]);
+            scopes: [scope]);
 
         try
         {
@@ -200,7 +200,8 @@ internal class ManagedCredential : TokenCredential, ICredential
             var azureToken = GetToken(tokenRequestContext, default);
 
             // Convert to Trelnex access token format
-            return new AccessToken{
+            return new AccessToken
+            {
                 Token = azureToken.Token,
                 TokenType = azureToken.TokenType,
                 ExpiresOn = azureToken.ExpiresOn,
@@ -371,16 +372,18 @@ internal class ManagedCredential : TokenCredential, ICredential
             TokenRequestContextKey other)
         {
             // Compare each property for equality.
-            if (string.Equals(Claims, other.Claims) is false) return false;
+            if (!string.Equals(Claims, other.Claims, StringComparison.Ordinal))
+            {
+                return false;
+            }
 
-            if (IsCaeEnabled != other.IsCaeEnabled) return false;
+            if (IsCaeEnabled != other.IsCaeEnabled)
+            {
+                return false;
+            }
 
             // Use structural comparison for the scopes array.
-            if (StructuralComparisons.StructuralEqualityComparer.Equals(Scopes, other.Scopes) is false) return false;
-
-            if (string.Equals(TenantId, other.TenantId) is false) return false;
-
-            return true;
+            return StructuralComparisons.StructuralEqualityComparer.Equals(Scopes, other.Scopes) && string.Equals(TenantId, other.TenantId, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -473,8 +476,11 @@ internal class ManagedCredential : TokenCredential, ICredential
             _tokenRequestContextKey = tokenRequestContextKey;
             _logger = logger;
 
-            // Start the refresh loop in the background (fire and forget)
-            _ = ScheduleRefreshTokenAsync();
+            // Get the initial token synchronously to ensure it's available immediately
+            var dueTime = RefreshToken();
+
+            // Start the background refresh loop with the calculated delay
+            _ = ScheduleRefreshTokenAsync(dueTime);
         }
 
         #endregion
@@ -542,7 +548,7 @@ internal class ManagedCredential : TokenCredential, ICredential
         /// Exceptions are caught to ensure the refresh loop continues even after failures.
         /// </para>
         /// </remarks>
-        private async Task<TimeSpan> RefreshTokenAsync()
+        private TimeSpan RefreshToken()
         {
             // Default to retrying in 5 seconds on errors
             var dueTime = TimeSpan.FromSeconds(5);
@@ -550,7 +556,7 @@ internal class ManagedCredential : TokenCredential, ICredential
             try
             {
                 // Attempt to get a new token
-                var azureToken = await _tokenCredential.GetTokenAsync(
+                var azureToken = _tokenCredential.GetToken(
                     requestContext: _tokenRequestContextKey.ToTokenRequestContext(),
                     cancellationToken: default);
 
@@ -564,7 +570,7 @@ internal class ManagedCredential : TokenCredential, ICredential
 
                 // Log successful token acquisition with next refresh time
                 _logger.LogInformation(
-                    "ManagedCredential.AzureTokenItem.RefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', refreshOn = '{refreshOn:o}'.",
+                    "ManagedCredential.AzureTokenItem.RefreshToken: scopes = '{Scopes:l}', tenantId = '{TenantId:l}', claims = '{Claims:l}', isCaeEnabled = '{IsCaeEnabled}', refreshOn = '{RefreshOn:o}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
@@ -581,7 +587,7 @@ internal class ManagedCredential : TokenCredential, ICredential
 
                 // Log credential unavailability
                 _logger.LogError(
-                    "ManagedCredential.AzureTokenItem.Unavailable: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
+                    "ManagedCredential.AzureTokenItem.Unavailable: scopes = '{Scopes:l}', tenantId = '{TenantId:l}', claims = '{Claims:l}', isCaeEnabled = '{IsCaeEnabled}', message = '{Message:}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
@@ -592,7 +598,7 @@ internal class ManagedCredential : TokenCredential, ICredential
             {
                 // Log unexpected errors but continue the refresh loop
                 _logger.LogError(
-                    "ManagedCredential.AzureTokenItem.Exception: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', message = '{message:}'.",
+                    "ManagedCredential.AzureTokenItem.Exception: scopes = '{Scopes:l}', tenantId = '{TenantId:l}', claims = '{Claims:l}', isCaeEnabled = '{IsCaeEnabled}', message = '{Message:}'.",
                     string.Join(", ", _tokenRequestContextKey.Scopes),
                     _tokenRequestContextKey.TenantId,
                     _tokenRequestContextKey.Claims,
@@ -606,45 +612,47 @@ internal class ManagedCredential : TokenCredential, ICredential
         /// <summary>
         /// Orchestrates the token refresh cycle with timing and recursion.
         /// </summary>
+        /// <param name="dueTime">The time to wait before performing the next token refresh.</param>
         /// <remarks>
         /// <para>
-        /// Calls <see cref="RefreshTokenAsync"/> to acquire a new token, waits for the calculated delay,
+        /// Waits for the specified delay, then calls <see cref="RefreshToken"/> to acquire a new token,
         /// then recursively schedules the next refresh using fire-and-forget pattern.
         /// </para>
         /// <para>
         /// Logs timing information to track refresh performance.
         /// </para>
         /// </remarks>
-        private async Task ScheduleRefreshTokenAsync()
+        private async Task ScheduleRefreshTokenAsync(
+            TimeSpan dueTime)
         {
+            // Wait for the calculated delay before the next refresh
+            await Task.Delay(dueTime);
+
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             // Log the start of the refresh cycle
             _logger.LogInformation(
-                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}'",
+                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{Scopes:l}', tenantId = '{TenantId:l}', claims = '{Claims:l}', isCaeEnabled = '{IsCaeEnabled}'",
                 string.Join(", ", _tokenRequestContextKey.Scopes),
                 _tokenRequestContextKey.TenantId,
                 _tokenRequestContextKey.Claims,
                 _tokenRequestContextKey.IsCaeEnabled);
 
             // Perform the token refresh and get the next refresh delay
-            var dueTime = await RefreshTokenAsync();
+            var nextDueTime = RefreshToken();
 
             stopwatch.Stop();
             _logger.LogInformation(
-                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{scopes:l}', tenantId = '{tenantId:l}', claims = '{claims:l}', isCaeEnabled = '{isCaeEnabled}', elapsedMilliseconds = {elapsedMilliseconds} ms.",
+                "ManagedCredential.AzureTokenItem.ScheduleRefreshTokenAsync: scopes = '{Scopes:l}', tenantId = '{TenantId:l}', claims = '{Claims:l}', isCaeEnabled = '{IsCaeEnabled}', elapsedMilliseconds = {ElapsedMilliseconds} ms.",
                 string.Join(", ", _tokenRequestContextKey.Scopes),
                 _tokenRequestContextKey.TenantId,
                 _tokenRequestContextKey.Claims,
                 _tokenRequestContextKey.IsCaeEnabled,
                 stopwatch.ElapsedMilliseconds);
 
-            // Wait for the calculated delay before the next refresh
-            await Task.Delay(dueTime);
-
             // Schedule the next refresh cycle (fire and forget)
-            _ = ScheduleRefreshTokenAsync();
+            _ = ScheduleRefreshTokenAsync(nextDueTime);
         }
 
         /// <summary>

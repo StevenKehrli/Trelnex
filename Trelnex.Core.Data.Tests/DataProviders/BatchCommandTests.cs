@@ -33,7 +33,7 @@ public abstract partial class DataProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
-        var batchCommand = _dataProvider.Batch();
+        using var batchCommand = _dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -124,7 +124,7 @@ public abstract partial class DataProviderTests
         createCommand3.Item.PrivateMessage = "Private Message #3";
 
         // Create a batch command and add our create commands to it
-        var batchCommand = _dataProvider.Batch();
+        using var batchCommand = _dataProvider.Batch();
         batchCommand.Add(createCommand2);
         batchCommand.Add(createCommand3);
 
@@ -209,7 +209,7 @@ public abstract partial class DataProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
-        var batchCommand1 = _dataProvider.Batch();
+        using var batchCommand1 = _dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -233,7 +233,7 @@ public abstract partial class DataProviderTests
         Assert.That(deleteCommand2!.Item, Is.Not.Null);
 
         // Create a batch command for delete operations
-        var batchCommand2 = _dataProvider.Batch();
+        using var batchCommand2 = _dataProvider.Batch();
         batchCommand2.Add(deleteCommand1);
         batchCommand2.Add(deleteCommand2);
 
@@ -315,7 +315,7 @@ public abstract partial class DataProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
-        var batchCommand1 = _dataProvider.Batch();
+        using var batchCommand1 = _dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -352,7 +352,7 @@ public abstract partial class DataProviderTests
             cancellationToken: default);
 
         // Create a batch command for delete operations (one will succeed, one will fail due to precondition)
-        var batchCommand2 = _dataProvider.Batch();
+        using var batchCommand2 = _dataProvider.Batch();
         batchCommand2.Add(deleteCommand2);
         batchCommand2.Add(deleteCommand3);
 
@@ -437,7 +437,7 @@ public abstract partial class DataProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
-        var batchCommand1 = _dataProvider.Batch();
+        using var batchCommand1 = _dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -469,7 +469,7 @@ public abstract partial class DataProviderTests
         updateCommand2.Item.PrivateMessage = "Private Message #4";
 
         // Create a batch command for update operations
-        var batchCommand2 = _dataProvider.Batch();
+        using var batchCommand2 = _dataProvider.Batch();
         batchCommand2.Add(updateCommand1);
         batchCommand2.Add(updateCommand2);
 
@@ -546,7 +546,7 @@ public abstract partial class DataProviderTests
         createCommand2.Item.PrivateMessage = "Private Message #2";
 
         // Create a batch command and add our create commands to it
-        var batchCommand1 = _dataProvider.Batch();
+        using var batchCommand1 = _dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -595,7 +595,7 @@ public abstract partial class DataProviderTests
             cancellationToken: default);
 
         // Create a batch command for update operations (one will succeed, one will fail due to precondition)
-        var batchCommand2 = _dataProvider.Batch();
+        using var batchCommand2 = _dataProvider.Batch();
         batchCommand2.Add(updateCommand2);
         batchCommand2.Add(updateCommand3);
 

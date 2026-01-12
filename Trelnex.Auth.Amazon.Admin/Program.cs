@@ -50,7 +50,7 @@ public class Program
                 catch (Exception ex)
                 {
                     // Log any exceptions that occur during RBAC provisioning.
-                    logger.LogError("Error provisioning the RBAC resource: {message}", ex.Message);
+                    logger.LogError("Error provisioning the RBAC resource: {Message}", ex.Message);
 
                     // Exit with non-zero status code to indicate failure to the caller.
                     Environment.Exit(1);
@@ -112,12 +112,12 @@ public class Program
             ?? GetPrincipalId(credentials, regionEndpoint);
 
         // Log the configuration values being used for the provisioning operation.
-        logger.LogInformation("Region: {region}", options.Region);
-        logger.LogInformation("TableName: {tableName}", options.TableName);
-        logger.LogInformation("ResourceName: {resourceName}", options.ResourceName);
-        logger.LogInformation("Scopes: {scopes}", string.Join(", ", options.ScopeNames));
-        logger.LogInformation("Roles: {roles}", string.Join(", ", options.RoleNames));
-        logger.LogInformation("PrincipalId: {principalId}", principalId);
+        logger.LogInformation("Region: {Region}", options.Region);
+        logger.LogInformation("TableName: {TableName}", options.TableName);
+        logger.LogInformation("ResourceName: {ResourceName}", options.ResourceName);
+        logger.LogInformation("Scopes: {Scopes}", string.Join(", ", options.ScopeNames));
+        logger.LogInformation("Roles: {Roles}", string.Join(", ", options.RoleNames));
+        logger.LogInformation("PrincipalId: {PrincipalId}", principalId);
         logger.LogInformation("");
 
         // Initialize the DynamoDB client with credentials and region for RBAC data storage.
@@ -135,7 +135,7 @@ public class Program
             options.TableName);
 
         // Create the main resource that will contain all scopes and roles.
-        logger.LogInformation("Creating resource: {resourceName}", options.ResourceName);
+        logger.LogInformation("Creating resource: {ResourceName}", options.ResourceName);
 
         repository
             .CreateResourceAsync(resourceName: options.ResourceName)
@@ -148,7 +148,7 @@ public class Program
         foreach (var scopeName in options.ScopeNames)
         {
             // Create the scope within the resource.
-            logger.LogInformation("Creating scope: {scopeName}", scopeName);
+            logger.LogInformation("Creating scope: {ScopeName}", scopeName);
 
             repository
                 .CreateScopeAsync(resourceName: options.ResourceName, scopeName: scopeName)
@@ -161,7 +161,7 @@ public class Program
         foreach (var scopeName in options.ScopeNames)
         {
             // Assign the scope to the principal, granting them access to this scope.
-            logger.LogInformation("Creating scope assignment: {scopeName} -> {principalId}", scopeName, principalId);
+            logger.LogInformation("Creating scope assignment: {ScopeName} -> {PrincipalId}", scopeName, principalId);
 
             repository
                 .CreateScopeAssignmentAsync(
@@ -178,7 +178,7 @@ public class Program
         foreach (var roleName in options.RoleNames)
         {
             // Create the role within the resource.
-            logger.LogInformation("Creating role: {roleName}", roleName);
+            logger.LogInformation("Creating role: {RoleName}", roleName);
 
             repository
                 .CreateRoleAsync(
@@ -194,7 +194,7 @@ public class Program
         {
 
             // Assign the role to the principal, granting them this role's permissions.
-            logger.LogInformation("Creating role assignment: {roleName} -> {principalId}", roleName, principalId);
+            logger.LogInformation("Creating role assignment: {RoleName} -> {PrincipalId}", roleName, principalId);
 
             repository
                 .CreateRoleAssignmentAsync(
@@ -207,7 +207,7 @@ public class Program
 
         logger.LogInformation("");
 
-        logger.LogInformation("Successfully provisioned RBAC resource: {resourceName}", options.ResourceName);
+        logger.LogInformation("Successfully provisioned RBAC resource: {ResourceName}", options.ResourceName);
         logger.LogInformation("");
     }
 }
@@ -268,29 +268,24 @@ public class Options
     public string? PrincipalId { get; set; }
 
     [Usage(ApplicationAlias = "Trelnex.Auth.Amazon.Admin")]
-    public static IEnumerable<Example> Examples
-    {
-        get
+    public static IEnumerable<Example> Examples =>
+    [
+        new("Provision the RBAC resource for Trelnex.Auth.Amazon using the current AWS caller identity", new Options
         {
-            return [
-                new("Provision the RBAC resource for Trelnex.Auth.Amazon using the current AWS caller identity", new Options
-                {
-                    Region = "us-west-2",
-                    TableName = "trelnex-auth-amazon-rbac",
-                    ResourceName = "api://amazon.auth.trelnex.com",
-                    ScopeNames = ["rbac"],
-                    RoleNames = ["rbac.create", "rbac.read", "rbac.update", "rbac.delete"]
-                }),
-                new("Provision the RBAC resource for Trelnex.Auth.Amazon with a specific principal", new Options
-                {
-                    Region = "us-west-2",
-                    TableName = "trelnex-auth-amazon-rbac",
-                    ResourceName = "api://amazon.auth.trelnex.com",
-                    ScopeNames = ["rbac"],
-                    RoleNames = ["rbac.create", "rbac.read", "rbac.update", "rbac.delete"],
-                    PrincipalId = "arn:aws:iam::123456789012:user/john"
-                })
-            ];
-        }
-    }
+            Region = "us-west-2",
+            TableName = "trelnex-auth-amazon-rbac",
+            ResourceName = "api://amazon.auth.trelnex.com",
+            ScopeNames = ["rbac"],
+            RoleNames = ["rbac.create", "rbac.read", "rbac.update", "rbac.delete"]
+        }),
+        new("Provision the RBAC resource for Trelnex.Auth.Amazon with a specific principal", new Options
+        {
+            Region = "us-west-2",
+            TableName = "trelnex-auth-amazon-rbac",
+            ResourceName = "api://amazon.auth.trelnex.com",
+            ScopeNames = ["rbac"],
+            RoleNames = ["rbac.create", "rbac.read", "rbac.update", "rbac.delete"],
+            PrincipalId = "arn:aws:iam::123456789012:user/john"
+        })
+    ];
 }

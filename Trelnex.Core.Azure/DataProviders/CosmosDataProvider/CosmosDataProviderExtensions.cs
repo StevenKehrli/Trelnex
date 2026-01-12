@@ -130,12 +130,12 @@ public static class CosmosDataProvidersExtensions
         /// <summary>
         /// Optional TTL for events in seconds.
         /// </summary>
-        public int? EventTimeToLive { get; init; } = null;
+        public int? EventTimeToLive { get; init; }
 
         /// <summary>
         /// Optional encryption service for the container.
         /// </summary>
-        public IBlockCipherService? BlockCipherService { get; init; } = null;
+        public IBlockCipherService? BlockCipherService { get; init; }
     }
 
     #endregion
@@ -198,13 +198,19 @@ public static class CosmosDataProvidersExtensions
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        public IEnumerator<IDataProviderRegistration> GetEnumerator() => _registrations.GetEnumerator();
+        public IEnumerator<IDataProviderRegistration> GetEnumerator()
+        {
+            return _registrations.GetEnumerator();
+        }
 
         /// <summary>
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         #endregion
     }
@@ -245,12 +251,12 @@ public static class CosmosDataProvidersExtensions
         /// <summary>
         /// Optional validator for entity validation.
         /// </summary>
-        public IValidator<TItem>? ItemValidator { get; init; } = null;
+        public IValidator<TItem>? ItemValidator { get; init; }
 
         /// <summary>
         /// Optional CRUD operations to enable.
         /// </summary>
-        public CommandOperations? CommandOperations { get; init; } = null;
+        public CommandOperations? CommandOperations { get; init; }
 
         /// <summary>
         /// Container configuration for this provider.
@@ -283,7 +289,7 @@ public static class CosmosDataProvidersExtensions
 
             // Log successful registration
             logger.LogInformation(
-                "Added CosmosDataProvider<{TItem:l}>: typeName = '{typeName:l}', containerId = '{containerId:l}', commandOperations = '{commandOperations}'.",
+                "Added CosmosDataProvider<{TItem:l}>: typeName = '{TypeName:l}', containerId = '{ContainerId:l}', commandOperations = '{CommandOperations}'.",
                 typeof(TItem),
                 TypeName,
                 ContainerConfiguration.Container.Id,

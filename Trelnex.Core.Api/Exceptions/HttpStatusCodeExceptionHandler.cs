@@ -49,7 +49,10 @@ public class HttpStatusCodeExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken)
     {
         // Only handle HttpStatusCodeException instances; let other handlers process different exception types
-        if (exception is not HttpStatusCodeException httpStatusCodeException) return false;
+        if (exception is not HttpStatusCodeException httpStatusCodeException)
+        {
+            return false;
+        }
 
         // Build RFC 7807 Problem Details response from the exception
         var problemDetails = new ProblemDetails

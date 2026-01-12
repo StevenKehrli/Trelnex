@@ -37,7 +37,7 @@ public class BatchCommandSaveTests
         createCommand2.Item.PrivateMessage = "Private #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -120,7 +120,7 @@ public class BatchCommandSaveTests
         createCommand2.Item.PrivateMessage = "Private #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand1 = dataProvider.Batch();
+        using var batchCommand1 = dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -137,7 +137,7 @@ public class BatchCommandSaveTests
             id: id2,
             partitionKey: partitionKey);
 
-        var batchCommand2 = dataProvider.Batch();
+        using var batchCommand2 = dataProvider.Batch();
         batchCommand2.Add(deleteCommand1!);
         batchCommand2.Add(deleteCommand2!);
 
@@ -219,7 +219,7 @@ public class BatchCommandSaveTests
         createCommand2.Item.PrivateMessage = "Private #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand1 = dataProvider.Batch();
+        using var batchCommand1 = dataProvider.Batch();
         batchCommand1.Add(createCommand1);
         batchCommand1.Add(createCommand2);
 
@@ -242,7 +242,7 @@ public class BatchCommandSaveTests
         updateCommand2!.Item.PublicMessage = "Public #4";
         updateCommand2!.Item.PrivateMessage = "Private #4";
 
-        var batchCommand2 = dataProvider.Batch();
+        using var batchCommand2 = dataProvider.Batch();
         batchCommand2.Add(updateCommand1);
         batchCommand2.Add(updateCommand2);
 
@@ -314,7 +314,7 @@ public class BatchCommandSaveTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save the batch command (which also saves the contained create command)

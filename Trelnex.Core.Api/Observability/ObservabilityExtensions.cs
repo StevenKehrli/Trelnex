@@ -109,12 +109,12 @@ internal static class ObservabilityExtensions
         /// <summary>
         /// Gets the Prometheus metrics server configuration.
         /// </summary>
-        public PrometheusConfiguration? Prometheus { get; init; } = null!;
+        public PrometheusConfiguration? Prometheus { get; init; }
 
         /// <summary>
         /// Gets the OpenTelemetry configuration.
         /// </summary>
-        public OpenTelemetryConfiguration? OpenTelemetry { get; init; } = null!;
+        public OpenTelemetryConfiguration? OpenTelemetry { get; init; }
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ internal static class ObservabilityExtensions
         /// <summary>
         /// Gets a value indicating whether the Prometheus metrics server is enabled.
         /// </summary>
-        public bool Enabled { get; init; } = false;
+        public bool Enabled { get; init; }
 
         /// <summary>
         /// Gets the URL path where metrics are exposed.
@@ -146,7 +146,7 @@ internal static class ObservabilityExtensions
         /// <summary>
         /// Gets a value indicating whether OpenTelemetry tracing is enabled.
         /// </summary>
-        public bool Enabled { get; init; } = false;
+        public bool Enabled { get; init; }
 
         /// <summary>
         /// Gets the activity source names to include in tracing.

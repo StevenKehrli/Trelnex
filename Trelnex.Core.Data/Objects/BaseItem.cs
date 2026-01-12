@@ -68,7 +68,7 @@ public abstract record BaseItem
     public void ValidateETag(
         string? eTag)
     {
-        if (string.Equals(ETag, eTag, StringComparison.Ordinal) is false)
+        if (!string.Equals(ETag, eTag, StringComparison.Ordinal))
         {
             throw new HttpStatusCodeException(HttpStatusCode.Conflict);
         }

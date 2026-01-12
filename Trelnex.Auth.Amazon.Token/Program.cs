@@ -46,7 +46,7 @@ public class Program
                     catch (Exception ex)
                     {
                         // Log any exceptions that occur during token acquisition
-                        logger.LogError(ex, "Error obtaining the access token: {message}", ex.Message);
+                        logger.LogError(ex, "Error obtaining the access token: {Message}", ex.Message);
                         return 1;
                     }
                 },

@@ -65,7 +65,10 @@ public static class SqlDataProvidersExtensions
         void beforeConnectionOpened(DbConnection dbConnection)
         {
             // Only process SqlConnection
-            if (dbConnection is not SqlConnection connection) return;
+            if (dbConnection is not SqlConnection connection)
+            {
+                return;
+            }
 
             // Generate Azure AD authentication token
             var tokenRequestContext = new TokenRequestContext(scopes: [scope]);
@@ -110,7 +113,7 @@ public static class SqlDataProvidersExtensions
                 }
 
                 // Load event table configuration
-                var eventTableName = section.GetValue<string>("EventTableName", $"{itemTableName}-events");
+                var eventTableName = section.GetValue("EventTableName", $"{itemTableName}-events");
                 var eventTimeToLive = section.GetValue<int?>("EventTimeToLive");
 
                 return new TableConfiguration
@@ -168,7 +171,7 @@ public static class SqlDataProvidersExtensions
         /// <summary>
         /// The physical SQL Server table name for events, or null if EventPolicy is Disabled.
         /// </summary>
-        public string? EventTableName { get; init; } = null;
+        public string? EventTableName { get; init; }
 
         /// <summary>
         /// Event policy for change tracking.
@@ -178,12 +181,12 @@ public static class SqlDataProvidersExtensions
         /// <summary>
         /// Optional TTL for events in seconds.
         /// </summary>
-        public int? EventTimeToLive { get; init; } = null;
+        public int? EventTimeToLive { get; init; }
 
         /// <summary>
         /// Optional encryption service for the table.
         /// </summary>
-        public IBlockCipherService? BlockCipherService { get; init; } = null;
+        public IBlockCipherService? BlockCipherService { get; init; }
     }
 
     #endregion
@@ -246,13 +249,19 @@ public static class SqlDataProvidersExtensions
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        public IEnumerator<IDataProviderRegistration> GetEnumerator() => _registrations.GetEnumerator();
+        public IEnumerator<IDataProviderRegistration> GetEnumerator()
+        {
+            return _registrations.GetEnumerator();
+        }
 
         /// <summary>
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         #endregion
     }
@@ -295,12 +304,12 @@ public static class SqlDataProvidersExtensions
         /// <summary>
         /// Optional validator for entity validation.
         /// </summary>
-        public IValidator<TItem>? ItemValidator { get; init; } = null;
+        public IValidator<TItem>? ItemValidator { get; init; }
 
         /// <summary>
         /// Optional CRUD operations to enable.
         /// </summary>
-        public CommandOperations? CommandOperations { get; init; } = null;
+        public CommandOperations? CommandOperations { get; init; }
 
         /// <summary>
         /// Table configuration for this provider.
@@ -343,7 +352,7 @@ public static class SqlDataProvidersExtensions
 
             // Log successful registration
             logger.LogInformation(
-                "Added SqlDataProvider<{TItem:l}>: typeName = '{typeName:l}', itemTableName = '{itemTableName:l}', eventTableName = '{eventTableName:l}', commandOperations = '{commandOperations}'.",
+                "Added SqlDataProvider<{TItem:l}>: typeName = '{TypeName:l}', itemTableName = '{ItemTableName:l}', eventTableName = '{EventTableName:l}', commandOperations = '{CommandOperations}'.",
                 typeof(TItem),
                 TypeName,
                 TableConfiguration.ItemTableName,

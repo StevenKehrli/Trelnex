@@ -35,7 +35,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -77,7 +77,7 @@ public class BatchCommandValidateTests
             partitionKey: partitionKey);
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -121,7 +121,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -165,7 +165,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -210,7 +210,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Save it - this should throw a validation exception
@@ -265,7 +265,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = "Public #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -321,7 +321,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = string.Empty;
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -368,7 +368,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -401,7 +401,7 @@ public class BatchCommandValidateTests
             partitionKey: partitionKey);
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -436,7 +436,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -471,7 +471,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PrivateMessage = "Private #1";
 
         // Create a batch command and add our create Command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -507,7 +507,7 @@ public class BatchCommandValidateTests
         createCommand.Item.PublicMessage = "Public #1";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand);
 
         // Validate the batch command and capture the results
@@ -553,7 +553,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = "Public #2";
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 
@@ -600,7 +600,7 @@ public class BatchCommandValidateTests
         createCommand2.Item.PublicMessage = string.Empty;
 
         // Create a batch command and add our create command to it
-        var batchCommand = dataProvider.Batch();
+        using var batchCommand = dataProvider.Batch();
         batchCommand.Add(createCommand1);
         batchCommand.Add(createCommand2);
 

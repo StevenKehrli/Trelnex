@@ -27,7 +27,10 @@ public static partial class ValidationResultExtensions
         string typeName)
     {
         // If the validation result is valid, return immediately.
-        if (validationResult.IsValid) return;
+        if (validationResult.IsValid)
+        {
+            return;
+        }
 
         var message = $"The '{typeName}' is not valid.";
 
@@ -68,7 +71,10 @@ public static partial class ValidationResultExtensions
         string typeName)
     {
         // If all validation results are valid, return immediately.
-        if (validationResults.All(vr => vr.IsValid)) return;
+        if (validationResults.All(vr => vr.IsValid))
+        {
+            return;
+        }
 
         var message = $"The collection of '{typeName}' is not valid.";
 
@@ -79,7 +85,7 @@ public static partial class ValidationResultExtensions
             .Select((vr, index) => (vr, index))
             // Filter the validation results that are not valid
             // We now have IEnumerable<ValidationResult vr, int index>
-            .Where(vrAndIndex => vrAndIndex.vr.IsValid is false)
+            .Where(vrAndIndex => !vrAndIndex.vr.IsValid)
             // Convert each (ValidationResult vr, int index) to:
             //   (IReadOnlyDictionary<string, string[]> errors, int index)
             // We now have IEnumerable<IReadOnlyDictionary<string, string[]> errors, int index>
@@ -198,7 +204,10 @@ public static partial class ValidationResultExtensions
             // Compare the indices.
             var indexCompare = index1.CompareTo(index2);
             // If the indices are not equal, return the result of the comparison.
-            if (indexCompare != 0) return indexCompare;
+            if (indexCompare != 0)
+            {
+                return indexCompare;
+            }
 
             // If the indices are equal, compare the property names.
             return string.Compare(

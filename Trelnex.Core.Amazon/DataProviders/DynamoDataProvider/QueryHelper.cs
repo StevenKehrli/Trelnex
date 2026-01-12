@@ -99,7 +99,7 @@ internal class QueryHelper<T>
             }
 
             // Apply the LINQ operation to the current result set
-            result = methodCallExpression.Method.Invoke(null, [ queryable, parameter ]) as IEnumerable<T>;
+            result = methodCallExpression.Method.Invoke(null, [queryable, parameter]) as IEnumerable<T>;
         }
 
         return result!;
@@ -361,7 +361,7 @@ internal class QueryHelper<T>
             BinaryExpression binaryExpression)
         {
             // Handle logical AND/OR operators
-            if (binaryExpression.NodeType == ExpressionType.AndAlso || binaryExpression.NodeType == ExpressionType.OrElse)
+            if (binaryExpression.NodeType is ExpressionType.AndAlso or ExpressionType.OrElse)
             {
                 var left = BuildExpressionStatement(binaryExpression.Left);
                 var right = BuildExpressionStatement(binaryExpression.Right);
@@ -370,8 +370,15 @@ internal class QueryHelper<T>
                 return $"({left} {op} {right})";
             }
 
-            if (binaryExpression.NodeType == ExpressionType.Equal) return HandleEqual(binaryExpression);
-            if (binaryExpression.NodeType == ExpressionType.NotEqual) return HandleNotEqual(binaryExpression);
+            if (binaryExpression.NodeType == ExpressionType.Equal)
+            {
+                return HandleEqual(binaryExpression);
+            }
+
+            if (binaryExpression.NodeType == ExpressionType.NotEqual)
+            {
+                return HandleNotEqual(binaryExpression);
+            }
 
             // Extract property and value from comparison expression
             var (propertyExpression, valueExpression) = GetPropertyAndValue(binaryExpression);
@@ -469,16 +476,16 @@ internal class QueryHelper<T>
             MethodCallExpression methodCallExpression)
         {
             // Handle Enumerable methods like Contains
-            if (methodCallExpression.Method.DeclaringType == typeof(Enumerable))
+            if (methodCallExpression.Method.DeclaringType == typeof(MemoryExtensions))
             {
                 switch (methodCallExpression.Method.Name)
                 {
                     case "Contains":
                         ValidateMethodCallArguments(methodCallExpression, 2);
-                        var collectionExpression = methodCallExpression.Arguments[0];
+                        var collectionExpression = UnwrapConversion(methodCallExpression.Arguments[0]);
 
                         // Ensure collection is a property expression
-                        if (collectionExpression is not MemberExpression me || IsPropertyExpression(collectionExpression) is false)
+                        if (collectionExpression is not MemberExpression me || !IsPropertyExpression(collectionExpression))
                         {
                             throw new ArgumentException($"HandleMethodCallExpression() does not support '{methodCallExpression}'.");
                         }
@@ -488,6 +495,9 @@ internal class QueryHelper<T>
                         var containsKey = AddAttributeValue(containsValue);
 
                         return $"contains({propertyName}, {containsKey})";
+
+                    default:
+                        break;
                 }
             }
             // Handle string methods on properties
@@ -650,7 +660,7 @@ internal class QueryHelper<T>
         private static bool IsNullValue(
             LinqExpression linqExpression)
         {
-            return linqExpression is ConstantExpression ce && ce.Value == null;
+            return linqExpression is ConstantExpression ce && ce.Value is null;
         }
 
         /// <summary>
@@ -665,6 +675,25 @@ internal class QueryHelper<T>
         }
 
         /// <summary>
+        /// Unwraps compiler-generated conversion operators from an expression.
+        /// </summary>
+        /// <param name="linqExpression">Expression to unwrap.</param>
+        /// <returns>The unwrapped expression if it was a conversion operator, otherwise the original expression.</returns>
+        private static LinqExpression UnwrapConversion(
+            LinqExpression linqExpression)
+        {
+            // Check if expression is a compiler-generated conversion operator (op_Implicit, op_Explicit, etc.)
+            if (linqExpression is MethodCallExpression methodCall &&
+                methodCall.Method.IsSpecialName &&
+                methodCall.Arguments.Count == 1)
+            {
+                return methodCall.Arguments[0];
+            }
+
+            return linqExpression;
+        }
+
+        /// <summary>
         /// Converts a .NET value to DynamoDB entry format.
         /// </summary>
         /// <param name="value">Value to convert.</param>
@@ -672,7 +701,10 @@ internal class QueryHelper<T>
         private static DynamoDBEntry ToDynamoDBEntry(
             object? value)
         {
-            if (value is null) return new DynamoDBNull();
+            if (value is null)
+            {
+                return new DynamoDBNull();
+            }
 
             return DynamoDBEntryConversion.V2.ConvertToEntry(value.GetType(), value);
         }

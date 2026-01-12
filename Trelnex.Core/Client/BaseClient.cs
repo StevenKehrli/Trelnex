@@ -1,4 +1,3 @@
-using System.Configuration;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -31,19 +30,6 @@ public abstract class BaseClient(
 
     #endregion
 
-    #region Private Properties
-
-    /// <summary>
-    /// Gets the base URI for all HTTP requests made by this client.
-    /// </summary>
-    /// <returns>The configured base address from the HttpClient.</returns>
-    /// <exception cref="ConfigurationErrorsException">
-    /// Thrown when the BaseAddress is not configured in the HttpClient.
-    /// </exception>
-    private Uri _baseAddress => httpClient.BaseAddress ?? throw new ConfigurationErrorsException("BaseAddress is not set.");
-
-    #endregion
-
     #region Protected Methods
 
     /// <summary>
@@ -60,13 +46,14 @@ public abstract class BaseClient(
     protected async Task<(TResponse response, HttpResponseHeaders headers)> DeleteAsync<TResponse>(
         string relativePath,
         Action<HttpRequestHeaders>? addRequestHeaders = null,
-        CancellationToken cancellationToken = default) =>
-
-        await SendRequestAsync<object, TResponse>(
+        CancellationToken cancellationToken = default)
+    {
+        return await SendRequestAsync<object, TResponse>(
             httpMethod: HttpMethod.Delete,
             relativePath: relativePath,
             addRequestHeaders: addRequestHeaders,
             cancellationToken: cancellationToken);
+    }
 
     /// <summary>
     /// Sends a GET request to retrieve a resource.
@@ -82,13 +69,14 @@ public abstract class BaseClient(
     protected async Task<(TResponse response, HttpResponseHeaders headers)> GetAsync<TResponse>(
         string relativePath,
         Action<HttpRequestHeaders>? addRequestHeaders = null,
-        CancellationToken cancellationToken = default) =>
-
-        await SendRequestAsync<object, TResponse>(
+        CancellationToken cancellationToken = default)
+    {
+        return await SendRequestAsync<object, TResponse>(
             httpMethod: HttpMethod.Get,
             relativePath: relativePath,
             addRequestHeaders: addRequestHeaders,
             cancellationToken: cancellationToken);
+    }
 
     /// <summary>
     /// Sends a PATCH request to partially update a resource with the provided modifications.
@@ -108,14 +96,15 @@ public abstract class BaseClient(
         TRequest? content,
         Action<HttpRequestHeaders>? addRequestHeaders = null,
         CancellationToken cancellationToken = default)
-        where TRequest : class =>
-
-        await SendRequestAsync<TRequest, TResponse>(
+        where TRequest : class
+    {
+        return await SendRequestAsync<TRequest, TResponse>(
             httpMethod: HttpMethod.Patch,
             relativePath: relativePath,
             content: content,
             addRequestHeaders: addRequestHeaders,
             cancellationToken: cancellationToken);
+    }
 
     /// <summary>
     /// Sends a POST request to create a new resource with the provided data.
@@ -135,14 +124,15 @@ public abstract class BaseClient(
         TRequest? content,
         Action<HttpRequestHeaders>? addRequestHeaders = null,
         CancellationToken cancellationToken = default)
-        where TRequest : class =>
-
-        await SendRequestAsync<TRequest, TResponse>(
+        where TRequest : class
+    {
+        return await SendRequestAsync<TRequest, TResponse>(
             httpMethod: HttpMethod.Post,
             relativePath: relativePath,
             content: content,
             addRequestHeaders: addRequestHeaders,
             cancellationToken: cancellationToken);
+    }
 
     /// <summary>
     /// Sends a PUT request to create or completely replace a resource with the provided data.
@@ -162,14 +152,15 @@ public abstract class BaseClient(
         TRequest? content,
         Action<HttpRequestHeaders>? addRequestHeaders = null,
         CancellationToken cancellationToken = default)
-        where TRequest : class =>
-
-        await SendRequestAsync<TRequest, TResponse>(
+        where TRequest : class
+    {
+        return await SendRequestAsync<TRequest, TResponse>(
             httpMethod: HttpMethod.Put,
             relativePath: relativePath,
             content: content,
             addRequestHeaders: addRequestHeaders,
             cancellationToken: cancellationToken);
+    }
 
 
     #endregion
@@ -227,7 +218,7 @@ public abstract class BaseClient(
         var responseContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
         // Handle non-success responses with structured error processing
-        if (httpResponseMessage.IsSuccessStatusCode is false)
+        if (!httpResponseMessage.IsSuccessStatusCode)
         {
             if (string.IsNullOrWhiteSpace(responseContent))
             {
@@ -274,7 +265,9 @@ public abstract class BaseClient(
 
             if (response is not null)
             {
-                return (response: response, headers: httpResponseMessage.Headers);
+                return (
+                    response: response,
+                    headers: httpResponseMessage.Headers);
             }
         }
         catch (JsonException)

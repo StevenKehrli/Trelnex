@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>Trelnex.Auth.Amazon</RootNamespace>
@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.8" />
+        <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.8.5" />
         <PackageReference Include="JWT" Version="11.0.0" />
         <PackageReference Include="Trelnex.Core.Amazon" Version="0.16.0" />
     </ItemGroup>

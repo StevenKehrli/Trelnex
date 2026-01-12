@@ -28,18 +28,33 @@ internal class ByPrincipalItem(
     public static ByPrincipalItem? FromAttributeMap(
         Dictionary<string, AttributeValue> attributeMap)
     {
-        if (attributeMap is null) return null;
+        if (attributeMap is null)
+        {
+            return null;
+        }
 
         // Extract the resource name from the attribute map.
-        if (attributeMap.TryGetValue("_principalId", out var principalIdAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_principalId", out var principalIdAttribute))
+        {
+            return null;
+        }
+
         var principalId = principalIdAttribute.S;
 
         // Extract the resource name from the attribute map.
-        if (attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute))
+        {
+            return null;
+        }
+
         var resourceName = resourceNameAttribute.S;
 
         // Extract the scope name from the attribute map.
-        if (attributeMap.TryGetValue("_scopeName", out var scopeNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_scopeName", out var scopeNameAttribute))
+        {
+            return null;
+        }
+
         var scopeName = scopeNameAttribute.S;
 
         // Create a new ByPrincipalItem instance with the extracted values.

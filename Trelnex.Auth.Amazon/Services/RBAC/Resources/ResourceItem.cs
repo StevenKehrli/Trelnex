@@ -22,10 +22,17 @@ internal class ResourceItem(
     public static ResourceItem? FromAttributeMap(
         Dictionary<string, AttributeValue> attributeMap)
     {
-        if (attributeMap is null) return null;
+        if (attributeMap is null)
+        {
+            return null;
+        }
 
         // Extract the resource name from the attribute map.
-        if (attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute))
+        {
+            return null;
+        }
+
         var resourceName = resourceNameAttribute.S;
 
         // Create a new ResourceItem instance with the extracted value.

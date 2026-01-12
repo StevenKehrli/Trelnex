@@ -28,7 +28,7 @@ internal abstract class ItemManager<TItem> : IDisposable
     #region Private Fields
 
     // Flag to track disposal state and prevent multiple disposals
-    private bool _disposed = false;
+    private bool _disposed;
 
     // JSON representation of the item used to detect changes
     private JsonNode _itemAsJsonNode;
@@ -138,7 +138,10 @@ internal abstract class ItemManager<TItem> : IDisposable
     protected virtual void Dispose(
         bool disposing)
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         WarnIfModified();
 
@@ -168,7 +171,7 @@ internal abstract class ItemManager<TItem> : IDisposable
         {
             // Log warning if the item has been modified since the baseline was set
             _logger?.LogWarning(
-                "Item id = '{id}' partitionKey = '{partitionKey}' was modified.",
+                "Item id = '{Id}' partitionKey = '{PartitionKey}' was modified.",
                 _item.Id,
                 _item.PartitionKey);
         }

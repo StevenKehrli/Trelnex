@@ -10,7 +10,7 @@ using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.PropertyChanges;
 using Trelnex.Core.Encryption;
 
-namespace Trelnex.Core.Azure.Tests.PropertyChanges;
+namespace Trelnex.Core.Amazon.Tests.PropertyChanges;
 
 [Ignore("Requires a DynamoDB table.")]
 [Category("EventPolicy")]
@@ -109,7 +109,7 @@ public class DynamoDataProviderTests : EventPolicyTests
 
         var results = new List<ItemEvent>();
 
-        while (search.IsDone is false)
+        while (!search.IsDone)
         {
             var documents = await search.GetNextSetAsync();
 
@@ -122,7 +122,7 @@ public class DynamoDataProviderTests : EventPolicyTests
             }
         }
 
-        return results.ToArray();
+        return [.. results];
     }
 
     private static async Task TableCleanup(
@@ -142,6 +142,6 @@ public class DynamoDataProviderTests : EventPolicyTests
             {
                 await table.DeleteItemAsync(document);
             }
-        } while (search.IsDone is false);
+        } while (!search.IsDone);
     }
 }

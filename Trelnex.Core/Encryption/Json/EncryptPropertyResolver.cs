@@ -28,7 +28,10 @@ public class EncryptPropertyResolver(
                 .FirstOrDefault();
 
             // Skip properties without EncryptAttribute
-            if (encryptAttribute is null) continue;
+            if (encryptAttribute is null)
+            {
+                continue;
+            }
 
             // Create an EncryptedJsonConverter for the property's type
             var converterType = typeof(EncryptedJsonConverter<>).MakeGenericType(property.PropertyType);

@@ -63,7 +63,10 @@ internal class SystemTextJsonSerializer : CosmosLinqSerializer
     {
         // Check if member is marked as extension data container
         var dataAttribute = memberInfo.GetCustomAttribute<JsonExtensionDataAttribute>(true);
-        if (dataAttribute is not null) return null!;
+        if (dataAttribute is not null)
+        {
+            return null!;
+        }
 
         // Use JsonPropertyName attribute if present, otherwise use member name
         var nameAttribute = memberInfo.GetCustomAttribute<JsonPropertyNameAttribute>(true);

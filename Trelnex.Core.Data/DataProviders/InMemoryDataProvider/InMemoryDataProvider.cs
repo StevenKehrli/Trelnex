@@ -155,7 +155,7 @@ public class InMemoryDataProvider<TItem>
 
         // Process each request in the batch
         var saveRequestIndex = 0;
-        for ( ; saveRequestIndex < requests.Length; saveRequestIndex++)
+        for (; saveRequestIndex < requests.Length; saveRequestIndex++)
         {
             var saveRequest = requests[saveRequestIndex];
 
@@ -170,7 +170,7 @@ public class InMemoryDataProvider<TItem>
                         HttpStatusCode.OK,
                         saved);
             }
-            catch (Exception ex) when (ex is CommandException || ex is InvalidOperationException)
+            catch (Exception ex) when (ex is CommandException or InvalidOperationException)
             {
                 // Handle save failure
                 var httpStatusCode = ex is CommandException commandEx
@@ -200,7 +200,10 @@ public class InMemoryDataProvider<TItem>
             for (var saveResultIndex = 0; saveResultIndex < saveResults.Length; saveResultIndex++)
             {
                 // Skip the failed request (keeps its original error)
-                if (saveResultIndex == saveRequestIndex) continue;
+                if (saveResultIndex == saveRequestIndex)
+                {
+                    continue;
+                }
 
                 saveResults[saveResultIndex] =
                     new SaveResult<TItem>(
@@ -298,7 +301,9 @@ public class InMemoryDataProvider<TItem>
     /// <exception cref="CommandException">Thrown for storage conflicts or constraints.</exception>
     private static TItem SaveItem(
         InMemoryStore store,
-        SaveRequest<TItem> request) => request.SaveAction switch
+        SaveRequest<TItem> request)
+    {
+        return request.SaveAction switch
         {
             SaveAction.CREATED =>
                 store.CreateItem(request.Item, request.Event),
@@ -308,6 +313,7 @@ public class InMemoryDataProvider<TItem>
 
             _ => throw new InvalidOperationException($"Unrecognized SaveAction: {request.SaveAction}")
         };
+    }
 
     #endregion
 
@@ -382,7 +388,7 @@ public class InMemoryDataProvider<TItem>
             _deserializeItem = store._deserializeItem;
 
             _items = new Dictionary<string, SerializedResource>(store._items);
-            _events = new List<SerializedResource>(store._events);
+            _events = [.. store._events];
         }
 
         #endregion
@@ -410,7 +416,7 @@ public class InMemoryDataProvider<TItem>
 
             // Serialize and attempt to add item
             var serializedItem = SerializeItem(item, eTag);
-            if (_items.TryAdd(itemKey, serializedItem) is false)
+            if (!_items.TryAdd(itemKey, serializedItem))
             {
                 throw new CommandException(HttpStatusCode.Conflict);
             }
@@ -423,7 +429,7 @@ public class InMemoryDataProvider<TItem>
             }
 
             // Return item with assigned ETag
-            return DeserializeItem(serializedItem)!;
+            return DeserializeItem(serializedItem);
         }
 
         /// <summary>
@@ -442,7 +448,7 @@ public class InMemoryDataProvider<TItem>
                 id: id);
 
             // Try to find item in store
-            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
+            if (!_items.TryGetValue(itemKey, out var serializedItem))
             {
                 return null;
             }
@@ -468,13 +474,13 @@ public class InMemoryDataProvider<TItem>
                 id: item.Id);
 
             // Check if item exists
-            if (_items.TryGetValue(itemKey, out var serializedItem) is false)
+            if (!_items.TryGetValue(itemKey, out var serializedItem))
             {
                 throw new CommandException(HttpStatusCode.NotFound);
             }
 
             // Verify ETag for optimistic concurrency
-            if (string.Equals(serializedItem.ETag, item.ETag) is false)
+            if (!string.Equals(serializedItem.ETag, item.ETag, StringComparison.Ordinal))
             {
                 throw new CommandException(HttpStatusCode.PreconditionFailed);
             }
@@ -503,7 +509,7 @@ public class InMemoryDataProvider<TItem>
         /// <returns>Array of all events in chronological order.</returns>
         public ItemEvent[] GetEvents()
         {
-            return _events.Select(DeserializeEvent).ToArray();
+            return [.. _events.Select(DeserializeEvent)];
         }
 
         #endregion

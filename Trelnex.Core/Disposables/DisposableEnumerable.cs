@@ -56,7 +56,7 @@ public sealed class DisposableEnumerable<T>
     /// <summary>
     /// Indicates whether this instance has been disposed.
     /// </summary>
-    private bool _disposed = false;
+    private bool _disposed;
 
     #endregion
 
@@ -71,7 +71,7 @@ public sealed class DisposableEnumerable<T>
         params T[] disposables)
     {
         ArgumentNullException.ThrowIfNull(disposables);
-        _disposables = disposables.ToList();
+        _disposables = [.. disposables];
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public sealed class DisposableEnumerable<T>
         IEnumerable<T> disposables)
     {
         ArgumentNullException.ThrowIfNull(disposables);
-        _disposables = disposables.ToList();
+        _disposables = [.. disposables];
     }
 
     #endregion
@@ -157,7 +157,10 @@ public sealed class DisposableEnumerable<T>
     /// </remarks>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _disposables.ForEach(disposable =>
         {

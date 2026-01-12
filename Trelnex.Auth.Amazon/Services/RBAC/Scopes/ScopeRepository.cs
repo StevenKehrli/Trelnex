@@ -104,7 +104,10 @@ internal partial class RBACRepository
             cancellationToken: cancellationToken);
 
         // Exit early if no scopes exist.
-        if (scopes.Length == 0) return;
+        if (scopes.Length == 0)
+        {
+            return;
+        }
 
         // Create scope items to be deleted.
         var deleteItems = scopes
@@ -163,7 +166,10 @@ internal partial class RBACRepository
             cancellationToken);
 
         // Return null if the scope does not exist.
-        if (scopeItem is null) return null;
+        if (scopeItem is null)
+        {
+            return null;
+        }
 
         // Convert the scope item to the public model.
         return new Scope
@@ -196,9 +202,10 @@ internal partial class RBACRepository
             cancellationToken);
 
         // Extract scope names and return them in alphabetical order.
-        return scopeItems
+        var result = scopeItems
             .Select(scopeItem => scopeItem.ScopeName)
-            .Order()
-            .ToArray();
+            .Order();
+
+        return [.. result];
     }
 }

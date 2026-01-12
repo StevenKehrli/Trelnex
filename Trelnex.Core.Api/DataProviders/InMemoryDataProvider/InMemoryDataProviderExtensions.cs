@@ -96,13 +96,19 @@ public static class InMemoryDataProviderExtensions
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        public IEnumerator<IDataProviderRegistration> GetEnumerator() => _registrations.GetEnumerator();
+        public IEnumerator<IDataProviderRegistration> GetEnumerator()
+        {
+            return _registrations.GetEnumerator();
+        }
 
         /// <summary>
         /// Returns an enumerator that iterates through the registrations.
         /// </summary>
         /// <returns>An enumerator for the registrations.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         #endregion
     }
@@ -179,7 +185,7 @@ public static class InMemoryDataProviderExtensions
             ];
 
             logger.LogInformation(
-                message: "Added InMemoryDataProvider<{TItem:l}>: typeName = '{typeName:l}', commandOperations = '{commandOperations}'.",
+                message: "Added InMemoryDataProvider<{TItem:l}>: typeName = '{TypeName:l}', commandOperations = '{CommandOperations}'.",
                 args: args);
 
             return Task.CompletedTask;

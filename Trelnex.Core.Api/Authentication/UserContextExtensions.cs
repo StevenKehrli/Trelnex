@@ -28,7 +28,10 @@ public static class UserContextExtensions
 
             var userContext = httpContext?.GetUserContext();
 
-            if (userContext is not null) return userContext;
+            if (userContext is not null)
+            {
+                return userContext;
+            }
 
             return new UserContext(
                 user: httpContext?.User,

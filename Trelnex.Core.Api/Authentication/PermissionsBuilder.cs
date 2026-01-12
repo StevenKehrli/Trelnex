@@ -83,7 +83,7 @@ internal class PermissionsBuilder(
 
             // Log all security requirements for this permission using a literal format to avoid quotes in the output.
             bootstrapLogger.LogInformation(
-                message: "Added Policy '{policyName:l}' to Permission '{permissionName:l}': jwtBearerScheme = '{jwtBearerScheme:l}'; audience = '{audience:l}'; scope = '{scope:l}'; requiredRoles = '{requiredRoles:l}'.",
+                message: "Added Policy '{PolicyName:l}' to Permission '{PermissionName:l}': jwtBearerScheme = '{JwtBearerScheme:l}'; audience = '{Audience:l}'; scope = '{Scope:l}'; requiredRoles = '{RequiredRoles:l}'.",
                 args: args);
         }
 
