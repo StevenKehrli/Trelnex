@@ -167,9 +167,20 @@ internal static class DynamoTableHelper
         this ScalarAttributeType attributeType)
     {
         // Convert DynamoDB attribute type to Document Model entry type
-        if (attributeType == ScalarAttributeType.S) return DynamoDBEntryType.String;
-        if (attributeType == ScalarAttributeType.N) return DynamoDBEntryType.Numeric;
-        if (attributeType == ScalarAttributeType.B) return DynamoDBEntryType.Binary;
+        if (attributeType == ScalarAttributeType.S)
+        {
+            return DynamoDBEntryType.String;
+        }
+
+        if (attributeType == ScalarAttributeType.N)
+        {
+            return DynamoDBEntryType.Numeric;
+        }
+
+        if (attributeType == ScalarAttributeType.B)
+        {
+            return DynamoDBEntryType.Binary;
+        }
 
         throw new ArgumentException($"Unsupported attribute type: {attributeType}");
     }

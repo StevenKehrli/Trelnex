@@ -33,7 +33,10 @@ public class CompositeJsonResolver(
         var jsonTypeInfo = base.GetTypeInfo(type, options);
 
         // Only process object types; skip primitives, arrays, and other non-object types.
-        if (jsonTypeInfo.Kind != JsonTypeInfoKind.Object) return jsonTypeInfo;
+        if (jsonTypeInfo.Kind != JsonTypeInfoKind.Object)
+        {
+            return jsonTypeInfo;
+        }
 
         var properties = jsonTypeInfo.Properties.ToList() as IList<JsonPropertyInfo>;
 

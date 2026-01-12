@@ -78,7 +78,10 @@ internal static partial class KeyArnUtilities
         var match = KeyRegex().Match(keyArn);
 
         // If the ARN is invalid, return null.
-        if (match.Success is false) return null;
+        if (!match.Success)
+        {
+            return null;
+        }
 
         // Get the region.
         var region = match.Groups["region"].Value;

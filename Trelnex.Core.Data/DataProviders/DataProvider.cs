@@ -85,7 +85,7 @@ public abstract partial class DataProvider<TItem>
         ILogger? logger = null)
     {
         // Validate type name format (lowercase letters and hyphens only)
-        if (TypeRulesRegex().IsMatch(typeName) is false)
+        if (!TypeRulesRegex().IsMatch(typeName))
         {
             throw new ArgumentException($"The typeName '{typeName}' does not follow the naming rules: lowercase letters and hyphens; start and end with a lowercase letter.", nameof(typeName));
         }
@@ -186,7 +186,7 @@ public abstract partial class DataProvider<TItem>
         string id,
         string partitionKey)
     {
-        if (_commandOperations.HasFlag(CommandOperations.Create) is false)
+        if (!_commandOperations.HasFlag(CommandOperations.Create))
         {
             throw new NotSupportedException("The requested Create operation is not supported.");
         }
@@ -219,7 +219,7 @@ public abstract partial class DataProvider<TItem>
         string partitionKey,
         CancellationToken cancellationToken = default)
     {
-        if (_commandOperations.HasFlag(CommandOperations.Delete) is false)
+        if (!_commandOperations.HasFlag(CommandOperations.Delete))
         {
             throw new NotSupportedException("The requested Delete operation is not supported.");
         }
@@ -270,7 +270,7 @@ public abstract partial class DataProvider<TItem>
         string partitionKey,
         CancellationToken cancellationToken = default)
     {
-        if (_commandOperations.HasFlag(CommandOperations.Update) is false)
+        if (!_commandOperations.HasFlag(CommandOperations.Update))
         {
             throw new NotSupportedException("The requested Update operation is not supported.");
         }
@@ -540,7 +540,7 @@ public abstract partial class DataProvider<TItem>
         TItem item)
     {
         // Increment version and set deletion properties
-        item.Version = item.Version + 1;
+        item.Version++;
         item.DeletedDateTimeOffset = DateTimeOffset.UtcNow;
         item.IsDeleted = true;
 
@@ -586,7 +586,7 @@ public abstract partial class DataProvider<TItem>
         CancellationToken cancellationToken = default)
     {
         // Wrap single item in array for batch processing
-        SaveRequest<TItem>[] requests = [ request ];
+        SaveRequest<TItem>[] requests = [request];
 
         var results = await SaveBatchAsync(
             requests: requests,

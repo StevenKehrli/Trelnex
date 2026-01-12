@@ -87,7 +87,10 @@ public class BlockCipherService(
     private IBlockCipher? GetCipher(
         int cipherId)
     {
-        if (primaryCipher.Id == cipherId) return primaryCipher;
+        if (primaryCipher.Id == cipherId)
+        {
+            return primaryCipher;
+        }
 
         return secondaryCiphers?.FirstOrDefault(c => c.Id == cipherId);
     }

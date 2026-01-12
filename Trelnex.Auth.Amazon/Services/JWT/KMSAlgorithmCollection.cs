@@ -203,7 +203,7 @@ internal class KMSAlgorithmCollection
         // Log information about the initialized algorithms.
         // The :l format parameter (l = literal) is used to avoid quoting issues in log output.
         bootstrapLogger.LogInformation(
-            message: "Added Default KMSAlgorithm: kid = '{kid:l}', keyArn = '{keyArn:l}'.",
+            message: "Added Default KMSAlgorithm: keyId = '{KeyId:l}', keyArn = '{KeyArn:l}'.",
             args: [
                 defaultAlgorithm.JWK.KeyId,
                 defaultAlgorithm.KeyArn ]);
@@ -211,7 +211,7 @@ internal class KMSAlgorithmCollection
         Array.ForEach(regionalAlgorithms ?? [], regionalAlgorithm =>
         {
             bootstrapLogger.LogInformation(
-                message: "Added Regional KMSAlgorithm: region = '{region:l}', kid '{kid:l}', keyArn = '{keyArn:l}'.",
+                message: "Added Regional KMSAlgorithm: region = '{Region:l}', keyId '{KeyId:l}', keyArn = '{KeyArn:l}'.",
                 args: [
                     regionalAlgorithm.RegionEndpoint.SystemName,
                     regionalAlgorithm.JWK.KeyId,
@@ -221,7 +221,7 @@ internal class KMSAlgorithmCollection
         Array.ForEach(secondaryAlgorithms ?? [], secondaryAlgorithm =>
         {
             bootstrapLogger.LogInformation(
-                message: "Added Secondary KMSAlgorithm: region = '{region:l}', kid = '{kid:l}', keyArn = '{keyArn:l}'.",
+                message: "Added Secondary KMSAlgorithm: region = '{Region:l}', keyId = '{KeyId:l}', keyArn = '{KeyArn:l}'.",
                 args: [
                     secondaryAlgorithm.RegionEndpoint.SystemName,
                     secondaryAlgorithm.JWK.KeyId,
@@ -379,7 +379,10 @@ internal class KMSAlgorithmCollection
             // If any region has more than one key, add an error to the list.
             Array.ForEach(regionalKeyGroups ?? [], group =>
             {
-                if (group.Count() <= 1) return;
+                if (group.Count() <= 1)
+                {
+                    return;
+                }
 
                 exs.Add(new ConfigurationErrorsException($"A RegionalKey for Region '{group.Key?.SystemName}' is specified more than once."));
             });
@@ -419,7 +422,10 @@ internal class KMSAlgorithmCollection
             // If any secondary key is specified more than once, add an error to the list.
             Array.ForEach(secondaryKeyGroups ?? [], group =>
             {
-                if (group.Count() <= 1) return;
+                if (group.Count() <= 1)
+                {
+                    return;
+                }
 
                 exs.Add(new ConfigurationErrorsException($"A SecondaryKey '{group.Key} is specified more than once."));
             });

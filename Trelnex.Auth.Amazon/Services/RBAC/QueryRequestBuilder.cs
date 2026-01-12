@@ -26,7 +26,7 @@ public class QueryRequestBuilder
     /// <summary>
     /// The DynamoDB table name for the query.
     /// </summary>
-    private string? _tableName = null;
+    private string? _tableName;
 
     /// <summary>
     /// Collection of key condition expressions to be combined with AND.

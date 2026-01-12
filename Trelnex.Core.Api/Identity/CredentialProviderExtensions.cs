@@ -51,10 +51,13 @@ public static class CredentialProviderExtensions
         // Find the credential provider with the matching name.
         var serviceDescriptor = services.FirstOrDefault(serviceDescriptor =>
         {
-            if (serviceDescriptor.IsCredentialProvider() is false) return false;
+            if (!serviceDescriptor.IsCredentialProvider())
+            {
+                return false;
+            }
 
             // Match by the service key (provider name).
-            return string.Equals(serviceDescriptor.ServiceKey as string, credentialProviderName);
+            return string.Equals(serviceDescriptor.ServiceKey as string, credentialProviderName, StringComparison.Ordinal);
         });
 
         // Return the provider or throw if not found.
@@ -77,7 +80,10 @@ public static class CredentialProviderExtensions
         // Find the first credential provider that handles the specified type.
         var serviceDescriptor = services.FirstOrDefault(serviceDescriptor =>
         {
-            if (serviceDescriptor.IsCredentialProvider() is false) return false;
+            if (!serviceDescriptor.IsCredentialProvider())
+            {
+                return false;
+            }
 
             // Check if the provider is of the requested generic type.
             return serviceDescriptor.KeyedImplementationInstance is ICredentialProvider<T>;
@@ -121,13 +127,22 @@ public static class CredentialProviderExtensions
         this ServiceDescriptor serviceDescriptor)
     {
         // Must be a keyed service of ICredentialProvider type.
-        if (serviceDescriptor.ServiceType != typeof(ICredentialProvider)) return false;
+        if (serviceDescriptor.ServiceType != typeof(ICredentialProvider))
+        {
+            return false;
+        }
 
         // Must have a valid implementation instance.
-        if (serviceDescriptor.KeyedImplementationInstance is null or not ICredentialProvider) return false;
+        if (serviceDescriptor.KeyedImplementationInstance is null or not ICredentialProvider)
+        {
+            return false;
+        }
 
         // Must have a string key for retrieval.
-        if (serviceDescriptor.ServiceKey is null or not string) return false;
+        if (serviceDescriptor.ServiceKey is null or not string)
+        {
+            return false;
+        }
 
         return true;
     }

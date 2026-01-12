@@ -155,6 +155,6 @@ public abstract class DynamoDataProviderTestBase : DataProviderTests
             {
                 await table.DeleteItemAsync(document);
             }
-        } while (search.IsDone is false);
+        } while (!search.IsDone);
     }
 }

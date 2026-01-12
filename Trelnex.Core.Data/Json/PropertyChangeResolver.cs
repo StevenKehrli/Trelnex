@@ -32,7 +32,10 @@ public class PropertyChangeResolver(
                 .FirstOrDefault();
 
             // Skip properties without JsonPropertyNameAttribute
-            if (jsonPropertyNameAttribute is null) continue;
+            if (jsonPropertyNameAttribute is null)
+            {
+                continue;
+            }
 
             // Exclude properties explicitly marked as DoNotTrack
             var doNotTrackAttribute = property.AttributeProvider?
@@ -40,7 +43,10 @@ public class PropertyChangeResolver(
                 .FirstOrDefault();
 
             // Skip properties marked with DoNotTrackAttribute
-            if (doNotTrackAttribute is not null) continue;
+            if (doNotTrackAttribute is not null)
+            {
+                continue;
+            }
 
             // Check for explicit TrackAttribute when selective tracking is enabled
             var trackAttribute = property.AttributeProvider?
@@ -48,7 +54,10 @@ public class PropertyChangeResolver(
                 .FirstOrDefault();
 
             // Apply tracking logic based on allChanges setting
-            if (allChanges is false && trackAttribute is null) continue;
+            if (!allChanges && trackAttribute is null)
+            {
+                continue;
+            }
 
             // Include property that meets all tracking criteria
             trackProperties.Add(property);

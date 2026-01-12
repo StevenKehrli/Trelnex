@@ -24,14 +24,25 @@ internal class RoleItem(
     public static RoleItem? FromAttributeMap(
         Dictionary<string, AttributeValue> attributeMap)
     {
-        if (attributeMap is null) return null;
+        if (attributeMap is null)
+        {
+            return null;
+        }
 
         // Extract the resource name from the attribute map.
-        if (attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute))
+        {
+            return null;
+        }
+
         var resourceName = resourceNameAttribute.S;
 
         // Extract the role name from the attribute map.
-        if (attributeMap.TryGetValue("_roleName", out var roleNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_roleName", out var roleNameAttribute))
+        {
+            return null;
+        }
+
         var roleName = roleNameAttribute.S;
 
         // Create a new RoleItem instance with the extracted values.

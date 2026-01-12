@@ -27,7 +27,10 @@ public class CompositeValidator<T>
         Include(first);
 
         // If a second validator is provided, include its rules as well.
-        if (second is not null) Include(second);
+        if (second is not null)
+        {
+            Include(second);
+        }
     }
 
     #endregion

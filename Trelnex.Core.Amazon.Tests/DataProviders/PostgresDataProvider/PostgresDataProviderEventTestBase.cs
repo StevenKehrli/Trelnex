@@ -225,7 +225,10 @@ public abstract class PostgresDataProviderEventTestBase
         DbConnection dbConnection)
     {
         // Only process Npgsql connections
-        if (dbConnection is not NpgsqlConnection connection) return;
+        if (dbConnection is not NpgsqlConnection connection)
+        {
+            return;
+        }
 
         // Generate AWS IAM authentication token for PostgreSQL
         var pwd = RDSAuthTokenGenerator.GenerateAuthToken(

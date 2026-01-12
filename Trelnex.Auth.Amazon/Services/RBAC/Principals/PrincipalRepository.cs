@@ -109,7 +109,7 @@ internal partial class RBACRepository
             ?? throw new HttpStatusCodeException(HttpStatusCode.NotFound, $"Resource '{normalizedResourceName}' not found.");
 
         // Verify the scope exists before retrieving principal access.
-        if (_scopeNameValidator.IsDefault(normalizedScopeName!) is false)
+        if (!_scopeNameValidator.IsDefault(normalizedScopeName!))
         {
             _ = await GetScopeAsync(
                 resourceName: normalizedResourceName!,
@@ -119,7 +119,7 @@ internal partial class RBACRepository
         }
 
         // Start both assignment retrieval operations concurrently.
-            var scopeAssignmentsTask = GetScopesForPrincipalAsync(
+        var scopeAssignmentsTask = GetScopesForPrincipalAsync(
             principalId: principalId,
             resourceName: normalizedResourceName!,
             cancellationToken: cancellationToken);
@@ -135,7 +135,7 @@ internal partial class RBACRepository
         // Filter scope assignments based on whether the scope name is default or specific.
         var scopeNames = _scopeNameValidator.IsDefault(normalizedScopeName!)
             ? scopeAssignmentsTask.Result
-            : scopeAssignmentsTask.Result.Where(s => s == normalizedScopeName!).ToArray();
+            : [.. scopeAssignmentsTask.Result.Where(s => s == normalizedScopeName!)];
 
         // Only include role assignments if the principal has matching scope assignments.
         var roleNames = scopeNames.Length > 0

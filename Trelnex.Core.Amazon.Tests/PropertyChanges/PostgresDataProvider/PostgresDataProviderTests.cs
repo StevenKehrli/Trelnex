@@ -5,6 +5,7 @@ using Amazon.RDS.Util;
 using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
 using LinqToDB;
+using LinqToDB.Async;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +16,7 @@ using Trelnex.Core.Data;
 using Trelnex.Core.Data.Tests.PropertyChanges;
 using Trelnex.Core.Encryption;
 
-namespace Trelnex.Core.Azure.Tests.PropertyChanges;
+namespace Trelnex.Core.Amazon.Tests.PropertyChanges;
 
 [Ignore("Requires a Postgres server.")]
 [Category("EventPolicy")]

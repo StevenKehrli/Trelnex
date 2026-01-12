@@ -39,12 +39,18 @@ public class TraceMethodAttribute(
         // Get the source name.
         // If the source name is null, return.
         sourceName = GetSourceName(args.Method, sourceName);
-        if (sourceName is null) return;
+        if (sourceName is null)
+        {
+            return;
+        }
 
         // Get the activity name.
         // If the activity name is null, return.
         var activityName = GetActivityName(args.Method);
-        if (activityName is null) return;
+        if (activityName is null)
+        {
+            return;
+        }
 
         // Get the activity source.
         var activitySource = GetActivitySource(sourceName);
@@ -67,10 +73,16 @@ public class TraceMethodAttribute(
                 var parameter = parameters[index];
 
                 // Skip the parameter if it is not valid.
-                if (parameter.Name is null) continue;
+                if (parameter.Name is null)
+                {
+                    continue;
+                }
 
                 // Skip the parameter if it is not marked with the TraceParameterAttribute.
-                if (parameter.GetCustomAttribute<TraceParameterAttribute>() is null) continue;
+                if (parameter.GetCustomAttribute<TraceParameterAttribute>() is null)
+                {
+                    continue;
+                }
 
                 // Set the tag on the activity.
                 activity.SetTag(parameter.Name, args.Arguments[index]);
@@ -164,7 +176,10 @@ public class TraceMethodAttribute(
         MethodBase method)
     {
         // If the method's declaring type is null, return null.
-        if (method.DeclaringType is null) return null;
+        if (method.DeclaringType is null)
+        {
+            return null;
+        }
 
         // Return the activity name.
         return $"{method.DeclaringType.Name}.{method.Name}";
@@ -206,10 +221,16 @@ public class TraceMethodAttribute(
         string? sourceName)
     {
         // If the source name is not null or whitespace, return the source name.
-        if (string.IsNullOrWhiteSpace(sourceName) is false) return sourceName;
+        if (!string.IsNullOrWhiteSpace(sourceName))
+        {
+            return sourceName;
+        }
 
         // If the method's declaring type is null, return null.
-        if (method.DeclaringType is null) return null;
+        if (method.DeclaringType is null)
+        {
+            return null;
+        }
 
         // Return the assembly name.
         return method.DeclaringType.Assembly.GetName().Name;

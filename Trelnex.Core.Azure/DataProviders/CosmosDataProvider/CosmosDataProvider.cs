@@ -54,7 +54,7 @@ internal class CosmosDataProvider<TItem>(
         return container
             .GetItemLinqQueryable<TItem>()
             .Where(item => item.TypeName == TypeName)
-            .Where(item => item.IsDeleted.IsDefined() == false || item.IsDeleted == false);
+            .Where(item => !item.IsDeleted.IsDefined() || item.IsDeleted == false);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ internal class CosmosDataProvider<TItem>(
                 responseMessage = await feedIterator.ReadNextAsync(cancellationToken);
 
                 // Verify response was successful
-                if (responseMessage.IsSuccessStatusCode is false)
+                if (!responseMessage.IsSuccessStatusCode)
                 {
                     throw new CommandException(responseMessage.StatusCode, responseMessage.ErrorMessage);
                 }
@@ -104,7 +104,10 @@ internal class CosmosDataProvider<TItem>(
 
                 var item = DeserializeItem(jsonElement.GetRawText());
 
-                if (item is null) continue;
+                if (item is null)
+                {
+                    continue;
+                }
 
                 var queryResult = ConvertToQueryResult(item);
 
@@ -136,7 +139,7 @@ internal class CosmosDataProvider<TItem>(
                 cancellationToken: cancellationToken);
 
             // Handle response based on status code
-            if (responseMessage.IsSuccessStatusCode is false)
+            if (!responseMessage.IsSuccessStatusCode)
             {
                 return responseMessage.StatusCode == HttpStatusCode.NotFound
                     ? null
@@ -303,7 +306,10 @@ internal class CosmosDataProvider<TItem>(
         // Create event with TTL and serialize to memory stream
         Stream? createEventStream(ItemEvent? itemEvent)
         {
-            if (itemEvent is null) return null;
+            if (itemEvent is null)
+            {
+                return null;
+            }
 
             var eventWithExpiration = new ItemEventWithExpiration(itemEvent, eventTimeToLive);
             var eventStream = new MemoryStream();
@@ -333,7 +339,7 @@ internal class CosmosDataProvider<TItem>(
         TransactionalBatchOperationResult itemResult)
     {
         // Return failure status if operation was not successful
-        if (itemResult.IsSuccessStatusCode is false)
+        if (!itemResult.IsSuccessStatusCode)
         {
             return new SaveResult<TItem>(
                 itemResult.StatusCode,

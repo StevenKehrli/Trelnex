@@ -182,7 +182,7 @@ using var updateCommand = await dataProvider.UpdateAsync(
     cancellationToken: default);
 
 // Returns null if item doesn't exist or is soft-deleted
-if (updateCommand == null) return;
+if (updateCommand is null) return;
 
 // Update properties through the managed item
 updateCommand.Item.PublicMessage = "Public #2";
@@ -216,7 +216,7 @@ using var deleteCommand = await dataProvider.DeleteAsync(
     cancellationToken: default);
 
 // Returns null if item doesn't exist or already soft-deleted
-if (deleteCommand == null) return;
+if (deleteCommand is null) return;
 
 // Perform soft delete (sets DeletedDateTimeOffset, IsDeleted becomes true)
 using var result = await deleteCommand.SaveAsync(cancellationToken: default);

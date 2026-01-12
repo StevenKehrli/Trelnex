@@ -24,7 +24,10 @@ public static class EncryptedJsonService
         IBlockCipherService blockCipherService)
     {
         // Check if the value is null. If so, return null.
-        if (value is null) return null;
+        if (value is null)
+        {
+            return null;
+        }
 
         // Serialize the object of type TProperty to a JSON string.
         var jsonString = JsonSerializer.Serialize(value);
@@ -56,7 +59,10 @@ public static class EncryptedJsonService
         IBlockCipherService blockCipherService)
     {
         // Check if the encryptedBase64 is null or empty.
-        if (string.IsNullOrEmpty(encryptedBase64)) return default;
+        if (string.IsNullOrEmpty(encryptedBase64))
+        {
+            return default;
+        }
 
         // Convert the encrypted Base64 string to a byte array.
         var encryptedBytes = Convert.FromBase64String(encryptedBase64);

@@ -128,7 +128,7 @@ public class CallerIdentitySignature
 
             // Validate that the region is a valid AWS region
             RuleFor(x => x.Region)
-                .Must(region => RegionEndpoint.EnumerableAllRegions.FirstOrDefault(re => re.SystemName == region) != null)
+                .Must(region => RegionEndpoint.EnumerableAllRegions.FirstOrDefault(re => re.SystemName == region) is not null)
                 .OverridePropertyName("region")
                 .WithMessage("region is invalid.");
 

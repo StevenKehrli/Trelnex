@@ -1,7 +1,6 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.Runtime;
 using Amazon.Runtime.Credentials;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -150,6 +149,6 @@ public abstract class DynamoDataProviderEventTestBase
             {
                 await table.DeleteItemAsync(document);
             }
-        } while (search.IsDone is false);
+        } while (!search.IsDone);
     }
 }

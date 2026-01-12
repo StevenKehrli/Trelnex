@@ -24,14 +24,25 @@ internal class ScopeItem(
     public static ScopeItem? FromAttributeMap(
         Dictionary<string, AttributeValue> attributeMap)
     {
-        if (attributeMap is null) return null;
+        if (attributeMap is null)
+        {
+            return null;
+        }
 
         // Extract the resource name from the attribute map.
-        if (attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_resourceName", out var resourceNameAttribute))
+        {
+            return null;
+        }
+
         var resourceName = resourceNameAttribute.S;
 
         // Extract the scope name from the attribute map.
-        if (attributeMap.TryGetValue("_scopeName", out var scopeNameAttribute) is false) return null;
+        if (!attributeMap.TryGetValue("_scopeName", out var scopeNameAttribute))
+        {
+            return null;
+        }
+
         var scopeName = scopeNameAttribute.S;
 
         // Create a new ScopeItem instance with the extracted values.

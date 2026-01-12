@@ -45,21 +45,37 @@ internal static class PropertyChanges
             formatter: _jsonPatchDeltaFormatter,
             options: _jsonDiffOptions);
 
-        if (diff == null) return null;
-        if (diff is not JsonArray diffArray || diffArray.Count == 0) return null;
+        if (diff is null)
+        {
+            return null;
+        }
+
+        if (diff is not JsonArray diffArray || diffArray.Count == 0)
+        {
+            return null;
+        }
 
         var changes = new List<PropertyChange>();
 
         // Process each diff operation
         foreach (var diffNode in diffArray)
         {
-            if (diffNode is not JsonObject diffObject) continue;
+            if (diffNode is not JsonObject diffObject)
+            {
+                continue;
+            }
 
             var op = diffObject["op"]?.GetValue<string>();
-            if (op is null) continue;
+            if (op is null)
+            {
+                continue;
+            }
 
             var path = diffObject["path"]?.GetValue<string>();
-            if (path is null) continue;
+            if (path is null)
+            {
+                continue;
+            }
 
             switch (op)
             {
@@ -90,7 +106,10 @@ internal static class PropertyChanges
                 case "copy":
                     // Process copy operations from one path to another
                     var copyFromPath = diffObject["from"]?.GetValue<string>();
-                    if (copyFromPath is null) break;
+                    if (copyFromPath is null)
+                    {
+                        break;
+                    }
 
                     var copyFromNode = initialJsonNodePath.Get(copyFromPath);
                     if (copyFromNode is JsonArray copyFromArray)
@@ -118,7 +137,10 @@ internal static class PropertyChanges
                 case "move":
                     // Process move operations (remove from source, add to destination)
                     var moveFromPath = diffObject["from"]?.GetValue<string>();
-                    if (moveFromPath is null) break;
+                    if (moveFromPath is null)
+                    {
+                        break;
+                    }
 
                     var moveFromNode = initialJsonNodePath.Get(moveFromPath);
                     if (moveFromNode is JsonArray moveFromArray)
@@ -219,6 +241,9 @@ internal static class PropertyChanges
                     }
 
                     break;
+
+                default:
+                    break;
             }
         }
 
@@ -290,8 +315,16 @@ internal static class PropertyChanges
     {
         // Get all property keys from both objects
         var keys = new HashSet<string>();
-        if (oldJsonObject != null) keys.UnionWith(oldJsonObject.Select(kvp => kvp.Key));
-        if (newJsonObject != null) keys.UnionWith(newJsonObject.Select(kvp => kvp.Key));
+
+        if (oldJsonObject is not null)
+        {
+            keys.UnionWith(oldJsonObject.Select(kvp => kvp.Key));
+        }
+
+        if (newJsonObject is not null)
+        {
+            keys.UnionWith(newJsonObject.Select(kvp => kvp.Key));
+        }
 
         foreach (var key in keys)
         {
@@ -328,15 +361,41 @@ internal static class PropertyChanges
     /// <returns>The extracted numeric value or null if extraction fails.</returns>
     private static dynamic? GetNumber(JsonNode node)
     {
-        if (node is not JsonValue jsonValue) return null;
+        if (node is not JsonValue jsonValue)
+        {
+            return null;
+        }
 
         // Try different numeric types in order of preference
-        if (jsonValue.TryGetValue<int>(out var intValue)) return intValue;
-        if (jsonValue.TryGetValue<long>(out var longValue)) return longValue;
-        if (jsonValue.TryGetValue<ulong>(out var ulongValue)) return ulongValue;
-        if (jsonValue.TryGetValue<float>(out var floatValue)) return floatValue;
-        if (jsonValue.TryGetValue<double>(out var doubleValue)) return doubleValue;
-        if (jsonValue.TryGetValue<decimal>(out var decimalValue)) return decimalValue;
+        if (jsonValue.TryGetValue<int>(out var intValue))
+        {
+            return intValue;
+        }
+
+        if (jsonValue.TryGetValue<long>(out var longValue))
+        {
+            return longValue;
+        }
+
+        if (jsonValue.TryGetValue<ulong>(out var ulongValue))
+        {
+            return ulongValue;
+        }
+
+        if (jsonValue.TryGetValue<float>(out var floatValue))
+        {
+            return floatValue;
+        }
+
+        if (jsonValue.TryGetValue<double>(out var doubleValue))
+        {
+            return doubleValue;
+        }
+
+        if (jsonValue.TryGetValue<decimal>(out var decimalValue))
+        {
+            return decimalValue;
+        }
 
         return null;
     }
@@ -348,9 +407,7 @@ internal static class PropertyChanges
     /// <returns>Extracted primitive value or null.</returns>
     private static dynamic? GetValue(JsonNode? node)
     {
-        if (node == null) return null;
-
-        return node.GetValueKind() switch
+        return node?.GetValueKind() switch
         {
             JsonValueKind.String => node.GetValue<string>(),
             JsonValueKind.Number => GetNumber(node),
@@ -384,8 +441,8 @@ internal static class PropertyChanges
             }
 
             // Merge remove and add operations for the same path
-            var removeChange = pathChanges.FirstOrDefault(c => c.NewValue == null);
-            var addChange = pathChanges.FirstOrDefault(c => c.OldValue == null);
+            var removeChange = pathChanges.FirstOrDefault(c => c.NewValue is null);
+            var addChange = pathChanges.FirstOrDefault(c => c.OldValue is null);
 
             var mergeChange = new PropertyChange
             {
@@ -395,13 +452,13 @@ internal static class PropertyChanges
             };
 
             // Only include changes where values actually differ
-            if (Equals(mergeChange.OldValue, mergeChange.NewValue) is false)
+            if (!Equals(mergeChange.OldValue, mergeChange.NewValue))
             {
                 mergeChanges.Add(mergeChange);
             }
         }
 
-        return mergeChanges.OrderBy(c => c.PropertyName).ToArray();
+        return [.. mergeChanges.OrderBy(c => c.PropertyName)];
     }
 
     #endregion

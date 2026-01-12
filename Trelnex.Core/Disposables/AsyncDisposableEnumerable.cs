@@ -36,7 +36,7 @@ public sealed class AsyncDisposableEnumerable<T>
     /// <summary>
     /// Indicates whether this instance has been disposed.
     /// </summary>
-    private bool _disposed = false;
+    private bool _disposed;
 
     #endregion
 
@@ -84,7 +84,10 @@ public sealed class AsyncDisposableEnumerable<T>
     /// </remarks>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _disposables.ForEach(disposable =>
         {

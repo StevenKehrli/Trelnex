@@ -116,7 +116,7 @@ internal class DynamoDataProvider<TItem>(
 
                 throw new CommandException(httpStatusCode, ade.Message, ade);
             }
-        } while (search.IsDone is false);
+        } while (!search.IsDone);
 
         // Apply remaining LINQ filters to retrieved items
         foreach (var item in queryHelper.Filter(items))
@@ -152,7 +152,10 @@ internal class DynamoDataProvider<TItem>(
 
         var document = await itemTable.GetItemAsync(key, cancellationToken);
 
-        if (document is null) return null;
+        if (document is null)
+        {
+            return null;
+        }
 
         // Convert document to JSON and deserialize to typed item
         var json = document.ToJson();
@@ -194,10 +197,16 @@ internal class DynamoDataProvider<TItem>(
                 : "(attribute_exists(partitionKey) AND attribute_exists(id) AND #etag = :_etag)";
 
             var expressionAttributeNames = new Dictionary<string, string>();
-            if (request.Item.ETag != null) expressionAttributeNames["#etag"] = "_etag";
+            if (request.Item.ETag is not null)
+            {
+                expressionAttributeNames["#etag"] = "_etag";
+            }
 
             var expressionAttributeValues = new Dictionary<string, DynamoDBEntry>();
-            if (request.Item.ETag != null) expressionAttributeValues[":_etag"] = request.Item.ETag;
+            if (request.Item.ETag is not null)
+            {
+                expressionAttributeValues[":_etag"] = request.Item.ETag;
+            }
 
             var config = new TransactWriteItemOperationConfig
             {
@@ -226,7 +235,10 @@ internal class DynamoDataProvider<TItem>(
             itemBatch.AddDocumentToUpdate(documentItem, config);
 
             // Skip if no event to record
-            if (request.Event is null) continue;
+            if (request.Event is null)
+            {
+                continue;
+            }
 
             // Calculate event expiration and create event with same ETag
             var eventExpireAt = (eventTimeToLive is null)
@@ -265,7 +277,10 @@ internal class DynamoDataProvider<TItem>(
                 var cancellationReason = cancellationReasons[index];
                 var httpStatusCode = ConvertReasonCode(cancellationReason.Code);
 
-                if (httpStatusCode == HttpStatusCode.OK) continue;
+                if (httpStatusCode == HttpStatusCode.OK)
+                {
+                    continue;
+                }
 
                 results[index] = new SaveResult<TItem>(
                     HttpStatusCode: httpStatusCode,

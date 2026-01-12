@@ -13,7 +13,7 @@ internal static class ReservedTypeNames
     internal static readonly string Event = "event";
 
     // Array containing all reserved type names for validation
-    private static readonly string[] _reservedTypeNames = [ Event ];
+    private static readonly string[] _reservedTypeNames = [Event];
 
     #endregion
 
@@ -27,7 +27,7 @@ internal static class ReservedTypeNames
     public static bool IsReserved(
         string typeName)
     {
-        return _reservedTypeNames.Any(rtn => string.Equals(rtn, typeName));
+        return _reservedTypeNames.Any(rtn => string.Equals(rtn, typeName, StringComparison.Ordinal));
     }
 
     #endregion

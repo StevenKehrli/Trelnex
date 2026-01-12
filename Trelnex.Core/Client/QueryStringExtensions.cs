@@ -46,7 +46,10 @@ public static class UriExtensions
         params (string key, string value)[] parameters)
     {
         // If no parameters are provided, return the original relative path unchanged
-        if (parameters.Length == 0) return relativePath;
+        if (parameters.Length == 0)
+        {
+            return relativePath;
+        }
 
         // Convert relative path to fake absolute URI for both query parsing and UriBuilder operations
         var fakeUri = new Uri(s_fakeSchemeHostPort, relativePath);

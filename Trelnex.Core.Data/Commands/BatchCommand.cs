@@ -9,7 +9,7 @@ namespace Trelnex.Core.Data;
 /// Defines operations for managing and executing a batch of save commands.
 /// </summary>
 /// <typeparam name="TItem">The item type that extends BaseItem.</typeparam>
-public interface IBatchCommand<TItem>
+public interface IBatchCommand<TItem> : IDisposable
     where TItem : BaseItem
 {
     /// <summary>
@@ -60,6 +60,9 @@ internal class BatchCommand<TItem>(
     // Collection of save commands to execute in the batch, nulled after execution
     private List<SaveCommand<TItem>> _saveCommands = [];
 
+    // Track whether Dispose has been called
+    private bool _disposed;
+
     #endregion
 
     #region Public Methods
@@ -68,6 +71,8 @@ internal class BatchCommand<TItem>(
     public IBatchCommand<TItem> Add(
         ISaveCommand<TItem> saveCommand)
     {
+        ThrowIfDisposed();
+
         // Verify the save command is the expected concrete type
         if (saveCommand is not SaveCommand<TItem> sc)
         {
@@ -103,6 +108,8 @@ internal class BatchCommand<TItem>(
     public async Task<IBatchResult<TItem>[]> SaveAsync(
         CancellationToken cancellationToken)
     {
+        ThrowIfDisposed();
+
         try
         {
             // Acquire lock to prevent concurrent execution
@@ -157,6 +164,8 @@ internal class BatchCommand<TItem>(
     public async Task<ValidationResult[]> ValidateAsync(
         CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
+
         try
         {
             // Acquire lock to ensure consistent state during validation
@@ -175,6 +184,18 @@ internal class BatchCommand<TItem>(
     #endregion
 
     #region Private Methods
+
+    /// <summary>
+    /// Throws an ObjectDisposedException if the batch command has been disposed.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">Thrown when the batch command has been disposed.</exception>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+    }
 
     /// <summary>
     /// Creates batch results for failed acquisition attempts with appropriate status codes.
@@ -277,7 +298,7 @@ internal class BatchCommand<TItem>(
         // Create validator to ensure all items have the same partition key
         var validator = new InlineValidator<TItem>();
         validator.RuleFor(item => item.PartitionKey)
-            .Must(pk => string.Equals(pk, partitionKey))
+            .Must(pk => string.Equals(pk, partitionKey, StringComparison.Ordinal))
             .WithMessage(item => $"The partition key '{item.PartitionKey}' does not match the batch partition key '{partitionKey}'.");
 
         // Validate both partition key consistency and individual command rules
@@ -286,14 +307,54 @@ internal class BatchCommand<TItem>(
             var vrPartitionKey = await validator.ValidateAsync(sc.Item, cancellationToken);
             var vrSaveCommand = await sc.ValidateAsync(cancellationToken);
 
-            if (vrPartitionKey.IsValid) return vrSaveCommand;
-            if (vrSaveCommand.IsValid) return vrPartitionKey;
+            if (vrPartitionKey.IsValid)
+            {
+                return vrSaveCommand;
+            }
+
+            if (vrSaveCommand.IsValid)
+            {
+                return vrPartitionKey;
+            }
 
             // Combine errors from both validations if both failed
             return new ValidationResult(vrPartitionKey.Errors.Concat(vrSaveCommand.Errors));
         }));
 
         return validationResults;
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    /// <summary>
+    /// Releases all resources used by the batch command.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases the unmanaged resources used by the batch command and optionally releases the managed resources.
+    /// </summary>
+    /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            // Dispose managed resources
+            _semaphore.Dispose();
+        }
+
+        _disposed = true;
     }
 
     #endregion

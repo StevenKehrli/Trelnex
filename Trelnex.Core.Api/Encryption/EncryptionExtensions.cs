@@ -49,7 +49,10 @@ public static class EncryptionExtensions
             .GetSection("Primary")
             .CreateBlockCipher();
 
-        if (primaryCipher is null) return null;
+        if (primaryCipher is null)
+        {
+            return null;
+        }
 
         var secondaryCiphers = encryptionSection
             .GetSection("Secondary")
@@ -73,7 +76,10 @@ public static class EncryptionExtensions
     {
         var blockCipherName = configuration.GetValue<BlockCipherName?>("CipherName");
 
-        if (blockCipherName.HasValue is false) return null;
+        if (!blockCipherName.HasValue)
+        {
+            return null;
+        }
 
         var cipher = BlockCipherFactory.Create(
             blockCipherName.Value,

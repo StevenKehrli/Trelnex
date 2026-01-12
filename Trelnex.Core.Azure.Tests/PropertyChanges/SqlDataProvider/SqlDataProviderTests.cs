@@ -3,6 +3,7 @@ using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
 using LinqToDB;
+using LinqToDB.Async;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Data.SqlClient;
